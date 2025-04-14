@@ -75,7 +75,7 @@ export default function Index() {
               key={tabData.label}
               onClick={() => setCurrentTab(index)}
               className={`w-full cursor-pointer transition transform hover:scale-105 ${
-                currentTab === index ? "" : ""
+                currentTab === index ? "scale-105" : ""
               }`}
             >
               <StatCard
