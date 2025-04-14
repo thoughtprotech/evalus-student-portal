@@ -74,7 +74,15 @@ const DocumentCard: FC<DocumentCardProps> = ({
 
       {/* Download Button */}
       {downloadUrl && (
-        <div className="w-full">
+        <div className="w-full flex gap-2">
+          <a
+            href={downloadUrl}
+            download
+            className="w-full inline-flex items-center justify-center font-bold px-4 py-2 bg-blue-600 text-white rounded-md shadow hover:bg-indigo-700 transition-colors"
+          >
+            <Download className="w-5 h-5 mr-2" />
+            View
+          </a>
           <a
             href={downloadUrl}
             download
