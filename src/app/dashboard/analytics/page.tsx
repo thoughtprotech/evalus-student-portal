@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Calendar, BarChartBig, Trophy, ListChecks } from "lucide-react";
+import AnalyticCard from "./components/AnalyticCard";
 
 const mockTests = [
   {
@@ -88,36 +89,15 @@ export default function AnalyticsDashboard() {
       <div className="mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {filteredTests.length > 0 ? (
           filteredTests.map((test) => (
-            <div
-              key={test.id}
-              className="bg-white border border-gray-200 rounded-md p-6 shadow-md transform transition duration-300"
-            >
-              <div className="flex flex-col gap-3">
-                <h2 className="text-2xl font-bold text-black line-clamp-2 truncate text-ellipsis">
-                  {test.name}
-                </h2>
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <Calendar className="w-5 h-5" />
-                  <span>{test.date}</span>
-                </div>
-              </div>
-              <div className="mt-4 space-y-2">
-                <p className="text-base text-gray-800">
-                  <span className="font-semibold">Score:</span> {test.score}/
-                  {test.totalMarks}
-                </p>
-                <p className="text-base text-gray-800">
-                  <span className="font-semibold">Duration:</span>{" "}
-                  {test.duration}
-                </p>
-              </div>
-              <div className="mt-6">
-                <Link href={`/dashboard/analytics/${test.id}`}>
-                  <button className="w-full py-2 px-4 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer">
-                    View Report
-                  </button>
-                </Link>
-              </div>
+            <div key={test.id}>
+              <AnalyticCard
+                id={test.id}
+                name={test.name}
+                date={test.date}
+                score={test.score}
+                totalMarks={test.totalMarks}
+                duration={test.duration}
+              />
             </div>
           ))
         ) : (

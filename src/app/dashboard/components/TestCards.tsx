@@ -51,7 +51,7 @@ export default function TestCards({
       <h1 className="text-2xl font-bold text-gray-800 mb-4 truncate text-ellipsis">{name}</h1>
 
       {/* Start and End Date/Time */}
-      <div className="grid grid-cols-2 gap-6 mb-6 rounded-md p-2">
+      <div className="w-full grid grid-cols-2 gap-5 md:gap-10 mb-6 rounded-md p-2">
         {/* Start Information */}
         <div className="border-r border-r-gray-300 w-full h-full flex flex-col gap-5 justify-between">
           <div>
