@@ -1,0 +1,67 @@
+[
+    {
+      "title": "Project Specification Document",
+      "fileType": "PDF",
+      "fileSize": "1.2 MB",
+      "uploadDate": "April 27, 2025",
+      "description": "Detailed project specifications including functional and non-functional requirements.",
+      "downloadUrl": "/files/project-spec.pdf"
+    },
+    {
+      "title": "Financial Report Q1 2025",
+      "fileType": "Excel",
+      "fileSize": "850 KB",
+      "uploadDate": "March 31, 2025",
+      "description": "Quarterly financial performance report for Q1.",
+      "downloadUrl": "/files/q1-report.xlsx"
+    },
+    {
+      "title": "Marketing Strategy",
+      "fileType": "Word Document",
+      "fileSize": "450 KB",
+      "uploadDate": "February 15, 2025",
+      "description": "Comprehensive overview of the marketing strategy for the upcoming quarter.",
+      "downloadUrl": "/files/marketing-strategy.docx"
+    },
+    {
+      "title": "Company Presentation Deck",
+      "fileType": "PowerPoint",
+      "fileSize": "3.5 MB",
+      "uploadDate": "December 10, 2024",
+      "description": "Presentation deck for the annual company meeting.",
+      "downloadUrl": "/files/company-presentation.pptx"
+    },
+    {
+      "title": "User Manual",
+      "fileType": "PDF",
+      "fileSize": "2.1 MB",
+      "uploadDate": "January 5, 2025",
+      "description": "Comprehensive user manual containing detailed operational guidelines.",
+      "downloadUrl": "/files/user-manual.pdf"
+    },
+    {
+      "title": "Sales Data Analysis",
+      "fileType": "Excel",
+      "fileSize": "1.0 MB",
+      "uploadDate": "April 5, 2025",
+      "description": "Analysis of the latest sales data and performance metrics.",
+      "downloadUrl": "/files/sales-data.xlsx"
+    },
+    {
+      "title": "Company Policy Update",
+      "fileType": "Word Document",
+      "fileSize": "300 KB",
+      "uploadDate": "March 10, 2025",
+      "description": "Updated company policies and procedures effective immediately.",
+      "downloadUrl": "/files/company-policy.docx"
+    },
+    {
+      "title": "Investor Pitch Presentation",
+      "fileType": "PowerPoint",
+      "fileSize": "4.0 MB",
+      "uploadDate": "April 20, 2025",
+      "description": "Pitch deck prepared for potential investors.",
+      "downloadUrl": "/files/investor-pitch.pptx"
+    }
+  ]
+  

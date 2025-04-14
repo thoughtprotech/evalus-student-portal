@@ -1,0 +1,123 @@
+[
+    {
+      "id": 1,
+      "title": "Midterm Exam Date Announced",
+      "date": "2025-04-13",
+      "description": "The midterm exam will be held on April 15, 2025. All students are advised to prepare accordingly and check their respective emails for further details."
+    },
+    {
+      "id": 2,
+      "title": "New Practice Test Available",
+      "date": "2025-04-10",
+      "description": "A new practice test for the aptitude section is now available on the platform. Visit the tests section to try it out."
+    },
+    {
+      "id": 3,
+      "title": "Maintenance Downtime Scheduled",
+      "date": "2025-04-12",
+      "description": "The platform will undergo scheduled maintenance on April 12, 2025, from 2:00 AM to 4:00 AM. Please plan your tests accordingly."
+    },
+    {
+      "id": 4,
+      "title": "Guest Lecture on Career Guidance",
+      "date": "2025-04-02",
+      "description": "We are pleased to announce a guest lecture on career guidance by industry experts. More details on the venue and schedule will follow soon."
+    },
+    {
+      "id": 5,
+      "title": "Updated Syllabus for Practice Tests",
+      "date": "2025-04-01",
+      "description": "The syllabus for practice tests has been updated. Please review the new topics and adjust your revision plan accordingly."
+    },
+    {
+      "id": 6,
+      "title": "Holiday Notice: Good Friday",
+      "date": "2025-03-29",
+      "description": "The institution will remain closed on March 29, 2025, in observance of Good Friday."
+    },
+    {
+      "id": 7,
+      "title": "Deadline for Course Registration",
+      "date": "2025-04-08",
+      "description": "Students must complete their course registration by April 10, 2025. Late registrations will not be accepted."
+    },
+    {
+      "id": 8,
+      "title": "Hackathon Registrations Open",
+      "date": "2025-04-05",
+      "description": "Registrations for the Inter-College Hackathon 2025 are now open. Visit the events page for more information and to register."
+    },
+    {
+      "id": 9,
+      "title": "Lab Assessment Schedule Released",
+      "date": "2025-04-09",
+      "description": "The lab assessment timetable for the semester has been released. Check the student portal to view your batch's schedule."
+    },
+    {
+      "id": 10,
+      "title": "Coding Contest Results Published",
+      "date": "2025-04-06",
+      "description": "Results for the recent intra-college coding contest are out. Congratulations to all participants!"
+    },
+    {
+      "id": 11,
+      "title": "Library New Arrivals - April",
+      "date": "2025-04-07",
+      "description": "Check out the new arrivals at the library including titles on AI, Data Science, and Web Development."
+    },
+    {
+      "id": 12,
+      "title": "Student Council Elections Next Week",
+      "date": "2025-04-03",
+      "description": "Elections for the new student council will be held next week. Eligible students may file nominations till April 4, 2025."
+    },
+    {
+      "id": 13,
+      "title": "Class Representative Meeting",
+      "date": "2025-04-11",
+      "description": "A mandatory meeting for all class representatives is scheduled for April 13, 2025, in Room 301 at 4:00 PM."
+    },
+    {
+      "id": 14,
+      "title": "Internship Opportunities from TCS",
+      "date": "2025-04-04",
+      "description": "TCS is offering internship opportunities for pre-final year students. Apply via the placement portal."
+    },
+    {
+      "id": 15,
+      "title": "Exam Hall Tickets Released",
+      "date": "2025-04-13",
+      "description": "Students can now download their hall tickets from the dashboard under the 'Examinations' section."
+    },
+    {
+      "id": 16,
+      "title": "Annual Tech Fest Announced",
+      "date": "2025-04-05",
+      "description": "Our annual tech fest will be conducted on May 2nd & 3rd. Registrations for various events open soon."
+    },
+    {
+      "id": 17,
+      "title": "Scholarship Disbursement Completed",
+      "date": "2025-03-31",
+      "description": "The disbursement process for the merit-based scholarship for semester 5 has been completed."
+    },
+    {
+      "id": 18,
+      "title": "Peer Tutoring Program Launch",
+      "date": "2025-04-06",
+      "description": "We’re launching a peer tutoring initiative to support students struggling in core subjects. Details inside."
+    },
+    {
+      "id": 19,
+      "title": "Important: Profile Update Reminder",
+      "date": "2025-04-09",
+      "description": "All students must update their contact details and address on the student portal by April 20, 2025."
+    },
+    {
+      "id": 20,
+      "title": "Cybersecurity Awareness Week",
+      "date": "2025-04-11",
+      "description": "Join us for a week of workshops and activities on cybersecurity, starting April 14, 2025."
+    }
+  ]
+  

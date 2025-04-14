@@ -1,0 +1,75 @@
+[
+    {
+      "name": "Aptitude Test 1",
+      "startDateTimeString": "2025-04-05T09:00:00",
+      "endDateTimeString": "2025-04-05T10:00:00",
+      "status": "Done"
+    },
+    {
+      "name": "Logical Reasoning Test Logical Reasoning Test Logical Reasoning Test",
+      "startDateTimeString": "2025-04-13T14:00:00",
+      "endDateTimeString": "2025-04-13T15:30:00",
+      "status": "OnGoing"
+    },
+    {
+      "name": "Verbal Ability Mock",
+      "startDateTimeString": "2025-04-18T16:00:00",
+      "endDateTimeString": "2025-04-18T17:00:00",
+      "status": "UpNext"
+    },
+    {
+      "name": "Coding Challenge - Round 1",
+      "startDateTimeString": "2025-04-03T18:00:00",
+      "endDateTimeString": "2025-04-03T19:00:00",
+      "status": "Missed"
+    },
+    {
+      "name": "General Knowledge Quiz",
+      "startDateTimeString": "2025-04-14T10:00:00",
+      "endDateTimeString": "2025-04-14T11:00:00",
+      "status": "OnGoing"
+    },
+    {
+      "name": "Group Discussion Evaluation",
+      "startDateTimeString": "2025-04-20T11:30:00",
+      "endDateTimeString": "2025-04-20T12:30:00",
+      "status": "UpNext"
+    },
+    {
+      "name": "Technical MCQ Test",
+      "startDateTimeString": "2025-04-06T13:00:00",
+      "endDateTimeString": "2025-04-06T14:00:00",
+      "status": "Done"
+    },
+    {
+      "name": "HR Round - Situational Test",
+      "startDateTimeString": "2025-04-02T17:00:00",
+      "endDateTimeString": "2025-04-02T18:00:00",
+      "status": "Missed"
+    },
+    {
+      "name": "Personality Assessment",
+      "startDateTimeString": "2025-04-17T09:30:00",
+      "endDateTimeString": "2025-04-17T10:30:00",
+      "status": "UpNext"
+    },
+    {
+      "name": "Coding Challenge - Round 2",
+      "startDateTimeString": "2025-04-13T18:30:00",
+      "endDateTimeString": "2025-04-13T19:30:00",
+      "status": "OnGoing"
+    },
+    {
+      "name": "Mock Interview Prep Test",
+      "startDateTimeString": "2025-04-09T08:00:00",
+      "endDateTimeString": "2025-04-09T09:00:00",
+      "status": "Done"
+    },
+    {
+      "name": "Domain Knowledge Test - CS",
+      "startDateTimeString": "2025-04-15T13:30:00",
+      "endDateTimeString": "2025-04-15T14:30:00",
+      "status": "UpNext"
+    }
+  ]
+  
