@@ -7,6 +7,7 @@ import {
   Download,
   FileSpreadsheet,
   GalleryVerticalEnd,
+  Eye,
 } from "lucide-react";
 
 interface DocumentCardProps {
@@ -80,7 +81,7 @@ const DocumentCard: FC<DocumentCardProps> = ({
             download
             className="w-full inline-flex items-center justify-center font-bold px-4 py-2 bg-blue-600 text-white rounded-md shadow hover:bg-indigo-700 transition-colors"
           >
-            <Download className="w-5 h-5 mr-2" />
+            <Eye className="w-5 h-5 mr-2" />
             View
           </a>
           <a
