@@ -55,7 +55,7 @@ const mockQuestions: Question[] = [
     type: "match",
     matches: {
       left: ["France", "Italy", "India"],
-      right: ["Rome", "Paris", "New Delhi"],
+      right: ["New Dehi", "Paris", "Rome"],
     },
     selectedOption: {},
     answer: null,
