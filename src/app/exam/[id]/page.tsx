@@ -377,40 +377,49 @@ export default function ExamPage() {
   return (
     <div className="h-full flex flex-col md:flex-row bg-gray-100">
       {/* Sidebar */}
-      <aside className="md:w-64 w-full bg-white border-b md:border-r border-gray-300 p-4 md:p-6 shadow-md">
-        <div className="grid grid-cols-8 md:grid-cols-5 gap-2 mb-4">
-          {questions.map((q, index) => (
-            <button
-              key={q.id}
-              onClick={() => handleJumpTo(index)}
-              className={clsx(
-                "w-8 h-8 sm:w-10 sm:h-10 rounded-md font-semibold text-xs sm:text-sm transition-colors cursor-pointer",
-                q.status === "unattempted" &&
-                  "bg-gray-300 text-gray-700 hover:bg-gray-400",
-                q.status === "attempted" &&
-                  "bg-green-500 text-white hover:bg-green-600",
-                q.status === "review" &&
-                  "bg-purple-500 text-white hover:bg-purple-600",
-                index === currentIndex && "border-3 border-indigo-500"
-              )}
-            >
-              {q.id}
-            </button>
-          ))}
+      <aside className="md:w-64 w-full bg-white border-b md:border-r border-gray-300 p-4 md:p-6 shadow-md flex flex-col gap-2">
+        <div className="flex flex-col gap-2">
+          <div>
+            <h1 className="font-bold text-2xl">Questions</h1>
+          </div>
+          <div className="grid grid-cols-8 md:grid-cols-5 gap-2 mb-4">
+            {questions.map((q, index) => (
+              <button
+                key={q.id}
+                onClick={() => handleJumpTo(index)}
+                className={clsx(
+                  "w-8 h-8 sm:w-10 sm:h-10 rounded-md font-semibold text-xs sm:text-sm transition-colors cursor-pointer",
+                  q.status === "unattempted" &&
+                    "bg-gray-300 text-gray-700 hover:bg-gray-400",
+                  q.status === "attempted" &&
+                    "bg-green-500 text-white hover:bg-green-600",
+                  q.status === "review" &&
+                    "bg-purple-500 text-white hover:bg-purple-600",
+                  index === currentIndex && "border-3 border-indigo-500"
+                )}
+              >
+                {q.id}
+              </button>
+            ))}
+          </div>
         </div>
-
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-gray-300 rounded-full inline-block" />
-            <span>Unattempted</span>
+        <div className="flex flex-col gap-2">
+          <div>
+            <h1 className="font-bold text-2xl">Legend</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-green-500 rounded-full inline-block" />
-            <span>Attempted</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-purple-500 rounded-full inline-block" />
-            <span>Review</span>
+          <div className="space-y-2 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 bg-gray-300 rounded-full inline-block" />
+              <span>Unattempted</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 bg-green-500 rounded-full inline-block" />
+              <span>Attempted</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 bg-purple-500 rounded-full inline-block" />
+              <span>Review</span>
+            </div>
           </div>
         </div>
       </aside>
