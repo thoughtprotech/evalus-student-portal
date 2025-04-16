@@ -9,6 +9,7 @@ export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
   const [testList, setTestList] = useState<
     {
+      id: string;
       name: string;
       startDateTimeString: string;
       endDateTimeString: string;
@@ -20,6 +21,7 @@ export default function Index() {
   useEffect(() => {
     setTestList(
       TestList as {
+        id: string;
         name: string;
         startDateTimeString: string;
         endDateTimeString: string;
@@ -29,9 +31,8 @@ export default function Index() {
   }, []);
 
   // Derive the filtered test list based on the current tab and search query
-  const filteredTestList = testList.filter(
-    (test) =>
-      test.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTestList = testList.filter((test) =>
+    test.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -50,18 +51,15 @@ export default function Index() {
       <div>
         {filteredTestList.length > 0 ? (
           <div className="w-full grid grid-cols-1 lg:grid lg:grid-cols-4 gap-4">
-            {filteredTestList.map((test, index) => (
+            {filteredTestList.map((test) => (
               <div key={test.name}>
                 <TestCards
+                  id={test.id}
                   name={test.name}
                   startDateTimeString={test.startDateTimeString}
                   endDateTimeString={test.endDateTimeString}
                   status={
-                    test.status as
-                      | "OnGoing"
-                      | "UpNext"
-                      | "Missed"
-                      | "Done"
+                    test.status as "OnGoing" | "UpNext" | "Missed" | "Done"
                   }
                   bookmarked={true}
                 />
