@@ -2,7 +2,6 @@
 
 import React, { FC } from "react";
 import {
-  File,
   FileText,
   Download,
   FileSpreadsheet,
@@ -79,7 +78,7 @@ const DocumentCard: FC<DocumentCardProps> = ({
           <a
             href={downloadUrl}
             download
-            className="w-full inline-flex items-center justify-center font-bold px-4 py-2 bg-blue-600 text-white rounded-md shadow hover:bg-indigo-700 transition-colors"
+            className="w-1/2 flex items-center justify-center font-bold px-4 py-2 bg-blue-600 text-white rounded-md shadow hover:bg-indigo-700 transition-colors"
           >
             <Eye className="w-5 h-5 mr-2" />
             View
@@ -87,7 +86,7 @@ const DocumentCard: FC<DocumentCardProps> = ({
           <a
             href={downloadUrl}
             download
-            className="w-full inline-flex items-center justify-center font-bold px-4 py-2 bg-indigo-600 text-white rounded-md shadow hover:bg-indigo-700 transition-colors"
+            className="w-1/2 flex items-center justify-center font-bold px-4 py-2 bg-indigo-600 text-white rounded-md shadow hover:bg-indigo-700 transition-colors"
           >
             <Download className="w-5 h-5 mr-2" />
             Download

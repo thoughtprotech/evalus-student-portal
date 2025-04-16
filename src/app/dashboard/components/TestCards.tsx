@@ -1,9 +1,20 @@
 "use client";
 
-import { Bookmark, BookmarkCheck, Calendar, Clock } from "lucide-react";
+import {
+  Bookmark,
+  BookmarkCheck,
+  Calendar,
+  Clock,
+  PlayCircle,
+  CalendarCheck as CalendarCheckIcon,
+  RotateCcw,
+  ArrowRight,
+} from "lucide-react";
 import { format, parseISO, differenceInMinutes } from "date-fns";
+import Link from "next/link";
 
 interface TestCardsProps {
+  id: string;
   name: string;
   startDateTimeString: string;
   endDateTimeString: string;
@@ -12,13 +23,14 @@ interface TestCardsProps {
 }
 
 export default function TestCards({
+  id,
   name,
   startDateTimeString,
   endDateTimeString,
   status,
   bookmarked = false,
 }: TestCardsProps) {
-  // Parse the ISO date strings and format them
+  // Parse ISO date strings
   const startDate = parseISO(startDateTimeString);
   const endDate = parseISO(endDateTimeString);
 
@@ -30,11 +42,10 @@ export default function TestCards({
   const durationInMinutes = differenceInMinutes(endDate, startDate);
   const hours = Math.floor(durationInMinutes / 60);
   const minutes = durationInMinutes % 60;
-
   const formattedDuration =
     hours > 0 ? `${hours}h ${minutes > 0 ? `${minutes}m` : ""}` : `${minutes}m`;
 
-  // Map the status to color classes
+  // Map status to color classes for status badge
   const statusMapping: Record<
     TestCardsProps["status"],
     { bg: string; text: string }
@@ -45,13 +56,46 @@ export default function TestCards({
     Done: { bg: "bg-green-100", text: "text-green-800" },
   };
 
+  // Map status to action button colors
+  const actionButtonMapping: Record<TestCardsProps["status"], string> = {
+    OnGoing: "bg-green-600 hover:bg-green-700",
+    UpNext: "bg-blue-600 hover:bg-blue-700",
+    Missed: "bg-red-600 hover:bg-red-700",
+    Done: "bg-indigo-600 hover:bg-indigo-700",
+  };
+
+  // Determine Link button content based on status
+  let linkText = "";
+  let linkIcon = null;
+  let linkHref = "/";
+
+  if (status === "OnGoing") {
+    linkText = "Start";
+    linkIcon = <PlayCircle className="w-5 h-5 ml-2" />;
+    linkHref = `/exam/systemCheck/${encodeURIComponent(id)}`;
+  } else if (status === "UpNext") {
+    linkText = "Remind Me";
+    linkIcon = <CalendarCheckIcon className="w-5 h-5 ml-2" />;
+    linkHref = `/dashboard/remind/${encodeURIComponent(id)}`;
+  } else if (status === "Missed") {
+    linkText = "Reschedule";
+    linkIcon = <RotateCcw className="w-5 h-5 ml-2" />;
+    linkHref = `/dashboard/reschedule/${encodeURIComponent(id)}`;
+  } else if (status === "Done") {
+    linkText = "View Report";
+    linkIcon = <ArrowRight className="w-5 h-5 ml-2" />;
+    linkHref = `/dashboard/analytics/${encodeURIComponent(id)}`;
+  }
+
   return (
-    <div className="w-full h-full rounded-md shadow-md p-4 border border-gray-300 bg-white flex flex-col justify-between">
+    <div className="w-full h-full rounded-md shadow-md p-4 border border-gray-300 bg-white flex flex-col gap-4 justify-between">
       {/* Test Title */}
-      <h1 className="text-2xl font-bold text-gray-800 mb-4 truncate text-ellipsis">{name}</h1>
+      <h1 className="text-2xl font-bold text-gray-800 truncate text-ellipsis">
+        {name}
+      </h1>
 
       {/* Start and End Date/Time */}
-      <div className="w-full grid grid-cols-2 gap-5 md:gap-10 mb-6 rounded-md p-2">
+      <div className="w-full grid grid-cols-2 gap-5 md:gap-10 rounded-md p-2">
         {/* Start Information */}
         <div className="border-r border-r-gray-300 w-full h-full flex flex-col gap-5 justify-between">
           <div>
@@ -79,7 +123,7 @@ export default function TestCards({
         </div>
 
         {/* End Information */}
-        <div className="w-full h-full flex flex-col gao-5 justify-between">
+        <div className="w-full h-full flex flex-col gap-5 justify-between">
           <div>
             <div className="flex items-center">
               <Calendar className="w-5 h-5 text-gray-600 mr-1" />
@@ -101,13 +145,11 @@ export default function TestCards({
         </div>
       </div>
 
-      {/* Status Badge */}
-      <div className="flex justify-between">
-        <div>
-          <h1 className="text-sm text-gray-600 font-bold">
-            Duration: {formattedDuration}
-          </h1>
-        </div>
+      {/* Status and Duration */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-sm text-gray-600 font-bold">
+          Duration: {formattedDuration}
+        </h1>
         <div className="flex items-center gap-4">
           <span
             className={`inline-block px-4 py-1 text-sm font-semibold rounded-full 
@@ -121,6 +163,17 @@ export default function TestCards({
             <Bookmark className="text-gray-500 cursor-pointer hover:text-indigo-700 duration-300" />
           )}
         </div>
+      </div>
+
+      {/* Conditional Action Button */}
+      <div className="w-full">
+        <Link
+          href={linkHref}
+          className={`w-full flex items-center justify-center font-bold px-4 py-2 ${actionButtonMapping[status]} text-white rounded-md shadow transition-colors`}
+        >
+          {linkText}
+          {linkIcon}
+        </Link>
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
   const [testList, setTestList] = useState<
     {
+      id: string;
       name: string;
       startDateTimeString: string;
       endDateTimeString: string;
@@ -24,6 +25,7 @@ export default function Index() {
   useEffect(() => {
     setTestList(
       TestList as {
+        id: string;
         name: string;
         startDateTimeString: string;
         endDateTimeString: string;
@@ -104,6 +106,7 @@ export default function Index() {
             {filteredTestList.map((test, index) => (
               <div key={test.name}>
                 <TestCards
+                  id={test.id}
                   name={test.name}
                   startDateTimeString={test.startDateTimeString}
                   endDateTimeString={test.endDateTimeString}
