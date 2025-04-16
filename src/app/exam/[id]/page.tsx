@@ -54,8 +54,8 @@ const mockQuestions: Question[] = [
     text: "Match the following countries with their capitals.",
     type: "match",
     matches: {
-      left: ["France", "Italy", "New Delhi"],
-      right: ["Rome", "Paris", "India"],
+      left: ["France", "Italy", "India"],
+      right: ["Rome", "Paris", "New Delhi"],
     },
     selectedOption: {},
     answer: null,
