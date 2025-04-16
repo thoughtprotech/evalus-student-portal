@@ -92,9 +92,9 @@ export default function ExamStartPage() {
               type="checkbox"
               checked={agreed}
               onChange={(e) => setAgreed(e.target.checked)}
-              className="h-5 w-5 text-indigo-600 focus:ring-indigo-500"
+              className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 cusor-pointer"
             />
-            <span className="text-gray-700 text-base">
+            <span className="text-gray-700 text-base cusor-pointer">
               I have read and agreed to the instructions.
             </span>
           </label>
@@ -104,7 +104,7 @@ export default function ExamStartPage() {
           <button
             onClick={handleProceed}
             disabled={!agreed}
-            className={`w-full py-3 rounded-lg text-lg font-semibold transition-colors cursor-pointer ${
+            className={`w-full py-3 rounded-lg font-semibold transition-colors cursor-pointer ${
               agreed
                 ? "bg-indigo-600 hover:bg-indigo-700 text-white"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
