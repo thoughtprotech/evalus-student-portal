@@ -16,7 +16,7 @@ const mockInstructions: Record<string, InstructionData> = {
       "Read all the questions carefully.",
       "Manage your time effectively.",
       "Do not use any external resources.",
-      "Once you start the exam, you cannot pause it.",
+      "Once you start the test, you cannot pause it.",
       "Review your answers before submitting.",
     ],
   },
@@ -110,7 +110,7 @@ export default function ExamStartPage() {
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
           >
-            Proceed to Exam
+            Proceed to Test
           </button>
         </div>
       </div>

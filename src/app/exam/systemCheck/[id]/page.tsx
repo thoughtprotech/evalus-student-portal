@@ -152,7 +152,7 @@ export default function SystemCheckPage() {
         </h1>
         <p className="text-center text-gray-600 mb-6">
           To ensure the best experience, please run our system check to verify
-          that your device meets all the exam requirements.
+          that your device meets all the test requirements.
         </p>
 
         {/* Steps */}
@@ -211,7 +211,7 @@ export default function SystemCheckPage() {
           )}
           {checkComplete && !allPassed && (
             <p className="text-lg text-red-600 font-semibold text-center">
-              Your system does not meet the exam requirements. Please update
+              Your system does not meet the test requirements. Please update
               your device.
             </p>
           )}

@@ -1,10 +1,8 @@
 // app/layout.tsx
 import type { Metadata } from "next";
-import Link from "next/link";
-import { User } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Exam Portal",
+  title: "Test Portal",
   description: "Your exam portal",
 };
 

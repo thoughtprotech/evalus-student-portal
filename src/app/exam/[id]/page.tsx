@@ -473,7 +473,7 @@ export default function ExamPage() {
                   onClick={handleSubmit}
                   className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium cursor-pointer"
                 >
-                  Submit Exam
+                  Submit Test
                 </button>
               )}
             </div>
@@ -483,8 +483,8 @@ export default function ExamPage() {
 
       <ConfirmationModal
         isOpen={showModal}
-        title="Submit Exam?"
-        message="Are you sure you want to submit the exam? You won't be able to change your answers after this."
+        title="Submit Test?"
+        message="Are you sure you want to submit the test? You won't be able to change your answers after this."
         onConfirm={confirmSubmit}
         onCancel={cancelSubmit}
       />
