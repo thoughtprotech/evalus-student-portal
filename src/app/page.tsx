@@ -82,7 +82,7 @@ export default function Home() {
               </p>
             )}
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 md:flex md:flex-row items-center justify-between">
             <div className="flex items-center">
               <input
                 id="remember-me"

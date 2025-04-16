@@ -71,14 +71,12 @@ export default function Index() {
     <div className="w-full h-full flex flex-col space-y-8">
       {/* Page Header */}
       <div className="w-full mx-auto flex flex-col-reverse md:flex-row justify-between items-center gap-4">
-        <div className="md:flex grid grid-cols-2 gap-2 md:gap-0 space-x-4 w-full lg:w-fit">
+        <div className="md:flex grid grid-cols-1 gap-2 md:gap-0 space-x-4 w-full lg:w-fit">
           {tabCardData.map((tabData, index) => (
             <div
               key={tabData.label}
               onClick={() => setCurrentTab(index)}
-              className={`w-full cursor-pointer transition transform hover:scale-105 ${
-                currentTab === index ? "scale-105" : ""
-              }`}
+              className={`w-full cursor-pointer transition transform hover:scale-105`}
             >
               <StatCard
                 label={tabData.label}
