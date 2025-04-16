@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { JSX, ReactNode, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -21,13 +22,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   // Define header metadata mappings for parent routes.
-  const pathHeaderMappings: Record<string, { title: string; icon: JSX.Element }> = {
+  const pathHeaderMappings: Record<
+    string,
+    { title: string; icon: JSX.Element }
+  > = {
     "/dashboard/analytics": {
       title: "Analytics",
       icon: <ClipboardList className="w-6 h-6 md:w-8 md:h-8" />,
@@ -51,16 +56,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   // Sort keys by length descending and then find a matching header based on the current pathname.
-  const currentPathMeta =
-    Object.entries(pathHeaderMappings)
-      .sort((a, b) => b[0].length - a[0].length)
-      .find(([path]) => pathname.startsWith(path))?.[1] || {
-      title: "Dashboard",
-      icon: <NotebookPen className="w-6 h-6 md:w-8 md:h-8" />,
-    };
+  const currentPathMeta = Object.entries(pathHeaderMappings)
+    .sort((a, b) => b[0].length - a[0].length)
+    .find(([path]) => pathname.startsWith(path))?.[1] || {
+    title: "Dashboard",
+    icon: <NotebookPen className="w-6 h-6 md:w-8 md:h-8" />,
+  };
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen((prev) => !prev);
+  };
+
+  const handleLogout = () => {
+    router.push("/");
   };
 
   return (
@@ -121,8 +129,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       >
         <aside className="bg-white border-r border-gray-300 shadow-md flex flex-col h-full">
           <div className="h-16 px-4 flex items-center justify-between shadow-md border-b border-gray-300">
-            <div className="border-2 border-gray-300 px-2 rounded-md">
-              <h1 className="text-xl font-bold text-indigo-700">Evalus</h1>
+            <div className="flex items-end gap-1">
+              <h1 className="text-3xl font-bold text-indigo-700 transition duration-300">
+                E
+                <span className="text-3xl font-bold text-gray-800 transition duration-300">
+                  valus
+                </span>
+              </h1>
             </div>
             <button onClick={toggleMobileMenu} aria-label="Close Menu">
               <X className="w-6 h-6 text-gray-800" />
@@ -188,9 +201,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <div className="w-7 h-7 md:w-9 md:h-9 bg-indigo-200 text-indigo-800 rounded-full flex items-center justify-center font-bold text-sm shadow-inner">
                 U
               </div>
-              <h1 className="text-xs md:text-base font-bold text-gray-600">John Doe</h1>
+              <h1 className="text-xs md:text-base font-bold text-gray-600">
+                John Doe
+              </h1>
             </div>
-            <div>
+            <div onClick={handleLogout}>
               <LogOut className="w-4 h-4 md:w-5 md:h-5 text-red-500 cursor-pointer" />
             </div>
           </div>

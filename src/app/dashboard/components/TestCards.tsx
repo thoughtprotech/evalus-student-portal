@@ -90,14 +90,16 @@ export default function TestCards({
   return (
     <div className="w-full h-full rounded-md shadow-md p-4 border border-gray-300 bg-white flex flex-col gap-4 justify-between">
       {/* Test Title */}
-      <h1 className="text-2xl font-bold text-gray-800 truncate text-ellipsis">
-        {name}
-      </h1>
+      <div className="w-full border-b border-b-gray-300 pb-4">
+        <h1 className="text-2xl font-bold text-gray-800 truncate text-ellipsis">
+          {name}
+        </h1>
+      </div>
 
       {/* Start and End Date/Time */}
       <div className="w-full grid grid-cols-2 gap-5 md:gap-10 rounded-md p-2">
         {/* Start Information */}
-        <div className="border-r border-r-gray-300 w-full h-full flex flex-col gap-5 justify-between">
+        <div className="w-full h-full flex flex-col gap-5 justify-between">
           <div>
             <div className="flex items-center">
               <Calendar className="w-5 h-5 text-gray-600 mr-1" />
@@ -146,7 +148,7 @@ export default function TestCards({
       </div>
 
       {/* Status and Duration */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center border-t border-t-gray-300 pt-4">
         <h1 className="text-sm text-gray-600 font-bold">
           Duration: {formattedDuration}
         </h1>
@@ -169,10 +171,10 @@ export default function TestCards({
       <div className="w-full">
         <Link
           href={linkHref}
-          className={`w-full flex items-center justify-center font-bold px-4 py-2 ${actionButtonMapping[status]} text-white rounded-md shadow transition-colors`}
+          className={`w-full flex items-center justify-center font-bold px-4 py-2 gap-2 ${actionButtonMapping[status]} text-white rounded-md shadow transition-colors`}
         >
-          {linkText}
           {linkIcon}
+          {linkText}
         </Link>
       </div>
     </div>

@@ -65,7 +65,7 @@ export default function AnalyticsDashboard() {
       {/* Page Header */}
       <div className="w-full mx-auto">
         <div className="flex flex-col-reverse md:flex-row justify-between items-center gap-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full max-w-5xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
             <StatCard
               icon={<ListChecks className="w-6 h-6 text-indigo-500" />}
               label="Total Tests Taken"
@@ -121,7 +121,7 @@ function StatCard({
 }) {
   return (
     <div className="bg-white border border-gray-200 rounded-md shadow-md duration-200 ease-in-out px-6 py-2 flex items-center gap-5 min-w-[150px]">
-      <div className="flex-shrink-0 p-3 bg-indigo-50 rounded-full">{icon}</div>
+      <div className="flex-shrink-0 rounded-full">{icon}</div>
       <div className="flex flex-col">
         <span className="text-2xl font-bold text-gray-800">{value}</span>
         <span className="mt-1 text-sm font-medium text-gray-500">{label}</span>

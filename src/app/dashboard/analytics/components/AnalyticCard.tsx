@@ -21,7 +21,7 @@ export default function AnalyticCard({
   const percentage = ((score / totalMarks) * 100).toFixed(1);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-md p-6 shadow-md">
+    <div className="bg-white border border-gray-200 rounded-md p-4 shadow-md">
       <div className="flex flex-col gap-4 h-full">
         {/* Title */}
         <h2 className="text-xl font-bold text-gray-900 line-clamp-2 truncate">
@@ -29,20 +29,19 @@ export default function AnalyticCard({
         </h2>
 
         {/* Date */}
+
+        <div className="mt-2 space-y-2 text-sm">
         <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Calendar className="w-4 h-4" />
+          <Calendar className="w-4 h-4 text-indigo-500" />
           <span>{date}</span>
         </div>
-
-        {/* Info Section */}
-        <div className="mt-2 space-y-2 text-sm">
           <div className="flex items-center gap-2 text-gray-700">
-            <BarChart2 className="w-4 h-4 text-indigo-500" />
+            <BarChart2 className="w-4 h-4 text-green-500" />
             <span className="font-semibold">Score:</span>{" "}
             {score}/{totalMarks} ({percentage}%)
           </div>
           <div className="flex items-center gap-2 text-gray-700">
-            <Timer className="w-4 h-4 text-indigo-500" />
+            <Timer className="w-4 h-4 text-gray-500" />
             <span className="font-semibold">Duration:</span> {duration}
           </div>
         </div>

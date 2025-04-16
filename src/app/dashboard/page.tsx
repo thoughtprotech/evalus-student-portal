@@ -71,7 +71,7 @@ export default function Index() {
     <div className="w-full h-full flex flex-col space-y-8">
       {/* Page Header */}
       <div className="w-full mx-auto flex flex-col-reverse md:flex-row justify-between items-center gap-4">
-        <div className="md:flex grid grid-cols-1 gap-2 md:gap-0 space-x-4 w-full lg:w-fit">
+        <div className="md:flex grid grid-cols-1 gap-2 md:gap-0 space-x-4 w-full">
           {tabCardData.map((tabData, index) => (
             <div
               key={tabData.label}
@@ -135,7 +135,7 @@ function StatCard({
 }) {
   return (
     <div className="bg-white border border-gray-200 rounded-md shadow-md duration-200 ease-in-out px-6 py-2 flex items-center gap-5 min-w-[150px] w-full">
-      <div className="flex-shrink-0 p-3 bg-indigo-50 rounded-full">{icon}</div>
+      <div className="flex-shrink-0 rounded-full">{icon}</div>
       <div className="flex flex-col">
         <span className="text-2xl font-bold text-gray-800">{value}</span>
         <span className="text-sm font-medium text-gray-500">{label}</span>

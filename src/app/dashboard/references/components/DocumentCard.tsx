@@ -45,8 +45,8 @@ const DocumentCard: FC<DocumentCardProps> = ({
     <div className="bg-white rounded-lg shadow-md border border-gray-300 overflow-hidden p-6 flex flex-col gap-4 justify-between">
       {/* Header Section */}
       <div className="flex flex-col gap-4">
-        <div className="flex items-start space-x-4 border-b border-b-gray-300 pb-4">
-          <div className="flex-shrink-0 bg-indigo-100 p-3 rounded-full">
+        <div className="flex items-center space-x-4 border-b border-b-gray-300 pb-4">
+          <div className="flex-shrink-0 rounded-full">
             {getFileTypeIcon(fileType)}
           </div>
           <div>
