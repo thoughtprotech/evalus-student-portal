@@ -15,11 +15,11 @@ export default function Index() {
       name: string;
       startDateTimeString: string;
       endDateTimeString: string;
-      status: "OnGoing" | "UpNext" | "Missed" | "Done";
+      status: "SignedUp" | "UpNext" | "Missed" | "Done";
     }[]
   >([]);
 
-  const tabs = ["OnGoing", "UpNext", "Missed", "Done"];
+  const tabs = ["SignedUp", "UpNext", "Missed", "Done"];
 
   // Load the test list once on mount
   useEffect(() => {
@@ -29,7 +29,7 @@ export default function Index() {
         name: string;
         startDateTimeString: string;
         endDateTimeString: string;
-        status: "OnGoing" | "UpNext" | "Missed" | "Done";
+        status: "SignedUp" | "UpNext" | "Missed" | "Done";
       }[]
     );
   }, []);
@@ -45,7 +45,7 @@ export default function Index() {
   const tabCardData = tabs.map((tab) => {
     let icon;
     switch (tab) {
-      case "OnGoing":
+      case "SignedUp":
         icon = <Play className="w-6 h-6 text-blue-500" />;
         break;
       case "UpNext":

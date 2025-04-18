@@ -18,7 +18,7 @@ interface TestCardsProps {
   name: string;
   startDateTimeString: string;
   endDateTimeString: string;
-  status: "OnGoing" | "UpNext" | "Missed" | "Done";
+  status: "SignedUp" | "UpNext" | "Missed" | "Done";
   bookmarked?: boolean;
 }
 
@@ -50,7 +50,7 @@ export default function TestCards({
     TestCardsProps["status"],
     { bg: string; text: string }
   > = {
-    OnGoing: { bg: "bg-purple-100", text: "text-purple-800" },
+    SignedUp: { bg: "bg-purple-100", text: "text-purple-800" },
     UpNext: { bg: "bg-blue-100", text: "text-blue-800" },
     Missed: { bg: "bg-red-100", text: "text-red-800" },
     Done: { bg: "bg-green-100", text: "text-green-800" },
@@ -58,7 +58,7 @@ export default function TestCards({
 
   // Map status to action button colors
   const actionButtonMapping: Record<TestCardsProps["status"], string> = {
-    OnGoing: "bg-green-600 hover:bg-green-700",
+    SignedUp: "bg-green-600 hover:bg-green-700",
     UpNext: "bg-blue-600 hover:bg-blue-700",
     Missed: "bg-red-600 hover:bg-red-700",
     Done: "bg-indigo-600 hover:bg-indigo-700",
@@ -69,7 +69,7 @@ export default function TestCards({
   let linkIcon = null;
   let linkHref = "/";
 
-  if (status === "OnGoing") {
+  if (status === "SignedUp") {
     linkText = "Start";
     linkIcon = <Play className="w-5 h-5 ml-2" />;
     linkHref = `/exam/systemCheck/${encodeURIComponent(id)}`;

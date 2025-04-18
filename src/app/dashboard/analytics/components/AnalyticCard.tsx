@@ -30,7 +30,6 @@ export default function AnalyticCard({
         </h2>
 
         {/* Date */}
-
         <div className="mt-2 space-y-2 text-sm">
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <Calendar className="w-4 h-4 text-yellow-500" />

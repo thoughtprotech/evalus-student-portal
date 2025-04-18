@@ -13,7 +13,7 @@ export default function Index() {
       name: string;
       startDateTimeString: string;
       endDateTimeString: string;
-      status: "OnGoing" | "UpNext" | "Missed" | "Done";
+      status: "SignedUp" | "UpNext" | "Missed" | "Done";
     }[]
   >([]);
 
@@ -25,7 +25,7 @@ export default function Index() {
         name: string;
         startDateTimeString: string;
         endDateTimeString: string;
-        status: "OnGoing" | "UpNext" | "Missed" | "Done";
+        status: "SignedUp" | "UpNext" | "Missed" | "Done";
       }[]
     );
   }, []);
@@ -59,7 +59,7 @@ export default function Index() {
                   startDateTimeString={test.startDateTimeString}
                   endDateTimeString={test.endDateTimeString}
                   status={
-                    test.status as "OnGoing" | "UpNext" | "Missed" | "Done"
+                    test.status as "SignedUp" | "UpNext" | "Missed" | "Done"
                   }
                   bookmarked={true}
                 />

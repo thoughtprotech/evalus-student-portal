@@ -11,7 +11,7 @@
       "name": "Logical Reasoning Test Logical Reasoning Test Logical Reasoning Test",
       "startDateTimeString": "2025-04-13T14:00:00",
       "endDateTimeString": "2025-04-13T15:30:00",
-      "status": "OnGoing"
+      "status": "SignedUp"
     },
     {
       "id": "3",
@@ -32,7 +32,7 @@
       "name": "General Knowledge Quiz",
       "startDateTimeString": "2025-04-14T10:00:00",
       "endDateTimeString": "2025-04-14T11:00:00",
-      "status": "OnGoing"
+      "status": "SignedUp"
     },
     {
       "id": "6",
@@ -67,7 +67,7 @@
       "name": "Coding Challenge - Round 2",
       "startDateTimeString": "2025-04-13T18:30:00",
       "endDateTimeString": "2025-04-13T19:30:00",
-      "status": "OnGoing"
+      "status": "SignedUp"
     },
     {
       "id": "11",
