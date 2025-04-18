@@ -9,7 +9,7 @@ const mockTests = [
   {
     id: "1",
     name: "Aptitude Practice Test 1",
-    date: "2025-03-15",
+    date: "2025-04-18T07:24:35.492Z",
     score: 78,
     totalMarks: 100,
     duration: "60 mins",
@@ -17,7 +17,7 @@ const mockTests = [
   {
     id: "2",
     name: "Logical Reasoning Test",
-    date: "2025-03-20",
+    date: "2024-11-02T19:05:12.830Z",
     score: 85,
     totalMarks: 100,
     duration: "45 mins",
@@ -25,7 +25,7 @@ const mockTests = [
   {
     id: "3",
     name: "Quantitative Test 2",
-    date: "2025-04-01",
+    date: "2026-02-29T23:59:59.123Z",
     score: 66,
     totalMarks: 100,
     duration: "60 mins",
@@ -33,7 +33,7 @@ const mockTests = [
   {
     id: "4",
     name: "Final Mock Test",
-    date: "2025-04-10",
+    date: "2025-12-31T00:00:00.000Z",
     score: 91,
     totalMarks: 100,
     duration: "90 mins",
@@ -41,7 +41,7 @@ const mockTests = [
   {
     id: "5",
     name: "Final Mock Test",
-    date: "2025-04-10",
+    date: "2024-07-15T13:47:05.987Z",
     score: 91,
     totalMarks: 100,
     duration: "90 mins",
@@ -68,7 +68,7 @@ export default function AnalyticsDashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
             <StatCard
               icon={<ListChecks className="w-6 h-6 text-indigo-500" />}
-              label="Total Tests Taken"
+              label="Total Tests Completed"
               value={totalTests}
             />
             <StatCard

@@ -4,7 +4,7 @@ import SearchBar from "@/components/SearchBar";
 import { useEffect, useState } from "react";
 import TestList from "@/mock/testList.json";
 import TestCards from "./components/TestCards";
-import { PlayCircle, Clock, XCircle, CheckCircle } from "lucide-react";
+import { Play, Clock, XCircle, CheckCircle } from "lucide-react";
 
 export default function Index() {
   const [currentTab, setCurrentTab] = useState(0);
@@ -46,7 +46,7 @@ export default function Index() {
     let icon;
     switch (tab) {
       case "OnGoing":
-        icon = <PlayCircle className="w-6 h-6 text-blue-500" />;
+        icon = <Play className="w-6 h-6 text-blue-500" />;
         break;
       case "UpNext":
         icon = <Clock className="w-6 h-6 text-yellow-500" />;
@@ -82,6 +82,7 @@ export default function Index() {
                 label={tabData.label}
                 value={tabData.count}
                 icon={tabData.icon}
+                current={currentTab === index}
               />
             </div>
           ))}
@@ -128,13 +129,19 @@ function StatCard({
   label,
   value,
   icon,
+  current,
 }: {
   label: string;
   value: string | number;
   icon: React.ReactNode;
+  current: boolean;
 }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-md shadow-md duration-200 ease-in-out px-6 py-2 flex items-center gap-5 min-w-[150px] w-full">
+    <div
+      className={`border border-gray-300 ${
+        current ? "bg-indigo-50 border-indigo-300" : "bg-white"
+      } rounded-md shadow-md duration-200 ease-in-out px-6 py-2 flex items-center gap-5 min-w-[150px] w-full`}
+    >
       <div className="flex-shrink-0 rounded-full">{icon}</div>
       <div className="flex flex-col">
         <span className="text-2xl font-bold text-gray-800">{value}</span>

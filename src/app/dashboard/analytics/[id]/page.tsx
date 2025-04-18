@@ -26,6 +26,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import Link from "next/link";
+import formatToDDMMYYYY_HHMM from "@/utils/formatIsoTime";
 
 // Type definitions
 interface TestDetails {
@@ -207,7 +208,7 @@ export default function TestDetailsPage() {
             </div>
             <div className="flex items-center gap-1">
               <Calendar className="text-gray-500 w-5 h-5" />
-              <h1 className="text-gray-500 font-bold">{date}</h1>
+              <h1 className="text-gray-500 font-bold">{formatToDDMMYYYY_HHMM(date)}</h1>
             </div>
           </div>
         </div>

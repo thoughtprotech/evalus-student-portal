@@ -5,10 +5,10 @@ import {
   BookmarkCheck,
   Calendar,
   Clock,
-  PlayCircle,
   CalendarCheck as CalendarCheckIcon,
   RotateCcw,
   ArrowRight,
+  Play,
 } from "lucide-react";
 import { format, parseISO, differenceInMinutes } from "date-fns";
 import Link from "next/link";
@@ -71,12 +71,12 @@ export default function TestCards({
 
   if (status === "OnGoing") {
     linkText = "Start";
-    linkIcon = <PlayCircle className="w-5 h-5 ml-2" />;
+    linkIcon = <Play className="w-5 h-5 ml-2" />;
     linkHref = `/exam/systemCheck/${encodeURIComponent(id)}`;
   } else if (status === "UpNext") {
-    linkText = "Remind Me";
+    linkText = "Register";
     linkIcon = <CalendarCheckIcon className="w-5 h-5 ml-2" />;
-    linkHref = `/dashboard/remind/${encodeURIComponent(id)}`;
+    linkHref = `/dashboard/register/${encodeURIComponent(id)}`;
   } else if (status === "Missed") {
     linkText = "Reschedule";
     linkIcon = <RotateCcw className="w-5 h-5 ml-2" />;
@@ -153,12 +153,6 @@ export default function TestCards({
           Duration: {formattedDuration}
         </h1>
         <div className="flex items-center gap-4">
-          <span
-            className={`inline-block px-4 py-1 text-sm font-semibold rounded-full 
-            ${statusMapping[status].bg} ${statusMapping[status].text}`}
-          >
-            {status}
-          </span>
           {bookmarked ? (
             <BookmarkCheck className="text-gray-500 cursor-pointer hover:text-indigo-700 duration-300" />
           ) : (

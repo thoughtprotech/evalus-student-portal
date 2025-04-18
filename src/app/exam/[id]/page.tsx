@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import CountdownTimer from "@/components/CountdownTimer";
 
 type QuestionStatus = "unattempted" | "attempted" | "review";
 
@@ -28,6 +29,8 @@ interface Question {
   answer: any;
   selectedOption: any;
   status: QuestionStatus;
+  mark: number;
+  negativeMark: number;
 }
 
 const mockQuestions: Question[] = [
@@ -39,6 +42,8 @@ const mockQuestions: Question[] = [
     selectedOption: null,
     answer: null,
     status: "unattempted",
+    mark: 3,
+    negativeMark: -1,
   },
   {
     id: 2,
@@ -48,6 +53,8 @@ const mockQuestions: Question[] = [
     selectedOption: [],
     answer: null,
     status: "unattempted",
+    mark: 3,
+    negativeMark: -1,
   },
   {
     id: 3,
@@ -60,6 +67,8 @@ const mockQuestions: Question[] = [
     selectedOption: {},
     answer: null,
     status: "unattempted",
+    mark: 3,
+    negativeMark: -1,
   },
   {
     id: 4,
@@ -68,6 +77,8 @@ const mockQuestions: Question[] = [
     selectedOption: "",
     answer: null,
     status: "unattempted",
+    mark: 3,
+    negativeMark: -1,
   },
   {
     id: 5,
@@ -76,6 +87,8 @@ const mockQuestions: Question[] = [
     selectedOption: "",
     answer: null,
     status: "unattempted",
+    mark: 3,
+    negativeMark: -1,
   },
   {
     id: 6,
@@ -84,6 +97,8 @@ const mockQuestions: Question[] = [
     selectedOption: "",
     answer: null,
     status: "unattempted",
+    mark: 3,
+    negativeMark: -1,
   },
   {
     id: 7,
@@ -93,6 +108,8 @@ const mockQuestions: Question[] = [
     selectedOption: null,
     answer: null,
     status: "unattempted",
+    mark: 3,
+    negativeMark: -1,
   },
 ];
 
@@ -152,6 +169,7 @@ export default function ExamPage() {
     updated[currentIndex].selectedOption = value;
     updated[currentIndex].status = "attempted";
     setQuestions(updated);
+    setErrorMessage(null);
   };
 
   const handleToggleMultiple = (index: number) => {
@@ -161,6 +179,7 @@ export default function ExamPage() {
     updated[currentIndex].selectedOption = Array.from(selected);
     updated[currentIndex].status = "attempted";
     setQuestions(updated);
+    setErrorMessage(null);
   };
 
   const toggleMarkForReview = () => {
@@ -172,6 +191,43 @@ export default function ExamPage() {
 
   const handleNextQuestion = () => {
     if (currentIndex < questions.length - 1) setCurrentIndex(currentIndex + 1);
+  };
+
+  const handlePreviousQuestion = () => {
+    if (currentIndex !== 0) setCurrentIndex(currentIndex - 1);
+  };
+
+  const questionTypeMapping = {
+    multiple: "MCQ - Multiple Choice",
+    single: "MCQ - Single Choice",
+    truefalse: "True/False",
+    fill: "Fill In The Blanks",
+    essay: "Essay",
+    number: "Numerical",
+    match: "Match The Following",
+  };
+
+  const clearResponse = () => {
+    const qs = [...questions];
+    switch (qs[currentIndex].type) {
+      case "multiple":
+        qs[currentIndex].selectedOption = [];
+        break;
+      case "single":
+      case "truefalse":
+        qs[currentIndex].selectedOption = null;
+        break;
+      case "fill":
+      case "essay":
+      case "number":
+        qs[currentIndex].selectedOption = "";
+        break;
+      case "match":
+        qs[currentIndex].selectedOption = {};
+        break;
+    }
+    qs[currentIndex].status = "unattempted";
+    setQuestions(qs);
   };
 
   const handleJumpTo = (index: number) => {
@@ -374,6 +430,11 @@ export default function ExamPage() {
     }
   };
 
+  const handleTimeout = () => {
+    console.log("TIMEOUT");
+    // TODO: Handle timeout
+  };
+
   return (
     <div className="h-full flex flex-col md:flex-row bg-gray-100">
       {/* Sidebar */}
@@ -409,15 +470,32 @@ export default function ExamPage() {
           </div>
           <div className="space-y-2 text-sm">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 bg-gray-300 rounded-full inline-block" />
+              <div className="w-8 h-8 p-2 flex items-center justify-center bg-gray-300 rounded-full font-bold">
+                {
+                  questions.filter(
+                    (question) => question.status === "unattempted"
+                  ).length
+                }
+              </div>
               <span>Unattempted</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 bg-green-500 rounded-full inline-block" />
+              <div className="w-8 h-8 p-2 flex items-center justify-center bg-green-500 rounded-full font-bold">
+                {
+                  questions.filter(
+                    (question) => question.status === "attempted"
+                  ).length
+                }
+              </div>
               <span>Attempted</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 bg-purple-500 rounded-full inline-block" />
+              <div className="w-8 h-8 p-2 flex items-center justify-center bg-purple-500 rounded-full font-bold">
+                {
+                  questions.filter((question) => question.status === "review")
+                    .length
+                }
+              </div>
               <span>Review</span>
             </div>
           </div>
@@ -428,6 +506,39 @@ export default function ExamPage() {
       <main className="flex-1 p-4 sm:p-6">
         {currentQuestion && (
           <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
+            <div className="w-full flex flex-col md:flex md:flex-row justify-between">
+              <div>
+                <h1 className="text-sm">
+                  {questionTypeMapping[currentQuestion.type]}
+                </h1>
+              </div>
+              <div className="w-full flex gap-3 text-sm md:hidden">
+                <h1 className="text-nowrap">Time Left</h1>
+                <CountdownTimer
+                  initialTime="00:05:00"
+                  onComplete={handleTimeout}
+                  className="text-sm"
+                />
+              </div>
+              <div className="flex gap-3">
+                <div className="w-full flex gap-3 text-sm border-r border-r-gray-300 pr-3">
+                  <h1 className="text-green-500">Mark(s)</h1>
+                  <h1>{currentQuestion.mark}</h1>
+                </div>
+                <div className="w-full flex gap-3 text-sm md:border-r md:border-r-gray-300 pr-3">
+                  <h1 className="text-red-500 text-nowrap">Negative Mark(s)</h1>
+                  <h1>{currentQuestion.negativeMark}</h1>
+                </div>
+                <div className="w-full md:flex gap-3 text-sm hidden">
+                  <h1 className="text-nowrap">Time Left</h1>
+                  <CountdownTimer
+                    initialTime="00:05:00"
+                    onComplete={handleTimeout}
+                    className="text-sm"
+                  />
+                </div>
+              </div>
+            </div>
             <h2 className="text-md sm:text-lg font-semibold text-gray-800">
               {currentQuestion.text}
             </h2>
@@ -437,45 +548,75 @@ export default function ExamPage() {
               </div>
             )}
             <div className="space-y-3">{renderQuestion()}</div>
-            <div className="flex items-center justify-between gap-4 mt-4">
-              <button
-                onClick={toggleMarkForReview}
-                className={clsx(
-                  "w-full md:w-fit px-4 py-2 rounded-md font-medium text-white cursor-pointer",
-                  currentQuestion.status === "review"
-                    ? "bg-gray-500 hover:bg-gray-600"
-                    : "bg-purple-500 hover:bg-purple-600"
-                )}
-              >
-                {currentQuestion.status === "review"
-                  ? "Unmark Review"
-                  : "Mark for Review"}
-              </button>
-
-              {currentIndex < questions.length - 1 ? (
+            <div className="flex flex-col md:flex md:flex-row items-center justify-between gap-4 mt-4">
+              <div className="w-full flex gap-3">
                 <button
-                  onClick={handleNextQuestion}
-                  disabled={
-                    currentQuestion.status === "unattempted" &&
-                    !["review"].includes(currentQuestion.status)
-                  }
+                  onClick={toggleMarkForReview}
                   className={clsx(
-                    "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer",
-                    currentQuestion.status === "unattempted"
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700"
+                    "w-full md:w-fit px-4 py-2 rounded-md font-medium text-white cursor-pointer",
+                    currentQuestion.status === "review"
+                      ? "bg-gray-500 hover:bg-gray-600"
+                      : "bg-purple-500 hover:bg-purple-600"
                   )}
                 >
-                  Next Question
+                  {currentQuestion.status === "review"
+                    ? "Unmark Review"
+                    : "Mark for Review"}
                 </button>
-              ) : (
                 <button
-                  onClick={handleSubmit}
-                  className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium cursor-pointer"
+                  onClick={clearResponse}
+                  className={clsx(
+                    "w-full md:w-fit px-4 py-2 rounded-md font-medium text-white cursor-pointer bg-cyan-500 hover:bg-cyan-600"
+                  )}
                 >
-                  Submit Test
+                  Clear Response
                 </button>
-              )}
+              </div>
+
+              <div className="w-full md:w-fit flex gap-3">
+                <div className="w-full md:w-fit">
+                  <button
+                    onClick={handlePreviousQuestion}
+                    disabled={currentIndex === 0}
+                    className={clsx(
+                      "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer",
+                      currentIndex === 0
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-blue-600 hover:bg-blue-700"
+                    )}
+                  >
+                    Previous
+                  </button>
+                </div>
+                {currentIndex < questions.length - 1 ? (
+                  <div className="w-full md:w-fit">
+                    <button
+                      onClick={handleNextQuestion}
+                      disabled={
+                        currentQuestion.status === "unattempted" &&
+                        !["review"].includes(currentQuestion.status)
+                      }
+                      className={clsx(
+                        "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer",
+                        currentQuestion.status === "unattempted"
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-blue-600 hover:bg-blue-700"
+                      )}
+                    >
+                      Next
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-full md:w-fit">
+                    <button
+                      onClick={handleSubmit}
+                      className="w-full text-nowrap px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium cursor-pointer"
+                    >
+                      Submit Test
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
