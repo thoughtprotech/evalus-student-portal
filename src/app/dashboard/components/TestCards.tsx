@@ -166,6 +166,7 @@ export default function TestCards({
         <Link
           href={linkHref}
           className={`w-full flex items-center justify-center font-bold px-4 py-2 gap-2 ${actionButtonMapping[status]} text-white rounded-md shadow transition-colors`}
+          target="_blank"
         >
           {linkIcon}
           {linkText}
