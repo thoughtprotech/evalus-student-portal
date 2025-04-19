@@ -2,11 +2,13 @@
 
 import SearchBar from "@/components/SearchBar";
 import { useEffect, useState } from "react";
-import TestList from "@/mock/testList.json";
 import TestCards from "./components/TestCards";
 import { Play, Clock, XCircle, CheckCircle } from "lucide-react";
+import { fetchTestListAction } from "../actions/dashboard/testList";
+import Loader from "@/components/Loader";
 
 export default function Index() {
+  const [loaded, setLoaded] = useState<boolean>(false);
   const [currentTab, setCurrentTab] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [testList, setTestList] = useState<
@@ -21,17 +23,18 @@ export default function Index() {
 
   const tabs = ["SignedUp", "UpNext", "Missed", "Done"];
 
+  const fetchTestList = async () => {
+    const res = await fetchTestListAction();
+    const { data, status } = res;
+    if (status === "success") {
+      setTestList(data);
+      setLoaded(true);
+    }
+  };
+
   // Load the test list once on mount
   useEffect(() => {
-    setTestList(
-      TestList as {
-        id: string;
-        name: string;
-        startDateTimeString: string;
-        endDateTimeString: string;
-        status: "SignedUp" | "UpNext" | "Missed" | "Done";
-      }[]
-    );
+    fetchTestList();
   }, []);
 
   // Derive the filtered test list based on the current tab and search query
@@ -66,6 +69,10 @@ export default function Index() {
       icon,
     };
   });
+
+  if (!loaded) {
+    return <Loader />;
+  }
 
   return (
     <div className="w-full h-full flex flex-col space-y-8">

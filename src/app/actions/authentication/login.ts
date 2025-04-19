@@ -1,9 +1,10 @@
 // app/actions/login.ts
 "use server";
 
+import ActionResponse from "@/types/ActionResponse";
 import { cookies } from "next/headers";
 
-export async function login(formData: FormData) {
+export async function login(formData: FormData): Promise<ActionResponse> {
   const email = formData.get("email");
   const password = formData.get("password");
 
@@ -38,9 +39,9 @@ export async function login(formData: FormData) {
       maxAge: 60 * 60 * 24,
     });
 
-    return { success: true };
+    return { status: "success", message: "User Authenticated" };
   } catch (error) {
     console.log("Error Authenticating User", error);
-    return { success: false };
+    return { status: "failure", message: "Error Authenticating User" };
   }
 }

@@ -27,6 +27,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import formatToDDMMYYYY_HHMM from "@/utils/formatIsoTime";
+import {
+  fetchAnalyticsAction,
+  TestId,
+} from "@/app/actions/dashboard/analytics";
+import Loader from "@/components/Loader";
 
 // Type definitions
 interface TestDetails {
@@ -47,120 +52,29 @@ interface TestDetails {
 
 const COLORS = ["#4CAF50", "#F44336", "#FF9800", "#9E9E9E"];
 
-// Updated mock data
-const mockTestDetails: Record<string, TestDetails> = {
-  "1": {
-    name: "Aptitude Practice Test 1",
-    score: 78,
-    totalMarks: 100,
-    date: "2025-03-15",
-    duration: "60 mins",
-    scoreBreakdown: {
-      questionsAttempted: 40,
-      correctAnswers: 32,
-      incorrectAnswers: 8,
-      unanswered: 10,
-      score: 78,
-    },
-    analytics: [
-      { date: "2025-03-01", score: 65 },
-      { date: "2025-03-05", score: 70 },
-      { date: "2025-03-10", score: 73 },
-      { date: "2025-03-15", score: 78 },
-    ],
-  },
-  "2": {
-    name: "Logical Reasoning Test",
-    score: 85,
-    totalMarks: 100,
-    date: "2025-03-20",
-    duration: "90 mins",
-    scoreBreakdown: {
-      questionsAttempted: 50,
-      correctAnswers: 42,
-      incorrectAnswers: 8,
-      unanswered: 0,
-      score: 85,
-    },
-    analytics: [
-      { date: "2025-03-05", score: 75 },
-      { date: "2025-03-10", score: 80 },
-      { date: "2025-03-15", score: 83 },
-      { date: "2025-03-20", score: 85 },
-    ],
-  },
-  "3": {
-    name: "Quantitative Test 2",
-    score: 66,
-    totalMarks: 100,
-    date: "2025-04-01",
-    duration: "60 mins",
-    scoreBreakdown: {
-      questionsAttempted: 45,
-      correctAnswers: 30,
-      incorrectAnswers: 15,
-      unanswered: 5,
-      score: 66,
-    },
-    analytics: [
-      { date: "2025-03-20", score: 60 },
-      { date: "2025-03-29", score: 64 },
-      { date: "2025-04-01", score: 66 },
-    ],
-  },
-  "4": {
-    name: "Final Mock Test",
-    score: 91,
-    totalMarks: 100,
-    date: "2025-04-10",
-    duration: "90 mins",
-    scoreBreakdown: {
-      questionsAttempted: 60,
-      correctAnswers: 55,
-      incorrectAnswers: 5,
-      unanswered: 0,
-      score: 91,
-    },
-    analytics: [
-      { date: "2025-04-01", score: 85 },
-      { date: "2025-04-05", score: 88 },
-      { date: "2025-04-10", score: 91 },
-    ],
-  },
-  "5": {
-    name: "Final Mock Test",
-    score: 91,
-    totalMarks: 100,
-    date: "2025-04-10",
-    duration: "90 mins",
-    scoreBreakdown: {
-      questionsAttempted: 60,
-      correctAnswers: 56,
-      incorrectAnswers: 4,
-      unanswered: 0,
-      score: 91,
-    },
-    analytics: [
-      { date: "2025-04-02", score: 87 },
-      { date: "2025-04-07", score: 89 },
-      { date: "2025-04-10", score: 91 },
-    ],
-  },
-};
-
 export default function TestDetailsPage() {
   // Use useParams to obtain the route parameter.
+  const [loaded, setLoaded] = useState<boolean>(false);
+
   const { id } = useParams();
   const [testDetails, setTestDetails] = useState<TestDetails | null>(null);
 
+  const fetchAnalytics = async () => {
+    const res = await fetchAnalyticsAction(id as TestId);
+    const { data, status } = res;
+    if (status === "success") {
+      setTestDetails(data);
+      setLoaded(true);
+    }
+  };
+
   useEffect(() => {
     if (id) {
-      const test = mockTestDetails[id as string];
-      setTestDetails(test || null);
+      fetchAnalytics();
     }
   }, [id]);
 
-  if (!testDetails) return <div>Loading...</div>;
+  if (!testDetails) return;
 
   const { name, score, totalMarks, date, duration, scoreBreakdown, analytics } =
     testDetails;
@@ -185,6 +99,10 @@ export default function TestDetailsPage() {
     },
   ];
 
+  if (!loaded) {
+    return <Loader />;
+  }
+
   return (
     <div className="h-full w-full">
       <div className="max-w-5xl mx-auto space-y-10">
@@ -208,7 +126,9 @@ export default function TestDetailsPage() {
             </div>
             <div className="flex items-center gap-1">
               <Calendar className="text-gray-500 w-5 h-5" />
-              <h1 className="text-gray-500 font-bold">{formatToDDMMYYYY_HHMM(date)}</h1>
+              <h1 className="text-gray-500 font-bold">
+                {formatToDDMMYYYY_HHMM(date)}
+              </h1>
             </div>
           </div>
         </div>

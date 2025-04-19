@@ -3,9 +3,11 @@
 import SearchBar from "@/components/SearchBar";
 import { useEffect, useState } from "react";
 import DocumentCard from "./components/DocumentCard";
-import ReferenceList from "@/mock/referencesList.json";
+import Loader from "@/components/Loader";
+import { fetchReferencesListAction } from "@/app/actions/dashboard/referencesList";
 
 export default function Index() {
+  const [loaded, setLoaded] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [referenceList, setReferenceList] = useState<
     {
@@ -18,24 +20,27 @@ export default function Index() {
     }[]
   >([]);
 
-  // Load the test list once on mount
+  const fetchReferencesList = async () => {
+    const res = fetchReferencesListAction();
+    const { data, status } = await res;
+    if (status === "success") {
+      setReferenceList(data);
+      setLoaded(true);
+    }
+  };
+
   useEffect(() => {
-    setReferenceList(
-      ReferenceList as {
-        title: string;
-        fileType: string;
-        fileSize: string;
-        uploadDate: string;
-        description: string;
-        downloadUrl: string;
-      }[]
-    );
+    fetchReferencesList();
   }, []);
 
   // Derive the filtered test list based on the current tab and search query
   const filteredReferenceList = referenceList.filter((test) =>
     test.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  if (!loaded) {
+    return <Loader />;
+  }
 
   return (
     <div className="w-full h-full flex flex-col space-y-8">
@@ -66,7 +71,9 @@ export default function Index() {
           </div>
         ) : (
           <div className="w-full h-72 flex justify-center items-center rounded-md">
-            <h1 className="font-bold text-2xl text-gray-500">No References Found</h1>
+            <h1 className="font-bold text-2xl text-gray-500">
+              No References Found
+            </h1>
           </div>
         )}
       </div>

@@ -1,8 +1,9 @@
 "use client";
 
+import { fetchSpotlightAction } from "@/app/actions/dashboard/spotlight";
+import Loader from "@/components/Loader";
 import SearchBar from "@/components/SearchBar";
 import { useEffect, useState } from "react";
-import AnnouncementList from "@/mock/announcementList.json";
 
 function daysAgo(dateStr: string): string {
   const date = new Date(dateStr);
@@ -15,6 +16,7 @@ function daysAgo(dateStr: string): string {
 }
 
 export default function AnnouncementsPage() {
+  const [loaded, setLoaded] = useState<boolean>(false);
   const [query, setQuery] = useState("");
   const [announcementList, setAnnouncementList] = useState<
     {
@@ -25,14 +27,26 @@ export default function AnnouncementsPage() {
     }[]
   >([]);
 
+  const fetchSpotlightList = async () => {
+    const res = await fetchSpotlightAction();
+    const { data, status } = res;
+    if (status) {
+      setAnnouncementList(data);
+      setLoaded(true);
+    }
+  };
+
   useEffect(() => {
-    setAnnouncementList(AnnouncementList);
+    fetchSpotlightList();
   }, []);
 
   const filteredAnnouncements = announcementList.filter((a) =>
     a.title.toLowerCase().includes(query.toLowerCase())
   );
 
+  if (!loaded) {
+    return <Loader />;
+  }
   return (
     <div className="h-full w-full">
       <div className="max-w-5xl mx-auto space-y-10">

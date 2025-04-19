@@ -2,10 +2,12 @@
 
 import SearchBar from "@/components/SearchBar";
 import { useEffect, useState } from "react";
-import TestList from "@/mock/testList.json";
 import TestCards from "../components/TestCards";
+import { fetchStarredListAction } from "@/app/actions/dashboard/starredList";
+import Loader from "@/components/Loader";
 
 export default function Index() {
+  const [loaded, setLoaded] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [testList, setTestList] = useState<
     {
@@ -17,23 +19,28 @@ export default function Index() {
     }[]
   >([]);
 
+  const fetchStarredList = async () => {
+    const res = await fetchStarredListAction();
+    const { data, status } = res;
+    if (status === "success") {
+      setTestList(data);
+      setLoaded(true);
+    }
+  };
+
   // Load the test list once on mount
   useEffect(() => {
-    setTestList(
-      TestList as {
-        id: string;
-        name: string;
-        startDateTimeString: string;
-        endDateTimeString: string;
-        status: "SignedUp" | "UpNext" | "Missed" | "Done";
-      }[]
-    );
+    fetchStarredList();
   }, []);
 
   // Derive the filtered test list based on the current tab and search query
   const filteredTestList = testList.filter((test) =>
     test.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  if (!loaded) {
+    return <Loader />;
+  }
 
   return (
     <div className="w-full h-full flex flex-col space-y-8">

@@ -27,7 +27,7 @@ export default function Home() {
       formData.append("email", data.email);
       formData.append("password", data.password);
       const res = await login(formData);
-      if (res.success) {
+      if (res.status === "success") {
         router.push("/dashboard");
       }
     } catch (error) {

@@ -1,55 +1,37 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { Calendar, BarChartBig, Trophy, ListChecks } from "lucide-react";
+import { useEffect, useState } from "react";
+import { BarChartBig, Trophy, ListChecks } from "lucide-react";
 import AnalyticCard from "./components/AnalyticCard";
-
-const mockTests = [
-  {
-    id: "1",
-    name: "Aptitude Practice Test 1",
-    date: "2025-04-18T07:24:35.492Z",
-    score: 78,
-    totalMarks: 100,
-    duration: "60 mins",
-  },
-  {
-    id: "2",
-    name: "Logical Reasoning Test",
-    date: "2024-11-02T19:05:12.830Z",
-    score: 85,
-    totalMarks: 100,
-    duration: "45 mins",
-  },
-  {
-    id: "3",
-    name: "Quantitative Test 2",
-    date: "2026-02-29T23:59:59.123Z",
-    score: 66,
-    totalMarks: 100,
-    duration: "60 mins",
-  },
-  {
-    id: "4",
-    name: "Final Mock Test",
-    date: "2025-12-31T00:00:00.000Z",
-    score: 91,
-    totalMarks: 100,
-    duration: "90 mins",
-  },
-  {
-    id: "5",
-    name: "Final Mock Test",
-    date: "2024-07-15T13:47:05.987Z",
-    score: 91,
-    totalMarks: 100,
-    duration: "90 mins",
-  },
-];
+import Loader from "@/components/Loader";
+import { fetchAnalyticsListAction } from "@/app/actions/dashboard/analyticsList";
 
 export default function AnalyticsDashboard() {
+  const [loaded, setLoaded] = useState<boolean>(false);
   const [query] = useState("");
+  const [mockTests, setMockTests] = useState<
+    {
+      id: string;
+      name: string;
+      date: string;
+      score: number;
+      totalMarks: number;
+      duration: string;
+    }[]
+  >([]);
+
+  const fetchMockTests = async () => {
+    const res = await fetchAnalyticsListAction();
+    const { data, status } = res;
+    if (status) {
+      setMockTests(data);
+      setLoaded(true);
+    }
+  };
+
+  useEffect(() => {
+    fetchMockTests();
+  }, []);
 
   const filteredTests = mockTests.filter((test) =>
     test.name.toLowerCase().includes(query.toLowerCase())
@@ -59,6 +41,10 @@ export default function AnalyticsDashboard() {
   const averageScore =
     mockTests.reduce((sum, test) => sum + test.score, 0) / totalTests;
   const bestScore = Math.max(...mockTests.map((t) => t.score));
+
+  if (!loaded) {
+    return <Loader />;
+  }
 
   return (
     <div className="w-full h-full space-y-10">
