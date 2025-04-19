@@ -2,7 +2,9 @@
 
 import React from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { redirect } from "next/navigation";
+
+import { useRouter } from "next/navigation";
+import { login } from "./actions/authentication/login";
 
 type FormData = {
   email: string;
@@ -15,11 +17,22 @@ export default function Home() {
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>();
+  const router = useRouter();
 
-  const onSubmit: SubmitHandler<FormData> = (data) => {
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
     // Implement your authentication logic here.
     console.log("Login data:", data);
-    redirect("/dashboard");
+    try {
+      const formData = new FormData();
+      formData.append("email", data.email);
+      formData.append("password", data.password);
+      const res = await login(formData);
+      if (res.success) {
+        router.push("/dashboard");
+      }
+    } catch (error) {
+      console.error("Login failed", error);
+    }
   };
 
   return (

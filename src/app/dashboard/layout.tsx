@@ -13,6 +13,7 @@ import {
 import { JSX, ReactNode, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { logout } from "../actions/authentication/logout";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -67,8 +68,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     setMobileMenuOpen((prev) => !prev);
   };
 
-  const handleLogout = () => {
-    router.push("/");
+  const handleLogout = async () => {
+    const res = await logout();
+    if (res.success) {
+      router.push("/");
+    }
   };
 
   return (
