@@ -5,8 +5,9 @@ import { useEffect, useState } from "react";
 import clsx from "clsx";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import CountdownTimer from "@/components/CountdownTimer";
+import { Menu, X } from "lucide-react";
 
-type QuestionStatus = "unattempted" | "attempted" | "review";
+type QuestionStatus = "unattempted" | "attempted" | "review" | "answeredMarkedForReview";
 
 type QuestionType =
   | "single"
@@ -120,6 +121,7 @@ export default function ExamPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     setQuestions(mockQuestions);
@@ -437,11 +439,165 @@ export default function ExamPage() {
 
   return (
     <div className="h-full flex flex-col md:flex-row bg-gray-100">
+      {/* Main */}
+      <main className="flex-1 p-4 sm:p-6 flex flex-col gap-5">
+        <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
+          <div className="w-full flex justify-between">
+            <div className="flex items-center gap-2">
+              <div className="md:hidden">
+                <div onClick={() => setSidebarOpen(!sidebarOpen)}>
+                  {sidebarOpen ? (
+                    <X className="w-6 h-6" />
+                  ) : (
+                    <Menu className="w-6 h-6" />
+                  )}
+                </div>
+              </div>
+              <div>
+                <h1 className="font-bold text-sm md:text-xl">
+                  Aptitude Test - 1
+                </h1>
+              </div>
+            </div>
+            <div className="w-fit flex gap-3 text-sm">
+              <h1 className="text-nowrap">Time Left</h1>
+              <CountdownTimer
+                initialTime="00:05:00"
+                onComplete={handleTimeout}
+                className="text-sm"
+              />
+            </div>
+          </div>
+        </div>
+        {currentQuestion && (
+          <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
+            <div className="w-full flex flex-col gap-2 md:flex md:flex-row justify-between">
+              <div>
+                <h1 className="text-sm">
+                  Question {currentIndex + 1} -{" "}
+                  {questionTypeMapping[currentQuestion.type]}
+                </h1>
+              </div>
+              <div className="flex gap-3">
+                <div className="flex gap-3 text-sm">
+                  <h1 className="text-green-500">Mark(s)</h1>
+                  <h1>{currentQuestion.mark}</h1>
+                </div>
+                <div className="flex gap-3 text-sm pr-1">
+                  <h1 className="text-red-500 text-nowrap">Negative Mark(s)</h1>
+                  <h1>{currentQuestion.negativeMark}</h1>
+                </div>
+              </div>
+            </div>
+            <div className="w-full flex justify-between">
+              <div>
+                <h2 className="text-md sm:text-lg font-semibold text-gray-800">
+                  {currentQuestion.text}
+                </h2>
+              </div>
+              <div>
+                <select className="border border-gray-300 px-4 py-1 rounded-md shadow-md cursor-pointer">
+                  <option value="english">English</option>
+                  <option value="telugu">Telugu</option>
+                </select>
+              </div>
+            </div>
+            {errorMessage && (
+              <div className="mb-4 text-sm text-red-600 font-medium">
+                {errorMessage}
+              </div>
+            )}
+            <div className="space-y-3">{renderQuestion()}</div>
+            <div className="flex flex-col md:flex md:flex-row items-center justify-between gap-4 mt-4">
+              <div className="w-full flex gap-3">
+                <button
+                  onClick={toggleMarkForReview}
+                  className={clsx(
+                    "w-full md:w-fit px-4 py-2 rounded-md font-medium text-white cursor-pointer",
+                    currentQuestion.status === "review"
+                      ? "bg-gray-500 hover:bg-gray-600"
+                      : "bg-purple-500 hover:bg-purple-600"
+                  )}
+                >
+                  {currentQuestion.status === "review"
+                    ? "Unmark Review"
+                    : "Mark for Review"}
+                </button>
+                <button
+                  onClick={clearResponse}
+                  className={clsx(
+                    "w-full md:w-fit px-4 py-2 rounded-md font-medium text-white cursor-pointer bg-cyan-500 hover:bg-cyan-600"
+                  )}
+                >
+                  Clear Response
+                </button>
+              </div>
+
+              <div className="w-full md:w-fit flex gap-3">
+                <div className="w-full md:w-fit">
+                  <button
+                    onClick={handlePreviousQuestion}
+                    disabled={currentIndex === 0}
+                    className={clsx(
+                      "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer",
+                      currentIndex === 0
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-blue-600 hover:bg-blue-700"
+                    )}
+                  >
+                    Previous
+                  </button>
+                </div>
+                {currentIndex < questions.length - 1 ? (
+                  <div className="w-full md:w-fit">
+                    <button
+                      onClick={handleNextQuestion}
+                      className={clsx(
+                        "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700"
+                      )}
+                    >
+                      Next
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-full md:w-fit">
+                    <button
+                      onClick={handleSubmit}
+                      className="w-full text-nowrap px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium cursor-pointer"
+                    >
+                      Submit Test
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+
       {/* Sidebar */}
-      <aside className="md:w-64 w-full bg-white border-b md:border-r border-gray-300 p-4 md:p-6 shadow-md flex flex-col gap-2">
+      <aside
+        className={clsx(
+          // common styles
+          "bg-white border-gray-300 shadow-md flex flex-col gap-2 p-4",
+          // positioning
+          "fixed top-16 left-0 lg:static w-full h-full transform transition-transform duration-300 z-50",
+          // mobile open/closed
+          sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+          // desktop static sidebar
+          "md:static md:translate-y-0 md:block md:w-64"
+        )}
+      >
         <div className="flex flex-col gap-2">
-          <div>
-            <h1 className="font-bold text-2xl">Questions</h1>
+          <div className="flex items-center gap-2">
+            <div className="md:hidden">
+              <div onClick={() => setSidebarOpen(!sidebarOpen)}>
+                {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+              </div>
+            </div>
+            <div>
+              <h1 className="font-bold text-2xl">Questions</h1>
+            </div>
           </div>
           <div className="grid grid-cols-8 md:grid-cols-5 gap-2 mb-4">
             {questions.map((q, index) => (
@@ -501,126 +657,6 @@ export default function ExamPage() {
           </div>
         </div>
       </aside>
-
-      {/* Main */}
-      <main className="flex-1 p-4 sm:p-6">
-        {currentQuestion && (
-          <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
-            <div className="w-full flex flex-col md:flex md:flex-row justify-between">
-              <div>
-                <h1 className="text-sm">
-                  {questionTypeMapping[currentQuestion.type]}
-                </h1>
-              </div>
-              <div className="w-full flex gap-3 text-sm md:hidden">
-                <h1 className="text-nowrap">Time Left</h1>
-                <CountdownTimer
-                  initialTime="00:05:00"
-                  onComplete={handleTimeout}
-                  className="text-sm"
-                />
-              </div>
-              <div className="flex gap-3">
-                <div className="w-full flex gap-3 text-sm border-r border-r-gray-300 pr-3">
-                  <h1 className="text-green-500">Mark(s)</h1>
-                  <h1>{currentQuestion.mark}</h1>
-                </div>
-                <div className="w-full flex gap-3 text-sm md:border-r md:border-r-gray-300 pr-3">
-                  <h1 className="text-red-500 text-nowrap">Negative Mark(s)</h1>
-                  <h1>{currentQuestion.negativeMark}</h1>
-                </div>
-                <div className="w-full md:flex gap-3 text-sm hidden">
-                  <h1 className="text-nowrap">Time Left</h1>
-                  <CountdownTimer
-                    initialTime="00:05:00"
-                    onComplete={handleTimeout}
-                    className="text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-            <h2 className="text-md sm:text-lg font-semibold text-gray-800">
-              {currentQuestion.text}
-            </h2>
-            {errorMessage && (
-              <div className="mb-4 text-sm text-red-600 font-medium">
-                {errorMessage}
-              </div>
-            )}
-            <div className="space-y-3">{renderQuestion()}</div>
-            <div className="flex flex-col md:flex md:flex-row items-center justify-between gap-4 mt-4">
-              <div className="w-full flex gap-3">
-                <button
-                  onClick={toggleMarkForReview}
-                  className={clsx(
-                    "w-full md:w-fit px-4 py-2 rounded-md font-medium text-white cursor-pointer",
-                    currentQuestion.status === "review"
-                      ? "bg-gray-500 hover:bg-gray-600"
-                      : "bg-purple-500 hover:bg-purple-600"
-                  )}
-                >
-                  {currentQuestion.status === "review"
-                    ? "Unmark Review"
-                    : "Mark for Review"}
-                </button>
-                <button
-                  onClick={clearResponse}
-                  className={clsx(
-                    "w-full md:w-fit px-4 py-2 rounded-md font-medium text-white cursor-pointer bg-cyan-500 hover:bg-cyan-600"
-                  )}
-                >
-                  Clear Response
-                </button>
-              </div>
-
-              <div className="w-full md:w-fit flex gap-3">
-                <div className="w-full md:w-fit">
-                  <button
-                    onClick={handlePreviousQuestion}
-                    disabled={currentIndex === 0}
-                    className={clsx(
-                      "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer",
-                      currentIndex === 0
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-blue-600 hover:bg-blue-700"
-                    )}
-                  >
-                    Previous
-                  </button>
-                </div>
-                {currentIndex < questions.length - 1 ? (
-                  <div className="w-full md:w-fit">
-                    <button
-                      onClick={handleNextQuestion}
-                      disabled={
-                        currentQuestion.status === "unattempted" &&
-                        !["review"].includes(currentQuestion.status)
-                      }
-                      className={clsx(
-                        "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer",
-                        currentQuestion.status === "unattempted"
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-blue-600 hover:bg-blue-700"
-                      )}
-                    >
-                      Next
-                    </button>
-                  </div>
-                ) : (
-                  <div className="w-full md:w-fit">
-                    <button
-                      onClick={handleSubmit}
-                      className="w-full text-nowrap px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium cursor-pointer"
-                    >
-                      Submit Test
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </main>
 
       <ConfirmationModal
         isOpen={showModal}

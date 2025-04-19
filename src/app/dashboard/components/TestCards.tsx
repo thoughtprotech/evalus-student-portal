@@ -74,7 +74,7 @@ export default function TestCards({
     linkIcon = <Play className="w-5 h-5 ml-2" />;
     linkHref = `/exam/systemCheck/${encodeURIComponent(id)}`;
   } else if (status === "UpNext") {
-    linkText = "Register";
+    linkText = "SignUp";
     linkIcon = <CalendarCheckIcon className="w-5 h-5 ml-2" />;
     linkHref = `/dashboard/register/${encodeURIComponent(id)}`;
   } else if (status === "Missed") {
