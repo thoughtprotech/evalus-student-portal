@@ -1,3 +1,5 @@
+"use server";
+
 import UserMock from "@/mock/user.json";
 
 // Fetch a single candidate by ID
@@ -19,7 +21,10 @@ export async function fetchCandidateAction(userId: number) {
 export async function createCandidateAction(formData: FormData) {
   try {
     // TODO: Replace mock logic with actual API call
-    console.log("Creating candidate with data:", Object.fromEntries(formData.entries()));
+    console.log(
+      "Creating candidate with data:",
+      Object.fromEntries(formData.entries())
+    );
 
     return {
       status: "success",
@@ -33,10 +38,16 @@ export async function createCandidateAction(formData: FormData) {
 }
 
 // Update an existing candidate
-export async function updateCandidateAction(userId: number, formData: FormData) {
+export async function updateCandidateAction(
+  userId: number,
+  formData: FormData
+) {
   try {
     // TODO: Replace mock logic with actual API call
-    console.log(`Updating candidate ${userId} with data:`, Object.fromEntries(formData.entries()));
+    console.log(
+      `Updating candidate ${userId} with data:`,
+      Object.fromEntries(formData.entries())
+    );
 
     return {
       status: "success",

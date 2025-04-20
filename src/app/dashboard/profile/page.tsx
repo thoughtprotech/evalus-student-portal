@@ -8,6 +8,7 @@ import { EditableImage } from "@/components/EditableImage";
 import EditableText from "@/components/EditableText";
 import { Mail, MapPin, StickyNote } from "lucide-react";
 import { useEffect, useState } from "react";
+import UpdatePassword from "./_components/UpdatePassword";
 
 interface Candidate {
   CandidateID: number;
@@ -26,6 +27,12 @@ interface Candidate {
   DisplayName: string;
   IUserPhoto?: string | null;
 }
+
+type PasswordUpdateForm = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};
 
 export default function ProfilePage() {
   const [candidate, setCandidate] = useState<Candidate>();
@@ -54,6 +61,7 @@ export default function ProfilePage() {
   const handleUserUpdate = async (text: string, field: string) => {
     const formData = new FormData();
     formData.append(field, text);
+    console.log({ formData });
     const { status, data, message } = await updateCandidateAction(
       candidate!.CandidateID,
       formData
@@ -65,44 +73,49 @@ export default function ProfilePage() {
 
   return (
     <div className="w-full h-full flex flex-col items-center gap-6">
-      <div className="w-full max-w-4xl flex items-center gap-8 mb-6">
-        {candidate && (
-          <EditableImage
-            firstName={candidate.FirstName}
-            lastName={candidate.LastName}
-            src={candidate.IUserPhoto}
-            onEdit={handleImageUpdate}
-          />
-        )}
-        <div className="flex flex-col">
+      <div className="w-full max-w-4xl flex flex-col lg:flex lg:flex-row justify-between lg:items-center gap-4">
+        <div className=" flex items-center gap-8">
+          {candidate && (
+            <EditableImage
+              firstName={candidate.FirstName}
+              lastName={candidate.LastName}
+              src={candidate.IUserPhoto}
+              onEdit={handleImageUpdate}
+            />
+          )}
           <div className="flex flex-col">
-            {candidate && (
-              <EditableText
-                text={candidate.LastName}
-                onSubmit={(text) => handleUserUpdate(text, "LastName")}
-                className="text-xl font-bold text-indigo-600"
-                inputClassName="p-2 border border-gray-300 rounded-md"
-              />
-            )}
-            {candidate && (
-              <EditableText
-                text={candidate.FirstName}
-                onSubmit={(text) => handleUserUpdate(text, "FirstName")}
-                className="text-5xl font-bold text-gray-800"
-                inputClassName="text-5xl p-2 border border-gray-300 rounded-md"
-              />
-            )}
+            <div className="flex flex-col">
+              {candidate && (
+                <EditableText
+                  text={candidate.LastName}
+                  onSubmit={(text) => handleUserUpdate(text, "LastName")}
+                  className="text-xl font-bold text-indigo-600"
+                  inputClassName="p-2 border border-gray-300 rounded-md"
+                />
+              )}
+              {candidate && (
+                <EditableText
+                  text={candidate.FirstName}
+                  onSubmit={(text) => handleUserUpdate(text, "FirstName")}
+                  className="text-5xl font-bold text-gray-800"
+                  inputClassName="text-5xl p-2 border border-gray-300 rounded-md"
+                />
+              )}
+            </div>
+            <div className="text-xl font-medium text-gray-600">
+              {candidate && (
+                <EditableText
+                  text={candidate.DisplayName}
+                  onSubmit={(text) => handleUserUpdate(text, "DisplayName")}
+                  className="text-xl font-bold text-gray-800"
+                  inputClassName="w-fit p-2 border border-gray-300 rounded-md"
+                />
+              )}
+            </div>
           </div>
-          <div className="text-xl font-medium text-gray-600">
-            {candidate && (
-              <EditableText
-                text={candidate.DisplayName}
-                onSubmit={(text) => handleUserUpdate(text, "DisplayName")}
-                className="text-xl font-bold text-gray-800"
-                inputClassName="w-fit p-2 border border-gray-300 rounded-md"
-              />
-            )}
-          </div>
+        </div>
+        <div>
+          <UpdatePassword handleUserUpdate={handleUserUpdate} />
         </div>
       </div>
 
@@ -212,7 +225,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="bg-white p-4 rounded-lg shadow-md">
-        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <StickyNote className="text-yellow-500" />
             <h2 className="font-semibold text-lg text-gray-800">Notes</h2>
           </div>
