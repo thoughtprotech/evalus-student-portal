@@ -9,6 +9,7 @@ import EditableText from "@/components/EditableText";
 import { Mail, MapPin, StickyNote } from "lucide-react";
 import { useEffect, useState } from "react";
 import UpdatePassword from "./_components/UpdatePassword";
+import Loader from "@/components/Loader";
 
 interface Candidate {
   CandidateID: number;
@@ -28,19 +29,15 @@ interface Candidate {
   IUserPhoto?: string | null;
 }
 
-type PasswordUpdateForm = {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-};
-
 export default function ProfilePage() {
+  const [loaded, setLoaded] = useState<boolean>(false);
   const [candidate, setCandidate] = useState<Candidate>();
 
   const fetchCandidate = async () => {
     const { status, data, message } = await fetchCandidateAction(1);
     if (status) {
       setCandidate(data as Candidate);
+      setLoaded(true);
     }
   };
 
@@ -70,6 +67,10 @@ export default function ProfilePage() {
       console.log({ data, message });
     }
   };
+
+  if (!loaded) {
+    return <Loader />;
+  }
 
   return (
     <div className="w-full h-full flex flex-col items-center gap-6">
