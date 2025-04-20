@@ -5,7 +5,6 @@ import { cookies } from "next/headers";
 import AnalyticsList from "@/mock/mockTests.json";
 
 export async function fetchAnalyticsListAction(): Promise<ActionResponse> {
-  const token = (await cookies()).get("token")?.value;
 
   //   TODO: Add filters
   try {

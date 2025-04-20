@@ -5,8 +5,6 @@ import { cookies } from "next/headers";
 import ReferenceList from "@/mock/referencesList.json";
 
 export async function fetchReferencesListAction(): Promise<ActionResponse> {
-  const token = (await cookies()).get("token")?.value;
-
   //   TODO: Add filters
   try {
     // const { token, role, username, roleDetailsJson, isAuthorized, message } =
@@ -24,6 +22,4 @@ export async function fetchReferencesListAction(): Promise<ActionResponse> {
     console.log("Error Fetching References List", error);
     return { status: "failure", message: "Error Fetching References List" };
   }
-
-  console.log({ token });
 }

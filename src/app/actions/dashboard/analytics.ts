@@ -9,8 +9,6 @@ export type TestId = keyof typeof Analytics;
 export async function fetchAnalyticsAction(
   testId: TestId
 ): Promise<ActionResponse> {
-  const token = (await cookies()).get("token")?.value;
-
   //   TODO: Add filters
   try {
     // const { token, role, username, roleDetailsJson, isAuthorized, message } =
@@ -28,6 +26,4 @@ export async function fetchAnalyticsAction(
     console.log("Error Fetching Anaytics", error);
     return { status: "failure", message: "Error Fetching Anaytics" };
   }
-
-  console.log({ token });
 }
