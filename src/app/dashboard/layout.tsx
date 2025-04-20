@@ -9,11 +9,16 @@ import {
   Menu,
   X,
   LogOut,
+  Settings,
+  User,
+  UserCircle,
 } from "lucide-react";
 import { JSX, ReactNode, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { logout } from "../actions/authentication/logout";
+import { DropDown } from "@/components/DropDown";
+import Link from "next/link";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -34,6 +39,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     string,
     { title: string; icon: JSX.Element }
   > = {
+    "/dashboard/profile": {
+      title: "Profile",
+      icon: <UserCircle className="w-6 h-6 md:w-8 md:h-8" />,
+    },
     "/dashboard/analytics": {
       title: "Analytics",
       icon: <ClipboardList className="w-6 h-6 md:w-8 md:h-8" />,
@@ -201,17 +210,41 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-7 h-7 md:w-9 md:h-9 bg-indigo-200 text-indigo-800 rounded-full flex items-center justify-center font-bold text-sm shadow-inner">
-                U
+            <DropDown
+              face={
+                <div className="flex items-center space-x-2">
+                  <div className="w-7 h-7 md:w-9 md:h-9 bg-indigo-200 text-indigo-800 rounded-full flex items-center justify-center font-bold text-sm shadow-inner">
+                    U
+                  </div>
+                  <h1 className="text-xs md:text-base font-bold text-gray-600">
+                    John Doe
+                  </h1>
+                </div>
+              }
+            >
+              <div className="bg-white shadow-md rounded-md flex flex-col text-nowrap">
+                <div className="px-4 py-2 w-full flex items-center gap-2 border-b border-b-gray-200 cursor-pointer hover:bg-indigo-50 duration-300">
+                  <Link
+                    className="flex items-center gap-2"
+                    href="/dashboard/profile"
+                  >
+                    <UserCircle className="w-4 h-4 md:w-5 md:h-5 text-indigo-500 cursor-pointer" />
+                    <h1 className="font-bold text-gray-600 text-xs md:text-base">
+                      Profile
+                    </h1>
+                  </Link>
+                </div>
+                <div
+                  className="px-4 py-2 w-full flex items-center gap-2 border-b border-b-gray-200 cursor-pointer hover:bg-indigo-50 duration-300"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="w-4 h-4 md:w-5 md:h-5 text-red-500 cursor-pointer" />
+                  <h1 className="font-bold text-gray-600 text-xs md:text-base">
+                    Log Out
+                  </h1>
+                </div>
               </div>
-              <h1 className="text-xs md:text-base font-bold text-gray-600">
-                John Doe
-              </h1>
-            </div>
-            <div onClick={handleLogout}>
-              <LogOut className="w-4 h-4 md:w-5 md:h-5 text-red-500 cursor-pointer" />
-            </div>
+            </DropDown>
           </div>
         </header>
 

@@ -1,0 +1,19 @@
+[
+  {
+    "CandidateID": 1,
+    "FirstName": "John",
+    "LastName": "Doe",
+    "Email": "john.doe@example.com",
+    "PhoneNumber": "+1-555-1234",
+    "CellPhone": "+1-555-5678",
+    "Address": "123 Main St",
+    "City": "Metropolis",
+    "State": "CA",
+    "PostalCode": "90210",
+    "Country": "USA",
+    "CandidateGroupID": 2,
+    "Notes": "Top performer.",
+    "DisplayName": "Johnny",
+    "IUserPhoto": null
+  }
+]

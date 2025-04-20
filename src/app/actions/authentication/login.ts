@@ -2,7 +2,17 @@
 "use server";
 
 import ActionResponse from "@/types/ActionResponse";
+import { apiHandler } from "@/utils/api";
 import { cookies } from "next/headers";
+
+type LoginResponse = {
+  token: string;
+  role: string;
+  username: string;
+  roleDetailsJson: string;
+  isAuthorized: boolean;
+  message: string;
+};
 
 export async function login(formData: FormData): Promise<ActionResponse> {
   const email = formData.get("email");
@@ -13,18 +23,12 @@ export async function login(formData: FormData): Promise<ActionResponse> {
   }
 
   try {
-    //   // Call your backend API
-    //   const res = await fetch("https://api.example.com/auth", {
+    // const { token, role, username, roleDetailsJson, isAuthorized, message } =
+    //   await apiHandler<LoginResponse>("/auth/login", {
     //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify({ email, password }),
+    //     body: { email, password },
+    //     routeType: "open",
     //   });
-
-    //   if (!res.ok) {
-    //     throw new Error("Authentication failed.");
-    //   }
-
-    //   const { token } = await res.json();
 
     console.log({ email, password });
 

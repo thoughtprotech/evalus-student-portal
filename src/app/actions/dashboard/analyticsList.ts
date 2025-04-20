@@ -9,16 +9,11 @@ export async function fetchAnalyticsListAction(): Promise<ActionResponse> {
 
   //   TODO: Add filters
   try {
-    // const res = await fetch("https://api.example.com/auth", {
-    //   method: "GET",
-    //   headers: { Authentication: `Bearer ${token}` },
-    // });
-
-    // if (!res.ok) {
-    //   throw new Error("Authentication failed.");
-    // }
-
-    // const {testList} = await res.json();
+    // const { token, role, username, roleDetailsJson, isAuthorized, message } =
+    //   await apiHandler<LoginResponse>("/analyticsList", {
+    //     method: "GET",
+    //     routeType: "close",
+    //   });
 
     return {
       status: "success",
@@ -29,6 +24,4 @@ export async function fetchAnalyticsListAction(): Promise<ActionResponse> {
     console.log("Error Fetching Anaytics List", error);
     return { status: "failure", message: "Error Fetching Anaytics List" };
   }
-
-  console.log({ token });
 }
