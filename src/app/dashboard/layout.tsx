@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Bell,
   Bookmark,
   ClipboardList,
   FileText,
@@ -9,9 +8,8 @@ import {
   Menu,
   X,
   LogOut,
-  Settings,
-  User,
   UserCircle,
+  LampDesk,
 } from "lucide-react";
 import { JSX, ReactNode, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -57,7 +55,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     },
     "/dashboard/spotlight": {
       title: "Spotlight",
-      icon: <Bell className="w-6 h-6 md:w-8 md:h-8" />,
+      icon: <LampDesk className="w-6 h-6 md:w-8 md:h-8" />,
     },
     "/dashboard": {
       title: "TestHub",
@@ -117,7 +115,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             href="/dashboard/references"
           />
           <SidebarItem
-            icon={Bell}
+            icon={LampDesk}
             label="Spotlight"
             href="/dashboard/spotlight"
           />
@@ -180,7 +178,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               onClick={toggleMobileMenu}
             />
             <SidebarItemMobile
-              icon={Bell}
+              icon={LampDesk}
               label="Spotlight"
               href="/dashboard/spotlight"
               onClick={toggleMobileMenu}
