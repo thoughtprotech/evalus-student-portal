@@ -1,7 +1,7 @@
-// middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+// TODO: Implement JWT
 export function middleware(req: NextRequest) {
   const token = req.cookies.get("token")?.value;
   const { pathname } = req.nextUrl;

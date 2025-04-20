@@ -20,7 +20,6 @@ export default function Home() {
   const router = useRouter();
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
-    // Implement your authentication logic here.
     console.log("Login data:", data);
     try {
       const formData = new FormData();
