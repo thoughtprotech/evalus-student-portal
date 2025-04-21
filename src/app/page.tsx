@@ -5,9 +5,10 @@ import { useForm, SubmitHandler } from "react-hook-form";
 
 import { useRouter } from "next/navigation";
 import { login } from "./actions/authentication/login";
+import toast from "react-hot-toast";
 
 type FormData = {
-  email: string;
+  username: string;
   password: string;
 };
 
@@ -20,14 +21,15 @@ export default function Home() {
   const router = useRouter();
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
-    console.log("Login data:", data);
     try {
       const formData = new FormData();
-      formData.append("email", data.email);
+      formData.append("username", data.username);
       formData.append("password", data.password);
       const res = await login(formData);
       if (res.status === "success") {
         router.push("/dashboard");
+      } else {
+        toast.error(res.message);
       }
     } catch (error) {
       console.error("Login failed", error);
@@ -54,22 +56,22 @@ export default function Home() {
         <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div>
             <label
-              htmlFor="email"
+              htmlFor="username"
               className="block text-sm font-medium text-gray-700"
             >
-              Email address
+              Username
             </label>
             <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              {...register("email", { required: "Email is required" })}
+              id="username"
+              type="text"
+              autoComplete="username"
+              {...register("username", { required: "Username is required" })}
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-400 focus:border-indigo-400"
               placeholder="you@example.com"
             />
-            {errors.email && (
+            {errors.username && (
               <p className="mt-1 text-xs text-red-600">
-                {errors.email.message}
+                {errors.username.message}
               </p>
             )}
           </div>

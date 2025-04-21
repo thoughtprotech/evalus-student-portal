@@ -1,24 +1,15 @@
-// app/actions/login.ts
 "use server";
 
 import ActionResponse from "@/types/ActionResponse";
-import { apiHandler } from "@/utils/api";
+import { apiHandler } from "@/utils/api/client";
+import { endpoints } from "@/utils/api/endpoints";
 import { cookies } from "next/headers";
 
-type LoginResponse = {
-  token: string;
-  role: string;
-  username: string;
-  roleDetailsJson: string;
-  isAuthorized: boolean;
-  message: string;
-};
-
 export async function login(formData: FormData): Promise<ActionResponse> {
-  const email = formData.get("email");
+  const username = formData.get("username");
   const password = formData.get("password");
 
-  if (!email || !password) {
+  if (!username || !password) {
     throw new Error("Email and password are required.");
   }
 
@@ -26,24 +17,28 @@ export async function login(formData: FormData): Promise<ActionResponse> {
     // const { token, role, username, roleDetailsJson, isAuthorized, message } =
     //   await apiHandler<LoginResponse>("/auth/login", {
     //     method: "POST",
-    //     body: { email, password },
+    //     body: { username, password },
     //     routeType: "open",
     //   });
 
-    console.log({ email, password });
-
+    const res = await apiHandler(endpoints.loginUser, formData);
     const token = "token";
 
-    // ✅ Set token as cookie on the server
-    (await cookies()).set("token", token, {
-      httpOnly: true,
-      secure: true,
-      path: "/",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24,
-    });
+    if (res.status === 200) {
+      (await cookies()).set("token", token, {
+        httpOnly: true,
+        secure: true,
+        path: "/",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24,
+      });
 
-    return { status: "success", message: "User Authenticated" };
+      return { status: "success", message: "User Authenticated" };
+    }
+    return {
+      status: "failure",
+      message: res.errorMessage ?? "Error Authenticating User",
+    };
   } catch (error) {
     console.log("Error Authenticating User", error);
     return { status: "failure", message: "Error Authenticating User" };
