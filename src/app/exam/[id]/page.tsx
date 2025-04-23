@@ -10,6 +10,7 @@ import Modal from "@/components/Modal";
 import { InstructionData, mockInstructions } from "../instructions/[id]/page";
 
 type QuestionStatus =
+  | "unanswered"
   | "unattempted"
   | "attempted"
   | "review"
@@ -48,7 +49,7 @@ const mockQuestions: Question[] = [
     options: ["Paris", "Rome", "Madrid", "Berlin"],
     selectedOption: null,
     answer: null,
-    status: "unattempted",
+    status: "unanswered",
     mark: 3,
     negativeMark: -1,
   },
@@ -255,10 +256,17 @@ export default function ExamPage() {
   };
 
   const handleNextQuestion = () => {
+    const updated = [...questions];
+    updated[currentIndex + 1].status = "unanswered";
     if (currentIndex < questions.length - 1) setCurrentIndex(currentIndex + 1);
+    setQuestions(updated);
   };
 
   const handlePreviousQuestion = () => {
+    const updated = [...questions];
+
+    if (updated[currentIndex - 1].status === "unattempted")
+      updated[currentIndex - 1].status = "unanswered";
     if (currentIndex !== 0) setCurrentIndex(currentIndex - 1);
   };
 
@@ -296,7 +304,10 @@ export default function ExamPage() {
   };
 
   const handleJumpTo = (index: number) => {
+    const updated = [...questions];
+    updated[index].status = "unanswered";
     setCurrentIndex(index);
+    setQuestions(updated);
   };
 
   const handleSubmit = () => setShowModal(true);
@@ -394,10 +405,19 @@ export default function ExamPage() {
       case "number":
         return (
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
             className="w-full border border-gray-300 rounded-md px-3 py-2"
             value={currentQuestion.selectedOption}
-            onChange={(e) => updateAnswer(e.target.value)}
+            onChange={(e) => {
+              const raw = e.target.value;
+              // Only call updateAnswer if raw is entirely digits (or empty)
+              if (/^\d*$/.test(raw)) {
+                // RegExp.test returns boolean :contentReference[oaicite:2]{index=2}
+                updateAnswer(raw);
+              }
+            }}
           />
         );
       case "match":
@@ -681,7 +701,10 @@ export default function ExamPage() {
                         "bg-purple-500 text-white hover:bg-purple-600",
                       index === currentIndex && "border-3 border-indigo-500",
                       q.status === "answeredMarkedForReview" &&
-                        "bg-orange-500 text-gray-700 hover:bg-orange-600",
+                        "bg-orange-500 text-white hover:bg-orange-600",
+                      index === currentIndex && "border-3 border-indigo-500",
+                      q.status === "unanswered" &&
+                        "bg-red-500 text-white hover:bg-red-600",
                       index === currentIndex && "border-3 border-indigo-500"
                     )}
                   >
@@ -706,6 +729,16 @@ export default function ExamPage() {
                   <span>Unattempted</span>
                 </div>
                 <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 p-2 flex items-center justify-center bg-red-500 rounded-full font-bold text-white">
+                    {
+                      questions.filter(
+                        (question) => question.status === "unanswered"
+                      ).length
+                    }
+                  </div>
+                  <span>Unanswered</span>
+                </div>
+                <div className="flex items-center gap-2">
                   <div className="w-8 h-8 p-2 flex items-center justify-center bg-green-500 rounded-full font-bold text-white">
                     {
                       questions.filter(
@@ -723,7 +756,7 @@ export default function ExamPage() {
                       ).length
                     }
                   </div>
-                  <span>Review</span>
+                  <span>Marked For Review</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 p-2 flex items-center justify-center bg-orange-500 rounded-full font-bold text-white">
