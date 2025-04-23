@@ -252,12 +252,20 @@ export default function ExamPage() {
       updated[currentIndex].status =
         updated[currentIndex].status === "review" ? "attempted" : "review";
     }
+
+    if (
+      updated[currentIndex].status !== "attempted" &&
+      currentIndex < questions.length - 1
+    ) {
+      handleNextQuestion();
+    }
     setQuestions(updated);
   };
 
   const handleNextQuestion = () => {
     const updated = [...questions];
-    updated[currentIndex + 1].status = "unanswered";
+    if (updated[currentIndex + 1].status === "unattempted")
+      updated[currentIndex + 1].status = "unanswered";
     if (currentIndex < questions.length - 1) setCurrentIndex(currentIndex + 1);
     setQuestions(updated);
   };
@@ -305,7 +313,8 @@ export default function ExamPage() {
 
   const handleJumpTo = (index: number) => {
     const updated = [...questions];
-    updated[index].status = "unanswered";
+    if (updated[index].status === "unattempted")
+      updated[index].status = "unanswered";
     setCurrentIndex(index);
     setQuestions(updated);
   };
@@ -615,7 +624,9 @@ export default function ExamPage() {
                   {currentQuestion.status === "review" ||
                   currentQuestion.status === "answeredMarkedForReview"
                     ? "Unmark Review"
-                    : "Mark for Review"}
+                    : currentIndex < questions.length - 1
+                    ? "Mark For Review And Next"
+                    : "Mark For Review"}
                 </button>
                 <button
                   onClick={clearResponse}
