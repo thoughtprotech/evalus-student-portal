@@ -7,7 +7,8 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import CountdownTimer from "@/components/CountdownTimer";
 import { Info, Menu, X } from "lucide-react";
 import Modal from "@/components/Modal";
-import { InstructionData, mockInstructions } from "../instructions/[id]/page";
+import { InstructionData } from "../instructions/[id]/page";
+import mockInstructions from "@/mock/mockInstructions.json";
 
 type QuestionStatus =
   | "unanswered"
@@ -134,9 +135,11 @@ export default function ExamPage() {
   const [instructionData, setInstructionData] =
     useState<InstructionData | null>(null);
 
+  const instructionsMap: Record<string, InstructionData> = mockInstructions;
+
   useEffect(() => {
-    if (id && mockInstructions[id as string]) {
-      setInstructionData(mockInstructions[id as string]);
+    if (id && instructionsMap[id as string]) {
+      setInstructionData(instructionsMap[id as string]);
     }
   }, [id]);
 

@@ -1,0 +1,21 @@
+{
+  "1": {
+    "title": "Aptitude Practice Test 1",
+    "instructions": [
+      "Read all the questions carefully.",
+      "Manage your time effectively.",
+      "Do not use any external resources.",
+      "Once you start the test, you cannot pause it.",
+      "Review your answers before submitting."
+    ]
+  },
+  "2": {
+    "title": "Logical Reasoning Test",
+    "instructions": [
+      "Focus on the logic behind each question.",
+      "Ensure to answer all questions.",
+      "Time management is key.",
+      "Double-check answers for accuracy."
+    ]
+  }
+}

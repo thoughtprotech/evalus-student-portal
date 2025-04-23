@@ -2,35 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import mockInstructions from "@/mock/mockInstructions.json";
 
 export interface InstructionData {
   title: string;
   instructions: string[];
 }
 
-// Mock instructions data for different tests
-export const mockInstructions: Record<string, InstructionData> = {
-  "1": {
-    title: "Aptitude Practice Test 1",
-    instructions: [
-      "Read all the questions carefully.",
-      "Manage your time effectively.",
-      "Do not use any external resources.",
-      "Once you start the test, you cannot pause it.",
-      "Review your answers before submitting.",
-    ],
-  },
-  "2": {
-    title: "Logical Reasoning Test",
-    instructions: [
-      "Focus on the logic behind each question.",
-      "Ensure to answer all questions.",
-      "Time management is key.",
-      "Double-check answers for accuracy.",
-    ],
-  },
-  // Additional instruction data can be added here
-};
+const instructionsMap: Record<string, InstructionData> = mockInstructions;
 
 export default function ExamStartPage() {
   const { id } = useParams();
@@ -41,8 +20,8 @@ export default function ExamStartPage() {
 
   // Load instructions based on the test id
   useEffect(() => {
-    if (id && mockInstructions[id as string]) {
-      setInstructionData(mockInstructions[id as string]);
+    if (id && instructionsMap[id as string]) {
+      setInstructionData(instructionsMap[id as string]);
     }
   }, [id]);
 

@@ -43,7 +43,7 @@ function createApiClient() {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}${endpoint.path(body as Req)}`,
+        `${process.env.API_BASE_URL}${endpoint.path(body as Req)}`,
         {
           method: endpoint.method,
           headers,
