@@ -1,7 +1,7 @@
 "use client";
 
 import { SubmitHandler, useForm } from "react-hook-form";
-import SubmissionModal from "@/components/SubmissionModal";
+import Modal from "@/components/Modal";
 import { useState } from "react";
 
 type PasswordUpdateForm = {
@@ -47,7 +47,7 @@ export default function UpdatePassword({
       >
         <h1 className="text-indigo-500 font-bold">Update Password</h1>
       </button>
-      <SubmissionModal title="Update Password" isOpen={isModalOpen}>
+      <Modal title="Update Password" isOpen={isModalOpen}>
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
           {/* Current Password */}
           <div className="flex flex-col items-start gap-2">
@@ -135,7 +135,7 @@ export default function UpdatePassword({
             </button>
           </div>
         </form>
-      </SubmissionModal>
+      </Modal>
     </>
   );
 }

@@ -5,9 +5,15 @@ import { useEffect, useState } from "react";
 import clsx from "clsx";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import CountdownTimer from "@/components/CountdownTimer";
-import { Menu, X } from "lucide-react";
+import { Info, Menu, X } from "lucide-react";
+import Modal from "@/components/Modal";
+import { InstructionData, mockInstructions } from "../instructions/[id]/page";
 
-type QuestionStatus = "unattempted" | "attempted" | "review" | "answeredMarkedForReview";
+type QuestionStatus =
+  | "unattempted"
+  | "attempted"
+  | "review"
+  | "answeredMarkedForReview";
 
 type QuestionType =
   | "single"
@@ -122,6 +128,16 @@ export default function ExamPage() {
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showInstructionsModal, setShowInstructionsModal] =
+    useState<boolean>(false);
+  const [instructionData, setInstructionData] =
+    useState<InstructionData | null>(null);
+
+  useEffect(() => {
+    if (id && mockInstructions[id as string]) {
+      setInstructionData(mockInstructions[id as string]);
+    }
+  }, [id]);
 
   useEffect(() => {
     setQuestions(mockQuestions);
@@ -459,47 +475,56 @@ export default function ExamPage() {
                 </h1>
               </div>
             </div>
-            <div className="w-fit flex gap-3 text-sm">
-              <h1 className="text-nowrap">Time Left</h1>
-              <CountdownTimer
-                initialTime="00:05:00"
-                onComplete={handleTimeout}
-                className="text-sm"
-              />
+            <div className="w-fit flex items-center gap-3 text-sm">
+              <div>
+                <CountdownTimer
+                  initialTime="00:05:00"
+                  onComplete={handleTimeout}
+                  className="text-sm"
+                />
+              </div>
+              <div>
+                <Info
+                  className="text-gray-600 w-5 h-5 cursor-pointer"
+                  onClick={() => setShowInstructionsModal(true)}
+                />
+              </div>
             </div>
           </div>
         </div>
         {currentQuestion && (
           <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
-            <div className="w-full flex flex-col gap-2 md:flex md:flex-row justify-between">
+            <div className="w-full flex flex-col gap-2 md:flex md:flex-row justify-between font-semibold">
               <div>
-                <h1 className="text-sm">
+                <h1 className="text-sm text-gray-600">
                   Question {currentIndex + 1} -{" "}
                   {questionTypeMapping[currentQuestion.type]}
                 </h1>
               </div>
-              <div className="flex gap-3">
-                <div className="flex gap-3 text-sm">
+              <div className="flex gap-3 items-center">
+                <div className="flex gap-3 text-xs md:text-sm">
                   <h1 className="text-green-500">Mark(s)</h1>
                   <h1>{currentQuestion.mark}</h1>
                 </div>
-                <div className="flex gap-3 text-sm pr-1">
+                <h1 className="text-gray-500">|</h1>
+                <div className="flex gap-3 text-xs md:text-sm pr-1">
                   <h1 className="text-red-500 text-nowrap">Negative Mark(s)</h1>
                   <h1>{currentQuestion.negativeMark}</h1>
+                </div>
+                <h1 className="text-gray-500">|</h1>
+                <div>
+                  <select className="border border-gray-300 px-4 py-1 rounded-md shadow-md cursor-pointer text-sm md:text:base">
+                    <option value="english">English</option>
+                    <option value="telugu">Telugu</option>
+                  </select>
                 </div>
               </div>
             </div>
             <div className="w-full flex justify-between">
               <div>
-                <h2 className="text-md sm:text-lg font-semibold text-gray-800">
+                <h2 className="text-md sm:text-lg font-bold">
                   {currentQuestion.text}
                 </h2>
-              </div>
-              <div>
-                <select className="border border-gray-300 px-4 py-1 rounded-md shadow-md cursor-pointer">
-                  <option value="english">English</option>
-                  <option value="telugu">Telugu</option>
-                </select>
               </div>
             </div>
             {errorMessage && (
@@ -548,7 +573,7 @@ export default function ExamPage() {
                     Previous
                   </button>
                 </div>
-                {currentIndex < questions.length - 1 ? (
+                {currentIndex < questions.length - 1 && (
                   <div className="w-full md:w-fit">
                     <button
                       onClick={handleNextQuestion}
@@ -557,15 +582,6 @@ export default function ExamPage() {
                       )}
                     >
                       Next
-                    </button>
-                  </div>
-                ) : (
-                  <div className="w-full md:w-fit">
-                    <button
-                      onClick={handleSubmit}
-                      className="w-full text-nowrap px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium cursor-pointer"
-                    >
-                      Submit Test
                     </button>
                   </div>
                 )}
@@ -581,79 +597,92 @@ export default function ExamPage() {
           // common styles
           "bg-white border-gray-300 shadow-md flex flex-col gap-2 p-4",
           // positioning
-          "fixed top-16 left-0 lg:static w-full h-full transform transition-transform duration-300 z-50",
+          "fixed top-16 left-0 bottom-0 lg:static w-full h-full transform transition-transform duration-300 z-50",
           // mobile open/closed
           sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
           // desktop static sidebar
           "md:static md:translate-y-0 md:block md:w-64"
         )}
       >
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <div className="md:hidden">
-              <div onClick={() => setSidebarOpen(!sidebarOpen)}>
-                {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-              </div>
-            </div>
-            <div>
-              <h1 className="font-bold text-2xl">Questions</h1>
-            </div>
-          </div>
-          <div className="grid grid-cols-8 md:grid-cols-5 gap-2 mb-4">
-            {questions.map((q, index) => (
-              <button
-                key={q.id}
-                onClick={() => handleJumpTo(index)}
-                className={clsx(
-                  "w-8 h-8 sm:w-10 sm:h-10 rounded-md font-semibold text-xs sm:text-sm transition-colors cursor-pointer",
-                  q.status === "unattempted" &&
-                    "bg-gray-300 text-gray-700 hover:bg-gray-400",
-                  q.status === "attempted" &&
-                    "bg-green-500 text-white hover:bg-green-600",
-                  q.status === "review" &&
-                    "bg-purple-500 text-white hover:bg-purple-600",
-                  index === currentIndex && "border-3 border-indigo-500"
-                )}
-              >
-                {q.id}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="flex flex-col gap-2">
+        <div className="w-full h-full flex flex-col justify-between">
           <div>
-            <h1 className="font-bold text-2xl">Legend</h1>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <div className="md:hidden">
+                  <div onClick={() => setSidebarOpen(!sidebarOpen)}>
+                    {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+                  </div>
+                </div>
+                <div>
+                  <h1 className="font-bold text-2xl">Questions</h1>
+                </div>
+              </div>
+              <div className="grid grid-cols-8 md:grid-cols-5 gap-2 mb-4">
+                {questions.map((q, index) => (
+                  <button
+                    key={q.id}
+                    onClick={() => handleJumpTo(index)}
+                    className={clsx(
+                      "w-8 h-8 sm:w-10 sm:h-10 rounded-md font-semibold text-xs sm:text-sm transition-colors cursor-pointer",
+                      q.status === "unattempted" &&
+                        "bg-gray-300 text-gray-700 hover:bg-gray-400",
+                      q.status === "attempted" &&
+                        "bg-green-500 text-white hover:bg-green-600",
+                      q.status === "review" &&
+                        "bg-purple-500 text-white hover:bg-purple-600",
+                      index === currentIndex && "border-3 border-indigo-500"
+                    )}
+                  >
+                    {q.id}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <div>
+                <h1 className="font-bold text-2xl">Legend</h1>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 p-2 flex items-center justify-center bg-gray-300 rounded-full font-bold">
+                    {
+                      questions.filter(
+                        (question) => question.status === "unattempted"
+                      ).length
+                    }
+                  </div>
+                  <span>Unattempted</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 p-2 flex items-center justify-center bg-green-500 rounded-full font-bold">
+                    {
+                      questions.filter(
+                        (question) => question.status === "attempted"
+                      ).length
+                    }
+                  </div>
+                  <span>Attempted</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 p-2 flex items-center justify-center bg-purple-500 rounded-full font-bold">
+                    {
+                      questions.filter(
+                        (question) => question.status === "review"
+                      ).length
+                    }
+                  </div>
+                  <span>Review</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 p-2 flex items-center justify-center bg-gray-300 rounded-full font-bold">
-                {
-                  questions.filter(
-                    (question) => question.status === "unattempted"
-                  ).length
-                }
-              </div>
-              <span>Unattempted</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 p-2 flex items-center justify-center bg-green-500 rounded-full font-bold">
-                {
-                  questions.filter(
-                    (question) => question.status === "attempted"
-                  ).length
-                }
-              </div>
-              <span>Attempted</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 p-2 flex items-center justify-center bg-purple-500 rounded-full font-bold">
-                {
-                  questions.filter((question) => question.status === "review")
-                    .length
-                }
-              </div>
-              <span>Review</span>
-            </div>
+          <div className="w-full">
+            <button
+              onClick={handleSubmit}
+              className="w-full text-nowrap px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium cursor-pointer mb-16 md:mb-0"
+            >
+              Submit Test
+            </button>
           </div>
         </div>
       </aside>
@@ -665,6 +694,26 @@ export default function ExamPage() {
         onConfirm={confirmSubmit}
         onCancel={cancelSubmit}
       />
+      <Modal title="Instructions" isOpen={showInstructionsModal}>
+        <div className="mb-8 space-y-4">
+          {instructionData?.instructions.map((inst, index) => (
+            <div key={index} className="flex items-center gap-3">
+              <div className="flex-shrink-0">
+                <span className="bg-indigo-500 text-white rounded-full h-6 w-6 flex items-center justify-center font-bold">
+                  {index + 1}
+                </span>
+              </div>
+              <p className="text-gray-700 text-base text-start">{inst}</p>
+            </div>
+          ))}
+        </div>
+        <button
+          className="w-full px-4 py-2 rounded-md cursor-pointer shadow-md bg-gray-300 font-bold"
+          onClick={() => setShowInstructionsModal(false)}
+        >
+          Done
+        </button>
+      </Modal>
     </div>
   );
 }

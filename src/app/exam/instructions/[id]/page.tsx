@@ -3,13 +3,13 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-interface InstructionData {
+export interface InstructionData {
   title: string;
   instructions: string[];
 }
 
 // Mock instructions data for different tests
-const mockInstructions: Record<string, InstructionData> = {
+export const mockInstructions: Record<string, InstructionData> = {
   "1": {
     title: "Aptitude Practice Test 1",
     instructions: [
@@ -75,13 +75,13 @@ export default function ExamStartPage() {
         {/* Instructions List */}
         <div className="mb-8 space-y-4">
           {instructionData.instructions.map((inst, index) => (
-            <div key={index} className="flex items-start gap-3">
+            <div key={index} className="flex items-center gap-3">
               <div className="flex-shrink-0">
                 <span className="bg-indigo-500 text-white rounded-full h-6 w-6 flex items-center justify-center font-bold">
                   {index + 1}
                 </span>
               </div>
-              <p className="text-gray-700 text-base">{inst}</p>
+              <p className="text-gray-700 text-base text-start">{inst}</p>
             </div>
           ))}
         </div>
