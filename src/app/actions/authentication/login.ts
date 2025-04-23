@@ -14,18 +14,15 @@ export async function login(formData: FormData): Promise<ActionResponse> {
   }
 
   try {
-    // const { token, role, username, roleDetailsJson, isAuthorized, message } =
-    //   await apiHandler<LoginResponse>("/auth/login", {
-    //     method: "POST",
-    //     body: { username, password },
-    //     routeType: "open",
-    //   });
-
-    const res = await apiHandler(endpoints.loginUser, formData);
-    const token = "token";
+    const res = await apiHandler(endpoints.loginUser, {
+      Username: username as string,
+      Password: password as string,
+    });
 
     if (res.status === 200) {
-      (await cookies()).set("token", token, {
+      const { data } = res;
+
+      (await cookies()).set("token", data!.token, {
         httpOnly: true,
         secure: true,
         path: "/",
@@ -33,7 +30,10 @@ export async function login(formData: FormData): Promise<ActionResponse> {
         maxAge: 60 * 60 * 24,
       });
 
-      return { status: "success", message: "User Authenticated" };
+      return {
+        status: "success",
+        message: res.message || "User Authenticated",
+      };
     }
     return {
       status: "failure",

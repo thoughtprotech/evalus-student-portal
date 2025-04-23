@@ -28,3 +28,7 @@ export interface LoginResponse {
   isAuthorized: boolean;
   message: string;
 }
+
+export interface LogoutRequest {
+  Username: string
+}

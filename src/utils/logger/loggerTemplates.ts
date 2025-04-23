@@ -12,24 +12,28 @@ function stringifyBody(body: any): string {
 }
 
 export const templates: Record<string, LogTemplateFn<any>> = {
-  "request:start": ({
-    endpoint,
-    headers,
-    body,
-    timestamp,
-  }) =>
-    `[${timestamp}] [MAKING REQUEST] ${endpoint.method} ${
+  "request:start": ({ endpoint, headers, body, timestamp }) =>
+    `[${timestamp}] [MAKING REQUEST]\n${endpoint.method} ${
       endpoint.path
-    } - headers: ${JSON.stringify(headers)} - body: ${stringifyBody(body)}`,
+    }\nheaders: ${JSON.stringify(headers)}\nbody: ${stringifyBody(body)}`,
 
-  "request:success": ({ endpoint, status, data, elapsed, timestamp }) =>
-    `[${timestamp}] [SUCCESS] ${endpoint.method} ${
+  "request:success": ({
+    endpoint,
+    status,
+    data,
+    elapsed,
+    timestamp,
+    message,
+  }) =>
+    `[${timestamp}] [SUCCESS]\n${endpoint.method} ${
       endpoint.path
-    } (${status}) in ${elapsed} - data: ${JSON.stringify(data)}`,
+    } (${status}) in ${elapsed}\nmessage: ${message}\ndata: ${JSON.stringify(
+      data
+    )}`,
 
   "request:error": ({ endpoint, status, errorMessage, elapsed, timestamp }) =>
-    `[${timestamp}] [ERROR] ${endpoint.method} ${endpoint.path} (${status}) in ${elapsed} - error: ${errorMessage}`,
+    `[${timestamp}] [ERROR]\n${endpoint.method} ${endpoint.path} (${status}) in ${elapsed}\nerror: ${errorMessage}`,
 
   "request:network-error": ({ endpoint, errorMessage, elapsed, timestamp }) =>
-    `[${timestamp}] [NETWORK ERROR] ${endpoint.method} ${endpoint.path} - ${errorMessage} in ${elapsed}`,
+    `[${timestamp}] [NETWORK ERROR]\n${endpoint.method} ${endpoint.path} in ${elapsed}\nerror: ${errorMessage}`,
 };

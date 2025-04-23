@@ -28,5 +28,5 @@ export function logger<K extends keyof typeof templates>(
 
   const timestamp = formatTimestamp();
   const message = tmpl({ ...data, timestamp });
-  console.log("[LOGGER]", message);
+  console.log(`\n[LOGGER]\n${message}`);
 }

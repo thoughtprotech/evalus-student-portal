@@ -1,14 +1,6 @@
+import getCookie from "../getCookie";
 import { logger } from "../logger/logger";
 import type { ApiResponse, Endpoint } from "./types";
-
-function getTokenFromCookie(name: string): string {
-  const match = document.cookie
-    .split(";")
-    .map((c) => c.trim())
-    .find((c) => c.startsWith(`${name}=`));
-  if (!match) throw new Error("Authentication token missing");
-  return match.split("=")[1];
-}
 
 function createApiClient() {
   return async function <Req, Res>(
@@ -24,7 +16,7 @@ function createApiClient() {
 
     if (endpoint.type === "CLOSE") {
       try {
-        const token = getTokenFromCookie("token");
+        const token = await getCookie("token");
         headers["Authorization"] = `Bearer ${token}`;
       } catch (err) {
         logger("request:error", {
@@ -110,6 +102,7 @@ function createApiClient() {
           status: finalResponse.status,
           data: finalResponse.data,
           elapsed,
+          message: finalResponse.message,
         });
       }
 

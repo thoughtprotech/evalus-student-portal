@@ -27,6 +27,7 @@ export default function Home() {
       formData.append("password", data.password);
       const res = await login(formData);
       if (res.status === "success") {
+        toast.success(res.message);
         router.push("/dashboard");
       } else {
         toast.error(res.message);
