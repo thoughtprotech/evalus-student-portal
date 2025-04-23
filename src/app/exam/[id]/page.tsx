@@ -183,6 +183,7 @@ export default function ExamPage() {
   };
 
   const updateAnswer = (value: any) => {
+    console.log({ value });
     const updated = [...questions];
     updated[currentIndex].selectedOption = value;
     updated[currentIndex].status = "attempted";
@@ -202,8 +203,54 @@ export default function ExamPage() {
 
   const toggleMarkForReview = () => {
     const updated = [...questions];
-    updated[currentIndex].status =
-      updated[currentIndex].status === "review" ? "attempted" : "review";
+    console.log(updated[currentIndex].selectedOption);
+
+    if (
+      updated[currentIndex].type === "single" &&
+      updated[currentIndex].selectedOption !== null
+    ) {
+      updated[currentIndex].status =
+        updated[currentIndex].status === "answeredMarkedForReview"
+          ? "attempted"
+          : "answeredMarkedForReview";
+    } else if (
+      updated[currentIndex].type === "multiple" &&
+      updated[currentIndex].selectedOption?.length !== 0
+    ) {
+      updated[currentIndex].status =
+        updated[currentIndex].status === "answeredMarkedForReview"
+          ? "attempted"
+          : "answeredMarkedForReview";
+    } else if (
+      updated[currentIndex].type === "match" &&
+      Object.keys(updated[currentIndex].selectedOption)?.length !== 0
+    ) {
+      updated[currentIndex].status =
+        updated[currentIndex].status === "answeredMarkedForReview"
+          ? "attempted"
+          : "answeredMarkedForReview";
+    } else if (
+      (updated[currentIndex].type === "fill" ||
+        updated[currentIndex].type === "essay" ||
+        updated[currentIndex].type === "number") &&
+      updated[currentIndex].selectedOption?.length !== 0
+    ) {
+      updated[currentIndex].status =
+        updated[currentIndex].status === "answeredMarkedForReview"
+          ? "attempted"
+          : "answeredMarkedForReview";
+    } else if (
+      updated[currentIndex].type === "truefalse" &&
+      updated[currentIndex].selectedOption !== null
+    ) {
+      updated[currentIndex].status =
+        updated[currentIndex].status === "answeredMarkedForReview"
+          ? "attempted"
+          : "answeredMarkedForReview";
+    } else {
+      updated[currentIndex].status =
+        updated[currentIndex].status === "review" ? "attempted" : "review";
+    }
     setQuestions(updated);
   };
 
@@ -539,12 +586,14 @@ export default function ExamPage() {
                   onClick={toggleMarkForReview}
                   className={clsx(
                     "w-full md:w-fit px-4 py-2 rounded-md font-medium text-white cursor-pointer",
-                    currentQuestion.status === "review"
+                    currentQuestion.status === "review" ||
+                      currentQuestion.status === "answeredMarkedForReview"
                       ? "bg-gray-500 hover:bg-gray-600"
                       : "bg-purple-500 hover:bg-purple-600"
                   )}
                 >
-                  {currentQuestion.status === "review"
+                  {currentQuestion.status === "review" ||
+                  currentQuestion.status === "answeredMarkedForReview"
                     ? "Unmark Review"
                     : "Mark for Review"}
                 </button>
@@ -601,7 +650,7 @@ export default function ExamPage() {
           // mobile open/closed
           sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
           // desktop static sidebar
-          "md:static md:translate-y-0 md:block md:w-64"
+          "md:static md:translate-y-0 md:block md:w-72"
         )}
       >
         <div className="w-full h-full flex flex-col justify-between">
@@ -630,6 +679,9 @@ export default function ExamPage() {
                         "bg-green-500 text-white hover:bg-green-600",
                       q.status === "review" &&
                         "bg-purple-500 text-white hover:bg-purple-600",
+                      index === currentIndex && "border-3 border-indigo-500",
+                      q.status === "answeredMarkedForReview" &&
+                        "bg-orange-500 text-gray-700 hover:bg-orange-600",
                       index === currentIndex && "border-3 border-indigo-500"
                     )}
                   >
@@ -654,7 +706,7 @@ export default function ExamPage() {
                   <span>Unattempted</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 p-2 flex items-center justify-center bg-green-500 rounded-full font-bold">
+                  <div className="w-8 h-8 p-2 flex items-center justify-center bg-green-500 rounded-full font-bold text-white">
                     {
                       questions.filter(
                         (question) => question.status === "attempted"
@@ -664,7 +716,7 @@ export default function ExamPage() {
                   <span>Attempted</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 p-2 flex items-center justify-center bg-purple-500 rounded-full font-bold">
+                  <div className="w-8 h-8 p-2 flex items-center justify-center bg-purple-500 rounded-full font-bold text-white">
                     {
                       questions.filter(
                         (question) => question.status === "review"
@@ -672,6 +724,17 @@ export default function ExamPage() {
                     }
                   </div>
                   <span>Review</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 p-2 flex items-center justify-center bg-orange-500 rounded-full font-bold text-white">
+                    {
+                      questions.filter(
+                        (question) =>
+                          question.status === "answeredMarkedForReview"
+                      ).length
+                    }
+                  </div>
+                  <span>Answered But Marked For Review</span>
                 </div>
               </div>
             </div>
