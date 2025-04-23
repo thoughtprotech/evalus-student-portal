@@ -317,11 +317,13 @@ export default function ExamPage() {
       updated[index].status = "unanswered";
     setCurrentIndex(index);
     setQuestions(updated);
+    if (sidebarOpen) setSidebarOpen(false);
   };
 
   const handleSubmit = () => setShowModal(true);
 
   const confirmSubmit = () => {
+    setSidebarOpen(false);
     const invalidIndex = isAllAnswersValid();
 
     if (invalidIndex !== null) {
@@ -625,7 +627,7 @@ export default function ExamPage() {
                   currentQuestion.status === "answeredMarkedForReview"
                     ? "Unmark Review"
                     : currentIndex < questions.length - 1
-                    ? "Mark For Review And Next"
+                    ? "Mark For Review & Next"
                     : "Mark For Review"}
                 </button>
                 <button
