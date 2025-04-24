@@ -125,7 +125,7 @@ export default function UpdatePassword({
               className="w-full px-4 py-2 rounded-md shadow-md cursor-pointer bg-green-600 text-white font-bold"
               type="submit"
             >
-              Submit
+              Save
             </button>
             <button
               className="w-full px-4 py-2 rounded-md cursor-pointer shadow-md bg-gray-300 font-bold"
