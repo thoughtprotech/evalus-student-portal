@@ -4,6 +4,7 @@ import ActionResponse from "@/types/ActionResponse";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
 import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
 
 export async function login(formData: FormData): Promise<ActionResponse> {
   const username = formData.get("username");
@@ -30,9 +31,14 @@ export async function login(formData: FormData): Promise<ActionResponse> {
         maxAge: 60 * 60 * 24,
       });
 
+      const decoded: any = jwt.decode(data?.token!);
+
       return {
         status: "success",
         message: res.message || "User Authenticated",
+        data: {
+          role: decoded.role,
+        },
       };
     }
     return {

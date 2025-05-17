@@ -22,11 +22,6 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
-  role: string;
-  username: string;
-  roleDetailsJson: string;
-  isAuthorized: boolean;
-  message: string;
 }
 
 export interface LogoutRequest {

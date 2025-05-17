@@ -239,13 +239,13 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="w-full h-full flex flex-col gap-4 p-6 bg-gray-50">
+    <div className="w-full h-full flex flex-col gap-4 p-4 bg-gray-50">
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
         {statCards.map(({ title, statistic, Icon, color }) => (
           <div
             key={title}
-            className="flex items-center p-4 bg-white rounded-xl shadow-lg"
+            className="flex items-center p-4 bg-white rounded-md shadow-md border border-gray-300"
           >
             <div className={`p-3 rounded-full ${color} mr-4`}>
               <Icon className="w-6 h-6" />
@@ -261,9 +261,9 @@ export default function AdminDashboard() {
       {/* Charts & Recent Activity */}
       <div className="w-full h-full flex flex-col md:flex md:flex-row gap-4">
         {/* Charts Panel */}
-        <div className="w-full h-96 md:w-3/4 md:h-full col-span-1 lg:col-span-2 bg-white rounded-xl shadow-lg p-4 flex flex-col">
+        <div className="w-full h-96 md:w-3/4 md:h-full col-span-1 lg:col-span-2 bg-white rounded-md border border-gray-300 shadow-md p-4 flex flex-col">
           {/* Tabs (horizontal scroll on small) */}
-          <div className="flex overflow-x-auto space-x-4 border-b border-gray-200 pb-2">
+          <div className="flex overflow-x-auto space-x-4 border-b border-gray-300 pb-2">
             {TABS.map(({ key, label, Icon }) => (
               <button
                 key={key}
@@ -289,7 +289,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Recent Activity */}
-        <div className="w-full md:w-1/4 h-full bg-white rounded-xl shadow-lg p-4 flex flex-col">
+        <div className="w-full md:w-1/4 h-full bg-white rounded-md border border-gray-300 shadow-md p-4 flex flex-col">
           <h3 className="text-xl font-bold text-gray-800 mb-4">
             Recent Activity
           </h3>
@@ -297,7 +297,7 @@ export default function AdminDashboard() {
             {recentActivity.map(({ time, desc, icon: Icon, color }, idx) => (
               <li
                 key={idx}
-                className="flex items-center space-x-3 p-2 rounded-md hover:bg-gray-100 transition"
+                className="flex items-center space-x-3 p-2 rounded-md transition border border-gray-300 shadow-md"
               >
                 <div className={`p-2 rounded-full ${color}`}>
                   <Icon className="w-5 h-5" />

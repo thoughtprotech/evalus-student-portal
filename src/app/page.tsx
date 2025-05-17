@@ -27,8 +27,12 @@ export default function Home() {
       formData.append("password", data.password);
       const res = await login(formData);
       if (res.status === "success") {
+        if (res.data.role === "ADMIN") {
+          router.push("/admin");
+        } else {
+          router.push("/dashboard");
+        }
         toast.success(res.message);
-        router.push("/dashboard");
       } else {
         toast.error(res.message);
       }

@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { logout } from "../actions/authentication/logout";
 import { DropDown } from "@/components/DropDown";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -73,8 +74,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   const handleLogout = async () => {
     const res = await logout();
+    console.log({ res });
     if (res.status === "success") {
       router.push("/");
+    } else {
+      return toast.error("Something Went Wrong");
     }
   };
 

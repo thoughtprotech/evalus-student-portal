@@ -36,12 +36,10 @@ export function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
-    console.log({ payload });
-
-    // if (payload.role !== "ADMIN") {
-    //   // authenticated but not an admin
-    //   return NextResponse.redirect(new URL("/dashboard", req.url));
-    // }
+    if (payload.role !== "ADMIN") {
+      // authenticated but not an admin
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
   }
 
   return NextResponse.next();
