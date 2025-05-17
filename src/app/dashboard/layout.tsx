@@ -18,11 +18,7 @@ import { logout } from "../actions/authentication/logout";
 import { DropDown } from "@/components/DropDown";
 import Link from "next/link";
 
-interface DashboardLayoutProps {
-  children: ReactNode;
-}
-
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
+export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -270,9 +266,9 @@ function SidebarItem({ icon: Icon, label, href, onClick }: SidebarItemProps) {
     <a
       href={href}
       onClick={onClick}
-      className={`flex items-center space-x-3 px-2 py-3 font-bold transition-all rounded-lg ${
+      className={`flex items-center space-x-3 px-2 py-3 font-semibold transition-all rounded-lg ${
         pathname === href ? "text-indigo-600" : "text-gray-600"
-      } hover:bg-indigo-500/40 hover:text-indigo-600`}
+      } hover:bg-indigo-100 hover:text-indigo-600`}
     >
       <Icon className="w-6 h-6 min-w-[24px]" />
       <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">

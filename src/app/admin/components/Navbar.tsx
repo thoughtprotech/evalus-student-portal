@@ -1,0 +1,149 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { logout } from "@/app/actions/authentication/logout";
+import { DropDown } from "@/components/DropDown";
+import {
+  LayoutDashboard,
+  HelpCircle,
+  ClipboardList,
+  Box,
+  BarChart2,
+  LogOut,
+  UserCircle,
+  User,
+  Menu,
+  X,
+} from "lucide-react";
+
+interface NavItem {
+  label: string;
+  path: string;
+  Icon: React.ComponentType<any>;
+}
+
+const navItems: NavItem[] = [
+  { label: "Dashboard", path: "/admin", Icon: LayoutDashboard },
+  { label: "Questions", path: "/admin/questions", Icon: HelpCircle },
+  { label: "Tests", path: "/admin/tests", Icon: ClipboardList },
+  { label: "Products", path: "/admin/products", Icon: Box },
+  { label: "Candidates", path: "/admin/candidates", Icon: User },
+  { label: "Reports", path: "/admin/reports", Icon: BarChart2 },
+];
+
+export default function Navbar() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleLogout = async () => {
+    const res = await logout();
+    if (res.status === "success") {
+      router.push("/");
+    }
+  };
+
+  const toggleMenu = () => setMenuOpen(prev => !prev);
+
+  return (
+    <header className="w-full border-b border-gray-300 shadow-md px-6 flex items-center justify-between h-14 relative">
+      {/* Logo */}
+      <div className="flex items-center space-x-1">
+        <h1 className="text-2xl sm:text-3xl font-bold text-indigo-700">
+          E<span className="text-gray-800">valus</span>
+        </h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-indigo-700">
+          A<span className="text-gray-800">dmin</span>
+        </h1>
+      </div>
+
+      {/* Desktop Nav Links */}
+      <nav className="hidden md:flex items-center space-x-6">
+        {navItems.map(({ label, path, Icon }) => {
+          const isActive = pathname === path;
+          return (
+            <Link
+              key={path}
+              href={path}
+              className={`flex items-center space-x-1 px-3 py-2 rounded-md transition ${
+                isActive
+                  ? "bg-indigo-100 text-indigo-700"
+                  : "text-gray-600 hover:text-indigo-700 hover:bg-indigo-100"
+              }`}
+            >
+              <Icon className="w-5 h-5" />
+              <span className="text-sm font-medium">{label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Mobile Menu Button + User Dropdown */}
+      <div className="flex items-center space-x-4">
+        <button
+          onClick={toggleMenu}
+          className="md:hidden focus:outline-none"
+          aria-label="Toggle navigation menu"
+        >
+          {menuOpen ? <X className="w-6 h-6 text-gray-700" /> : <Menu className="w-6 h-6 text-gray-700" />}
+        </button>
+
+        <DropDown
+          face={
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-indigo-200 text-indigo-800 rounded-full flex items-center justify-center font-bold shadow-inner">
+                U
+              </div>
+              <span className="font-semibold text-gray-700">John Doe</span>
+            </div>
+          }
+        >
+          <div className="bg-white shadow-md rounded-md flex flex-col">
+            <Link
+              href="/dashboard/profile"
+              className="flex items-center gap-2 px-4 py-2 border-b border-gray-200 hover:bg-indigo-50"
+            >
+              <UserCircle className="w-5 h-5 text-indigo-500" />
+              <span>Profile</span>
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2 hover:bg-indigo-50 text-left whitespace-nowrap"
+            >
+              <LogOut className="w-5 h-5 text-red-500" />
+              <span>Log Out</span>
+            </button>
+          </div>
+        </DropDown>
+      </div>
+
+      {/* Mobile Nav Menu */}
+      {menuOpen && (
+        <nav className="absolute top-full left-0 w-full bg-white border-t border-gray-200 shadow-md md:hidden">
+          <div className="flex flex-col">
+            {navItems.map(({ label, path, Icon }) => {
+              const isActive = pathname === path;
+              return (
+                <Link
+                  key={path}
+                  href={path}
+                  onClick={() => setMenuOpen(false)}
+                  className={`flex items-center space-x-2 px-4 py-3 transition ${
+                    isActive
+                      ? "bg-indigo-100 text-indigo-700"
+                      : "text-gray-700 hover:bg-indigo-50"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="text-base font-medium">{label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+      )}
+    </header>
+  );
+}
