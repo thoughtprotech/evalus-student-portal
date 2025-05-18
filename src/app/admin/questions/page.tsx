@@ -32,6 +32,7 @@ export default function QuestionsPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [query, setQuery] = useState("");
 
   const { register, handleSubmit, reset } = useForm<FormValues>();
 
@@ -47,6 +48,10 @@ export default function QuestionsPage() {
     })();
   }, []);
 
+  const filteredAnnouncements = questions.filter((a) =>
+    a.title.toLowerCase().includes(query.toLowerCase())
+  );
+
   const onSubmit = (data: FormValues) => {
     const newQ: Question = {
       id: questions.length + 1,
@@ -60,15 +65,16 @@ export default function QuestionsPage() {
 
   if (loading) return <Loader />;
 
-  const total = questions.length;
-  const slice = questions.slice((page - 1) * pageSize, page * pageSize);
+  const total = filteredAnnouncements.length;
+  const slice = filteredAnnouncements.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-4 bg-gray-50 min-h-screen">
       <PageHeader
         icon={<HelpCircle className="w-6 h-6 text-indigo-600" />}
         title="Questions"
         onNewClick={() => setIsModalOpen(true)}
+        onSearch={(e) => setQuery(e)}
       />
 
       <Modal title="Create Question" isOpen={isModalOpen}>

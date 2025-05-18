@@ -17,6 +17,7 @@ import {
   User,
   Menu,
   X,
+  Settings,
 } from "lucide-react";
 
 interface NavItem {
@@ -32,6 +33,7 @@ const navItems: NavItem[] = [
   { label: "Products", path: "/admin/products", Icon: Box },
   { label: "Candidates", path: "/admin/candidates", Icon: User },
   { label: "Reports", path: "/admin/reports", Icon: BarChart2 },
+  { label: "Settings", path: "/admin/settings", Icon: Settings },
 ];
 
 interface NavbarProps {

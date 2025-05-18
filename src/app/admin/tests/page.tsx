@@ -27,6 +27,7 @@ export default function TestsPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -41,15 +42,20 @@ export default function TestsPage() {
 
   if (loading) return <Loader />;
 
-  const total = data.length;
-  const slice = data.slice((page-1)*pageSize, page*pageSize);
+  const filteredAnnouncements = data.filter((a) =>
+    a.name.toLowerCase().includes(query.toLowerCase())
+  );
+
+  const total = filteredAnnouncements.length;
+  const slice = filteredAnnouncements.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-4 bg-gray-50 min-h-screen">
       <PageHeader
         icon={<ClipboardList className="w-6 h-6 text-blue-600" />}
         title="Tests"
         newLink="/admin/tests/new"
+        onSearch={(e) => setQuery(e)}
       />
 
       <PaginationControls
@@ -64,7 +70,7 @@ export default function TestsPage() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-100">
             <tr>
-              {COLUMNS.map(col => (
+              {COLUMNS.map((col) => (
                 <th
                   key={col.key}
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -78,13 +84,15 @@ export default function TestsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {slice.map(item => (
+            {slice.map((item) => (
               <tr key={item.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 text-sm text-gray-700">{item.id}</td>
                 <td className="px-6 py-4 text-sm text-blue-600">
                   <Link href={`/admin/tests/${item.id}`}>{item.name}</Link>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-700">{item.subject}</td>
+                <td className="px-6 py-4 text-sm text-gray-700">
+                  {item.subject}
+                </td>
                 <td className="px-6 py-4 text-sm text-gray-500">
                   {new Date(item.date).toLocaleDateString()}
                 </td>

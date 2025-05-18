@@ -37,6 +37,7 @@ export default function CandidatesPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -51,15 +52,20 @@ export default function CandidatesPage() {
 
   if (loading) return <Loader />;
 
-  const total = cands.length;
-  const slice = cands.slice((page - 1) * pageSize, page * pageSize);
+  const filteredAnnouncements = cands.filter((a) =>
+    a.name.toLowerCase().includes(query.toLowerCase())
+  );
+
+  const total = filteredAnnouncements.length;
+  const slice = filteredAnnouncements.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-4 bg-gray-50 min-h-screen">
       <PageHeader
         icon={<User className="w-6 h-6 text-purple-600" />}
         title="Candidates"
         newLink="/admin/candidates/new"
+        onSearch={(e) => setQuery(e)}
       />
 
       <PaginationControls

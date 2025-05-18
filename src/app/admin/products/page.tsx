@@ -37,6 +37,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -51,15 +52,23 @@ export default function ProductsPage() {
 
   if (loading) return <Loader />;
 
-  const total = products.length;
-  const slice = products.slice((page - 1) * pageSize, page * pageSize);
+  const filteredAnnouncements = products.filter((a) =>
+    a.name.toLowerCase().includes(query.toLowerCase())
+  );
+
+  const total = filteredAnnouncements.length;
+  const slice = filteredAnnouncements.slice(
+    (page - 1) * pageSize,
+    page * pageSize
+  );
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-4 bg-gray-50 min-h-screen">
       <PageHeader
         icon={<Box className="w-6 h-6 text-green-600" />}
         title="Products"
         newLink="/admin/products/new"
+        onSearch={(e) => setQuery(e)}
       />
 
       <PaginationControls
