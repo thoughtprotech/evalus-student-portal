@@ -1,3 +1,4 @@
+// components/Navbar.tsx
 "use client";
 
 import { useState } from "react";
@@ -33,7 +34,11 @@ const navItems: NavItem[] = [
   { label: "Reports", path: "/admin/reports", Icon: BarChart2 },
 ];
 
-export default function Navbar() {
+interface NavbarProps {
+  username: string;
+}
+
+export default function Navbar({ username }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -45,10 +50,10 @@ export default function Navbar() {
     }
   };
 
-  const toggleMenu = () => setMenuOpen(prev => !prev);
+  const toggleMenu = () => setMenuOpen((prev) => !prev);
 
   return (
-    <header className="w-full border-b border-gray-300 shadow-md px-6 flex items-center justify-between h-14 relative">
+    <header className="w-full border-b border-gray-300 shadow-md px-6 flex items-center justify-between h-16 relative">
       {/* Logo */}
       <div className="flex items-center space-x-1">
         <h1 className="text-2xl sm:text-3xl font-bold text-indigo-700">
@@ -59,7 +64,7 @@ export default function Navbar() {
         </h1>
       </div>
 
-      {/* Desktop Nav Links */}
+      {/* Desktop Nav */}
       <nav className="hidden md:flex items-center space-x-6">
         {navItems.map(({ label, path, Icon }) => {
           const isActive = pathname === path;
@@ -80,23 +85,27 @@ export default function Navbar() {
         })}
       </nav>
 
-      {/* Mobile Menu Button + User Dropdown */}
+      {/* Mobile Menu Button & User */}
       <div className="flex items-center space-x-4">
         <button
           onClick={toggleMenu}
           className="md:hidden focus:outline-none"
           aria-label="Toggle navigation menu"
         >
-          {menuOpen ? <X className="w-6 h-6 text-gray-700" /> : <Menu className="w-6 h-6 text-gray-700" />}
+          {menuOpen ? (
+            <X className="w-6 h-6 text-gray-700" />
+          ) : (
+            <Menu className="w-6 h-6 text-gray-700" />
+          )}
         </button>
 
         <DropDown
           face={
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 cursor-pointer">
               <div className="w-8 h-8 bg-indigo-200 text-indigo-800 rounded-full flex items-center justify-center font-bold shadow-inner">
-                U
+                {username.charAt(0).toUpperCase()}
               </div>
-              <span className="font-semibold text-gray-700">John Doe</span>
+              <span className="font-semibold text-gray-700">{username}</span>
             </div>
           }
         >
@@ -119,7 +128,7 @@ export default function Navbar() {
         </DropDown>
       </div>
 
-      {/* Mobile Nav Menu */}
+      {/* Mobile Nav */}
       {menuOpen && (
         <nav className="absolute top-full left-0 w-full bg-white border-t border-gray-200 shadow-md md:hidden">
           <div className="flex flex-col">

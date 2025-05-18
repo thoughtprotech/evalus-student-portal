@@ -18,15 +18,25 @@ import { logout } from "../actions/authentication/logout";
 import { DropDown } from "@/components/DropDown";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { getUserAction } from "../actions/getUser";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [username, setUsername] = useState("User");
   const router = useRouter();
+
+  const getUser = async () => {
+    const user = await getUserAction();
+    if (user) {
+      setUsername(user);
+    }
+  };
 
   useEffect(() => {
     setIsMounted(true);
+    getUser();
   }, []);
 
   // Define header metadata mappings for parent routes.
@@ -212,10 +222,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               face={
                 <div className="flex items-center space-x-2">
                   <div className="w-7 h-7 md:w-9 md:h-9 bg-indigo-200 text-indigo-800 rounded-full flex items-center justify-center font-bold text-sm shadow-inner">
-                    U
+                    {username.charAt(0).toUpperCase()}
                   </div>
                   <h1 className="text-xs md:text-base font-bold text-gray-600">
-                    John Doe
+                    {username}
                   </h1>
                 </div>
               }

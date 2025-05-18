@@ -37,7 +37,7 @@ export function DropDown({ face, children }: DropDownProps) {
       </div>
 
       <div
-        className={`absolute z-50 top-12 w-fit transition-all duration-300 origin-top-left ${
+        className={`absolute z-50 top-12 -right-3 w-fit transition-all duration-300 origin-top-left ${
           isOpen
             ? "opacity-100 scale-100"
             : "opacity-0 scale-95 pointer-events-none"
