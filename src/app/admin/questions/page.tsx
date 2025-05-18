@@ -8,7 +8,6 @@ import Link from "next/link";
 import Modal from "@/components/Modal";
 import PageHeader from "@/components/PageHeader";
 import PaginationControls from "@/components/PaginationControls";
-import { useForm } from "react-hook-form";
 
 interface Question {
   id: number;
@@ -17,15 +16,6 @@ interface Question {
   difficulty: string;
   createdAt: string;
 }
-interface FormValues {
-  title: string;
-  category: string;
-  difficulty: string;
-}
-
-const CATEGORIES = ["Math", "Science", "History", "Literature"];
-const DIFFICULTIES = ["Easy", "Medium", "Hard"];
-
 export default function QuestionsPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,8 +23,6 @@ export default function QuestionsPage() {
   const [pageSize, setPageSize] = useState(10);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [query, setQuery] = useState("");
-
-  const { register, handleSubmit, reset } = useForm<FormValues>();
 
   // fetch
   useEffect(() => {
@@ -52,21 +40,17 @@ export default function QuestionsPage() {
     a.title.toLowerCase().includes(query.toLowerCase())
   );
 
-  const onSubmit = (data: FormValues) => {
-    const newQ: Question = {
-      id: questions.length + 1,
-      ...data,
-      createdAt: new Date().toISOString(),
-    };
-    setQuestions([newQ, ...questions]);
-    reset();
+  const onSubmit = () => {
     setIsModalOpen(false);
   };
 
   if (loading) return <Loader />;
 
   const total = filteredAnnouncements.length;
-  const slice = filteredAnnouncements.slice((page - 1) * pageSize, page * pageSize);
+  const slice = filteredAnnouncements.slice(
+    (page - 1) * pageSize,
+    page * pageSize
+  );
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -77,63 +61,128 @@ export default function QuestionsPage() {
         onSearch={(e) => setQuery(e)}
       />
 
-      <Modal title="Create Question" isOpen={isModalOpen}>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 text-left">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Title
-            </label>
-            <input
-              {...register("title", { required: true })}
-              className="mt-1 w-full border border-gray-300 rounded-md p-2"
-            />
+      <Modal
+        title="Create Question"
+        isOpen={isModalOpen}
+        closeModal={() => setIsModalOpen(false)}
+      >
+        <div className="w-full min-h-64 flex">
+          <div className="w-1/4 border-r border-r-gray-300 pr-4">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col items-start">
+                <div>
+                  <h1 className="text-gray-600 font-bold">Select Subject</h1>
+                </div>
+                <select
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 cursor-pointer"
+                  name="subject"
+                >
+                  <option value="sub1">Subject 1</option>
+                  <option value="sub2">Subject 2</option>
+                  <option value="sub3">Subject 3</option>
+                </select>
+              </div>
+              <div className="flex flex-col items-start">
+                <div>
+                  <h1 className="text-gray-600 font-bold">Select Topic</h1>
+                </div>
+                <select
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 cursor-pointer"
+                  name="subject"
+                >
+                  <option value="sub1">Topic 1</option>
+                  <option value="sub2">Topic 2</option>
+                  <option value="sub3">Topic 3</option>
+                </select>
+              </div>
+              <div className="flex flex-col items-start">
+                <div>
+                  <h1 className="text-gray-600 font-bold">
+                    Select Question Type
+                  </h1>
+                </div>
+                <select
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 cursor-pointer"
+                  name="subject"
+                >
+                  <option value="sub1">Type 1</option>
+                  <option value="sub2">Type 2</option>
+                  <option value="sub3">Type 3</option>
+                </select>
+              </div>
+              <div className="flex flex-col items-start">
+                <div>
+                  <h1 className="text-gray-600 font-bold">Select Language</h1>
+                </div>
+                <select
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 cursor-pointer"
+                  name="subject"
+                >
+                  <option value="sub1">English</option>
+                  <option value="sub2">Telegu</option>
+                  <option value="sub3">Hindi</option>
+                </select>
+              </div>
+              <div className="flex flex-col items-start">
+                <div>
+                  <h1 className="text-gray-600 font-bold">Current No.</h1>
+                </div>
+                <div>
+                  <h1>1</h1>
+                </div>
+              </div>
+              <div className="flex flex-col items-start">
+                <div>
+                  <h1 className="text-gray-600 font-bold">Total Questions</h1>
+                </div>
+                <div>
+                  <h1>10</h1>
+                </div>
+              </div>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Category
-            </label>
-            <select
-              {...register("category", { required: true })}
-              className="mt-1 w-full border border-gray-300 rounded-md p-2"
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
+          <div className="w-3/4 px-4 flex flex-col gap-4">
+            <div className="w-full flex flex-col gap-2">
+              <div className="w-full h-full flex flex-col items-start gap-2">
+                <h1 className="text-gray-600 font-bold">Type Question</h1>
+                <textarea className="w-full h-64 rounded-md border border-gray-300 px-4 py-2" />
+              </div>
+              <div className="w-full h-full flex flex-col items-start gap-2">
+                <h1 className="text-gray-600 font-bold">Correct Answer</h1>
+                <input className="w-full rounded-md border border-gray-300 px-4 py-2" />
+              </div>
+            </div>
+            <div className="w-full flex justify-end gap-4">
+              <div>
+                {/* Hidden real file input */}
+                <input
+                  type="file"
+                  id="document-upload"
+                  className="hidden"
+                  onChange={(e) => {
+                    /* handle e.target.files */
+                  }}
+                />
+
+                {/* Styled label as button */}
+                <label
+                  htmlFor="document-upload"
+                  className="inline-flex items-center px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-md cursor-pointer transition-colors duration-300"
+                >
+                  Document Upload
+                </label>
+              </div>
+              <div>
+                <button
+                  className="px-6 py-2 rounded-md bg-indigo-500 hover:bg-indigo-600 duration-300 text-white font-bold cursor-pointer"
+                  onClick={onSubmit}
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Difficulty
-            </label>
-            <select
-              {...register("difficulty", { required: true })}
-              className="mt-1 w-full border border-gray-300 rounded-md p-2"
-            >
-              {DIFFICULTIES.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex justify-between space-x-2">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="w-full px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 cursor-pointer"
-            >
-              Create
-            </button>
-          </div>
-        </form>
+        </div>
       </Modal>
 
       <PaginationControls

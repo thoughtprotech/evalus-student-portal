@@ -806,7 +806,11 @@ export default function ExamPage() {
         onConfirm={confirmSubmit}
         onCancel={cancelSubmit}
       />
-      <Modal title="Instructions" isOpen={showInstructionsModal}>
+      <Modal
+        title="Instructions"
+        isOpen={showInstructionsModal}
+        closeModal={() => setShowInstructionsModal(false)}
+      >
         <div className="mb-8 space-y-4">
           {instructionData?.instructions.map((inst, index) => (
             <div key={index} className="flex items-center gap-3">

@@ -47,7 +47,11 @@ export default function UpdatePassword({
       >
         <h1 className="text-indigo-500 font-bold">Update Password</h1>
       </button>
-      <Modal title="Update Password" isOpen={isModalOpen}>
+      <Modal
+        title="Update Password"
+        isOpen={isModalOpen}
+        closeModal={handleCloseForm}
+      >
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
           {/* Current Password */}
           <div className="flex flex-col items-start gap-2">
