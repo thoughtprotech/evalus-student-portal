@@ -48,9 +48,13 @@ export default function ReportsPage() {
   if (loading) return <Loader />;
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-4 bg-gray-50 min-h-screen">
       <TabsRoot defaultIndex={0}>
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-semibold flex items-center text-gray-800">
+            <BarChart2 className="w-6 h-6 text-indigo-600" />
+            <span className="ml-2">Reports</span>
+          </h1>
           <TabsList
             labels={[
               "Test Report",
