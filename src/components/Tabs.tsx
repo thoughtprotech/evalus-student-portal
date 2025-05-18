@@ -82,7 +82,7 @@ export function TabsContent({ children, className = "" }: TabsContentProps) {
 
   return (
     <div
-      className={`p-4 bg-white rounded-md shadow-md border border-gray-200 mt-4 ${className}`}
+      className={`p-4 bg-white rounded-md shadow-md border border-gray-300 mt-4 ${className}`}
     >
       {children[ctx.activeIndex]}
     </div>

@@ -284,7 +284,7 @@ function DetailCard({
   footer: string;
 }) {
   return (
-    <div className="flex flex-col justify-between p-4 bg-white rounded-lg shadow hover:shadow-lg transition">
+    <div className="flex flex-col justify-between p-4 bg-white rounded-md shadow-md border border-gray-300 transition">
       <div className="flex items-center space-x-4">
         <div className="p-3 bg-indigo-50 rounded-full">{icon}</div>
         <div>
