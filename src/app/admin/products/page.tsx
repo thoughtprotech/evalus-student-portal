@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Box, Tag, DollarSign, Layers } from "lucide-react";
+import { Box, Tag, Layers, Percent, Book } from "lucide-react";
 import { fetchProductsAction } from "@/app/actions/admin/products";
 import Loader from "@/components/Loader";
 import Link from "next/link";
@@ -12,25 +12,9 @@ interface Product {
   id: number;
   name: string;
   category: string;
-  price: number;
-  stock: number;
+  subject: string;
+  discount: number;
 }
-
-const COLUMNS = [
-  { key: "id", label: "ID", icon: <Layers className="w-4 h-4 mr-1" /> },
-  { key: "name", label: "Name", icon: <Box className="w-4 h-4 mr-1" /> },
-  {
-    key: "category",
-    label: "Category",
-    icon: <Tag className="w-4 h-4 mr-1" />,
-  },
-  {
-    key: "price",
-    label: "Price",
-    icon: <DollarSign className="w-4 h-4 mr-1" />,
-  },
-  { key: "stock", label: "Stock" },
-];
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -100,11 +84,15 @@ export default function ProductsPage() {
                   icon: <Tag className="w-4 h-4 mr-1" />,
                 },
                 {
-                  key: "price",
-                  label: "Price",
-                  icon: <DollarSign className="w-4 h-4 mr-1" />,
+                  key: "subject",
+                  label: "Subject",
+                  icon: <Book className="w-4 h-4 mr-1" />,
                 },
-                { key: "stock", label: "Stock" },
+                {
+                  key: "discount",
+                  label: "Discount",
+                  icon: <Percent className="w-4 h-4 mr-1" />,
+                },
               ].map((col) => (
                 <th
                   key={col.key}
@@ -128,10 +116,10 @@ export default function ProductsPage() {
                 <td className="px-6 py-4 text-sm text-gray-700">
                   {p.category}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-900">
-                  ${p.price.toFixed(2)}
+                <td className="px-6 py-4 text-sm text-gray-900">{p.subject}</td>
+                <td className="px-6 py-4 text-sm text-gray-700">
+                  {p.discount}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-700">{p.stock}</td>
               </tr>
             ))}
           </tbody>

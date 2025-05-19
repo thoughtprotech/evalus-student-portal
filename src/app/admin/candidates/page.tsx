@@ -7,6 +7,7 @@ import Loader from "@/components/Loader";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import PaginationControls from "@/components/PaginationControls";
+import { TabsContent, TabsList, TabsRoot } from "@/components/Tabs";
 
 interface Candidate {
   id: number;
@@ -57,7 +58,10 @@ export default function CandidatesPage() {
   );
 
   const total = filteredAnnouncements.length;
-  const slice = filteredAnnouncements.slice((page - 1) * pageSize, page * pageSize);
+  const slice = filteredAnnouncements.slice(
+    (page - 1) * pageSize,
+    page * pageSize
+  );
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -68,72 +72,385 @@ export default function CandidatesPage() {
         onSearch={(e) => setQuery(e)}
       />
 
-      <PaginationControls
-        page={page}
-        pageSize={pageSize}
-        total={total}
-        onPageChange={setPage}
-        onPageSizeChange={setPageSize}
-      />
+      <TabsRoot defaultIndex={0}>
+        <div className="flex justify-between items-center mb-4">
+          <TabsList
+            labels={["Candidate", "Group", "Import Data", "Documents"]}
+          />
+        </div>
 
-      <div className="overflow-x-auto bg-white shadow rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-100">
-            <tr>
-              {[
-                {
-                  key: "id",
-                  label: "ID",
-                  icon: <User className="w-4 h-4 mr-1" />,
-                },
-                { key: "name", label: "Name" },
-                {
-                  key: "email",
-                  label: "Email",
-                  icon: <Mail className="w-4 h-4 mr-1" />,
-                },
-                {
-                  key: "appliedRole",
-                  label: "Role",
-                  icon: <Briefcase className="w-4 h-4 mr-1" />,
-                },
-                {
-                  key: "appliedAt",
-                  label: "Applied At",
-                  icon: <Calendar className="w-4 h-4 mr-1" />,
-                },
-              ].map((col) => (
-                <th
-                  key={col.key}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  <div className="flex items-center">
-                    {col.icon}
-                    {col.label}
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {slice.map((c) => (
-              <tr key={c.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm text-gray-700">{c.id}</td>
-                <td className="px-6 py-4 text-sm text-purple-600">
-                  <Link href={`/admin/candidates/${c.id}`}>{c.name}</Link>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-700">{c.email}</td>
-                <td className="px-6 py-4 text-sm text-gray-700">
-                  {c.appliedRole}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-500">
-                  {new Date(c.appliedAt).toLocaleDateString()}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+        <TabsContent>
+          {/* 0: Test Report */}
+          <div>
+            <PaginationControls
+              page={page}
+              pageSize={pageSize}
+              total={total}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+
+            <div className="overflow-x-auto bg-white shadow rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    {[
+                      {
+                        key: "id",
+                        label: "ID",
+                        icon: <User className="w-4 h-4 mr-1" />,
+                      },
+                      { key: "name", label: "Name" },
+                      {
+                        key: "email",
+                        label: "Email",
+                        icon: <Mail className="w-4 h-4 mr-1" />,
+                      },
+                      {
+                        key: "appliedRole",
+                        label: "Role",
+                        icon: <Briefcase className="w-4 h-4 mr-1" />,
+                      },
+                      {
+                        key: "appliedAt",
+                        label: "Applied At",
+                        icon: <Calendar className="w-4 h-4 mr-1" />,
+                      },
+                    ].map((col) => (
+                      <th
+                        key={col.key}
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        <div className="flex items-center">
+                          {col.icon}
+                          {col.label}
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {slice.map((c) => (
+                    <tr key={c.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {c.id}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-purple-600">
+                        <Link href={`/admin/candidates/${c.id}`}>{c.name}</Link>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {c.email}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {c.appliedRole}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {new Date(c.appliedAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* 1: Status Report */}
+          <div>
+            <PaginationControls
+              page={page}
+              pageSize={pageSize}
+              total={total}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+
+            <div className="overflow-x-auto bg-white shadow rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    {[
+                      {
+                        key: "id",
+                        label: "ID",
+                        icon: <User className="w-4 h-4 mr-1" />,
+                      },
+                      { key: "name", label: "Name" },
+                      {
+                        key: "email",
+                        label: "Email",
+                        icon: <Mail className="w-4 h-4 mr-1" />,
+                      },
+                      {
+                        key: "appliedRole",
+                        label: "Role",
+                        icon: <Briefcase className="w-4 h-4 mr-1" />,
+                      },
+                      {
+                        key: "appliedAt",
+                        label: "Applied At",
+                        icon: <Calendar className="w-4 h-4 mr-1" />,
+                      },
+                    ].map((col) => (
+                      <th
+                        key={col.key}
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        <div className="flex items-center">
+                          {col.icon}
+                          {col.label}
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {slice.map((c) => (
+                    <tr key={c.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {c.id}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-purple-600">
+                        <Link href={`/admin/candidates/${c.id}`}>{c.name}</Link>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {c.email}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {c.appliedRole}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {new Date(c.appliedAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* 2: Sales Report */}
+          <div>
+            <PaginationControls
+              page={page}
+              pageSize={pageSize}
+              total={total}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+
+            <div className="overflow-x-auto bg-white shadow rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    {[
+                      {
+                        key: "id",
+                        label: "ID",
+                        icon: <User className="w-4 h-4 mr-1" />,
+                      },
+                      { key: "name", label: "Name" },
+                      {
+                        key: "email",
+                        label: "Email",
+                        icon: <Mail className="w-4 h-4 mr-1" />,
+                      },
+                      {
+                        key: "appliedRole",
+                        label: "Role",
+                        icon: <Briefcase className="w-4 h-4 mr-1" />,
+                      },
+                      {
+                        key: "appliedAt",
+                        label: "Applied At",
+                        icon: <Calendar className="w-4 h-4 mr-1" />,
+                      },
+                    ].map((col) => (
+                      <th
+                        key={col.key}
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        <div className="flex items-center">
+                          {col.icon}
+                          {col.label}
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {slice.map((c) => (
+                    <tr key={c.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {c.id}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-purple-600">
+                        <Link href={`/admin/candidates/${c.id}`}>{c.name}</Link>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {c.email}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {c.appliedRole}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {new Date(c.appliedAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* 3: Subjective Eval */}
+          <div>
+            <PaginationControls
+              page={page}
+              pageSize={pageSize}
+              total={total}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+
+            <div className="overflow-x-auto bg-white shadow rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    {[
+                      {
+                        key: "id",
+                        label: "ID",
+                        icon: <User className="w-4 h-4 mr-1" />,
+                      },
+                      { key: "name", label: "Name" },
+                      {
+                        key: "email",
+                        label: "Email",
+                        icon: <Mail className="w-4 h-4 mr-1" />,
+                      },
+                      {
+                        key: "appliedRole",
+                        label: "Role",
+                        icon: <Briefcase className="w-4 h-4 mr-1" />,
+                      },
+                      {
+                        key: "appliedAt",
+                        label: "Applied At",
+                        icon: <Calendar className="w-4 h-4 mr-1" />,
+                      },
+                    ].map((col) => (
+                      <th
+                        key={col.key}
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        <div className="flex items-center">
+                          {col.icon}
+                          {col.label}
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {slice.map((c) => (
+                    <tr key={c.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {c.id}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-purple-600">
+                        <Link href={`/admin/candidates/${c.id}`}>{c.name}</Link>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {c.email}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {c.appliedRole}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {new Date(c.appliedAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* 4: Audit Log */}
+          <div>
+            <PaginationControls
+              page={page}
+              pageSize={pageSize}
+              total={total}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+
+            <div className="overflow-x-auto bg-white shadow rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    {[
+                      {
+                        key: "id",
+                        label: "ID",
+                        icon: <User className="w-4 h-4 mr-1" />,
+                      },
+                      { key: "name", label: "Name" },
+                      {
+                        key: "email",
+                        label: "Email",
+                        icon: <Mail className="w-4 h-4 mr-1" />,
+                      },
+                      {
+                        key: "appliedRole",
+                        label: "Role",
+                        icon: <Briefcase className="w-4 h-4 mr-1" />,
+                      },
+                      {
+                        key: "appliedAt",
+                        label: "Applied At",
+                        icon: <Calendar className="w-4 h-4 mr-1" />,
+                      },
+                    ].map((col) => (
+                      <th
+                        key={col.key}
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        <div className="flex items-center">
+                          {col.icon}
+                          {col.label}
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {slice.map((c) => (
+                    <tr key={c.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {c.id}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-purple-600">
+                        <Link href={`/admin/candidates/${c.id}`}>{c.name}</Link>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {c.email}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {c.appliedRole}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {new Date(c.appliedAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </TabsContent>
+      </TabsRoot>
     </div>
   );
 }

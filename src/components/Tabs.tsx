@@ -57,10 +57,10 @@ export function TabsList({ labels, className = "" }: TabsListProps) {
       {labels.map((label, index) => (
         <button
           key={index}
-          className={`px-4 py-2 text-sm font-bold transition-colors duration-200 cursor-pointer ${
+          className={`px-4 py-2 transition-colors duration-200 cursor-pointer ${
             ctx.activeIndex === index
-              ? "bg-indigo-100 text-indigo-800 rounded-md"
-              : "text-gray-600 hover:text-indigo-600"
+              ? "bg-indigo-100 text-indigo-600 rounded-md"
+              : "text-gray-700 hover:text-indigo-600"
           }`}
           onClick={() => ctx.setActiveIndex(index)}
         >
@@ -81,10 +81,6 @@ export function TabsContent({ children, className = "" }: TabsContentProps) {
   if (!ctx) throw new Error("TabsContent must be used within TabsRoot");
 
   return (
-    <div
-      className={`p-4 bg-white rounded-md shadow-md border border-gray-300 mt-4 ${className}`}
-    >
-      {children[ctx.activeIndex]}
-    </div>
+    <div className={`rounded-md ${className}`}>{children[ctx.activeIndex]}</div>
   );
 }

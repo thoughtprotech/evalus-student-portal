@@ -22,6 +22,7 @@ import {
 import { fetchReportsAction } from "@/app/actions/admin/reports";
 import Loader from "@/components/Loader";
 import { TabsContent, TabsList, TabsRoot } from "@/components/Tabs";
+import PageHeader from "@/components/PageHeader";
 
 interface Report {
   id: number;
@@ -33,6 +34,7 @@ interface Report {
 export default function ReportsPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -49,12 +51,14 @@ export default function ReportsPage() {
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
+      <PageHeader
+        icon={<BarChart2 className="w-6 h-6 text-purple-600" />}
+        title="Reports"
+        newLink="/admin/candidates/new"
+        onSearch={(e) => setQuery(e)}
+      />
       <TabsRoot defaultIndex={0}>
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold flex items-center text-gray-800">
-            <BarChart2 className="w-6 h-6 text-indigo-600" />
-            <span className="ml-2">Reports</span>
-          </h1>
+        <div className="flex justify-between items-center mb-4">
           <TabsList
             labels={[
               "Test Report",

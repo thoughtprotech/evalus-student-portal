@@ -22,7 +22,7 @@ export default function PaginationControls({
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <div className="flex items-center justify-between py-2">
+    <div className="flex items-center justify-between">
       <div className="flex items-center  text-sm text-gray-700">
         Rows per page:
         <select

@@ -7,6 +7,7 @@ import Loader from "@/components/Loader";
 import PageHeader from "@/components/PageHeader";
 import PaginationControls from "@/components/PaginationControls";
 import Link from "next/link";
+import { TabsContent, TabsList, TabsRoot } from "@/components/Tabs";
 
 interface Test {
   id: number;
@@ -47,7 +48,10 @@ export default function TestsPage() {
   );
 
   const total = filteredAnnouncements.length;
-  const slice = filteredAnnouncements.slice((page - 1) * pageSize, page * pageSize);
+  const slice = filteredAnnouncements.slice(
+    (page - 1) * pageSize,
+    page * pageSize
+  );
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -58,49 +62,115 @@ export default function TestsPage() {
         onSearch={(e) => setQuery(e)}
       />
 
-      <PaginationControls
-        page={page}
-        pageSize={pageSize}
-        total={total}
-        onPageChange={setPage}
-        onPageSizeChange={setPageSize}
-      />
+      <TabsRoot defaultIndex={0}>
+        <div className="flex justify-between items-center mb-4">
+          <TabsList labels={["Test", "Category"]} />
+        </div>
 
-      <div className="overflow-x-auto bg-white shadow rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-100">
-            <tr>
-              {COLUMNS.map((col) => (
-                <th
-                  key={col.key}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  <div className="flex items-center">
-                    {col.icon}
-                    {col.label}
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {slice.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm text-gray-700">{item.id}</td>
-                <td className="px-6 py-4 text-sm text-blue-600">
-                  <Link href={`/admin/tests/${item.id}`}>{item.name}</Link>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-700">
-                  {item.subject}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-500">
-                  {new Date(item.date).toLocaleDateString()}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+        <TabsContent>
+          {/* 0: Test Report */}
+          <div>
+            <PaginationControls
+              page={page}
+              pageSize={pageSize}
+              total={total}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+
+            <div className="overflow-x-auto bg-white shadow rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    {COLUMNS.map((col) => (
+                      <th
+                        key={col.key}
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        <div className="flex items-center">
+                          {col.icon}
+                          {col.label}
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {slice.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {item.id}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-blue-600">
+                        <Link href={`/admin/tests/${item.id}`}>
+                          {item.name}
+                        </Link>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {item.subject}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {new Date(item.date).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* 1: Status Report */}
+          <div>
+            <PaginationControls
+              page={page}
+              pageSize={pageSize}
+              total={total}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+
+            <div className="overflow-x-auto bg-white shadow rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    {COLUMNS.map((col) => (
+                      <th
+                        key={col.key}
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        <div className="flex items-center">
+                          {col.icon}
+                          {col.label}
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {slice.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {item.id}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-blue-600">
+                        <Link href={`/admin/tests/${item.id}`}>
+                          {item.name}
+                        </Link>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {item.subject}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {new Date(item.date).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </TabsContent>
+      </TabsRoot>
     </div>
   );
 }

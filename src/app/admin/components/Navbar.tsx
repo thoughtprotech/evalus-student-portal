@@ -77,7 +77,7 @@ export default function Navbar({ username }: NavbarProps) {
               className={`flex items-center space-x-1 px-3 py-2 rounded-md transition ${
                 isActive
                   ? "bg-indigo-100 text-indigo-700"
-                  : "text-gray-600 hover:text-indigo-700 hover:bg-indigo-100"
+                  : "text-gray-700 hover:text-indigo-700 hover:bg-indigo-100"
               }`}
             >
               <Icon className="w-5 h-5" />
