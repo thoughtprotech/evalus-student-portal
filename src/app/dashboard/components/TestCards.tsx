@@ -87,6 +87,61 @@ export default function TestCards({
     linkHref = `/dashboard/analytics/${encodeURIComponent(id)}`;
   }
 
+  const openInPopup = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    const features = [
+      "toolbar=no",
+      "menubar=no",
+      "location=no",
+      "status=no",
+      "resizable=yes",
+      "scrollbars=yes",
+      `width=${window.screen.width}`,
+      `height=${window.screen.height}`,
+      `top=0`,
+      `left=0`,
+    ].join(",");
+
+    const popup = window.open(linkHref, "_blank", features);
+
+    if (!popup) {
+      console.error("Popup blocked");
+      return;
+    }
+
+    // when ready, request fullscreen and inject blockers
+    popup.addEventListener("load", () => {
+      // Fullscreen
+      popup.document.documentElement
+        .requestFullscreen()
+        .catch(() => console.warn("Fullscreen denied"));
+
+      // Block right-click
+      popup.document.addEventListener("contextmenu", (ev) =>
+        ev.preventDefault()
+      );
+
+      // Block common DevTools shortcuts
+      popup.document.addEventListener("keydown", (ev) => {
+        if (
+          ev.key === "F12" ||
+          (ev.ctrlKey && ev.shiftKey && ["I", "J", "C"].includes(ev.key)) ||
+          (ev.ctrlKey && ev.key === "u")
+        ) {
+          ev.preventDefault();
+        }
+      });
+
+      // Re-request fullscreen if user exits
+      popup.document.addEventListener("fullscreenchange", () => {
+        if (!popup.document.fullscreenElement) {
+          popup.document.documentElement.requestFullscreen().catch(() => {});
+        }
+      });
+    });
+  };
+
   return (
     <div className="w-full h-full rounded-md shadow-md p-4 border border-gray-300 bg-white flex flex-col gap-4 justify-between">
       {/* Test Title */}
@@ -163,14 +218,14 @@ export default function TestCards({
 
       {/* Conditional Action Button */}
       <div className="w-full">
-        <Link
+        <a
           href={linkHref}
-          className={`w-full flex items-center justify-center font-bold px-4 py-2 gap-2 ${actionButtonMapping[status]} text-white rounded-md shadow transition-colors`}
-          target="_blank"
+          onClick={openInPopup}
+          className={`w-full flex items-center justify-center px-4 py-2 font-bold text-white rounded shadow transition-colors ${actionButtonMapping[status]}`}
         >
           {linkIcon}
           {linkText}
-        </Link>
+        </a>
       </div>
     </div>
   );

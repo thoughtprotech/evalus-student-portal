@@ -742,7 +742,7 @@ export default function ExamPage() {
                       ).length
                     }
                   </div>
-                  <span>Unattempted</span>
+                  <span>Not Visited</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 p-2 flex items-center justify-center bg-red-500 rounded-full font-bold text-white">
@@ -752,7 +752,7 @@ export default function ExamPage() {
                       ).length
                     }
                   </div>
-                  <span>Unanswered</span>
+                  <span>Not Answered</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 p-2 flex items-center justify-center bg-green-500 rounded-full font-bold text-white">
@@ -762,7 +762,7 @@ export default function ExamPage() {
                       ).length
                     }
                   </div>
-                  <span>Attempted</span>
+                  <span>Answered</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 p-2 flex items-center justify-center bg-purple-500 rounded-full font-bold text-white">
@@ -783,7 +783,10 @@ export default function ExamPage() {
                       ).length
                     }
                   </div>
-                  <span>Answered But Marked For Review</span>
+                  <span>
+                    Answered And Marked For Review (Will Be Considered For
+                    Evaluation)
+                  </span>
                 </div>
               </div>
             </div>
