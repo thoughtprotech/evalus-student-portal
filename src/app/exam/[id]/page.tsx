@@ -5,10 +5,19 @@ import { useEffect, useState } from "react";
 import clsx from "clsx";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import CountdownTimer from "@/components/CountdownTimer";
-import { Info, Menu, X } from "lucide-react";
+import {
+  Check,
+  CheckCheck,
+  ChevronLeftCircle,
+  ChevronRightCircleIcon,
+  Info,
+  Menu,
+  X,
+} from "lucide-react";
 import Modal from "@/components/Modal";
 import { InstructionData } from "../instructions/[id]/page";
 import mockInstructions from "@/mock/mockInstructions.json";
+import { TabsContent, TabsList, TabsRoot } from "@/components/Tabs";
 
 type QuestionStatus =
   | "unanswered"
@@ -537,7 +546,7 @@ export default function ExamPage() {
   return (
     <div className="h-full flex flex-col md:flex-row bg-gray-100">
       {/* Main */}
-      <main className="flex-1 p-4 sm:p-6 flex flex-col gap-5">
+      <main className="w-full flex-1 p-4 sm:p-6 flex flex-col gap-5">
         <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
           <div className="w-full flex justify-between">
             <div className="flex items-center gap-2">
@@ -573,124 +582,170 @@ export default function ExamPage() {
             </div>
           </div>
         </div>
-        {currentQuestion && (
-          <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
-            <div className="w-full flex flex-col gap-2 md:flex md:flex-row justify-between font-semibold">
-              <div>
-                <h1 className="text-sm text-gray-600">
-                  Question {currentIndex + 1} -{" "}
-                  {questionTypeMapping[currentQuestion.type]}
-                </h1>
-              </div>
-              <div className="flex gap-3 items-center">
-                <div className="flex gap-3 text-xs md:text-sm">
-                  <h1 className="text-green-500">Mark(s)</h1>
-                  <h1>{currentQuestion.mark}</h1>
-                </div>
-                <h1 className="text-gray-500">|</h1>
-                <div className="flex gap-3 text-xs md:text-sm pr-1">
-                  <h1 className="text-red-500 text-nowrap">Negative Mark(s)</h1>
-                  <h1>{currentQuestion.negativeMark}</h1>
-                </div>
-                <h1 className="text-gray-500">|</h1>
-                <div>
-                  <select className="border border-gray-300 px-4 py-1 rounded-md shadow-md cursor-pointer text-sm md:text:base">
-                    <option value="english">English</option>
-                    <option value="telugu">Telugu</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div className="w-full flex justify-between">
-              <div>
-                <h2 className="text-md sm:text-lg font-bold">
-                  {currentQuestion.text}
-                </h2>
-              </div>
-            </div>
-            {errorMessage && (
-              <div className="mb-4 text-sm text-red-600 font-medium">
-                {errorMessage}
-              </div>
-            )}
-            <div className="space-y-3">{renderQuestion()}</div>
-            <div className="flex flex-col md:flex md:flex-row items-center justify-between gap-4 mt-4">
-              <div className="w-full flex gap-3">
-                <button
-                  onClick={toggleMarkForReview}
-                  className={clsx(
-                    "w-full md:w-fit px-4 py-2 rounded-md font-medium text-white cursor-pointer",
-                    currentQuestion.status === "review" ||
-                      currentQuestion.status === "answeredMarkedForReview"
-                      ? "bg-gray-500 hover:bg-gray-600"
-                      : "bg-purple-500 hover:bg-purple-600"
-                  )}
-                >
-                  {currentQuestion.status === "review" ||
-                  currentQuestion.status === "answeredMarkedForReview"
-                    ? "Unmark Review"
-                    : currentIndex < questions.length - 1
-                    ? "Mark For Review & Next"
-                    : "Mark For Review"}
-                </button>
-                <button
-                  onClick={clearResponse}
-                  className={clsx(
-                    "w-full md:w-fit px-4 py-2 rounded-md font-medium text-white cursor-pointer bg-cyan-500 hover:bg-cyan-600"
-                  )}
-                >
-                  Clear Response
-                </button>
-              </div>
-
-              <div className="w-full md:w-fit flex gap-3">
-                <div className="w-full md:w-fit">
-                  <button
-                    onClick={handlePreviousQuestion}
-                    disabled={currentIndex === 0}
-                    className={clsx(
-                      "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer",
-                      currentIndex === 0
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-blue-600 hover:bg-blue-700"
-                    )}
-                  >
-                    Previous
-                  </button>
-                </div>
-                {currentIndex < questions.length - 1 && (
-                  <div className="w-full md:w-fit">
-                    <button
-                      onClick={handleNextQuestion}
-                      className={clsx(
-                        "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700"
-                      )}
-                    >
-                      Next
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+        <TabsRoot defaultIndex={0}>
+          <div className="flex justify-between items-center">
+            <TabsList
+              className="w-full"
+              labels={["Section 1", "Section 2", "Section 3"]}
+            />
           </div>
-        )}
+
+          <TabsContent>
+            <div>
+              {currentQuestion && (
+                <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
+                  <div className="w-full flex flex-col gap-2 md:flex md:flex-row justify-between font-semibold">
+                    <div>
+                      <h1 className="text-sm text-gray-600">
+                        Question {currentIndex + 1} -{" "}
+                        {questionTypeMapping[currentQuestion.type]}
+                      </h1>
+                    </div>
+                    <div className="flex gap-3 items-center">
+                      <div className="flex gap-3 text-xs md:text-sm">
+                        <h1 className="text-green-500">Mark(s)</h1>
+                        <h1>{currentQuestion.mark}</h1>
+                      </div>
+                      <h1 className="text-gray-500">|</h1>
+                      <div className="flex gap-3 text-xs md:text-sm pr-1">
+                        <h1 className="text-red-500 text-nowrap">
+                          Negative Mark(s)
+                        </h1>
+                        <h1>{currentQuestion.negativeMark}</h1>
+                      </div>
+                      <h1 className="text-gray-500">|</h1>
+                      <div>
+                        <select className="border border-gray-300 px-4 py-1 rounded-md shadow-md cursor-pointer text-sm md:text:base">
+                          <option value="english">English</option>
+                          <option value="telugu">Telugu</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="w-full flex justify-between">
+                    <div>
+                      <h2 className="text-md sm:text-lg font-bold">
+                        {currentQuestion.text}
+                      </h2>
+                    </div>
+                  </div>
+                  {errorMessage && (
+                    <div className="mb-4 text-sm text-red-600 font-medium">
+                      {errorMessage}
+                    </div>
+                  )}
+                  <div className="space-y-3">{renderQuestion()}</div>
+                  <div className="flex flex-col md:flex md:flex-row items-center justify-between gap-4 mt-4">
+                    <div className="w-full flex gap-3">
+                      <button
+                        onClick={toggleMarkForReview}
+                        className={clsx(
+                          "w-full md:w-fit px-4 py-2 rounded-md font-medium text-white cursor-pointer",
+                          currentQuestion.status === "review" ||
+                            currentQuestion.status === "answeredMarkedForReview"
+                            ? "bg-gray-500 hover:bg-gray-600"
+                            : "bg-purple-500 hover:bg-purple-600"
+                        )}
+                      >
+                        {currentQuestion.status === "review" ||
+                        currentQuestion.status === "answeredMarkedForReview"
+                          ? "Unmark Review"
+                          : currentIndex < questions.length - 1
+                          ? "Mark For Review & Next"
+                          : "Mark For Review"}
+                      </button>
+                      <button
+                        onClick={clearResponse}
+                        className={clsx(
+                          "w-full md:w-fit px-4 py-2 rounded-md font-medium text-white cursor-pointer bg-cyan-500 hover:bg-cyan-600"
+                        )}
+                      >
+                        Clear Response
+                      </button>
+                    </div>
+
+                    <div className="w-full md:w-fit flex gap-3">
+                      <div className="w-full md:w-fit">
+                        <button
+                          onClick={handlePreviousQuestion}
+                          disabled={currentIndex === 0}
+                          className={clsx(
+                            "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer",
+                            currentIndex === 0
+                              ? "bg-gray-300 cursor-not-allowed"
+                              : "bg-blue-600 hover:bg-blue-700"
+                          )}
+                        >
+                          Previous
+                        </button>
+                      </div>
+                      {currentIndex < questions.length - 1 && (
+                        <div className="w-full md:w-fit">
+                          <button
+                            onClick={handleNextQuestion}
+                            className={clsx(
+                              "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700"
+                            )}
+                          >
+                            Next
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
+              <h1>Section 2</h1>
+            </div>
+
+            <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
+              <h1>Section 3</h1>
+            </div>
+          </TabsContent>
+        </TabsRoot>
       </main>
 
       {/* Sidebar */}
       <aside
         className={clsx(
           // common styles
-          "bg-white border-gray-300 shadow-md flex flex-col gap-2 p-4",
+          "bg-white border-gray-300 shadow-md flex flex-col gap-2 p-4 relative",
           // positioning
           "fixed top-16 left-0 bottom-0 lg:static w-full h-full transform transition-transform duration-300 z-50",
           // mobile open/closed
-          sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
-          // desktop static sidebar
-          "md:static md:translate-y-0 md:block md:w-72"
+          !sidebarOpen
+            ? "translate-x-0 md:w-80 transition-all"
+            : "-translate-x-full md:translate-x-full md:w-0 transition-all"
         )}
       >
+        <div
+          className={`w-10 h-10 rounded-full absolute top-5 ${
+            !sidebarOpen ? "-left-5" : "-left-10"
+          } bg-white cursor-pointer`}
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+        >
+          {!sidebarOpen ? (
+            <ChevronRightCircleIcon className="w-full h-full text-gray-600" />
+          ) : (
+            <ChevronLeftCircle className="w-full h-full text-gray-600" />
+          )}
+        </div>
         <div className="w-full h-full flex flex-col justify-between">
-          <div>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center space-x-4 ml-2">
+              <div className="flex items-center space-x-2">
+                <div className="w-7 h-7 md:w-12 md:h-12 bg-indigo-200 text-indigo-800 rounded-full flex items-center justify-center font-bold text-xl shadow-inner">
+                  U
+                </div>
+                <div>
+                  <h1 className="text-xs font-bold text-gray-600">Welcome</h1>
+                  <h1 className="text-xl font-bold text-gray-800">John Doe</h1>
+                </div>
+              </div>
+            </div>
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
                 <div className="md:hidden">
@@ -702,28 +757,33 @@ export default function ExamPage() {
                   <h1 className="font-bold text-2xl">Questions</h1>
                 </div>
               </div>
-              <div className="grid grid-cols-8 md:grid-cols-5 gap-2 mb-4">
+              <div className="grid grid-cols-8 md:grid-cols-4 gap-y-2 mb-4">
                 {questions.map((q, index) => (
                   <button
                     key={q.id}
                     onClick={() => handleJumpTo(index)}
                     className={clsx(
-                      "w-8 h-8 sm:w-10 sm:h-10 rounded-md font-semibold text-xs sm:text-sm transition-colors cursor-pointer",
+                      "font-semibold text-xs sm:text-sm transition-colors cursor-pointer relative",
                       q.status === "unattempted" &&
-                        "bg-gray-300 text-gray-700 hover:bg-gray-400",
+                        "bg-gray-300 text-gray-700 hover:bg-gray-400 w-8 h-8 sm:w-10 sm:h-10 rounded-md",
                       q.status === "attempted" &&
-                        "bg-green-500 text-white hover:bg-green-600",
+                        "bg-green-500 text-white hover:bg-green-600 w-8 h-8 sm:w-10 sm:h-10 rounded-md",
                       q.status === "review" &&
-                        "bg-purple-500 text-white hover:bg-purple-600",
-                      index === currentIndex && "border-3 border-indigo-500",
+                        "bg-purple-500 text-white hover:bg-purple-600 w-10 h-10 rounded-full",
                       q.status === "answeredMarkedForReview" &&
-                        "bg-orange-500 text-white hover:bg-orange-600",
-                      index === currentIndex && "border-3 border-indigo-500",
+                        "bg-purple-500 text-white hover:bg-purple-600 w-10 h-10 rounded-full self-center",
                       q.status === "unanswered" &&
-                        "bg-red-500 text-white hover:bg-red-600",
-                      index === currentIndex && "border-3 border-indigo-500"
+                        "bg-red-500 text-white hover:bg-red-600 w-8 h-8 sm:w-10 sm:h-10 rounded-md",
+                      index === currentIndex
+                        ? "border-3 border-gray-700"
+                        : "border-3 border-transparent"
                     )}
                   >
+                    {q.status === "answeredMarkedForReview" && (
+                      <div>
+                        <CheckCheck className="text-green-500 w-5 h-5 absolute -top-3 -right-4" />
+                      </div>
+                    )}
                     {q.id}
                   </button>
                 ))}
@@ -735,7 +795,7 @@ export default function ExamPage() {
               </div>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 p-2 flex items-center justify-center bg-gray-300 rounded-full font-bold">
+                  <div className="w-8 h-8 p-2 flex items-center justify-center bg-gray-300 rounded-md font-bold">
                     {
                       questions.filter(
                         (question) => question.status === "unattempted"
@@ -745,7 +805,7 @@ export default function ExamPage() {
                   <span>Not Visited</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 p-2 flex items-center justify-center bg-red-500 rounded-full font-bold text-white">
+                  <div className="w-8 h-8 p-2 flex items-center justify-center bg-red-500 rounded-md font-bold text-white">
                     {
                       questions.filter(
                         (question) => question.status === "unanswered"
@@ -755,7 +815,7 @@ export default function ExamPage() {
                   <span>Not Answered</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 p-2 flex items-center justify-center bg-green-500 rounded-full font-bold text-white">
+                  <div className="w-8 h-8 p-2 flex items-center justify-center bg-green-500 rounded-md font-bold text-white">
                     {
                       questions.filter(
                         (question) => question.status === "attempted"
@@ -775,7 +835,10 @@ export default function ExamPage() {
                   <span>Marked For Review</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 p-2 flex items-center justify-center bg-orange-500 rounded-full font-bold text-white">
+                  <div className="w-9 h-8 p-2 flex items-center justify-center bg-purple-500 rounded-full font-bold text-white relative">
+                    <div>
+                      <CheckCheck className="text-green-500 w-5 h-5 absolute -top-3 -right-3" />
+                    </div>
                     {
                       questions.filter(
                         (question) =>
@@ -783,10 +846,12 @@ export default function ExamPage() {
                       ).length
                     }
                   </div>
-                  <span>
-                    Answered And Marked For Review (Will Be Considered For
-                    Evaluation)
-                  </span>
+                  <div className="w-full ml-2">
+                    <span className="w-full">
+                      Answered And Marked For Review (Will Be Considered For
+                      Evaluation)
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -813,6 +878,7 @@ export default function ExamPage() {
         title="Instructions"
         isOpen={showInstructionsModal}
         closeModal={() => setShowInstructionsModal(false)}
+        className={"max-w-md"}
       >
         <div className="mb-8 space-y-4">
           {instructionData?.instructions.map((inst, index) => (

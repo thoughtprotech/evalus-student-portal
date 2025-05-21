@@ -24,17 +24,6 @@ export default function ExamLayout({
               </span>
             </h1>
           </div>
-          {/* User info on the right */}
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-7 h-7 md:w-9 md:h-9 bg-indigo-200 text-indigo-800 rounded-full flex items-center justify-center font-bold text-sm shadow-inner">
-                U
-              </div>
-              <h1 className="text-xs md:text-base font-bold text-gray-600">
-                John Doe
-              </h1>
-            </div>
-          </div>
         </div>
       </header>
       {/* Main content area with top padding equal to navbar height */}
