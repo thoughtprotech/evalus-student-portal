@@ -3,11 +3,6 @@
 import type { Metadata } from "next";
 import { useEffect } from "react";
 
-export const metadata: Metadata = {
-  title: "Test Portal",
-  description: "Your exam portal",
-};
-
 export default function ExamLayout({
   children,
 }: {
