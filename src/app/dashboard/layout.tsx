@@ -10,6 +10,10 @@ import {
   LogOut,
   UserCircle,
   LampDesk,
+  Banknote,
+  ArrowDown,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { JSX, ReactNode, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -95,12 +99,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="h-screen overflow-hidden bg-gradient-to-br from-gray-100 to-indigo-100 text-gray-800 relative flex">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col transition-all duration-300 ease-in-out overflow-hidden bg-white border-r border-gray-300 shadow-md group w-20 hover:w-48">
+      <aside className="hidden md:flex flex-col transition-all duration-300 ease-in-out overflow-hidden bg-white border-r border-gray-300 shadow-md min:w-48 w-fit max-w-72">
         <div className="h-16 px-2 flex gap-1 items-center justify-center shadow-md border-b border-gray-300 relative">
           <div className="absolute top-3 left-7 flex items-end gap-1">
             <h1 className="text-3xl font-bold text-indigo-700 transition duration-300">
               E
-              <span className="text-3xl font-bold text-gray-800 transition duration-300 opacity-0 group-hover:opacity-100">
+              <span className="text-3xl font-bold text-gray-800 transition duration-300">
                 valus
               </span>
             </h1>
@@ -108,26 +112,113 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
 
         <nav className="flex-1 py-5 px-4 space-y-2">
-          <SidebarItem icon={NotebookPen} label="TestHub" href="/dashboard" />
           <SidebarItem
-            icon={ClipboardList}
-            label="Analytics"
-            href="/dashboard/analytics"
+            category={{
+              name: "TestHub",
+              href: "/dashboard",
+              icon: NotebookPen,
+              menu: [
+                {
+                  name: "Bank",
+                  href: "/bank",
+                  subMenu: [
+                    { name: "IBPS Clerk", href: "/bank" },
+                    { name: "IBPS RRB Office Assistant", href: "/bank" },
+                    { name: "IBPS RRB Officer Scale 1", href: "/bank" },
+                    { name: "SBI Clerk", href: "/bank" },
+                    { name: "SBI PO", href: "/bank" },
+                    { name: "IBPS PO", href: "/bank" },
+                    { name: "IBPS SO", href: "/bank" },
+                    { name: "IDBI Juinor Assistant Manager", href: "/bank" },
+                    { name: "UBI LBO", href: "/bank" },
+                    { name: "APCOB Staff Assistant", href: "/bank" },
+                    { name: "APCOB Assistant Manager", href: "/bank" },
+                  ],
+                },
+                {
+                  name: "Insurance",
+                  href: "/insurance",
+                  subMenu: [
+                    { name: "LIC Assistant", href: "/insurane" },
+                    { name: "NIACL Assistant", href: "/insurane" },
+                    { name: "NICL Assistant", href: "/insurane" },
+                  ],
+                },
+                {
+                  name: "SSC",
+                  href: "/ssc",
+                  subMenu: [
+                    { name: "SSC CGL", href: "/insurane" },
+                    { name: "SSC CHSL", href: "/insurane" },
+                    { name: "SSC MTS 2024", href: "/insurane" },
+                    { name: "SSC GD Constable", href: "/insurane" },
+                  ],
+                },
+                {
+                  name: "Railway",
+                  href: "/railway",
+                  subMenu: [
+                    { name: "RRB ALP", href: "/insurane" },
+                    { name: "RRB NTPC", href: "/insurane" },
+                    { name: "RRB Technician Grade 1", href: "/insurane" },
+                  ],
+                },
+                {
+                  name: "Current Affairs",
+                  href: "/currentAffairs",
+                  subMenu: [
+                    { name: "MCAT", href: "/insurane" },
+                    { name: "WCAT", href: "/insurane" },
+                  ],
+                },
+                {
+                  name: "Topic Tests",
+                  href: "/currentAffairs",
+                  subMenu: [
+                    { name: "Bank", href: "/insurane" },
+                    { name: "SSC", href: "/insurane" },
+                  ],
+                },
+                {
+                  name: "PQRE",
+                  href: "/currentAffairs",
+                  subMenu: [
+                    { name: "Pure Maths", href: "/insurane" },
+                    { name: "Quantitive Aptitude", href: "/insurane" },
+                    { name: "Reasoning", href: "/insurane" },
+                    { name: "English Language", href: "/insurane" },
+                  ],
+                },
+              ],
+            }}
           />
           <SidebarItem
-            icon={Bookmark}
-            label="Starred"
-            href="/dashboard/starred"
+            category={{
+              name: "Analytics",
+              href: "/dashboard/analytics",
+              icon: ClipboardList,
+            }}
           />
           <SidebarItem
-            icon={FileText}
-            label="References"
-            href="/dashboard/references"
+            category={{
+              name: "Starred",
+              href: "/dashboard/starred",
+              icon: Bookmark,
+            }}
           />
           <SidebarItem
-            icon={LampDesk}
-            label="Spotlight"
-            href="/dashboard/spotlight"
+            category={{
+              name: "References",
+              href: "/dashboard/references",
+              icon: FileText,
+            }}
+          />
+          <SidebarItem
+            category={{
+              name: "Spotlight",
+              href: "/dashboard/spotlight",
+              icon: LampDesk,
+            }}
           />
         </nav>
       </aside>
@@ -268,36 +359,132 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 }
 
 interface SidebarItemProps {
-  icon: React.ElementType;
-  label: string;
-  href: string;
   onClick?: () => void;
+  category: {
+    href: string;
+    name: string;
+    icon: React.ElementType;
+    menu?: {
+      href: string;
+      name: string;
+      icon?: React.ElementType;
+      subMenu?: {
+        href: string;
+        name: string;
+        icon?: React.ElementType;
+      }[];
+    }[];
+  };
 }
 
-function SidebarItem({ icon: Icon, label, href, onClick }: SidebarItemProps) {
+function SidebarItem({ onClick, category }: SidebarItemProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+
   const pathname = usePathname();
   return (
-    <a
-      href={href}
-      onClick={onClick}
-      className={`flex items-center space-x-3 px-2 py-3 font-semibold transition-all rounded-lg ${
-        pathname === href ? "text-indigo-600" : "text-gray-600"
-      } hover:bg-indigo-100 hover:text-indigo-600`}
-    >
-      <Icon className="w-6 h-6 min-w-[24px]" />
-      <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        {label}
-      </span>
-    </a>
+    <div className="flex flex-col">
+      <div className="w-full flex items-center justify-between gap-2">
+        <a
+          onClick={onClick}
+          href={category.href}
+          className={`w-full flex items-center space-x-3 px-2 py-3 font-semibold transition-all rounded-lg ${
+            pathname === category.href ? "text-indigo-600" : "text-gray-600"
+          } hover:bg-indigo-100 hover:text-indigo-600`}
+        >
+          <category.icon className="w-6 h-6 min-w-[24px]" />
+          <span className="whitespace-nowrap transition-opacity duration-300">
+            {category.name}
+          </span>
+        </a>
+        {category.menu && category.menu.length > 0 && (
+          <div>
+            {!isMenuOpen ? (
+              <ChevronDown
+                className="cursor-pointer"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+              />
+            ) : (
+              <ChevronUp
+                className="cursor-pointer"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+              />
+            )}
+          </div>
+        )}
+      </div>
+      {isMenuOpen && category.menu && category?.menu.length > 0 && (
+        <div className="max-h-96 overflow-y-auto">
+          {category.menu.map((item) => {
+            return (
+              <MenuWithSubmenu
+                key={item.name}
+                item={item}
+                currentPath={pathname}
+              />
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
 
-function SidebarItemMobile({
-  icon: Icon,
-  label,
-  href,
-  onClick,
-}: SidebarItemProps) {
+interface MenuWithSubmenuProps {
+  item: {
+    href: string;
+    name: string;
+    icon?: React.ElementType;
+    subMenu?: { href: string; name: string; icon?: React.ElementType }[];
+  };
+  currentPath: string;
+}
+
+function MenuWithSubmenu({ item, currentPath }: MenuWithSubmenuProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="flex flex-col mx-2">
+      <div className="flex items-center justify-between">
+        <a
+          href={item.href}
+          className={`w-full flex items-center space-x-2 px-2 py-3 rounded-lg ${
+            currentPath === item.href ? "text-indigo-600" : "text-gray-900"
+          } hover:bg-indigo-100 hover:text-indigo-600`}
+        >
+          {item.icon && <item.icon className="w-5 h-5" />}
+          {item.name}
+        </a>
+        {item.subMenu && item.subMenu.length > 0 && (
+          <button
+            className="cursor-pointer"
+            onClick={() => setIsOpen((o) => !o)}
+          >
+            {isOpen ? <ChevronUp /> : <ChevronDown />}
+          </button>
+        )}
+      </div>
+
+      {isOpen && item.subMenu && (
+        <div className="ml-2">
+          {item.subMenu.map((i) => (
+            <a
+              key={i.name}
+              href={i.href}
+              className={`flex items-center space-x-2 px-2 py-2 rounded-lg ${
+                currentPath === i.href ? "text-indigo-600" : "text-gray-600"
+              } hover:bg-indigo-100 hover:text-indigo-600`}
+            >
+              {i.icon && <i.icon className="w-5 h-5" />}
+              {i.name}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SidebarItemMobile({ icon: Icon, label, href, onClick }: any) {
   const pathname = usePathname();
   return (
     <a
