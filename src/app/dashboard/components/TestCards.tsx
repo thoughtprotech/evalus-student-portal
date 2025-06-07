@@ -118,20 +118,20 @@ export default function TestCards({
         .catch(() => console.warn("Fullscreen denied"));
 
       // Block right-click
-      popup.document.addEventListener("contextmenu", (ev) =>
-        ev.preventDefault()
-      );
+      // popup.document.addEventListener("contextmenu", (ev) =>
+      //   ev.preventDefault()
+      // );
 
       // Block common DevTools shortcuts
-      popup.document.addEventListener("keydown", (ev) => {
-        if (
-          ev.key === "F12" ||
-          (ev.ctrlKey && ev.shiftKey && ["I", "J", "C"].includes(ev.key)) ||
-          (ev.ctrlKey && ev.key === "u")
-        ) {
-          ev.preventDefault();
-        }
-      });
+      // popup.document.addEventListener("keydown", (ev) => {
+      //   if (
+      //     ev.key === "F12" ||
+      //     (ev.ctrlKey && ev.shiftKey && ["I", "J", "C"].includes(ev.key)) ||
+      //     (ev.ctrlKey && ev.key === "u")
+      //   ) {
+      //     ev.preventDefault();
+      //   }
+      // });
 
       // Re-request fullscreen if user exits
       popup.document.addEventListener("fullscreenchange", () => {

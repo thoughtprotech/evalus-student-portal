@@ -6,8 +6,6 @@ import clsx from "clsx";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import CountdownTimer from "@/components/CountdownTimer";
 import {
-  Check,
-  CheckCheck,
   ChevronLeftCircle,
   ChevronRightCircleIcon,
   Info,
@@ -18,123 +16,13 @@ import Modal from "@/components/Modal";
 import { InstructionData } from "../instructions/[id]/page";
 import mockInstructions from "@/mock/mockInstructions.json";
 import { TabsContent, TabsList, TabsRoot } from "@/components/Tabs";
-
-type QuestionStatus =
-  | "unanswered"
-  | "unattempted"
-  | "attempted"
-  | "review"
-  | "answeredMarkedForReview";
-
-type QuestionType =
-  | "single"
-  | "multiple"
-  | "match"
-  | "fill"
-  | "essay"
-  | "number"
-  | "truefalse";
-
-interface Question {
-  id: number;
-  text: string;
-  type: QuestionType;
-  options?: string[];
-  matches?: {
-    left: string[];
-    right: string[];
-  };
-  answer: any;
-  selectedOption: any;
-  status: QuestionStatus;
-  mark: number;
-  negativeMark: number;
-}
-
-const mockQuestions: Question[] = [
-  {
-    id: 1,
-    text: "What is the capital of France?",
-    type: "single",
-    options: ["Paris", "Rome", "Madrid", "Berlin"],
-    selectedOption: null,
-    answer: null,
-    status: "unanswered",
-    mark: 3,
-    negativeMark: -1,
-  },
-  {
-    id: 2,
-    text: "Select all prime numbers.",
-    type: "multiple",
-    options: ["2", "3", "4", "6"],
-    selectedOption: [],
-    answer: null,
-    status: "unattempted",
-    mark: 3,
-    negativeMark: -1,
-  },
-  {
-    id: 3,
-    text: "Match the following countries with their capitals.",
-    type: "match",
-    matches: {
-      left: ["France", "Italy", "India"],
-      right: ["New Dehi", "Paris", "Rome"],
-    },
-    selectedOption: {},
-    answer: null,
-    status: "unattempted",
-    mark: 3,
-    negativeMark: -1,
-  },
-  {
-    id: 4,
-    text: "Fill in the blank: The sun rises in the ____.",
-    type: "fill",
-    selectedOption: "",
-    answer: null,
-    status: "unattempted",
-    mark: 3,
-    negativeMark: -1,
-  },
-  {
-    id: 5,
-    text: "Write an essay about your favorite book.",
-    type: "essay",
-    selectedOption: "",
-    answer: null,
-    status: "unattempted",
-    mark: 3,
-    negativeMark: -1,
-  },
-  {
-    id: 6,
-    text: "What is 7 + 3?",
-    type: "number",
-    selectedOption: "",
-    answer: null,
-    status: "unattempted",
-    mark: 3,
-    negativeMark: -1,
-  },
-  {
-    id: 7,
-    text: "Is Earth the third planet from the sun?",
-    type: "truefalse",
-    options: ["True", "False"],
-    selectedOption: null,
-    answer: null,
-    status: "unattempted",
-    mark: 3,
-    negativeMark: -1,
-  },
-];
+import { fetchQuestionListAction } from "@/app/actions/exam/getQuestionList";
+import { GetQuestionListResponse } from "@/utils/api/types";
 
 export default function ExamPage() {
   const { id } = useParams();
   const router = useRouter();
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] = useState<GetQuestionListResponse>();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -152,387 +40,572 @@ export default function ExamPage() {
     }
   }, [id]);
 
+  const fetchQuestionList = async () => {
+    const res = await fetchQuestionListAction(Number(id));
+    const { data, status, error, errorMessage, message } = res;
+    if (status === 200) {
+      setQuestions(data);
+      // setTestList(data);
+      // setLoaded(true);
+    } else {
+      console.log({ status, error, errorMessage });
+    }
+  };
+
+  // Load the test list once on mount
   useEffect(() => {
-    setQuestions(mockQuestions);
+    fetchQuestionList();
   }, []);
 
-  const currentQuestion = questions[currentIndex];
+  // const isAllAnswersValid = (): number | null => {
+  //   for (let i = 0; i < questions.length; i++) {
+  //     const question = questions[i];
+  //     const selected = question.selectedOption;
 
-  const isAllAnswersValid = (): number | null => {
-    for (let i = 0; i < questions.length; i++) {
-      const question = questions[i];
-      const selected = question.selectedOption;
+  //     switch (question.type) {
+  //       case "single":
+  //       case "truefalse":
+  //         if (selected === null || selected === undefined) return i;
+  //         break;
 
-      switch (question.type) {
-        case "single":
-        case "truefalse":
-          if (selected === null || selected === undefined) return i;
-          break;
+  //       case "multiple":
+  //         if (!Array.isArray(selected) || selected.length === 0) return i;
+  //         break;
 
-        case "multiple":
-          if (!Array.isArray(selected) || selected.length === 0) return i;
-          break;
+  //       case "match":
+  //         const leftItems = question.matches?.left || [];
+  //         for (const left of leftItems) {
+  //           const matches = selected?.[left];
+  //           if (!Array.isArray(matches) || matches.length === 0) return i;
+  //         }
+  //         break;
 
-        case "match":
-          const leftItems = question.matches?.left || [];
-          for (const left of leftItems) {
-            const matches = selected?.[left];
-            if (!Array.isArray(matches) || matches.length === 0) return i;
-          }
-          break;
+  //       case "fill":
+  //       case "essay":
+  //       case "number":
+  //         if (!selected || selected.trim() === "") return i;
+  //         break;
 
-        case "fill":
-        case "essay":
-        case "number":
-          if (!selected || selected.trim() === "") return i;
-          break;
+  //       default:
+  //         return i;
+  //     }
+  //   }
 
-        default:
-          return i;
-      }
-    }
+  //   return null;
+  // };
 
-    return null;
-  };
+  // const updateAnswer = (value: any) => {
+  //   console.log({ value });
+  //   const updated = [...questions];
+  //   updated[currentIndex].selectedOption = value;
+  //   updated[currentIndex].status = "attempted";
+  //   setQuestions(updated);
+  //   setErrorMessage(null);
+  // };
 
-  const updateAnswer = (value: any) => {
-    console.log({ value });
-    const updated = [...questions];
-    updated[currentIndex].selectedOption = value;
-    updated[currentIndex].status = "attempted";
-    setQuestions(updated);
-    setErrorMessage(null);
-  };
+  // const handleToggleMultiple = (index: number) => {
+  //   const updated = [...questions];
+  //   const selected = new Set(updated[currentIndex].selectedOption);
+  //   selected.has(index) ? selected.delete(index) : selected.add(index);
+  //   updated[currentIndex].selectedOption = Array.from(selected);
+  //   updated[currentIndex].status = "attempted";
+  //   setQuestions(updated);
+  //   setErrorMessage(null);
+  // };
 
-  const handleToggleMultiple = (index: number) => {
-    const updated = [...questions];
-    const selected = new Set(updated[currentIndex].selectedOption);
-    selected.has(index) ? selected.delete(index) : selected.add(index);
-    updated[currentIndex].selectedOption = Array.from(selected);
-    updated[currentIndex].status = "attempted";
-    setQuestions(updated);
-    setErrorMessage(null);
-  };
+  // const toggleMarkForReview = () => {
+  //   const updated = [...questions];
+  //   console.log(updated[currentIndex].selectedOption);
 
-  const toggleMarkForReview = () => {
-    const updated = [...questions];
-    console.log(updated[currentIndex].selectedOption);
+  //   if (
+  //     updated[currentIndex].type === "single" &&
+  //     updated[currentIndex].selectedOption !== null
+  //   ) {
+  //     updated[currentIndex].status =
+  //       updated[currentIndex].status === "answeredMarkedForReview"
+  //         ? "attempted"
+  //         : "answeredMarkedForReview";
+  //   } else if (
+  //     updated[currentIndex].type === "multiple" &&
+  //     updated[currentIndex].selectedOption?.length !== 0
+  //   ) {
+  //     updated[currentIndex].status =
+  //       updated[currentIndex].status === "answeredMarkedForReview"
+  //         ? "attempted"
+  //         : "answeredMarkedForReview";
+  //   } else if (
+  //     updated[currentIndex].type === "match" &&
+  //     Object.keys(updated[currentIndex].selectedOption)?.length !== 0
+  //   ) {
+  //     updated[currentIndex].status =
+  //       updated[currentIndex].status === "answeredMarkedForReview"
+  //         ? "attempted"
+  //         : "answeredMarkedForReview";
+  //   } else if (
+  //     (updated[currentIndex].type === "fill" ||
+  //       updated[currentIndex].type === "essay" ||
+  //       updated[currentIndex].type === "number") &&
+  //     updated[currentIndex].selectedOption?.length !== 0
+  //   ) {
+  //     updated[currentIndex].status =
+  //       updated[currentIndex].status === "answeredMarkedForReview"
+  //         ? "attempted"
+  //         : "answeredMarkedForReview";
+  //   } else if (
+  //     updated[currentIndex].type === "truefalse" &&
+  //     updated[currentIndex].selectedOption !== null
+  //   ) {
+  //     updated[currentIndex].status =
+  //       updated[currentIndex].status === "answeredMarkedForReview"
+  //         ? "attempted"
+  //         : "answeredMarkedForReview";
+  //   } else {
+  //     updated[currentIndex].status =
+  //       updated[currentIndex].status === "review" ? "attempted" : "review";
+  //   }
 
-    if (
-      updated[currentIndex].type === "single" &&
-      updated[currentIndex].selectedOption !== null
-    ) {
-      updated[currentIndex].status =
-        updated[currentIndex].status === "answeredMarkedForReview"
-          ? "attempted"
-          : "answeredMarkedForReview";
-    } else if (
-      updated[currentIndex].type === "multiple" &&
-      updated[currentIndex].selectedOption?.length !== 0
-    ) {
-      updated[currentIndex].status =
-        updated[currentIndex].status === "answeredMarkedForReview"
-          ? "attempted"
-          : "answeredMarkedForReview";
-    } else if (
-      updated[currentIndex].type === "match" &&
-      Object.keys(updated[currentIndex].selectedOption)?.length !== 0
-    ) {
-      updated[currentIndex].status =
-        updated[currentIndex].status === "answeredMarkedForReview"
-          ? "attempted"
-          : "answeredMarkedForReview";
-    } else if (
-      (updated[currentIndex].type === "fill" ||
-        updated[currentIndex].type === "essay" ||
-        updated[currentIndex].type === "number") &&
-      updated[currentIndex].selectedOption?.length !== 0
-    ) {
-      updated[currentIndex].status =
-        updated[currentIndex].status === "answeredMarkedForReview"
-          ? "attempted"
-          : "answeredMarkedForReview";
-    } else if (
-      updated[currentIndex].type === "truefalse" &&
-      updated[currentIndex].selectedOption !== null
-    ) {
-      updated[currentIndex].status =
-        updated[currentIndex].status === "answeredMarkedForReview"
-          ? "attempted"
-          : "answeredMarkedForReview";
-    } else {
-      updated[currentIndex].status =
-        updated[currentIndex].status === "review" ? "attempted" : "review";
-    }
+  //   if (
+  //     updated[currentIndex].status !== "attempted" &&
+  //     currentIndex < questions.length - 1
+  //   ) {
+  //     handleNextQuestion();
+  //   }
+  //   setQuestions(updated);
+  // };
 
-    if (
-      updated[currentIndex].status !== "attempted" &&
-      currentIndex < questions.length - 1
-    ) {
-      handleNextQuestion();
-    }
-    setQuestions(updated);
-  };
+  // const handleNextQuestion = () => {
+  //   const updated = [...questions];
+  //   if (updated[currentIndex + 1].status === "unattempted")
+  //     updated[currentIndex + 1].status = "unanswered";
+  //   if (currentIndex < questions.length - 1) setCurrentIndex(currentIndex + 1);
+  //   setQuestions(updated);
+  // };
 
-  const handleNextQuestion = () => {
-    const updated = [...questions];
-    if (updated[currentIndex + 1].status === "unattempted")
-      updated[currentIndex + 1].status = "unanswered";
-    if (currentIndex < questions.length - 1) setCurrentIndex(currentIndex + 1);
-    setQuestions(updated);
-  };
+  // const handlePreviousQuestion = () => {
+  //   const updated = [...questions];
 
-  const handlePreviousQuestion = () => {
-    const updated = [...questions];
+  //   if (updated[currentIndex - 1].status === "unattempted")
+  //     updated[currentIndex - 1].status = "unanswered";
+  //   if (currentIndex !== 0) setCurrentIndex(currentIndex - 1);
+  // };
 
-    if (updated[currentIndex - 1].status === "unattempted")
-      updated[currentIndex - 1].status = "unanswered";
-    if (currentIndex !== 0) setCurrentIndex(currentIndex - 1);
-  };
+  // const clearResponse = () => {
+  //   const qs = [...questions];
+  //   switch (qs[currentIndex].type) {
+  //     case "multiple":
+  //       qs[currentIndex].selectedOption = [];
+  //       break;
+  //     case "single":
+  //     case "truefalse":
+  //       qs[currentIndex].selectedOption = null;
+  //       break;
+  //     case "fill":
+  //     case "essay":
+  //     case "number":
+  //       qs[currentIndex].selectedOption = "";
+  //       break;
+  //     case "match":
+  //       qs[currentIndex].selectedOption = {};
+  //       break;
+  //   }
+  //   qs[currentIndex].status = "unattempted";
+  //   setQuestions(qs);
+  // };
 
-  const questionTypeMapping = {
-    multiple: "MCQ - Multiple Choice",
-    single: "MCQ - Single Choice",
-    truefalse: "True/False",
-    fill: "Fill In The Blanks",
-    essay: "Essay",
-    number: "Numerical",
-    match: "Match The Following",
-  };
-
-  const clearResponse = () => {
-    const qs = [...questions];
-    switch (qs[currentIndex].type) {
-      case "multiple":
-        qs[currentIndex].selectedOption = [];
-        break;
-      case "single":
-      case "truefalse":
-        qs[currentIndex].selectedOption = null;
-        break;
-      case "fill":
-      case "essay":
-      case "number":
-        qs[currentIndex].selectedOption = "";
-        break;
-      case "match":
-        qs[currentIndex].selectedOption = {};
-        break;
-    }
-    qs[currentIndex].status = "unattempted";
-    setQuestions(qs);
-  };
-
-  const handleJumpTo = (index: number) => {
-    const updated = [...questions];
-    if (updated[index].status === "unattempted")
-      updated[index].status = "unanswered";
-    setCurrentIndex(index);
-    setQuestions(updated);
-    if (sidebarOpen) setSidebarOpen(false);
-  };
+  // const handleJumpTo = (index: number) => {
+  //   const updated = [...questions];
+  //   if (updated[index].status === "unattempted")
+  //     updated[index].status = "unanswered";
+  //   setCurrentIndex(index);
+  //   setQuestions(updated);
+  //   if (sidebarOpen) setSidebarOpen(false);
+  // };
 
   const handleSubmit = () => setShowModal(true);
 
-  const confirmSubmit = () => {
-    setSidebarOpen(false);
-    const invalidIndex = isAllAnswersValid();
+  // const confirmSubmit = () => {
+  //   setSidebarOpen(false);
+  //   const invalidIndex = isAllAnswersValid();
 
-    if (invalidIndex !== null) {
-      setCurrentIndex(invalidIndex);
-      setErrorMessage("Please answer this question before submitting.");
-      setShowModal(false);
-      return;
-    }
+  //   if (invalidIndex !== null) {
+  //     setCurrentIndex(invalidIndex);
+  //     setErrorMessage("Please answer this question before submitting.");
+  //     setShowModal(false);
+  //     return;
+  //   }
 
-    setErrorMessage(null);
-    setShowModal(false);
+  //   setErrorMessage(null);
+  //   setShowModal(false);
 
-    // Submit logic here
-    router.push("/dashboard");
-  };
+  //   // Submit logic here
+  //   router.push("/dashboard");
+  // };
 
   const cancelSubmit = () => setShowModal(false);
 
+  useEffect(() => {
+    console.log({ questions });
+  }, [questions]);
+
   const renderQuestion = () => {
-    switch (currentQuestion.type) {
-      case "single":
-      case "truefalse":
-        return currentQuestion.options?.map((option, index) => (
-          <label
-            key={index}
-            className={clsx(
-              "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base",
-              currentQuestion.selectedOption === index
-                ? "border-indigo-600 bg-indigo-100 text-indigo-900"
-                : "border-gray-300 hover:bg-gray-100"
-            )}
-          >
-            <input
-              type="radio"
-              name={`question-${currentQuestion.id}`}
-              className="hidden"
-              checked={currentQuestion.selectedOption === index}
-              onChange={() => updateAnswer(index)}
-            />
-            {option}
-          </label>
-        ));
-      case "multiple":
-        return currentQuestion.options?.map((option, index) => (
-          <label
-            key={index}
-            className={clsx(
-              "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base",
-              currentQuestion.selectedOption.includes(index)
-                ? "border-indigo-600 bg-indigo-100 text-indigo-900"
-                : "border-gray-300 hover:bg-gray-100"
-            )}
-          >
-            <input
-              type="checkbox"
-              className="hidden"
-              checked={currentQuestion.selectedOption.includes(index)}
-              onChange={() => handleToggleMultiple(index)}
-            />
-            {option}
-          </label>
-        ));
-      case "fill":
+    switch (questions!.questionType.questionType) {
+      // case "single":
+      // case "truefalse":
+      //   return JSON.parse(questions!.options)?.map(
+      //     (option: any, index: number) => (
+      //       <label
+      //         key={index}
+      //         className={clsx(
+      //           "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base",
+      //           questions.selectedOption === index
+      //             ? "border-indigo-600 bg-indigo-100 text-indigo-900"
+      //             : "border-gray-300 hover:bg-gray-100"
+      //         )}
+      //       >
+      //         <input
+      //           type="radio"
+      //           name={`question-${questions.questionId}`}
+      //           className="hidden"
+      //           checked={questions.selectedOption === index}
+      //           onChange={() => updateAnswer(index)}
+      //         />
+      //         {option}
+      //       </label>
+      //     )
+      //   );
+      // case "multiple":
+      //   return JSON.parse(questions.options)?.map(
+      //     (option: any, index: any) => (
+      //       <label
+      //         key={index}
+      //         className={clsx(
+      //           "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base",
+      //           currentQuestion.selectedOption.includes(index)
+      //             ? "border-indigo-600 bg-indigo-100 text-indigo-900"
+      //             : "border-gray-300 hover:bg-gray-100"
+      //         )}
+      //       >
+      //         <input
+      //           type="checkbox"
+      //           className="hidden"
+      //           checked={currentQuestion.selectedOption.includes(index)}
+      //           onChange={() => handleToggleMultiple(index)}
+      //         />
+      //         {option}
+      //       </label>
+      //     )
+      //   );
+      // case "fill":
+      //   return (
+      //     <input
+      //       type="text"
+      //       placeholder="Your answer..."
+      //       value={currentQuestion.selectedOption}
+      //       onChange={(e) => updateAnswer(e.target.value)}
+      //       className="w-full border border-gray-300 rounded-md px-3 py-2"
+      //     />
+      //   );
+      // case "essay":
+      //   return (
+      //     <div>
+      //       <textarea
+      //         rows={6}
+      //         className="w-full border border-gray-300 rounded-md p-3"
+      //         placeholder="Type your answer..."
+      //         value={currentQuestion.selectedOption}
+      //         onChange={(e) => updateAnswer(e.target.value)}
+      //       />
+      //       <div className="text-right text-sm text-gray-500 mt-1">
+      //         Word Count:{" "}
+      //         {currentQuestion.selectedOption?.split(/\s+/).filter(Boolean)
+      //           .length || 0}
+      //       </div>
+      //     </div>
+      //   );
+      // case "number":
+      //   return (
+      //     <input
+      //       type="text"
+      //       inputMode="numeric"
+      //       pattern="[0-9]*"
+      //       className="w-full border border-gray-300 rounded-md px-3 py-2"
+      //       value={currentQuestion.selectedOption}
+      //       onChange={(e) => {
+      //         const raw = e.target.value;
+      //         // Only call updateAnswer if raw is entirely digits (or empty)
+      //         if (/^\d*$/.test(raw)) {
+      //           // RegExp.test returns boolean :contentReference[oaicite:2]{index=2}
+      //           updateAnswer(raw);
+      //         }
+      //       }}
+      //     />
+      //   );
+      // case "match":
+      //   const leftItems = currentQuestion.matches?.left || [];
+      //   const rightItems = currentQuestion.matches?.right || [];
+
+      //   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+      //   return (
+      //     <div className="space-y-6">
+      //       {/* Display columns */}
+      //       <div className="w-full flex items-start gap-24">
+      //         <div>
+      //           <h4 className="font-semibold mb-2">Column A</h4>
+      //           <ul className="space-y-1">
+      //             {leftItems.map((item, index) => (
+      //               <li key={index}>
+      //                 <span className="font-medium">{index + 1}.</span> {item}
+      //               </li>
+      //             ))}
+      //           </ul>
+      //         </div>
+      //         <div>
+      //           <h4 className="font-semibold mb-2">Column B</h4>
+      //           <ul className="space-y-1">
+      //             {rightItems.map((item, index) => (
+      //               <li key={index}>
+      //                 <span className="font-medium">{alphabet[index]}.</span>{" "}
+      //                 {item}
+      //               </li>
+      //             ))}
+      //           </ul>
+      //         </div>
+      //       </div>
+
+      //       {/* Answer selection */}
+      //       <div className="space-y-4">
+      //         {leftItems.map((item, i) => {
+      //           const selected = new Set(
+      //             currentQuestion.selectedOption?.[item] || []
+      //           );
+
+      //           const toggleMatch = (letter: string) => {
+      //             const newSelection = new Set(selected);
+      //             newSelection.has(letter)
+      //               ? newSelection.delete(letter)
+      //               : newSelection.add(letter);
+
+      //             updateAnswer({
+      //               ...currentQuestion.selectedOption,
+      //               [item]: Array.from(newSelection),
+      //             });
+      //           };
+
+      //           return (
+      //             <div key={i}>
+      //               <div className="font-medium mb-1">
+      //                 {i + 1}. {item}
+      //               </div>
+      //               <div className="flex flex-wrap gap-3">
+      //                 {rightItems.map((_, j) => {
+      //                   const letter = alphabet[j];
+      //                   const isChecked = selected.has(letter);
+
+      //                   return (
+      //                     <label
+      //                       key={j}
+      //                       className={clsx(
+      //                         "flex items-center gap-2 px-3 py-1 border rounded-md cursor-pointer transition-all",
+      //                         isChecked
+      //                           ? "bg-indigo-100 border-indigo-500 text-indigo-900"
+      //                           : "bg-white border-gray-300 hover:bg-gray-50"
+      //                       )}
+      //                     >
+      //                       <input
+      //                         type="checkbox"
+      //                         checked={isChecked}
+      //                         onChange={() => toggleMatch(letter)}
+      //                         className="hidden"
+      //                       />
+      //                       {letter}
+      //                     </label>
+      //                   );
+      //                 })}
+      //               </div>
+      //             </div>
+      //           );
+      //         })}
+      //       </div>
+      //     </div>
+      //   );
+
+      case "Single MCQ":
+        console.log({ questions });
+        console.log("options", questions?.options);
         return (
-          <input
-            type="text"
-            placeholder="Your answer..."
-            value={currentQuestion.selectedOption}
-            onChange={(e) => updateAnswer(e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2"
-          />
-        );
-      case "essay":
-        return (
-          <div>
-            <textarea
-              rows={6}
-              className="w-full border border-gray-300 rounded-md p-3"
-              placeholder="Type your answer..."
-              value={currentQuestion.selectedOption}
-              onChange={(e) => updateAnswer(e.target.value)}
-            />
-            <div className="text-right text-sm text-gray-500 mt-1">
-              Word Count:{" "}
-              {currentQuestion.selectedOption?.split(/\s+/).filter(Boolean)
-                .length || 0}
-            </div>
+          <div className="flex flex-col gap-2">
+            {JSON.parse(questions!.options).map(
+              (option: string, index: number) => {
+                return (
+                  <label
+                    key={index}
+                    className={clsx(
+                      "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base",
+                      JSON?.parse(questions!.userAnswer)?.includes(option)
+                        ? "border-indigo-600 bg-indigo-100 text-indigo-900"
+                        : "border-gray-300 hover:bg-gray-100"
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      className="hidden"
+                      // checked={currentQuestion.selectedOption.includes(index)}
+                      // onChange={() => handleToggleMultiple(index)}
+                      onChange={() => {
+                        setQuestions((prev) => {
+                          if (!prev) {
+                            return prev; // still undefined
+                          }
+                          return {
+                            ...prev,
+                            userAnswer: JSON.stringify([option]),
+                          };
+                        });
+
+                        console.log(option);
+                      }}
+                    />
+                    {option}
+                  </label>
+                );
+              }
+            )}
           </div>
         );
-      case "number":
+      case "Multiple MCQ":
+        console.log({ questions });
+        console.log("options", questions?.options);
         return (
-          <input
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            className="w-full border border-gray-300 rounded-md px-3 py-2"
-            value={currentQuestion.selectedOption}
-            onChange={(e) => {
-              const raw = e.target.value;
-              // Only call updateAnswer if raw is entirely digits (or empty)
-              if (/^\d*$/.test(raw)) {
-                // RegExp.test returns boolean :contentReference[oaicite:2]{index=2}
-                updateAnswer(raw);
-              }
-            }}
-          />
-        );
-      case "match":
-        const leftItems = currentQuestion.matches?.left || [];
-        const rightItems = currentQuestion.matches?.right || [];
-
-        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-        return (
-          <div className="space-y-6">
-            {/* Display columns */}
-            <div className="w-full flex items-start gap-24">
-              <div>
-                <h4 className="font-semibold mb-2">Column A</h4>
-                <ul className="space-y-1">
-                  {leftItems.map((item, index) => (
-                    <li key={index}>
-                      <span className="font-medium">{index + 1}.</span> {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Column B</h4>
-                <ul className="space-y-1">
-                  {rightItems.map((item, index) => (
-                    <li key={index}>
-                      <span className="font-medium">{alphabet[index]}.</span>{" "}
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* Answer selection */}
-            <div className="space-y-4">
-              {leftItems.map((item, i) => {
-                const selected = new Set(
-                  currentQuestion.selectedOption?.[item] || []
-                );
-
-                const toggleMatch = (letter: string) => {
-                  const newSelection = new Set(selected);
-                  newSelection.has(letter)
-                    ? newSelection.delete(letter)
-                    : newSelection.add(letter);
-
-                  updateAnswer({
-                    ...currentQuestion.selectedOption,
-                    [item]: Array.from(newSelection),
-                  });
-                };
-
+          <div className="flex flex-col gap-2">
+            {JSON.parse(questions!.options).map(
+              (option: string, index: number) => {
                 return (
-                  <div key={i}>
-                    <div className="font-medium mb-1">
-                      {i + 1}. {item}
-                    </div>
-                    <div className="flex flex-wrap gap-3">
-                      {rightItems.map((_, j) => {
-                        const letter = alphabet[j];
-                        const isChecked = selected.has(letter);
+                  <label
+                    key={index}
+                    className={clsx(
+                      "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base",
+                      JSON?.parse(questions!.userAnswer)?.includes(option)
+                        ? "border-indigo-600 bg-indigo-100 text-indigo-900"
+                        : "border-gray-300 hover:bg-gray-100"
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      className="hidden"
+                      // checked={currentQuestion.selectedOption.includes(index)}
+                      // onChange={() => handleToggleMultiple(index)}
+                      onChange={() => {
+                        setQuestions((prev) => {
+                          if (!prev) return prev;
 
+                          // 1. Parse existing answers
+                          let answers: string[];
+                          try {
+                            answers = JSON.parse(prev.userAnswer);
+                            if (!Array.isArray(answers)) throw new Error();
+                          } catch {
+                            answers = [];
+                          }
+
+                          // 2. Toggle the current option
+                          const idx = answers.indexOf(option);
+                          if (idx >= 0) {
+                            // already selected → remove
+                            answers.splice(idx, 1);
+                          } else {
+                            // not selected → add
+                            answers.push(option);
+                          }
+
+                          // 3. Return updated question
+                          return {
+                            ...prev,
+                            userAnswer: JSON.stringify(answers),
+                          };
+                        });
+
+                        console.log(option);
+                      }}
+                    />
+                    {option}
+                  </label>
+                );
+              }
+            )}
+          </div>
+        );
+      case "Match Pairs Single":
+        return (
+          <div className="w-full flex flex-col gap-5">
+            <div className="w-full max-w-1/4 flex justify-between gap-2">
+              {JSON.parse(questions!.options).map(
+                (option: string[], index: number) => {
+                  return (
+                    <div className="flex flex-col gap-5" key={index}>
+                      {option.map((col: string, index: number) => {
                         return (
-                          <label
-                            key={j}
-                            className={clsx(
-                              "flex items-center gap-2 px-3 py-1 border rounded-md cursor-pointer transition-all",
-                              isChecked
-                                ? "bg-indigo-100 border-indigo-500 text-indigo-900"
-                                : "bg-white border-gray-300 hover:bg-gray-50"
-                            )}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={() => toggleMatch(letter)}
-                              className="hidden"
-                            />
-                            {letter}
-                          </label>
+                          <div key={index}>
+                            <h1>{col}</h1>
+                          </div>
                         );
                       })}
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                }
+              )}
+            </div>
+            <div>
+              {JSON.parse(questions!.options)[0].map(
+                (col: string, index: number) => {
+                  return (
+                    <div key={index}>
+                      <h1>{col}</h1>
+                      <div className="flex gap-2">
+                        {JSON.parse(questions!.options)[1].map(
+                          (row: string, idx: number) => {
+                            return (
+                              <div
+                                className={`rounded-md border p-2 border-gray-300 cursor-pointer ${
+                                  JSON.parse(questions!.userAnswer)[index] ===
+                                  row
+                                    ? "border-indigo-600 bg-indigo-100 text-indigo-900"
+                                    : "border-gray-300 hover:bg-gray-100"
+                                }`}
+                                key={idx}
+                                onClick={() => {
+                                  let updatedAnswer: string[] = JSON.parse(
+                                    questions!.userAnswer
+                                  );
+                                  if (updatedAnswer.includes(row)) {
+                                    const rplIdx = updatedAnswer.indexOf(row);
+                                    updatedAnswer[rplIdx] = "";
+                                  }
+                                  updatedAnswer[index] = row;
+                                  setQuestions((prev) => {
+                                    if (!prev) {
+                                      return prev;
+                                    }
+                                    return {
+                                      ...prev,
+                                      userAnswer: JSON.stringify(updatedAnswer),
+                                    };
+                                  });
+                                }}
+                              >
+                                <h1>{row}</h1>
+                              </div>
+                            );
+                          }
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+              )}
             </div>
           </div>
         );
-
       default:
         return <div>Unknown question type.</div>;
     }
@@ -592,26 +665,26 @@ export default function ExamPage() {
 
           <TabsContent>
             <div>
-              {currentQuestion && (
+              {questions && (
                 <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
                   <div className="w-full flex flex-col gap-2 md:flex md:flex-row justify-between font-semibold">
                     <div>
                       <h1 className="text-sm text-gray-600">
                         Question {currentIndex + 1} -{" "}
-                        {questionTypeMapping[currentQuestion.type]}
+                        {questions?.questionType?.questionType}
                       </h1>
                     </div>
                     <div className="flex gap-3 items-center">
                       <div className="flex gap-3 text-xs md:text-sm">
                         <h1 className="text-green-500">Mark(s)</h1>
-                        <h1>{currentQuestion.mark}</h1>
+                        <h1>{questions.marks}</h1>
                       </div>
                       <h1 className="text-gray-500">|</h1>
                       <div className="flex gap-3 text-xs md:text-sm pr-1">
                         <h1 className="text-red-500 text-nowrap">
                           Negative Mark(s)
                         </h1>
-                        <h1>{currentQuestion.negativeMark}</h1>
+                        <h1>{questions.negativeMarks}</h1>
                       </div>
                       <h1 className="text-gray-500">|</h1>
                       <div>
@@ -625,7 +698,7 @@ export default function ExamPage() {
                   <div className="w-full flex justify-between">
                     <div>
                       <h2 className="text-md sm:text-lg font-bold">
-                        {currentQuestion.text}
+                        {questions.questionText}
                       </h2>
                     </div>
                   </div>
@@ -637,7 +710,7 @@ export default function ExamPage() {
                   <div className="space-y-3">{renderQuestion()}</div>
                   <div className="flex flex-col md:flex md:flex-row items-center justify-between gap-4 mt-4">
                     <div className="w-full flex gap-3">
-                      <button
+                      {/* <button
                         onClick={toggleMarkForReview}
                         className={clsx(
                           "w-full md:w-fit px-4 py-2 rounded-md font-medium text-white cursor-pointer",
@@ -653,9 +726,9 @@ export default function ExamPage() {
                           : currentIndex < questions.length - 1
                           ? "Mark For Review & Next"
                           : "Mark For Review"}
-                      </button>
+                      </button> */}
                       <button
-                        onClick={clearResponse}
+                        // onClick={clearResponse}
                         className={clsx(
                           "w-full md:w-fit px-4 py-2 rounded-md font-medium text-white cursor-pointer bg-cyan-500 hover:bg-cyan-600"
                         )}
@@ -667,7 +740,7 @@ export default function ExamPage() {
                     <div className="w-full md:w-fit flex gap-3">
                       <div className="w-full md:w-fit">
                         <button
-                          onClick={handlePreviousQuestion}
+                          // onClick={handlePreviousQuestion}
                           disabled={currentIndex === 0}
                           className={clsx(
                             "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer",
@@ -679,18 +752,16 @@ export default function ExamPage() {
                           Previous
                         </button>
                       </div>
-                      {currentIndex < questions.length - 1 && (
-                        <div className="w-full md:w-fit">
-                          <button
-                            onClick={handleNextQuestion}
-                            className={clsx(
-                              "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700"
-                            )}
-                          >
-                            Next
-                          </button>
-                        </div>
-                      )}
+                      <div className="w-full md:w-fit">
+                        <button
+                          // onClick={handleNextQuestion}
+                          className={clsx(
+                            "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700"
+                          )}
+                        >
+                          Next
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -758,7 +829,7 @@ export default function ExamPage() {
                 </div>
               </div>
               <div className="grid grid-cols-8 md:grid-cols-4 gap-y-2 mb-4">
-                {questions.map((q, index) => (
+                {/* {questions.map((q, index) => (
                   <button
                     key={q.id}
                     onClick={() => handleJumpTo(index)}
@@ -786,14 +857,14 @@ export default function ExamPage() {
                     )}
                     {q.id}
                   </button>
-                ))}
+                ))} */}
               </div>
             </div>
             <div className="flex flex-col gap-2">
               <div>
                 <h1 className="font-bold text-2xl">Legend</h1>
               </div>
-              <div className="space-y-2 text-sm">
+              {/* <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 p-2 flex items-center justify-center bg-gray-300 rounded-md font-bold">
                     {
@@ -853,7 +924,7 @@ export default function ExamPage() {
                     </span>
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
           <div className="w-full">
@@ -871,7 +942,8 @@ export default function ExamPage() {
         isOpen={showModal}
         title="Submit Test?"
         message="Are you sure you want to submit the test? You won't be able to change your answers after this."
-        onConfirm={confirmSubmit}
+        // onConfirm={confirmSubmit}
+        onConfirm={() => {}}
         onCancel={cancelSubmit}
       />
       <Modal

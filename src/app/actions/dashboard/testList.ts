@@ -1,7 +1,6 @@
 "use server";
 
 import ActionResponse from "@/types/ActionResponse";
-import { cookies } from "next/headers";
 import TestList from "@/mock/testList.json";
 
 export async function fetchTestListAction(): Promise<ActionResponse> {
