@@ -18,12 +18,13 @@ import mockInstructions from "@/mock/mockInstructions.json";
 import { TabsContent, TabsList, TabsRoot } from "@/components/Tabs";
 import { fetchQuestionListAction } from "@/app/actions/exam/getQuestionList";
 import { GetQuestionListResponse } from "@/utils/api/types";
+import Loader from "@/components/Loader";
 
 export default function ExamPage() {
   const { id } = useParams();
   const router = useRouter();
-  const [questions, setQuestions] = useState<GetQuestionListResponse>();
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [loaded, setLoaded] = useState<boolean>(false);
+  const [questions, setQuestion] = useState<GetQuestionListResponse>();
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -41,12 +42,13 @@ export default function ExamPage() {
   }, [id]);
 
   const fetchQuestionList = async () => {
+    setLoaded(false);
     const res = await fetchQuestionListAction(Number(id));
     const { data, status, error, errorMessage, message } = res;
     if (status === 200) {
-      setQuestions(data);
+      setQuestion(data);
       // setTestList(data);
-      // setLoaded(true);
+      setLoaded(true);
     } else {
       console.log({ status, error, errorMessage });
     }
@@ -57,189 +59,7 @@ export default function ExamPage() {
     fetchQuestionList();
   }, []);
 
-  // const isAllAnswersValid = (): number | null => {
-  //   for (let i = 0; i < questions.length; i++) {
-  //     const question = questions[i];
-  //     const selected = question.selectedOption;
-
-  //     switch (question.type) {
-  //       case "single":
-  //       case "truefalse":
-  //         if (selected === null || selected === undefined) return i;
-  //         break;
-
-  //       case "multiple":
-  //         if (!Array.isArray(selected) || selected.length === 0) return i;
-  //         break;
-
-  //       case "match":
-  //         const leftItems = question.matches?.left || [];
-  //         for (const left of leftItems) {
-  //           const matches = selected?.[left];
-  //           if (!Array.isArray(matches) || matches.length === 0) return i;
-  //         }
-  //         break;
-
-  //       case "fill":
-  //       case "essay":
-  //       case "number":
-  //         if (!selected || selected.trim() === "") return i;
-  //         break;
-
-  //       default:
-  //         return i;
-  //     }
-  //   }
-
-  //   return null;
-  // };
-
-  // const updateAnswer = (value: any) => {
-  //   console.log({ value });
-  //   const updated = [...questions];
-  //   updated[currentIndex].selectedOption = value;
-  //   updated[currentIndex].status = "attempted";
-  //   setQuestions(updated);
-  //   setErrorMessage(null);
-  // };
-
-  // const handleToggleMultiple = (index: number) => {
-  //   const updated = [...questions];
-  //   const selected = new Set(updated[currentIndex].selectedOption);
-  //   selected.has(index) ? selected.delete(index) : selected.add(index);
-  //   updated[currentIndex].selectedOption = Array.from(selected);
-  //   updated[currentIndex].status = "attempted";
-  //   setQuestions(updated);
-  //   setErrorMessage(null);
-  // };
-
-  // const toggleMarkForReview = () => {
-  //   const updated = [...questions];
-  //   console.log(updated[currentIndex].selectedOption);
-
-  //   if (
-  //     updated[currentIndex].type === "single" &&
-  //     updated[currentIndex].selectedOption !== null
-  //   ) {
-  //     updated[currentIndex].status =
-  //       updated[currentIndex].status === "answeredMarkedForReview"
-  //         ? "attempted"
-  //         : "answeredMarkedForReview";
-  //   } else if (
-  //     updated[currentIndex].type === "multiple" &&
-  //     updated[currentIndex].selectedOption?.length !== 0
-  //   ) {
-  //     updated[currentIndex].status =
-  //       updated[currentIndex].status === "answeredMarkedForReview"
-  //         ? "attempted"
-  //         : "answeredMarkedForReview";
-  //   } else if (
-  //     updated[currentIndex].type === "match" &&
-  //     Object.keys(updated[currentIndex].selectedOption)?.length !== 0
-  //   ) {
-  //     updated[currentIndex].status =
-  //       updated[currentIndex].status === "answeredMarkedForReview"
-  //         ? "attempted"
-  //         : "answeredMarkedForReview";
-  //   } else if (
-  //     (updated[currentIndex].type === "fill" ||
-  //       updated[currentIndex].type === "essay" ||
-  //       updated[currentIndex].type === "number") &&
-  //     updated[currentIndex].selectedOption?.length !== 0
-  //   ) {
-  //     updated[currentIndex].status =
-  //       updated[currentIndex].status === "answeredMarkedForReview"
-  //         ? "attempted"
-  //         : "answeredMarkedForReview";
-  //   } else if (
-  //     updated[currentIndex].type === "truefalse" &&
-  //     updated[currentIndex].selectedOption !== null
-  //   ) {
-  //     updated[currentIndex].status =
-  //       updated[currentIndex].status === "answeredMarkedForReview"
-  //         ? "attempted"
-  //         : "answeredMarkedForReview";
-  //   } else {
-  //     updated[currentIndex].status =
-  //       updated[currentIndex].status === "review" ? "attempted" : "review";
-  //   }
-
-  //   if (
-  //     updated[currentIndex].status !== "attempted" &&
-  //     currentIndex < questions.length - 1
-  //   ) {
-  //     handleNextQuestion();
-  //   }
-  //   setQuestions(updated);
-  // };
-
-  // const handleNextQuestion = () => {
-  //   const updated = [...questions];
-  //   if (updated[currentIndex + 1].status === "unattempted")
-  //     updated[currentIndex + 1].status = "unanswered";
-  //   if (currentIndex < questions.length - 1) setCurrentIndex(currentIndex + 1);
-  //   setQuestions(updated);
-  // };
-
-  // const handlePreviousQuestion = () => {
-  //   const updated = [...questions];
-
-  //   if (updated[currentIndex - 1].status === "unattempted")
-  //     updated[currentIndex - 1].status = "unanswered";
-  //   if (currentIndex !== 0) setCurrentIndex(currentIndex - 1);
-  // };
-
-  // const clearResponse = () => {
-  //   const qs = [...questions];
-  //   switch (qs[currentIndex].type) {
-  //     case "multiple":
-  //       qs[currentIndex].selectedOption = [];
-  //       break;
-  //     case "single":
-  //     case "truefalse":
-  //       qs[currentIndex].selectedOption = null;
-  //       break;
-  //     case "fill":
-  //     case "essay":
-  //     case "number":
-  //       qs[currentIndex].selectedOption = "";
-  //       break;
-  //     case "match":
-  //       qs[currentIndex].selectedOption = {};
-  //       break;
-  //   }
-  //   qs[currentIndex].status = "unattempted";
-  //   setQuestions(qs);
-  // };
-
-  // const handleJumpTo = (index: number) => {
-  //   const updated = [...questions];
-  //   if (updated[index].status === "unattempted")
-  //     updated[index].status = "unanswered";
-  //   setCurrentIndex(index);
-  //   setQuestions(updated);
-  //   if (sidebarOpen) setSidebarOpen(false);
-  // };
-
   const handleSubmit = () => setShowModal(true);
-
-  // const confirmSubmit = () => {
-  //   setSidebarOpen(false);
-  //   const invalidIndex = isAllAnswersValid();
-
-  //   if (invalidIndex !== null) {
-  //     setCurrentIndex(invalidIndex);
-  //     setErrorMessage("Please answer this question before submitting.");
-  //     setShowModal(false);
-  //     return;
-  //   }
-
-  //   setErrorMessage(null);
-  //   setShowModal(false);
-
-  //   // Submit logic here
-  //   router.push("/dashboard");
-  // };
 
   const cancelSubmit = () => setShowModal(false);
 
@@ -249,187 +69,6 @@ export default function ExamPage() {
 
   const renderQuestion = () => {
     switch (questions!.questionType.questionType) {
-      // case "single":
-      // case "truefalse":
-      //   return JSON.parse(questions!.options)?.map(
-      //     (option: any, index: number) => (
-      //       <label
-      //         key={index}
-      //         className={clsx(
-      //           "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base",
-      //           questions.selectedOption === index
-      //             ? "border-indigo-600 bg-indigo-100 text-indigo-900"
-      //             : "border-gray-300 hover:bg-gray-100"
-      //         )}
-      //       >
-      //         <input
-      //           type="radio"
-      //           name={`question-${questions.questionId}`}
-      //           className="hidden"
-      //           checked={questions.selectedOption === index}
-      //           onChange={() => updateAnswer(index)}
-      //         />
-      //         {option}
-      //       </label>
-      //     )
-      //   );
-      // case "multiple":
-      //   return JSON.parse(questions.options)?.map(
-      //     (option: any, index: any) => (
-      //       <label
-      //         key={index}
-      //         className={clsx(
-      //           "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base",
-      //           currentQuestion.selectedOption.includes(index)
-      //             ? "border-indigo-600 bg-indigo-100 text-indigo-900"
-      //             : "border-gray-300 hover:bg-gray-100"
-      //         )}
-      //       >
-      //         <input
-      //           type="checkbox"
-      //           className="hidden"
-      //           checked={currentQuestion.selectedOption.includes(index)}
-      //           onChange={() => handleToggleMultiple(index)}
-      //         />
-      //         {option}
-      //       </label>
-      //     )
-      //   );
-      // case "fill":
-      //   return (
-      //     <input
-      //       type="text"
-      //       placeholder="Your answer..."
-      //       value={currentQuestion.selectedOption}
-      //       onChange={(e) => updateAnswer(e.target.value)}
-      //       className="w-full border border-gray-300 rounded-md px-3 py-2"
-      //     />
-      //   );
-      // case "essay":
-      //   return (
-      //     <div>
-      //       <textarea
-      //         rows={6}
-      //         className="w-full border border-gray-300 rounded-md p-3"
-      //         placeholder="Type your answer..."
-      //         value={currentQuestion.selectedOption}
-      //         onChange={(e) => updateAnswer(e.target.value)}
-      //       />
-      //       <div className="text-right text-sm text-gray-500 mt-1">
-      //         Word Count:{" "}
-      //         {currentQuestion.selectedOption?.split(/\s+/).filter(Boolean)
-      //           .length || 0}
-      //       </div>
-      //     </div>
-      //   );
-      // case "number":
-      //   return (
-      //     <input
-      //       type="text"
-      //       inputMode="numeric"
-      //       pattern="[0-9]*"
-      //       className="w-full border border-gray-300 rounded-md px-3 py-2"
-      //       value={currentQuestion.selectedOption}
-      //       onChange={(e) => {
-      //         const raw = e.target.value;
-      //         // Only call updateAnswer if raw is entirely digits (or empty)
-      //         if (/^\d*$/.test(raw)) {
-      //           // RegExp.test returns boolean :contentReference[oaicite:2]{index=2}
-      //           updateAnswer(raw);
-      //         }
-      //       }}
-      //     />
-      //   );
-      // case "match":
-      //   const leftItems = currentQuestion.matches?.left || [];
-      //   const rightItems = currentQuestion.matches?.right || [];
-
-      //   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-      //   return (
-      //     <div className="space-y-6">
-      //       {/* Display columns */}
-      //       <div className="w-full flex items-start gap-24">
-      //         <div>
-      //           <h4 className="font-semibold mb-2">Column A</h4>
-      //           <ul className="space-y-1">
-      //             {leftItems.map((item, index) => (
-      //               <li key={index}>
-      //                 <span className="font-medium">{index + 1}.</span> {item}
-      //               </li>
-      //             ))}
-      //           </ul>
-      //         </div>
-      //         <div>
-      //           <h4 className="font-semibold mb-2">Column B</h4>
-      //           <ul className="space-y-1">
-      //             {rightItems.map((item, index) => (
-      //               <li key={index}>
-      //                 <span className="font-medium">{alphabet[index]}.</span>{" "}
-      //                 {item}
-      //               </li>
-      //             ))}
-      //           </ul>
-      //         </div>
-      //       </div>
-
-      //       {/* Answer selection */}
-      //       <div className="space-y-4">
-      //         {leftItems.map((item, i) => {
-      //           const selected = new Set(
-      //             currentQuestion.selectedOption?.[item] || []
-      //           );
-
-      //           const toggleMatch = (letter: string) => {
-      //             const newSelection = new Set(selected);
-      //             newSelection.has(letter)
-      //               ? newSelection.delete(letter)
-      //               : newSelection.add(letter);
-
-      //             updateAnswer({
-      //               ...currentQuestion.selectedOption,
-      //               [item]: Array.from(newSelection),
-      //             });
-      //           };
-
-      //           return (
-      //             <div key={i}>
-      //               <div className="font-medium mb-1">
-      //                 {i + 1}. {item}
-      //               </div>
-      //               <div className="flex flex-wrap gap-3">
-      //                 {rightItems.map((_, j) => {
-      //                   const letter = alphabet[j];
-      //                   const isChecked = selected.has(letter);
-
-      //                   return (
-      //                     <label
-      //                       key={j}
-      //                       className={clsx(
-      //                         "flex items-center gap-2 px-3 py-1 border rounded-md cursor-pointer transition-all",
-      //                         isChecked
-      //                           ? "bg-indigo-100 border-indigo-500 text-indigo-900"
-      //                           : "bg-white border-gray-300 hover:bg-gray-50"
-      //                       )}
-      //                     >
-      //                       <input
-      //                         type="checkbox"
-      //                         checked={isChecked}
-      //                         onChange={() => toggleMatch(letter)}
-      //                         className="hidden"
-      //                       />
-      //                       {letter}
-      //                     </label>
-      //                   );
-      //                 })}
-      //               </div>
-      //             </div>
-      //           );
-      //         })}
-      //       </div>
-      //     </div>
-      //   );
-
       case "Single MCQ":
         console.log({ questions });
         console.log("options", questions?.options);
@@ -453,7 +92,7 @@ export default function ExamPage() {
                       // checked={currentQuestion.selectedOption.includes(index)}
                       // onChange={() => handleToggleMultiple(index)}
                       onChange={() => {
-                        setQuestions((prev) => {
+                        setQuestion((prev) => {
                           if (!prev) {
                             return prev; // still undefined
                           }
@@ -496,7 +135,7 @@ export default function ExamPage() {
                       // checked={currentQuestion.selectedOption.includes(index)}
                       // onChange={() => handleToggleMultiple(index)}
                       onChange={() => {
-                        setQuestions((prev) => {
+                        setQuestion((prev) => {
                           if (!prev) return prev;
 
                           // 1. Parse existing answers
@@ -582,7 +221,7 @@ export default function ExamPage() {
                                     updatedAnswer[rplIdx] = "";
                                   }
                                   updatedAnswer[index] = row;
-                                  setQuestions((prev) => {
+                                  setQuestion((prev) => {
                                     if (!prev) {
                                       return prev;
                                     }
@@ -646,7 +285,7 @@ export default function ExamPage() {
                                 }`}
                                 key={idx}
                                 onClick={() => {
-                                  setQuestions((prev) => {
+                                  setQuestion((prev) => {
                                     if (!prev) return prev;
 
                                     // 1. Parse the existing 2D userAnswer array
@@ -689,9 +328,245 @@ export default function ExamPage() {
             </div>
           </div>
         );
+      case "Write Up":
+        return (
+          <div className="w-full">
+            <textarea
+              className="w-full h-[40vh] rounded-md border border-gray-300 px-4 py-2"
+              onChange={(e) => {
+                setQuestion((prev) => {
+                  if (!prev) {
+                    return prev;
+                  }
+                  return {
+                    ...prev,
+                    userAnswer: e.target.value,
+                  };
+                });
+                console.log(e.target.value);
+              }}
+              value={questions?.userAnswer}
+            />
+          </div>
+        );
+      case "Numeric":
+        return (
+          <div className="w-full">
+            <input
+              type="text"
+              inputMode="decimal"
+              pattern="\d*(\.\d*)?"
+              className="w-full rounded-md border border-gray-300 px-4 py-2"
+              value={questions?.userAnswer ?? ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                // allow empty string or valid numeric/float
+                if (val === "" || /^\d*\.?\d*$/.test(val)) {
+                  setQuestion((prev) => {
+                    if (!prev) return prev;
+                    return { ...prev, userAnswer: val };
+                  });
+                }
+              }}
+            />
+          </div>
+        );
+      case "TrueFalse":
+        return (
+          <div className="w-full flex flex-col gap-2">
+            <label
+              className={clsx(
+                "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base",
+                questions!.userAnswer === "True"
+                  ? "border-indigo-600 bg-indigo-100 text-indigo-900"
+                  : "border-gray-300 hover:bg-gray-100"
+              )}
+            >
+              <input
+                type="checkbox"
+                className="hidden"
+                // checked={currentQuestion.selectedOption.includes(index)}
+                // onChange={() => handleToggleMultiple(index)}
+                onChange={() => {
+                  setQuestion((prev) => {
+                    if (!prev) {
+                      return prev; // still undefined
+                    }
+                    return {
+                      ...prev,
+                      userAnswer: "True",
+                    };
+                  });
+                }}
+              />
+              True
+            </label>
+            <label
+              className={clsx(
+                "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base",
+                questions!.userAnswer === "False"
+                  ? "border-indigo-600 bg-indigo-100 text-indigo-900"
+                  : "border-gray-300 hover:bg-gray-100"
+              )}
+            >
+              <input
+                type="checkbox"
+                className="hidden"
+                // checked={currentQuestion.selectedOption.includes(index)}
+                // onChange={() => handleToggleMultiple(index)}
+                onChange={() => {
+                  setQuestion((prev) => {
+                    if (!prev) {
+                      return prev; // still undefined
+                    }
+                    return {
+                      ...prev,
+                      userAnswer: "False",
+                    };
+                  });
+                }}
+              />
+              False
+            </label>
+          </div>
+        );
+
+      case "Fill Answer":
+        return (
+          <div className="w-full">
+            <input
+              type="text"
+              className="w-full rounded-md border border-gray-300 px-4 py-2"
+              value={questions?.userAnswer ?? ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                setQuestion((prev) => {
+                  if (!prev) return prev;
+                  return { ...prev, userAnswer: val };
+                });
+              }}
+            />
+          </div>
+        );
 
       default:
         return <div>Unknown question type.</div>;
+    }
+  };
+
+  const handleNextQuestion = async () => {};
+
+  const handlePreviousQuestion = async () => {};
+
+  const clearResponse = async () => {
+    switch (questions!.questionType.questionType) {
+      case "Single MCQ":
+        setQuestion((prev) => {
+          if (!prev) {
+            return prev;
+          }
+
+          return {
+            ...prev,
+            userAnswer: JSON.stringify([]),
+          };
+        });
+        break;
+      case "Multiple MCQ":
+        setQuestion((prev) => {
+          if (!prev) {
+            return prev;
+          }
+
+          return {
+            ...prev,
+            userAnswer: JSON.stringify([]),
+          };
+        });
+        break;
+      case "Match Pairs Single":
+        console.log("SINGLE MATCH");
+        setQuestion((prev) => {
+          if (!prev) {
+            return prev;
+          }
+
+          return {
+            ...prev,
+            userAnswer: JSON.stringify([]),
+          };
+        });
+        break;
+      case "Match Pairs Multiple":
+        console.log("MULTIPLE MATCH");
+        setQuestion((prev) => {
+          if (!prev) {
+            return prev;
+          }
+
+          let emptyArr: string[][] = [];
+
+          JSON.parse(questions!.options)[0].map(() => {
+            emptyArr.push([]);
+          });
+
+          console.log({ emptyArr });
+          console.log(JSON.stringify(emptyArr));
+
+          return {
+            ...prev,
+            userAnswer: JSON.stringify(emptyArr),
+          };
+        });
+        break;
+      case "Write Up":
+        setQuestion((prev) => {
+          if (!prev) {
+            return prev;
+          }
+
+          return {
+            ...prev,
+            userAnswer: "",
+          };
+        });
+        break;
+      case "Numeric":
+        setQuestion((prev) => {
+          if (!prev) {
+            return prev;
+          }
+
+          return {
+            ...prev,
+            userAnswer: "",
+          };
+        });
+        break;
+      case "TrueFalse":
+        setQuestion((prev) => {
+          if (!prev) {
+            return prev;
+          }
+
+          return {
+            ...prev,
+            userAnswer: "",
+          };
+        });
+        break;
+      case "Fill Answer":
+        setQuestion((prev) => {
+          if (!prev) {
+            return prev;
+          }
+
+          return {
+            ...prev,
+            userAnswer: "",
+          };
+        });
+        break;
     }
   };
 
@@ -699,6 +574,10 @@ export default function ExamPage() {
     console.log("TIMEOUT");
     // TODO: Handle timeout
   };
+
+  if (!loaded) {
+    return <Loader />;
+  }
 
   return (
     <div className="h-full flex flex-col md:flex-row bg-gray-100">
@@ -754,7 +633,7 @@ export default function ExamPage() {
                   <div className="w-full flex flex-col gap-2 md:flex md:flex-row justify-between font-semibold">
                     <div>
                       <h1 className="text-sm text-gray-600">
-                        Question {currentIndex + 1} -{" "}
+                        Question {0 + 1} -{" "}
                         {questions?.questionType?.questionType}
                       </h1>
                     </div>
@@ -812,7 +691,7 @@ export default function ExamPage() {
                           : "Mark For Review"}
                       </button> */}
                       <button
-                        // onClick={clearResponse}
+                        onClick={clearResponse}
                         className={clsx(
                           "w-full md:w-fit px-4 py-2 rounded-md font-medium text-white cursor-pointer bg-cyan-500 hover:bg-cyan-600"
                         )}
@@ -824,13 +703,10 @@ export default function ExamPage() {
                     <div className="w-full md:w-fit flex gap-3">
                       <div className="w-full md:w-fit">
                         <button
-                          // onClick={handlePreviousQuestion}
-                          disabled={currentIndex === 0}
+                          onClick={handlePreviousQuestion}
+                          // disabled={currentIndex === 0}
                           className={clsx(
-                            "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer",
-                            currentIndex === 0
-                              ? "bg-gray-300 cursor-not-allowed"
-                              : "bg-blue-600 hover:bg-blue-700"
+                            "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer"
                           )}
                         >
                           Previous
@@ -838,7 +714,7 @@ export default function ExamPage() {
                       </div>
                       <div className="w-full md:w-fit">
                         <button
-                          // onClick={handleNextQuestion}
+                          onClick={handleNextQuestion}
                           className={clsx(
                             "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700"
                           )}

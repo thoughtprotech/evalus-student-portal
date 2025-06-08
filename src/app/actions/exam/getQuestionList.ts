@@ -88,7 +88,7 @@ const mockQuestionList: GetQuestionListResponse[] = [
     negativeMarks: 2,
     questionSectionId: 11,
     options: "",
-    userAnswer: "",
+    userAnswer: "5",
   },
   {
     questionId: 107,
@@ -137,7 +137,7 @@ export async function fetchQuestionListAction(
     return {
       status: 200,
       error: false,
-      data: mockQuestionList[3],
+      data: mockQuestionList[0],
       message: "Question Retrieved",
     };
   } catch (error) {
