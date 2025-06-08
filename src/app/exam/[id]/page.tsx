@@ -606,6 +606,90 @@ export default function ExamPage() {
             </div>
           </div>
         );
+      case "Match Pairs Multiple":
+        return (
+          <div className="w-full flex flex-col gap-5">
+            <div className="w-full max-w-1/4 flex justify-between gap-2">
+              {JSON.parse(questions!.options).map(
+                (option: string[], index: number) => {
+                  return (
+                    <div className="flex flex-col gap-5" key={index}>
+                      {option.map((col: string, index: number) => {
+                        return (
+                          <div key={index}>
+                            <h1>{col}</h1>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                }
+              )}
+            </div>
+            <div>
+              {JSON.parse(questions!.options)[0].map(
+                (col: string, index: number) => {
+                  return (
+                    <div key={index}>
+                      <h1>{col}</h1>
+                      <div className="flex gap-2">
+                        {JSON.parse(questions!.options)[1].map(
+                          (row: string, idx: number) => {
+                            return (
+                              <div
+                                className={`rounded-md border p-2 border-gray-300 cursor-pointer ${
+                                  JSON.parse(questions!.userAnswer)[
+                                    index
+                                  ].includes(row)
+                                    ? "border-indigo-600 bg-indigo-100 text-indigo-900"
+                                    : "border-gray-300 hover:bg-gray-100"
+                                }`}
+                                key={idx}
+                                onClick={() => {
+                                  setQuestions((prev) => {
+                                    if (!prev) return prev;
+
+                                    // 1. Parse the existing 2D userAnswer array
+                                    const answers: string[][] = JSON.parse(
+                                      prev.userAnswer
+                                    );
+
+                                    // 2. Work on a fresh copy of the sub-array at [index]
+                                    const selection = [...answers[index]];
+
+                                    // 3. Toggle this `row` in that sub-array
+                                    const pos = selection.indexOf(row);
+                                    if (pos >= 0) {
+                                      selection.splice(pos, 1); // remove if already selected
+                                    } else {
+                                      selection.push(row); // add if not
+                                    }
+
+                                    // 4. Replace the sub-array back into `answers`
+                                    answers[index] = selection;
+
+                                    // 5. Write back the updated 2D array as a JSON string
+                                    return {
+                                      ...prev,
+                                      userAnswer: JSON.stringify(answers),
+                                    };
+                                  });
+                                }}
+                              >
+                                <h1>{row}</h1>
+                              </div>
+                            );
+                          }
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+              )}
+            </div>
+          </div>
+        );
+
       default:
         return <div>Unknown question type.</div>;
     }

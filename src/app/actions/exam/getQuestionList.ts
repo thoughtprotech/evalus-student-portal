@@ -137,7 +137,7 @@ export async function fetchQuestionListAction(
     return {
       status: 200,
       error: false,
-      data: mockQuestionList[2],
+      data: mockQuestionList[3],
       message: "Question Retrieved",
     };
   } catch (error) {
