@@ -679,7 +679,7 @@ export default function ExamPage() {
                   <div className="w-full flex flex-col gap-2 md:flex md:flex-row justify-between font-semibold">
                     <div>
                       <h1 className="text-sm text-gray-600">
-                        Question {0 + 1} -{" "}
+                        Question {currentIndex + 1} -{" "}
                         {questions?.questionType?.questionType}
                       </h1>
                     </div>
