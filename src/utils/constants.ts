@@ -24,6 +24,14 @@ export const QUESTION_TYPES: {
 
 export const QUESTION_STATUS: {
   NOT_VISITED: string;
+  ATTEMPTED: string;
+  UNATTEMPTED: string;
+  TO_REVIEW: string;
+  ANSWERED_TO_REVIEW: string;
 } = {
   NOT_VISITED: "Not Visited",
+  ATTEMPTED: "Attempted",
+  UNATTEMPTED: "UnAttempted",
+  TO_REVIEW: "To Review",
+  ANSWERED_TO_REVIEW: "Answered To Review",
 };

@@ -845,11 +845,11 @@ export default function ExamPage() {
                       "font-semibold text-xs sm:text-sm transition-colors cursor-pointer relative rounded-md",
                       q.status === QUESTION_STATUS.NOT_VISITED &&
                         "bg-gray-300 text-gray-700 hover:bg-gray-400 w-8 h-8 sm:w-10 sm:h-10 rounded-md",
-                      q.status === "attempted" &&
+                      q.status === QUESTION_STATUS.ATTEMPTED &&
                         "bg-green-500 text-white hover:bg-green-600 w-8 h-8 sm:w-10 sm:h-10 rounded-md",
-                      q.status === "review" &&
+                      q.status === QUESTION_STATUS.TO_REVIEW &&
                         "bg-purple-500 text-white hover:bg-purple-600 w-10 h-10 rounded-full",
-                      q.status === "answeredMarkedForReview" &&
+                      q.status === QUESTION_STATUS.ANSWERED_TO_REVIEW &&
                         "bg-purple-500 text-white hover:bg-purple-600 w-10 h-10 rounded-full self-center",
                       q.status === "unanswered" &&
                         "bg-red-500 text-white hover:bg-red-600 w-8 h-8 sm:w-10 sm:h-10 rounded-md",
@@ -877,7 +877,8 @@ export default function ExamPage() {
                   <div className="w-8 h-8 p-2 flex items-center justify-center bg-gray-300 rounded-md font-bold">
                     {
                       questionsMeta.filter(
-                        (question) => question.status === "unattempted"
+                        (question) =>
+                          question.status === QUESTION_STATUS.NOT_VISITED
                       ).length
                     }
                   </div>
@@ -897,7 +898,8 @@ export default function ExamPage() {
                   <div className="w-8 h-8 p-2 flex items-center justify-center bg-green-500 rounded-md font-bold text-white">
                     {
                       questionsMeta.filter(
-                        (question) => question.status === "attempted"
+                        (question) =>
+                          question.status === QUESTION_STATUS.ATTEMPTED
                       ).length
                     }
                   </div>
@@ -907,7 +909,8 @@ export default function ExamPage() {
                   <div className="w-8 h-8 p-2 flex items-center justify-center bg-purple-500 rounded-full font-bold text-white">
                     {
                       questionsMeta.filter(
-                        (question) => question.status === "review"
+                        (question) =>
+                          question.status === QUESTION_STATUS.TO_REVIEW
                       ).length
                     }
                   </div>
@@ -921,7 +924,7 @@ export default function ExamPage() {
                     {
                       questionsMeta.filter(
                         (question) =>
-                          question.status === "answeredMarkedForReview"
+                          question.status === QUESTION_STATUS.ANSWERED_TO_REVIEW
                       ).length
                     }
                   </div>
