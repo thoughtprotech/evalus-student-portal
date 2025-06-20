@@ -53,3 +53,59 @@ export interface QuestionType {
   questionTypeId: number;
   questionType: string;
 }
+
+export interface QuestionsMetaRequest {
+  testid: number;
+}
+
+export interface QuestionsMetaResponse {
+  questionId: number;
+  status: string;
+}
+
+export interface Subject {
+  subjectId: number;
+  subjectName: string;
+  subjectType: string;
+  parentId: number | null;
+  language: string | null;
+  isActive: number | null;
+  createdBy: string | null;
+  createdDate: string | null;
+  modifiedBy: string | null;
+  modifiedDate: string | null;
+}
+
+export interface GetQuestionByIdRequest {
+  questionId: number;
+}
+
+export interface GetQuestionByIdResponse {
+  questionId: number;
+  questionText: string;
+  questionTypeId: number;
+  subjectId: number;
+  marks: number;
+  negativeMarks: number;
+  graceMarks: number;
+  questionDifficultyLevelId: number;
+  additionalExplanation: string;
+  videoSolutionWeburl: string;
+  videoSolutionMobileurl: string;
+  allowCandidateComments: number;
+  writeUpId: number | null;
+  hasMultipleAnswers: string;
+  questionOptionsJson: string;
+  userAnswer: any;
+  questionCorrectAnswerJson: string;
+  language: string;
+  isActive: number;
+  createdBy: string;
+  createdDate: string;
+  modifiedBy: string;
+  modifiedDate: string;
+  subject: Subject;
+  questionType: QuestionType;
+  writeUp: any;
+  questionTags: any[];
+}

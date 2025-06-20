@@ -6,6 +6,7 @@ import clsx from "clsx";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import CountdownTimer from "@/components/CountdownTimer";
 import {
+  CheckCheck,
   ChevronLeftCircle,
   ChevronRightCircleIcon,
   Info,
@@ -16,15 +17,25 @@ import Modal from "@/components/Modal";
 import { InstructionData } from "../instructions/[id]/page";
 import mockInstructions from "@/mock/mockInstructions.json";
 import { TabsContent, TabsList, TabsRoot } from "@/components/Tabs";
-import { fetchQuestionListAction } from "@/app/actions/exam/getQuestionList";
-import { GetQuestionListResponse } from "@/utils/api/types";
+import {
+  GetQuestionByIdResponse,
+  GetQuestionListResponse,
+  QuestionsMetaResponse,
+} from "@/utils/api/types";
 import Loader from "@/components/Loader";
+import { fetchQuestionsMetaAction } from "@/app/actions/exam/questions/getQuestionsMeta";
+import { fetchQuestionByIdAction } from "@/app/actions/exam/questions/getQuestionById";
+import { QUESTION_TYPES } from "@/utils/constants";
+import ScrollToggleButton from "@/components/ScrollToggleButton";
 
 export default function ExamPage() {
   const { id } = useParams();
   const router = useRouter();
   const [loaded, setLoaded] = useState<boolean>(false);
-  const [questions, setQuestion] = useState<GetQuestionListResponse>();
+  const [questionsMeta, setQuestionsMeta] = useState<QuestionsMetaResponse[]>(
+    []
+  );
+  const [questions, setQuestion] = useState<GetQuestionByIdResponse>();
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -32,6 +43,11 @@ export default function ExamPage() {
     useState<boolean>(false);
   const [instructionData, setInstructionData] =
     useState<InstructionData | null>(null);
+
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [currentQuestion, setCurrentQuestion] = useState<{
+    questionId: number;
+  }>();
 
   const instructionsMap: Record<string, InstructionData> = mockInstructions;
 
@@ -41,23 +57,43 @@ export default function ExamPage() {
     }
   }, [id]);
 
-  const fetchQuestionList = async () => {
-    setLoaded(false);
-    const res = await fetchQuestionListAction(Number(id));
+  const fetchQuestionById = async (questionId: number) => {
+    console.log({ questionId });
+    const res = await fetchQuestionByIdAction(questionId);
     const { data, status, error, errorMessage, message } = res;
     if (status === 200) {
       setQuestion(data);
       // setTestList(data);
+    } else {
+      console.log({ status, error, errorMessage });
+    }
+  };
+
+  const fetchQuestionMeta = async () => {
+    setLoaded(false);
+    const res = await fetchQuestionsMetaAction(Number(id));
+    const { data, status, error, errorMessage, message } = res;
+    if (status === 200 && data) {
+      setQuestionsMeta(data);
+      setCurrentQuestion({ questionId: data[0].questionId });
       setLoaded(true);
     } else {
       console.log({ status, error, errorMessage });
     }
   };
 
+  // const questionsMeta = await fetchQuestionsMeta(Number(id));
+
   // Load the test list once on mount
   useEffect(() => {
-    fetchQuestionList();
+    fetchQuestionMeta();
   }, []);
+
+  useEffect(() => {
+    if (currentQuestion?.questionId) {
+      fetchQuestionById(currentQuestion.questionId);
+    }
+  }, [currentQuestion]);
 
   const handleSubmit = () => setShowModal(true);
 
@@ -68,13 +104,13 @@ export default function ExamPage() {
   }, [questions]);
 
   const renderQuestion = () => {
-    switch (questions!.questionType.questionType) {
-      case "Single MCQ":
+    switch (questions?.questionType.questionType) {
+      case QUESTION_TYPES.SINGLE_MCQ:
         console.log({ questions });
-        console.log("options", questions?.options);
+        console.log("options", questions?.questionOptionsJson);
         return (
           <div className="flex flex-col gap-2">
-            {JSON.parse(questions!.options).map(
+            {JSON.parse(questions!.questionOptionsJson).map(
               (option: string, index: number) => {
                 return (
                   <label
@@ -112,12 +148,12 @@ export default function ExamPage() {
             )}
           </div>
         );
-      case "Multiple MCQ":
+      case QUESTION_TYPES.MULTIPLE_MCQ:
         console.log({ questions });
-        console.log("options", questions?.options);
+        console.log("options", questions?.questionOptionsJson);
         return (
           <div className="flex flex-col gap-2">
-            {JSON.parse(questions!.options).map(
+            {JSON.parse(questions!.questionOptionsJson).map(
               (option: string, index: number) => {
                 return (
                   <label
@@ -174,11 +210,11 @@ export default function ExamPage() {
             )}
           </div>
         );
-      case "Match Pairs Single":
+      case QUESTION_TYPES.MATCH_PAIRS_SINGLE:
         return (
           <div className="w-full flex flex-col gap-5">
             <div className="w-full max-w-1/4 flex justify-between gap-2">
-              {JSON.parse(questions!.options).map(
+              {JSON.parse(questions!.questionOptionsJson).map(
                 (option: string[], index: number) => {
                   return (
                     <div className="flex flex-col gap-5" key={index}>
@@ -195,13 +231,13 @@ export default function ExamPage() {
               )}
             </div>
             <div>
-              {JSON.parse(questions!.options)[0].map(
+              {JSON.parse(questions!.questionOptionsJson)[0].map(
                 (col: string, index: number) => {
                   return (
                     <div key={index}>
                       <h1>{col}</h1>
                       <div className="flex gap-2">
-                        {JSON.parse(questions!.options)[1].map(
+                        {JSON.parse(questions!.questionOptionsJson)[1].map(
                           (row: string, idx: number) => {
                             return (
                               <div
@@ -245,11 +281,11 @@ export default function ExamPage() {
             </div>
           </div>
         );
-      case "Match Pairs Multiple":
+      case QUESTION_TYPES.MATCH_PAIRS_MULTIPLE:
         return (
           <div className="w-full flex flex-col gap-5">
             <div className="w-full max-w-1/4 flex justify-between gap-2">
-              {JSON.parse(questions!.options).map(
+              {JSON.parse(questions!.questionOptionsJson).map(
                 (option: string[], index: number) => {
                   return (
                     <div className="flex flex-col gap-5" key={index}>
@@ -266,13 +302,13 @@ export default function ExamPage() {
               )}
             </div>
             <div>
-              {JSON.parse(questions!.options)[0].map(
+              {JSON.parse(questions!.questionOptionsJson)[0].map(
                 (col: string, index: number) => {
                   return (
                     <div key={index}>
                       <h1>{col}</h1>
                       <div className="flex gap-2">
-                        {JSON.parse(questions!.options)[1].map(
+                        {JSON.parse(questions!.questionOptionsJson)[1].map(
                           (row: string, idx: number) => {
                             return (
                               <div
@@ -328,7 +364,7 @@ export default function ExamPage() {
             </div>
           </div>
         );
-      case "Write Up":
+      case QUESTION_TYPES.WRITE_UP:
         return (
           <div className="w-full">
             <textarea
@@ -349,7 +385,7 @@ export default function ExamPage() {
             />
           </div>
         );
-      case "Numeric":
+      case QUESTION_TYPES.NUMERIC:
         return (
           <div className="w-full">
             <input
@@ -371,7 +407,7 @@ export default function ExamPage() {
             />
           </div>
         );
-      case "TrueFalse":
+      case QUESTION_TYPES.TRUEFALSE:
         return (
           <div className="w-full flex flex-col gap-2">
             <label
@@ -430,8 +466,7 @@ export default function ExamPage() {
             </label>
           </div>
         );
-
-      case "Fill Answer":
+      case QUESTION_TYPES.FILL_ANSWER:
         return (
           <div className="w-full">
             <input
@@ -454,9 +489,15 @@ export default function ExamPage() {
     }
   };
 
-  const handleNextQuestion = async () => {};
+  const handleNextQuestion = async () => {
+    fetchQuestionById(questionsMeta[currentIndex + 1].questionId);
+    setCurrentIndex(currentIndex + 1);
+  };
 
-  const handlePreviousQuestion = async () => {};
+  const handlePreviousQuestion = async () => {
+    fetchQuestionById(questionsMeta[currentIndex - 1].questionId);
+    setCurrentIndex(currentIndex - 1);
+  };
 
   const clearResponse = async () => {
     switch (questions!.questionType.questionType) {
@@ -506,7 +547,7 @@ export default function ExamPage() {
 
           let emptyArr: string[][] = [];
 
-          JSON.parse(questions!.options)[0].map(() => {
+          JSON.parse(questions!.questionOptionsJson)[0].map(() => {
             emptyArr.push([]);
           });
 
@@ -570,6 +611,11 @@ export default function ExamPage() {
     }
   };
 
+  const handleJumpTo = (index: number, questionId: number) => {
+    setCurrentQuestion({ questionId });
+    setCurrentIndex(index);
+  };
+
   const handleTimeout = () => {
     console.log("TIMEOUT");
     // TODO: Handle timeout
@@ -580,9 +626,9 @@ export default function ExamPage() {
   }
 
   return (
-    <div className="h-full flex flex-col md:flex-row bg-gray-100">
+    <div className="w-full h-full flex flex-col md:flex-row bg-gray-100 overflow-x-hidden">
       {/* Main */}
-      <main className="w-full flex-1 p-4 sm:p-6 flex flex-col gap-5">
+      <main className="w-full flex-1 p-4 sm:p-6 flex flex-col gap-5 relative">
         <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
           <div className="w-full flex justify-between">
             <div className="flex items-center gap-2">
@@ -704,9 +750,9 @@ export default function ExamPage() {
                       <div className="w-full md:w-fit">
                         <button
                           onClick={handlePreviousQuestion}
-                          // disabled={currentIndex === 0}
+                          disabled={currentIndex === 0}
                           className={clsx(
-                            "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer"
+                            "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
                           )}
                         >
                           Previous
@@ -715,8 +761,9 @@ export default function ExamPage() {
                       <div className="w-full md:w-fit">
                         <button
                           onClick={handleNextQuestion}
+                          disabled={currentIndex + 1 === questionsMeta.length}
                           className={clsx(
-                            "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700"
+                            "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
                           )}
                         >
                           Next
@@ -737,6 +784,7 @@ export default function ExamPage() {
             </div>
           </TabsContent>
         </TabsRoot>
+        <ScrollToggleButton />
       </main>
 
       {/* Sidebar */}
@@ -789,12 +837,12 @@ export default function ExamPage() {
                 </div>
               </div>
               <div className="grid grid-cols-8 md:grid-cols-4 gap-y-2 mb-4">
-                {/* {questions.map((q, index) => (
+                {questionsMeta?.map((q, index) => (
                   <button
-                    key={q.id}
-                    onClick={() => handleJumpTo(index)}
+                    key={q.questionId}
+                    onClick={() => handleJumpTo(index, q.questionId)}
                     className={clsx(
-                      "font-semibold text-xs sm:text-sm transition-colors cursor-pointer relative",
+                      "font-semibold text-xs sm:text-sm transition-colors cursor-pointer relative rounded-md",
                       q.status === "unattempted" &&
                         "bg-gray-300 text-gray-700 hover:bg-gray-400 w-8 h-8 sm:w-10 sm:h-10 rounded-md",
                       q.status === "attempted" &&
@@ -806,8 +854,8 @@ export default function ExamPage() {
                       q.status === "unanswered" &&
                         "bg-red-500 text-white hover:bg-red-600 w-8 h-8 sm:w-10 sm:h-10 rounded-md",
                       index === currentIndex
-                        ? "border-3 border-gray-700"
-                        : "border-3 border-transparent"
+                        ? "border-2 border-gray-700"
+                        : "border-2 border-transparent"
                     )}
                   >
                     {q.status === "answeredMarkedForReview" && (
@@ -815,20 +863,20 @@ export default function ExamPage() {
                         <CheckCheck className="text-green-500 w-5 h-5 absolute -top-3 -right-4" />
                       </div>
                     )}
-                    {q.id}
+                    {index + 1}
                   </button>
-                ))} */}
+                ))}
               </div>
             </div>
             <div className="flex flex-col gap-2">
               <div>
                 <h1 className="font-bold text-2xl">Legend</h1>
               </div>
-              {/* <div className="space-y-2 text-sm">
+              <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 p-2 flex items-center justify-center bg-gray-300 rounded-md font-bold">
                     {
-                      questions.filter(
+                      questionsMeta.filter(
                         (question) => question.status === "unattempted"
                       ).length
                     }
@@ -838,7 +886,7 @@ export default function ExamPage() {
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 p-2 flex items-center justify-center bg-red-500 rounded-md font-bold text-white">
                     {
-                      questions.filter(
+                      questionsMeta.filter(
                         (question) => question.status === "unanswered"
                       ).length
                     }
@@ -848,7 +896,7 @@ export default function ExamPage() {
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 p-2 flex items-center justify-center bg-green-500 rounded-md font-bold text-white">
                     {
-                      questions.filter(
+                      questionsMeta.filter(
                         (question) => question.status === "attempted"
                       ).length
                     }
@@ -858,7 +906,7 @@ export default function ExamPage() {
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 p-2 flex items-center justify-center bg-purple-500 rounded-full font-bold text-white">
                     {
-                      questions.filter(
+                      questionsMeta.filter(
                         (question) => question.status === "review"
                       ).length
                     }
@@ -871,7 +919,7 @@ export default function ExamPage() {
                       <CheckCheck className="text-green-500 w-5 h-5 absolute -top-3 -right-3" />
                     </div>
                     {
-                      questions.filter(
+                      questionsMeta.filter(
                         (question) =>
                           question.status === "answeredMarkedForReview"
                       ).length
@@ -884,7 +932,7 @@ export default function ExamPage() {
                     </span>
                   </div>
                 </div>
-              </div> */}
+              </div>
             </div>
           </div>
           <div className="w-full">
