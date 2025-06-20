@@ -1,44 +1,78 @@
 import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
-const ScrollToggleButton: React.FC = () => {
+interface ScrollToggleButtonProps {
+  /** Optional container to scroll; defaults to page */
+  containerSelector?: string;
+  /** Offset from bottom */
+  offset?: number;
+}
+
+const ScrollToggleButton: React.FC<ScrollToggleButtonProps> = ({
+  containerSelector,
+  offset = 0,
+}) => {
   const [atBottom, setAtBottom] = useState(false);
 
-  // Check if we're at the bottom of the page
-  const checkScrollPosition = () => {
-    const scrollY = window.scrollY || window.pageYOffset;
-    const viewportHeight = window.innerHeight;
-    const fullHeight = document.documentElement.scrollHeight;
-    // threshold of 50px to consider bottom
-    setAtBottom(scrollY + viewportHeight >= fullHeight - 50);
+  // Helper to get scroll container
+  const getContainer = (): HTMLElement => {
+    return (
+      ((containerSelector
+        ? document.querySelector<HTMLElement>(containerSelector)
+        : document.scrollingElement) as HTMLElement) || document.documentElement
+    );
+  };
+
+  // Check scroll position: prioritize top state
+  const checkPosition = () => {
+    const el = getContainer();
+    const scrollTop = el.scrollTop;
+    const clientHeight = el.clientHeight;
+    const scrollHeight = el.scrollHeight;
+
+    // If at top, always treat as not bottom
+    if (scrollTop === 0) {
+      setAtBottom(false);
+      return;
+    }
+    // Otherwise, detect bottom
+    const isBottom = scrollTop + clientHeight >= scrollHeight - offset - 1;
+    setAtBottom(isBottom);
   };
 
   useEffect(() => {
-    // initial check
-    checkScrollPosition();
-    // listen to scroll events
-    window.addEventListener("scroll", checkScrollPosition);
-    return () => window.removeEventListener("scroll", checkScrollPosition);
-  }, []);
+    // Initial delayed check to ensure content loaded
+    const rafId = requestAnimationFrame(checkPosition);
+
+    const el = getContainer();
+    const onScroll = () => checkPosition();
+
+    el.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      el.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [containerSelector, offset]);
 
   const handleClick = () => {
+    const el = getContainer();
     if (atBottom) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      el.scrollTo({ top: 0, behavior: "smooth" });
     } else {
-      window.scrollTo({
-        top: document.documentElement.scrollHeight,
-        behavior: "smooth",
-      });
+      el.scrollTo({ top: el.scrollHeight - offset, behavior: "smooth" });
     }
   };
 
   return (
     <button
       onClick={handleClick}
-      className="absolute bottom-4 right-4 p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-opacity duration-300 opacity-80 hover:opacity-100 cursor-pointer"
+      className="fixed bottom-3 left-3 z-50 p-1 bg-indigo-500/80 hover:bg-indigo-600 text-white rounded-full shadow-xl transition-transform transform hover:scale-110 cursor-pointer"
       aria-label={atBottom ? "Scroll to top" : "Scroll to bottom"}
     >
-      {atBottom ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+      {atBottom ? <ChevronUp /> : <ChevronDown />}
     </button>
   );
 };

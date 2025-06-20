@@ -626,9 +626,12 @@ export default function ExamPage() {
   }
 
   return (
-    <div className="w-full h-full flex flex-col md:flex-row bg-gray-100 overflow-x-hidden">
+    <div className="w-full h-full flex flex-col md:flex-row bg-gray-100 overflow-hidden">
       {/* Main */}
-      <main className="w-full flex-1 p-4 sm:p-6 flex flex-col gap-5 relative">
+      <main
+        className="w-full flex-1 p-4 sm:p-6 flex flex-col gap-5 relative overflow-y-auto"
+        id="questionBox"
+      >
         <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
           <div className="w-full flex justify-between">
             <div className="flex items-center gap-2">
@@ -784,14 +787,14 @@ export default function ExamPage() {
             </div>
           </TabsContent>
         </TabsRoot>
-        <ScrollToggleButton />
+        <ScrollToggleButton containerSelector="#questionBox" />
       </main>
 
       {/* Sidebar */}
       <aside
         className={clsx(
           // common styles
-          "bg-white border-gray-300 shadow-md flex flex-col gap-2 p-4 ",
+          "bg-white border-gray-300 shadow-md flex flex-col gap-2 p-4 relative",
           // positioning
           "absolute lg:static w-full h-full transform transition-transform duration-300 z-50",
           // mobile open/closed
