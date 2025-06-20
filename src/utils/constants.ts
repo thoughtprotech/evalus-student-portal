@@ -12,8 +12,8 @@ export const QUESTION_TYPES: {
   TRUEFALSE: string;
   FILL_ANSWER: string;
 } = {
-  SINGLE_MCQ: "Single MCQ",
-  MULTIPLE_MCQ: "Multiple MCQ",
+  SINGLE_MCQ: "MCQ Single",
+  MULTIPLE_MCQ: "MCQ Multiple",
   MATCH_PAIRS_SINGLE: "Match Pairs Single",
   MATCH_PAIRS_MULTIPLE: "Match Pairs Multiple",
   WRITE_UP: "Write Up",
