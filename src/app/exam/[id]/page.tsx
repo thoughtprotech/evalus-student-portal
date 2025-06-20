@@ -25,7 +25,7 @@ import {
 import Loader from "@/components/Loader";
 import { fetchQuestionsMetaAction } from "@/app/actions/exam/questions/getQuestionsMeta";
 import { fetchQuestionByIdAction } from "@/app/actions/exam/questions/getQuestionById";
-import { QUESTION_TYPES } from "@/utils/constants";
+import { QUESTION_STATUS, QUESTION_TYPES } from "@/utils/constants";
 import ScrollToggleButton from "@/components/ScrollToggleButton";
 
 export default function ExamPage() {
@@ -843,7 +843,7 @@ export default function ExamPage() {
                     onClick={() => handleJumpTo(index, q.questionId)}
                     className={clsx(
                       "font-semibold text-xs sm:text-sm transition-colors cursor-pointer relative rounded-md",
-                      q.status === "unattempted" &&
+                      q.status === QUESTION_STATUS.NOT_VISITED &&
                         "bg-gray-300 text-gray-700 hover:bg-gray-400 w-8 h-8 sm:w-10 sm:h-10 rounded-md",
                       q.status === "attempted" &&
                         "bg-green-500 text-white hover:bg-green-600 w-8 h-8 sm:w-10 sm:h-10 rounded-md",

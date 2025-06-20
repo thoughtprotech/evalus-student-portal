@@ -21,3 +21,9 @@ export const QUESTION_TYPES: {
   TRUEFALSE: "TrueFalse",
   FILL_ANSWER: "Fill Answer",
 };
+
+export const QUESTION_STATUS: {
+  NOT_VISITED: string;
+} = {
+  NOT_VISITED: "Not Visited",
+};
