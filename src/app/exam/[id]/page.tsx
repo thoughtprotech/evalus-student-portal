@@ -624,8 +624,8 @@ export default function ExamPage() {
   return (
     <div className="w-full h-full flex flex-col md:flex-row bg-gray-100 overflow-hidden">
       {/* Main */}
-      <main className="w-full flex-1 p-4 sm:p-6 flex flex-col gap-5 relative overflow-y-auto">
-        <div className="p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
+      <main className="w-full flex-1 p-4 sm:p-6 flex flex-col gap-2 relative overflow-y-auto">
+        <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
           <div className="w-full flex justify-between">
             <div className="flex items-center gap-2">
               <div className="md:hidden">
@@ -671,7 +671,7 @@ export default function ExamPage() {
           <TabsContent className="w-full h-full overflow-hidden">
             <div className="w-full h-full">
               {questions && (
-                <div className="w-full h-full p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4 flex flex-col justify-between flex-1">
+                <div className="w-full h-full bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4 flex flex-col justify-between flex-1">
                   <div className="w-full h-full overflow-hidden">
                     <div className="w-full flex flex-col gap-2 md:flex md:flex-row justify-between font-semibold">
                       <div>
@@ -712,7 +712,6 @@ export default function ExamPage() {
                           </div>
                           <div>
                             <h1 className="text-md sm:text-lg font-medium text-gray-800">
-                              {questions.questionText}
                               {questions.questionText}
                             </h1>
                           </div>
@@ -755,7 +754,7 @@ export default function ExamPage() {
                       <button
                         onClick={clearResponse}
                         className={clsx(
-                          "w-full md:w-fit px-4 py-2 rounded-md font-medium text-white cursor-pointer bg-cyan-500 hover:bg-cyan-600"
+                          "w-full md:w-fit px-4 py-2 rounded-md font-medium text-white cursor-pointer bg-blue-600 hover:bg-blue-700"
                         )}
                       >
                         Clear Response
@@ -828,8 +827,8 @@ export default function ExamPage() {
           )}
         </div>
         <div className="w-full h-full flex flex-col justify-between">
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center space-x-4 lg:ml-2">
+          <div className="flex flex-col gap-4 pl-2">
+            <div className="flex items-center space-x-4">
               <div className="md:hidden">
                 <div onClick={() => setSidebarOpen(!sidebarOpen)}>
                   {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
@@ -845,44 +844,7 @@ export default function ExamPage() {
                 </div>
               </div>
             </div>
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <div>
-                  <h1 className="font-bold text-2xl">Questions</h1>
-                </div>
-              </div>
-              <div className="grid grid-cols-8 md:grid-cols-4 gap-y-2 mb-4">
-                {questionsMeta?.map((q, index) => (
-                  <button
-                    key={q.questionId}
-                    onClick={() => handleJumpTo(index, q.questionId)}
-                    className={clsx(
-                      "font-semibold text-xs sm:text-sm transition-colors cursor-pointer relative rounded-md",
-                      q.status === QUESTION_STATUS.NOT_VISITED &&
-                        "bg-gray-300 text-gray-700 hover:bg-gray-400 w-8 h-8 sm:w-10 sm:h-10 rounded-md",
-                      q.status === QUESTION_STATUS.ATTEMPTED &&
-                        "bg-green-500 text-white hover:bg-green-600 w-8 h-8 sm:w-10 sm:h-10 rounded-md",
-                      q.status === QUESTION_STATUS.TO_REVIEW &&
-                        "bg-purple-500 text-white hover:bg-purple-600 w-10 h-10 rounded-full",
-                      q.status === QUESTION_STATUS.ANSWERED_TO_REVIEW &&
-                        "bg-purple-500 text-white hover:bg-purple-600 w-10 h-10 rounded-full self-center",
-                      q.status === "unanswered" &&
-                        "bg-red-500 text-white hover:bg-red-600 w-8 h-8 sm:w-10 sm:h-10 rounded-md",
-                      index === currentIndex
-                        ? "border-2 border-gray-700"
-                        : "border-2 border-transparent"
-                    )}
-                  >
-                    {q.status === "answeredMarkedForReview" && (
-                      <div>
-                        <CheckCheck className="text-green-500 w-5 h-5 absolute -top-3 -right-4" />
-                      </div>
-                    )}
-                    {index + 1}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Legend */}
             <div className="flex flex-col gap-2">
               <div>
                 <h1 className="font-bold text-2xl">Legend</h1>
@@ -950,6 +912,45 @@ export default function ExamPage() {
                     </span>
                   </div>
                 </div>
+              </div>
+            </div>
+            {/* Question Index */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <div>
+                  <h1 className="font-bold text-2xl">Questions</h1>
+                </div>
+              </div>
+              <div className="grid grid-cols-8 md:grid-cols-4 gap-2 mb-4">
+                {questionsMeta?.map((q, index) => (
+                  <button
+                    key={q.questionId}
+                    onClick={() => handleJumpTo(index, q.questionId)}
+                    className={clsx(
+                      "font-semibold text-xs sm:text-sm transition-colors cursor-pointer relative rounded-md",
+                      q.status === QUESTION_STATUS.NOT_VISITED &&
+                        "bg-gray-300 text-gray-700 hover:bg-gray-400 w-8 h-8 sm:w-full sm:h-10 rounded-md",
+                      q.status === QUESTION_STATUS.ATTEMPTED &&
+                        "bg-green-500 text-white hover:bg-green-600 w-8 h-8 sm:w-full sm:h-10 rounded-md",
+                      q.status === QUESTION_STATUS.TO_REVIEW &&
+                        "bg-purple-500 text-white hover:bg-purple-600 w-full h-10 rounded-full",
+                      q.status === QUESTION_STATUS.ANSWERED_TO_REVIEW &&
+                        "bg-purple-500 text-white hover:bg-purple-600 w-full h-10 rounded-full self-center",
+                      q.status === "unanswered" &&
+                        "bg-red-500 text-white hover:bg-red-600 w-8 h-8 sm:w-full sm:h-10 rounded-md",
+                      index === currentIndex
+                        ? "border-3 border-gray-600"
+                        : "border-3 border-transparent"
+                    )}
+                  >
+                    {q.status === "answeredMarkedForReview" && (
+                      <div>
+                        <CheckCheck className="text-green-500 w-5 h-5 absolute -top-3 -right-4" />
+                      </div>
+                    )}
+                    {index + 1}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
