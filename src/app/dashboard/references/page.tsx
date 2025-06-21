@@ -2,23 +2,14 @@
 
 import SearchBar from "@/components/SearchBar";
 import { useEffect, useState } from "react";
-import DocumentCard from "./components/DocumentCard";
 import Loader from "@/components/Loader";
 import { fetchReferencesListAction } from "@/app/actions/dashboard/referencesList";
+import FileExplorer, { FileNode } from "@/components/FileExplorer";
 
 export default function Index() {
   const [loaded, setLoaded] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [referenceList, setReferenceList] = useState<
-    {
-      title: string;
-      fileType: string;
-      fileSize: string;
-      uploadDate: string;
-      description: string;
-      downloadUrl: string;
-    }[]
-  >([]);
+  const [referenceList, setReferenceList] = useState<FileNode[]>([]);
 
   const fetchReferencesList = async () => {
     const res = fetchReferencesListAction();
@@ -33,10 +24,29 @@ export default function Index() {
     fetchReferencesList();
   }, []);
 
-  // Derive the filtered test list based on the current tab and search query
-  const filteredReferenceList = referenceList.filter((test) =>
-    test.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  function filterFileNodes(nodes: FileNode[], query: string): FileNode[] {
+    const q = query.toLowerCase();
+
+    return nodes.reduce<FileNode[]>((acc, node) => {
+      const nameMatches = node.name.toLowerCase().includes(q);
+      const children = node.children
+        ? filterFileNodes(node.children, query)
+        : undefined;
+
+      // Keep this node if its name matches, or if any child matches
+      if (nameMatches || (children && children.length > 0)) {
+        acc.push({
+          ...node,
+          // only include children if there are any left after filtering
+          children: children && children.length > 0 ? children : undefined,
+        });
+      }
+      return acc;
+    }, []);
+  }
+
+  // usage in your component
+  const filteredReferenceList = filterFileNodes(referenceList, searchQuery);
 
   if (!loaded) {
     return <Loader />;
@@ -54,28 +64,8 @@ export default function Index() {
           />
         </div>
       </div>
-      <div>
-        {filteredReferenceList.length > 0 ? (
-          <div className="w-full grid grid-cols-1 lg:grid lg:grid-cols-4 gap-4">
-            {filteredReferenceList.map((reference) => (
-              <DocumentCard
-                title={reference.title}
-                fileType={reference.fileType}
-                fileSize={reference.fileSize}
-                uploadDate={reference.uploadDate}
-                description={reference.description}
-                downloadUrl={reference.downloadUrl}
-                key={reference.downloadUrl}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="w-full h-72 flex justify-center items-center rounded-md">
-            <h1 className="font-bold text-2xl text-gray-500">
-              No References Found
-            </h1>
-          </div>
-        )}
+      <div className="w-full ">
+        <FileExplorer data={filteredReferenceList} />
       </div>
     </div>
   );

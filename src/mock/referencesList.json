@@ -1,67 +1,281 @@
 [
-    {
-      "title": "Project Specification Document",
-      "fileType": "PDF",
-      "fileSize": "1.2 MB",
-      "uploadDate": "April 27, 2025",
-      "description": "Detailed project specifications including functional and non-functional requirements.",
-      "downloadUrl": "/files/project-spec.pdf"
-    },
-    {
-      "title": "Financial Report Q1 2025",
-      "fileType": "Excel",
-      "fileSize": "850 KB",
-      "uploadDate": "March 31, 2025",
-      "description": "Quarterly financial performance report for Q1.",
-      "downloadUrl": "/files/q1-report.xlsx"
-    },
-    {
-      "title": "Marketing Strategy",
-      "fileType": "Word Document",
-      "fileSize": "450 KB",
-      "uploadDate": "February 15, 2025",
-      "description": "Comprehensive overview of the marketing strategy for the upcoming quarter.",
-      "downloadUrl": "/files/marketing-strategy.docx"
-    },
-    {
-      "title": "Company Presentation Deck",
-      "fileType": "PowerPoint",
-      "fileSize": "3.5 MB",
-      "uploadDate": "December 10, 2024",
-      "description": "Presentation deck for the annual company meeting.",
-      "downloadUrl": "/files/company-presentation.pptx"
-    },
-    {
-      "title": "User Manual",
-      "fileType": "PDF",
-      "fileSize": "2.1 MB",
-      "uploadDate": "January 5, 2025",
-      "description": "Comprehensive user manual containing detailed operational guidelines.",
-      "downloadUrl": "/files/user-manual.pdf"
-    },
-    {
-      "title": "Sales Data Analysis",
-      "fileType": "Excel",
-      "fileSize": "1.0 MB",
-      "uploadDate": "April 5, 2025",
-      "description": "Analysis of the latest sales data and performance metrics.",
-      "downloadUrl": "/files/sales-data.xlsx"
-    },
-    {
-      "title": "Company Policy Update",
-      "fileType": "Word Document",
-      "fileSize": "300 KB",
-      "uploadDate": "March 10, 2025",
-      "description": "Updated company policies and procedures effective immediately.",
-      "downloadUrl": "/files/company-policy.docx"
-    },
-    {
-      "title": "Investor Pitch Presentation",
-      "fileType": "PowerPoint",
-      "fileSize": "4.0 MB",
-      "uploadDate": "April 20, 2025",
-      "description": "Pitch deck prepared for potential investors.",
-      "downloadUrl": "/files/investor-pitch.pptx"
-    }
-  ]
-  
+  {
+    "name": "Current Affairs",
+    "type": "folder",
+    "children": [
+      {
+        "name": "March 2025",
+        "type": "folder",
+        "children": [
+          {
+            "name": "Global Roundup.pdf",
+            "type": "file",
+            "fileType": "PDF",
+            "fileSize": "1.1 MB",
+            "description": "Major international developments from March 2025.",
+            "uploadDate": "2025-04-02",
+            "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+          },
+          {
+            "name": "India Highlights.pptx",
+            "type": "file",
+            "fileType": "PowerPoint",
+            "fileSize": "2.3 MB",
+            "description": "Key domestic events and policy updates.",
+            "uploadDate": "2025-04-03",
+            "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+          },
+          {
+            "name": "Quiz Bank.xlsx",
+            "type": "file",
+            "fileType": "Excel",
+            "fileSize": "820 KB",
+            "description": "Topic-wise MCQs for March 2025.",
+            "uploadDate": "2025-04-04",
+            "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+          }
+        ]
+      },
+      {
+        "name": "April 2025",
+        "type": "folder",
+        "children": [
+          {
+            "name": "Economic Survey Summary.docx",
+            "type": "file",
+            "fileType": "Word Document",
+            "fileSize": "950 KB",
+            "description": "Analysis of India’s economic survey April 2025.",
+            "uploadDate": "2025-05-01",
+            "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+          },
+          {
+            "name": "Global Highlights.pdf",
+            "type": "file",
+            "fileType": "PDF",
+            "fileSize": "1.3 MB",
+            "description": "Top worldwide news in April 2025.",
+            "uploadDate": "2025-05-02",
+            "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+          },
+          {
+            "name": "Practice Questions.pptx",
+            "type": "file",
+            "fileType": "PowerPoint",
+            "fileSize": "1.8 MB",
+            "description": "Slide‑based quiz on April events.",
+            "uploadDate": "2025-05-03",
+            "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Railway Exam",
+    "type": "folder",
+    "children": [
+      {
+        "name": "Syllabus & Pattern.pdf",
+        "type": "file",
+        "fileType": "PDF",
+        "fileSize": "1.2 MB",
+        "description": "Complete syllabus and exam pattern for RRB 2025.",
+        "uploadDate": "2025-03-01",
+        "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+      },
+      {
+        "name": "Unit Tests",
+        "type": "folder",
+        "children": [
+          {
+            "name": "General Awareness Test I.xlsx",
+            "type": "file",
+            "fileType": "Excel",
+            "fileSize": "780 KB",
+            "description": "MCQs on current affairs & GK.",
+            "uploadDate": "2025-03-05",
+            "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+          },
+          {
+            "name": "Arithmetic Test I.xlsx",
+            "type": "file",
+            "fileType": "Excel",
+            "fileSize": "800 KB",
+            "description": "Numerical ability practice set.",
+            "uploadDate": "2025-03-06",
+            "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+          },
+          {
+            "name": "General Intelligence Test I.xlsx",
+            "type": "file",
+            "fileType": "Excel",
+            "fileSize": "820 KB",
+            "description": "Logical reasoning and puzzles.",
+            "uploadDate": "2025-03-07",
+            "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+          }
+        ]
+      },
+      {
+        "name": "Previous Year Papers",
+        "type": "folder",
+        "children": [
+          {
+            "name": "RRB 2024 Question Paper.pdf",
+            "type": "file",
+            "fileType": "PDF",
+            "fileSize": "2.5 MB",
+            "description": "Official solved paper from 2024 session.",
+            "uploadDate": "2025-02-15",
+            "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+          },
+          {
+            "name": "RRB 2023 Question Paper.pdf",
+            "type": "file",
+            "fileType": "PDF",
+            "fileSize": "2.4 MB",
+            "description": "Official solved paper from 2023 session.",
+            "uploadDate": "2025-02-10",
+            "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Topic Tests",
+    "type": "folder",
+    "children": [
+      {
+        "name": "Mathematics",
+        "type": "folder",
+        "children": [
+          {
+            "name": "Algebra Quiz.docx",
+            "type": "file",
+            "fileType": "Word Document",
+            "fileSize": "1.0 MB",
+            "description": "Short‑answer algebra problems.",
+            "uploadDate": "2025-04-10",
+            "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+          },
+          {
+            "name": "Calculus MCQs.pptx",
+            "type": "file",
+            "fileType": "PowerPoint",
+            "fileSize": "2.2 MB",
+            "description": "Slide deck of multiple‑choice questions.",
+            "uploadDate": "2025-04-12",
+            "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+          }
+        ]
+      },
+      {
+        "name": "Reasoning",
+        "type": "folder",
+        "children": [
+          {
+            "name": "Verbal Reasoning Test I.pdf",
+            "type": "file",
+            "fileType": "PDF",
+            "fileSize": "680 KB",
+            "description": "Comprehension and analogy questions.",
+            "uploadDate": "2025-04-15",
+            "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+          },
+          {
+            "name": "Non-Verbal Reasoning.xlsx",
+            "type": "file",
+            "fileType": "Excel",
+            "fileSize": "720 KB",
+            "description": "Puzzles and pattern‑recognition MCQs.",
+            "uploadDate": "2025-04-16",
+            "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+          }
+        ]
+      },
+      {
+        "name": "English Language",
+        "type": "folder",
+        "children": [
+          {
+            "name": "Grammar & Usage Test.pdf",
+            "type": "file",
+            "fileType": "PDF",
+            "fileSize": "600 KB",
+            "description": "Mixed grammar, vocabulary, and comprehension.",
+            "uploadDate": "2025-05-05",
+            "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "PRQE",
+    "type": "folder",
+    "children": [
+      {
+        "name": "Exam Pattern.docx",
+        "type": "file",
+        "fileType": "Word Document",
+        "fileSize": "510 KB",
+        "description": "Section-wise timings and marking scheme.",
+        "uploadDate": "2025-01-20",
+        "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+      },
+      {
+        "name": "Sample Questions.pdf",
+        "type": "file",
+        "fileType": "PDF",
+        "fileSize": "1.5 MB",
+        "description": "Model questions with answer keys.",
+        "uploadDate": "2025-02-02",
+        "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+      },
+      {
+        "name": "Practice Test I.pptx",
+        "type": "file",
+        "fileType": "PowerPoint",
+        "fileSize": "2.0 MB",
+        "description": "Full‑length mock test slides.",
+        "uploadDate": "2025-02-10",
+        "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+      }
+    ]
+  },
+  {
+    "name": "Insurance",
+    "type": "folder",
+    "children": [
+      {
+        "name": "Basics of Insurance.pptx",
+        "type": "file",
+        "fileType": "PowerPoint",
+        "fileSize": "1.9 MB",
+        "description": "Introduction to life & general insurance.",
+        "uploadDate": "2025-03-01",
+        "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+      },
+      {
+        "name": "Underwriting Guidelines.xlsx",
+        "type": "file",
+        "fileType": "Excel",
+        "fileSize": "850 KB",
+        "description": "Data tables & criteria for risk assessment.",
+        "uploadDate": "2025-03-15",
+        "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+      },
+      {
+        "name": "Claims Process Flow.docx",
+        "type": "file",
+        "fileType": "Word Document",
+        "fileSize": "760 KB",
+        "description": "Step‑by‑step claim settlement procedure.",
+        "uploadDate": "2025-04-20",
+        "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+      }
+    ]
+  }
+]
