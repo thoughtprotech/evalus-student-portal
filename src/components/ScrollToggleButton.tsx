@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowDown, ArrowUp } from "lucide-react";
 
 interface ScrollToggleButtonProps {
   /** Optional container to scroll; defaults to page */
@@ -69,10 +69,14 @@ const ScrollToggleButton: React.FC<ScrollToggleButtonProps> = ({
   return (
     <button
       onClick={handleClick}
-      className="fixed bottom-3 left-3 z-50 p-1 bg-indigo-500/80 hover:bg-indigo-600 text-white rounded-full shadow-xl transition-transform transform hover:scale-110 cursor-pointer"
+      className="absolute w-fit h-fit bottom-6 right-0 m-2 z-50 p-1 bg-white border-3 border-gray-600 rounded-full shadow-xl transition-transform transform hover:scale-110 cursor-pointer"
       aria-label={atBottom ? "Scroll to top" : "Scroll to bottom"}
     >
-      {atBottom ? <ChevronUp /> : <ChevronDown />}
+      {atBottom ? (
+        <ArrowUp className="w-6 h-6 text-gray-600" />
+      ) : (
+        <ArrowDown className="w-6 h-6 text-gray-600" />
+      )}
     </button>
   );
 };

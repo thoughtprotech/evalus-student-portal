@@ -106,8 +106,6 @@ export default function ExamPage() {
   const renderQuestion = () => {
     switch (questions?.questionType.questionType) {
       case QUESTION_TYPES.SINGLE_MCQ:
-        console.log({ questions });
-        console.log("options", questions?.questionOptionsJson);
         return (
           <div className="flex flex-col gap-2">
             {JSON.parse(questions!.questionOptionsJson).map(
@@ -149,8 +147,6 @@ export default function ExamPage() {
           </div>
         );
       case QUESTION_TYPES.MULTIPLE_MCQ:
-        console.log({ questions });
-        console.log("options", questions?.questionOptionsJson);
         return (
           <div className="flex flex-col gap-2">
             {JSON.parse(questions!.questionOptionsJson).map(
@@ -628,11 +624,8 @@ export default function ExamPage() {
   return (
     <div className="w-full h-full flex flex-col md:flex-row bg-gray-100 overflow-hidden">
       {/* Main */}
-      <main
-        className="w-full flex-1 p-4 sm:p-6 flex flex-col gap-5 relative overflow-y-auto"
-        id="questionBox"
-      >
-        <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
+      <main className="w-full flex-1 p-4 sm:p-6 flex flex-col gap-5 relative overflow-y-auto">
+        <div className="p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
           <div className="w-full flex justify-between">
             <div className="flex items-center gap-2">
               <div className="md:hidden">
@@ -675,65 +668,85 @@ export default function ExamPage() {
             />
           </div>
 
-          <TabsContent>
-            <div>
+          <TabsContent className="w-full h-full overflow-hidden">
+            <div className="w-full h-full">
               {questions && (
-                <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
-                  <div className="w-full flex flex-col gap-2 md:flex md:flex-row justify-between font-semibold">
-                    <div>
-                      <h1 className="text-sm text-gray-600">
-                        Question {currentIndex + 1} -{" "}
-                        {questions?.questionType?.questionType}
-                      </h1>
-                    </div>
-                    <div className="flex gap-3 items-center">
-                      <div className="flex gap-3 text-xs md:text-sm">
-                        <h1 className="text-green-500">Mark(s)</h1>
-                        <h1>{questions.marks}</h1>
-                      </div>
-                      <h1 className="text-gray-500">|</h1>
-                      <div className="flex gap-3 text-xs md:text-sm pr-1">
-                        <h1 className="text-red-500 text-nowrap">
-                          Negative Mark(s)
-                        </h1>
-                        <h1>{questions.negativeMarks}</h1>
-                      </div>
-                      <h1 className="text-gray-500">|</h1>
+                <div className="w-full h-full p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4 flex flex-col justify-between flex-1">
+                  <div className="w-full h-full overflow-hidden">
+                    <div className="w-full flex flex-col gap-2 md:flex md:flex-row justify-between font-semibold">
                       <div>
-                        <select className="border border-gray-300 px-4 py-1 rounded-md shadow-md cursor-pointer text-sm md:text:base">
-                          <option value="english">English</option>
-                          <option value="telugu">Telugu</option>
-                        </select>
+                        <h1 className="text-sm text-gray-600">
+                          Question {currentIndex + 1} -{" "}
+                          {questions?.questionType?.questionType}
+                        </h1>
+                      </div>
+                      <div className="flex gap-3 items-center">
+                        <div className="flex gap-3 text-xs md:text-sm">
+                          <h1 className="text-green-500">Mark(s)</h1>
+                          <h1>{questions.marks}</h1>
+                        </div>
+                        <h1 className="text-gray-500">|</h1>
+                        <div className="flex gap-3 text-xs md:text-sm pr-1">
+                          <h1 className="text-red-500 text-nowrap">
+                            Negative Mark(s)
+                          </h1>
+                          <h1>{questions.negativeMarks}</h1>
+                        </div>
+                        <h1 className="text-gray-500">|</h1>
+                        <div>
+                          <select className="border border-gray-300 px-4 py-1 rounded-md shadow-md cursor-pointer text-sm md:text:base">
+                            <option value="english">English</option>
+                            <option value="telugu">Telugu</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="w-full h-full flex gap-5">
+                      <div className="relative w-3/4 ">
+                        <div
+                          className="w-full flex flex-col gap-1 border-r border-r-gray-300 pr-4 h-full overflow-y-auto relative"
+                          id="questionBox"
+                        >
+                          <div>
+                            <h1 className="font-bold text-2xl">Question</h1>
+                          </div>
+                          <div>
+                            <h1 className="text-md sm:text-lg font-medium text-gray-800">
+                              {questions.questionText}
+                              {questions.questionText}
+                            </h1>
+                          </div>
+                        </div>
+                        <ScrollToggleButton containerSelector="#questionBox" />
+                      </div>
+                      {errorMessage && (
+                        <div className="mb-4 text-sm text-red-600 font-medium">
+                          {errorMessage}
+                        </div>
+                      )}
+                      <div className="w-1/4 flex flex-col gap-3">
+                        <div>
+                          <h1 className="font-bold text-2xl">Answer</h1>
+                        </div>
+                        <div>{renderQuestion()}</div>
                       </div>
                     </div>
                   </div>
-                  <div className="w-full flex justify-between">
-                    <div>
-                      <h2 className="text-md sm:text-lg font-bold">
-                        {questions.questionText}
-                      </h2>
-                    </div>
-                  </div>
-                  {errorMessage && (
-                    <div className="mb-4 text-sm text-red-600 font-medium">
-                      {errorMessage}
-                    </div>
-                  )}
-                  <div className="space-y-3">{renderQuestion()}</div>
+
                   <div className="flex flex-col md:flex md:flex-row items-center justify-between gap-4 mt-4">
                     <div className="w-full flex gap-3">
                       {/* <button
                         onClick={toggleMarkForReview}
                         className={clsx(
                           "w-full md:w-fit px-4 py-2 rounded-md font-medium text-white cursor-pointer",
-                          currentQuestion.status === "review" ||
-                            currentQuestion.status === "answeredMarkedForReview"
+                          questions.status === "review" ||
+                            questions.status === "answeredMarkedForReview"
                             ? "bg-gray-500 hover:bg-gray-600"
                             : "bg-purple-500 hover:bg-purple-600"
                         )}
                       >
-                        {currentQuestion.status === "review" ||
-                        currentQuestion.status === "answeredMarkedForReview"
+                        {questions.status === "review" ||
+                        questions.status === "answeredMarkedForReview"
                           ? "Unmark Review"
                           : currentIndex < questions.length - 1
                           ? "Mark For Review & Next"
@@ -787,7 +800,6 @@ export default function ExamPage() {
             </div>
           </TabsContent>
         </TabsRoot>
-        <ScrollToggleButton containerSelector="#questionBox" />
       </main>
 
       {/* Sidebar */}
@@ -804,7 +816,7 @@ export default function ExamPage() {
         )}
       >
         <div
-          className={`w-10 h-10 rounded-full absolute top-5 hidden lg:block ${
+          className={`w-10 h-10 rounded-full absolute top-1/2 -translate-y-1/2 hidden lg:block ${
             sidebarOpen ? "-left-5" : "-left-11"
           } bg-white cursor-pointer`}
           onClick={() => setSidebarOpen(!sidebarOpen)}
