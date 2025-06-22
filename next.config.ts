@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   images: {
     domains: ['ui-avatars.com'],
   },
+  devIndicators: false
 };
 
 export default nextConfig;
