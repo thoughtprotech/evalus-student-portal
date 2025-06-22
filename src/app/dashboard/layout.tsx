@@ -50,27 +50,27 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   > = {
     "/dashboard/profile": {
       title: "Profile",
-      icon: <UserCircle className="w-6 h-6 md:w-8 md:h-8" />,
+      icon: <UserCircle className="w-6 h-6 md:w-5 md:h-5" />,
     },
     "/dashboard/analytics": {
       title: "Analytics",
-      icon: <ClipboardList className="w-6 h-6 md:w-8 md:h-8" />,
+      icon: <ClipboardList className="w-6 h-6 md:w-5 md:h-5" />,
     },
     "/dashboard/starred": {
       title: "Starred",
-      icon: <Bookmark className="w-6 h-6 md:w-8 md:h-8" />,
+      icon: <Bookmark className="w-6 h-6 md:w-5 md:h-5" />,
     },
     "/dashboard/references": {
-      title: "References",
-      icon: <FileText className="w-6 h-6 md:w-8 md:h-8" />,
+      title: "Documents",
+      icon: <FileText className="w-6 h-6 md:w-5 md:h-5" />,
     },
     "/dashboard/spotlight": {
       title: "Spotlight",
-      icon: <LampDesk className="w-6 h-6 md:w-8 md:h-8" />,
+      icon: <LampDesk className="w-6 h-6 md:w-5 md:h-5" />,
     },
     "/dashboard": {
       title: "TestHub",
-      icon: <NotebookPen className="w-6 h-6 md:w-8 md:h-8" />,
+      icon: <NotebookPen className="w-6 h-6 md:w-5 md:h-5" />,
     },
   };
 
@@ -79,7 +79,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     .sort((a, b) => b[0].length - a[0].length)
     .find(([path]) => pathname.startsWith(path))?.[1] || {
     title: "Dashboard",
-    icon: <NotebookPen className="w-6 h-6 md:w-8 md:h-8" />,
+    icon: <NotebookPen className="w-6 h-6 md:w-5 md:h-5" />,
   };
 
   const toggleMobileMenu = () => {
@@ -208,7 +208,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           />
           <SidebarItem
             category={{
-              name: "References",
+              name: "Documents",
               href: "/dashboard/references",
               icon: FileText,
             }}
@@ -302,8 +302,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <Menu className="w-6 h-6 text-gray-800" />
             </button>
             <div className="text-2xl font-bold text-black flex items-center space-x-2">
-              {isMounted && currentPathMeta?.icon}
-              <h1 className="text-base md:text-2xl text-indigo-700">
+              <h1 className="text-base md:text-2xl text-gray-700">
                 {isMounted && currentPathMeta?.title}
               </h1>
             </div>
