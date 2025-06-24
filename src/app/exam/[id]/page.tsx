@@ -701,18 +701,44 @@ export default function ExamPage() {
                       </div>
                     </div>
                     <div className="w-full h-full flex gap-5">
-                      <div className="relative w-3/4 ">
+                      <div className="relative w-3/4 h-full border-r border-r-gray-300">
                         <div
-                          className="w-full flex flex-col gap-1 border-r border-r-gray-300 pr-4 h-full overflow-y-auto relative"
+                          className="w-full flex flex-col gap-4 h-full overflow-y-auto relative pr-4"
                           id="questionBox"
                         >
-                          <div>
-                            <h1 className="font-bold text-2xl">Question</h1>
+                          <div className="w-full flex flex-col gap-1 h-fit">
+                            <div>
+                              <h1 className="font-bold text-2xl">Question</h1>
+                            </div>
+                            <div>
+                              <h1 className="text-md sm:text-lg font-medium text-gray-800">
+                                {questions.questionText}
+                              </h1>
+                            </div>
                           </div>
-                          <div>
-                            <h1 className="text-md sm:text-lg font-medium text-gray-800 mb-10">
-                              {questions.questionText}
-                            </h1>
+                          <div className="w-full flex flex-col gap-1 h-fit">
+                            <div>
+                              <h1 className="font-bold text-2xl">Video</h1>
+                            </div>
+                            <div className="w-3/4 aspect-video">
+                              <video
+                                src="https://videos.pexels.com/video-files/31630360/13475691_2560_1440_30fps.mp4"
+                                controls
+                                className="rounded-md border border-gray-300"
+                              />
+                            </div>
+                          </div>
+                          <div className="w-full flex flex-col gap-1 h-fit mb-10">
+                            <div>
+                              <h1 className="font-bold text-2xl">Image</h1>
+                            </div>
+                            <div className="w-3/4 aspect-auto">
+                              <img
+                                src="https://images.pexels.com/photos/32649630/pexels-photo-32649630.jpeg"
+                                alt="/"
+                                className="rounded-md border border-gray-300"
+                              />
+                            </div>
                           </div>
                         </div>
                         <ScrollToggleButton containerSelector="#questionBox" />

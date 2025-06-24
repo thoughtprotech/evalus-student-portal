@@ -69,7 +69,9 @@ const ScrollToggleButton: React.FC<ScrollToggleButtonProps> = ({
   return (
     <button
       onClick={handleClick}
-      className="absolute w-fit h-fit bottom-6 right-0 m-2 z-50 p-1 bg-white border-2 border-gray-600 rounded-full transition-transform transform hover:scale-110 cursor-pointer"
+      className={`absolute w-fit h-fit ${
+        atBottom ? "bottom-6" : "top-6"
+      } right-0 m-2 z-50 p-1 bg-white border-2 border-gray-600 rounded-full transition-transform transform hover:scale-110 cursor-pointer`}
       aria-label={atBottom ? "Scroll to top" : "Scroll to bottom"}
     >
       {atBottom ? (
