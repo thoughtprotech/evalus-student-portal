@@ -9,6 +9,7 @@ import {
   CheckCheck,
   ChevronLeft,
   ChevronRight,
+  ShieldQuestion,
   Info,
   Menu,
   X,
@@ -29,7 +30,6 @@ import ScrollToggleButton from "@/components/ScrollToggleButton";
 
 export default function ExamPage() {
   const { id } = useParams();
-  const router = useRouter();
   const [loaded, setLoaded] = useState<boolean>(false);
   const [questionsMeta, setQuestionsMeta] = useState<QuestionsMetaResponse[]>(
     []
@@ -38,6 +38,7 @@ export default function ExamPage() {
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showQuestionsModal, setShowQuestionsModal] = useState(false);
   const [showInstructionsModal, setShowInstructionsModal] =
     useState<boolean>(false);
   const [instructionData, setInstructionData] =
@@ -656,6 +657,12 @@ export default function ExamPage() {
                   onClick={() => setShowInstructionsModal(true)}
                 />
               </div>
+              <div>
+                <ShieldQuestion
+                  className="text-gray-600 w-5 h-5 cursor-pointer"
+                  onClick={() => setShowQuestionsModal(true)}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -1015,6 +1022,7 @@ export default function ExamPage() {
         onConfirm={() => {}}
         onCancel={cancelSubmit}
       />
+
       <Modal
         title="Instructions"
         isOpen={showInstructionsModal}
@@ -1025,11 +1033,11 @@ export default function ExamPage() {
           {instructionData?.instructions.map((inst, index) => (
             <div key={index} className="flex items-center gap-3">
               <div className="flex-shrink-0">
-                <span className="bg-indigo-500 text-white rounded-full h-6 w-6 flex items-center justify-center font-bold">
+                <span className="flex items-center justify-center text-gray-600 font-bold">
                   {index + 1}
                 </span>
               </div>
-              <p className="text-gray-700 text-base text-start">{inst}</p>
+              <p className="text-base text-start font-bold">{inst}</p>
             </div>
           ))}
         </div>
@@ -1039,6 +1047,28 @@ export default function ExamPage() {
         >
           Done
         </button>
+      </Modal>
+
+      <Modal
+        title="Questions"
+        isOpen={showQuestionsModal}
+        closeModal={() => setShowQuestionsModal(false)}
+        className={"max-w-md"}
+      >
+        <div className="w-full flex flex-col gap-4">
+          {questionsMeta?.map((question, index) => (
+            <div key={index} className="flex items-center gap-3">
+              <div className="flex-shrink-0">
+                <span className="flex items-center justify-center text-gray-600 font-bold">
+                  {index + 1}
+                </span>
+              </div>
+              <p className=" text-base text-start font-bold">
+                Question {question.questionId}
+              </p>
+            </div>
+          ))}
+        </div>
       </Modal>
     </div>
   );
