@@ -628,7 +628,7 @@ export default function ExamPage() {
     <div className="w-full h-full flex flex-col md:flex-row bg-gray-100 overflow-hidden">
       {/* Main */}
       <main className="w-full flex-1 p-2 flex flex-col gap-2 relative overflow-y-auto">
-        <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
+        <div className="bg-white p-2 rounded-md shadow-md border border-gray-300 space-y-4">
           <div className="w-full flex justify-between">
             <div className="flex items-center gap-2">
               <div className="md:hidden">
@@ -680,7 +680,7 @@ export default function ExamPage() {
           <TabsContent className="w-full h-full overflow-hidden">
             <div className="w-full h-full">
               {questions && (
-                <div className="w-full h-full bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4 flex flex-col justify-between flex-1">
+                <div className="w-full h-full bg-white p-4 rounded-md shadow-md border border-gray-300 space-y-4 flex flex-col justify-between flex-1">
                   <div className="w-full h-full overflow-hidden border-b border-b-gray-300">
                     <div className="w-full flex flex-col gap-2 md:flex md:flex-row justify-between font-semibold">
                       <div>
@@ -753,8 +753,7 @@ export default function ExamPage() {
                       </div>
                     </div>
                   </div>
-
-                  <div className="flex flex-col md:flex md:flex-row items-center justify-between gap-4 mt-4">
+                  <div className="flex flex-col md:flex md:flex-row items-center justify-between">
                     <div className="w-full flex gap-3">
                       {/* <button
                         onClick={toggleMarkForReview}
@@ -776,7 +775,7 @@ export default function ExamPage() {
                       <button
                         onClick={clearResponse}
                         className={clsx(
-                          "w-full md:w-fit px-4 py-2 rounded-md font-medium text-white cursor-pointer bg-blue-600 hover:bg-blue-700"
+                          "w-full md:w-fit px-4 py-1 rounded-md font-medium text-white cursor-pointer bg-blue-600 hover:bg-blue-700"
                         )}
                       >
                         Clear Response
@@ -789,7 +788,7 @@ export default function ExamPage() {
                           onClick={handlePreviousQuestion}
                           disabled={currentIndex === 0}
                           className={clsx(
-                            "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+                            "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
                           )}
                         >
                           Previous
@@ -799,7 +798,7 @@ export default function ExamPage() {
                         <div className="w-full md:w-fit">
                           <button
                             onClick={handleSubmit}
-                            className="w-full text-nowrap px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium cursor-pointer mb-16 md:mb-0"
+                            className="w-full text-nowrap px-6 py-1 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium cursor-pointer mb-16 md:mb-0"
                           >
                             Submit Test
                           </button>
@@ -810,7 +809,7 @@ export default function ExamPage() {
                             onClick={handleNextQuestion}
                             disabled={currentIndex + 1 === questionsMeta.length}
                             className={clsx(
-                              "w-full md:w-fit px-6 py-2 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+                              "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
                             )}
                           >
                             Next

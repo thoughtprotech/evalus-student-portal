@@ -52,12 +52,12 @@ export function TabsList({ labels, className = "" }: TabsListProps) {
 
   return (
     <div
-      className={`w-fit h-14 rounded-md flex space-x-4 border bg-white border-gray-300 shadow-md p-2 ${className}`}
+      className={`w-fit h-fit rounded-md flex space-x-4 border bg-white border-gray-300 shadow-md p-2 ${className}`}
     >
       {labels.map((label, index) => (
         <button
           key={index}
-          className={`px-4 py-2 transition-colors duration-200 cursor-pointer ${
+          className={`px-4 py-2 h-fit transition-colors duration-300 cursor-pointer text-xs ${
             ctx.activeIndex === index
               ? "bg-indigo-100 text-indigo-600 rounded-md"
               : "text-gray-700 hover:text-indigo-600"
