@@ -20,7 +20,7 @@ export const QUESTION_TYPES: {
   NUMERIC: "Numeric",
   TRUEFALSE: "TrueFalse",
   FILL_ANSWER: "Fill Answer",
-};
+} as const;
 
 export const QUESTION_STATUS: {
   NOT_VISITED: string;

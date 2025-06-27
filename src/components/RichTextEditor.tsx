@@ -191,7 +191,7 @@ export default function RichTextEditor({
       <div className="flex-1 overflow-auto">
         <EditorContent
           editor={editor}
-          className="min-h-full h-full p-4 focus:outline-none focus:ring-0 max-w-full editor-content prose prose-sm"
+          className="min-h-[200px] h-full p-4 focus:outline-none focus:ring-0 max-w-full editor-content prose prose-sm"
         />
       </div>
     </div>

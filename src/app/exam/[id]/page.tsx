@@ -724,11 +724,7 @@ export default function ExamPage() {
                                 <TextOrHtml content={questions.questionText} />
                               </div>
                             </div>
-                            <RichTextEditor
-                              onChange={(content) => {
-                                console.log({ content });
-                              }}
-                            />
+                           
                           </div>
                           <div className="w-full flex flex-col gap-1 h-fit">
                             <div>
