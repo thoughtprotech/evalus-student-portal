@@ -40,7 +40,7 @@ export default function ExamPage() {
   const [questions, setQuestion] = useState<GetQuestionByIdResponse>();
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showQuestionsModal, setShowQuestionsModal] = useState(false);
   const [showInstructionsModal, setShowInstructionsModal] =
     useState<boolean>(false);
@@ -620,6 +620,10 @@ export default function ExamPage() {
     // TODO: Handle timeout
   };
 
+  const toggleMarkForReview = async () => {
+    // TODO: Implement API here to update question status
+  };
+
   if (!loaded) {
     return <Loader />;
   }
@@ -680,8 +684,8 @@ export default function ExamPage() {
           <TabsContent className="w-full h-full overflow-hidden">
             <div className="w-full h-full">
               {questions && (
-                <div className="w-full h-full bg-white p-4 rounded-md shadow-md border border-gray-300 space-y-4 flex flex-col justify-between flex-1">
-                  <div className="w-full h-full overflow-hidden border-b border-b-gray-300">
+                <div className="w-full h-full bg-white rounded-md shadow-md border border-gray-300 flex flex-col justify-between flex-1">
+                  <div className="w-full h-full overflow-hidden border-b border-b-gray-300 p-4">
                     <div className="w-full flex flex-col gap-2 md:flex md:flex-row justify-between font-semibold">
                       <div>
                         <h1 className="text-sm text-gray-600">
@@ -753,29 +757,26 @@ export default function ExamPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex flex-col md:flex md:flex-row items-center justify-between">
+                  <div className="flex flex-col md:flex md:flex-row items-center justify-between bg-gray-100 p-4">
                     <div className="w-full flex gap-3">
-                      {/* <button
+                      <button
                         onClick={toggleMarkForReview}
                         className={clsx(
-                          "w-full md:w-fit px-4 py-2 rounded-md font-medium text-white cursor-pointer",
-                          questions.status === "review" ||
-                            questions.status === "answeredMarkedForReview"
-                            ? "bg-gray-500 hover:bg-gray-600"
-                            : "bg-purple-500 hover:bg-purple-600"
+                          "w-full md:w-fit px-4 py-1 rounded-md font-medium cursor-pointer bg-white hover:bg-gray-200 border border-gray-300"
                         )}
                       >
-                        {questions.status === "review" ||
+                        Mark For Review & Next
+                        {/* {questions. === "review" ||
                         questions.status === "answeredMarkedForReview"
                           ? "Unmark Review"
                           : currentIndex < questions.length - 1
                           ? "Mark For Review & Next"
-                          : "Mark For Review"}
-                      </button> */}
+                          : "Mark For Review"} */}
+                      </button>
                       <button
                         onClick={clearResponse}
                         className={clsx(
-                          "w-full md:w-fit px-4 py-1 rounded-md font-medium text-white cursor-pointer bg-blue-600 hover:bg-blue-700"
+                          "w-full md:w-fit px-4 py-1 rounded-md font-medium cursor-pointer bg-white hover:bg-gray-200 border border-gray-300"
                         )}
                       >
                         Clear Response
@@ -783,7 +784,7 @@ export default function ExamPage() {
                     </div>
 
                     <div className="w-full md:w-fit flex gap-3">
-                      <div className="w-full md:w-fit">
+                      {/* <div className="w-full md:w-fit">
                         <button
                           onClick={handlePreviousQuestion}
                           disabled={currentIndex === 0}
@@ -793,12 +794,12 @@ export default function ExamPage() {
                         >
                           Previous
                         </button>
-                      </div>
+                      </div> */}
                       {currentIndex + 1 === questionsMeta.length ? (
                         <div className="w-full md:w-fit">
                           <button
                             onClick={handleSubmit}
-                            className="w-full text-nowrap px-6 py-1 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium cursor-pointer mb-16 md:mb-0"
+                            className="w-full text-nowrap px-6 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded-md font-medium cursor-pointer mb-16 md:mb-0"
                           >
                             Submit Test
                           </button>
@@ -809,10 +810,10 @@ export default function ExamPage() {
                             onClick={handleNextQuestion}
                             disabled={currentIndex + 1 === questionsMeta.length}
                             className={clsx(
-                              "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+                              "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 whitespace-nowrap"
                             )}
                           >
-                            Next
+                            Save & Next
                           </button>
                         </div>
                       )}
@@ -871,59 +872,61 @@ export default function ExamPage() {
                   U
                 </div>
                 <div>
-                  <h1 className="text-xs font-bold text-gray-600">Welcome</h1>
-                  <h1 className="text-xl font-bold text-gray-800">John Doe</h1>
+                  <h1 className="text-sm font-bold text-gray-800">
+                    Welcome John Doe
+                  </h1>
                 </div>
               </div>
             </div>
             {/* Legend */}
-            <div className="flex flex-col gap-2">
-              <div>
-                <h1 className="font-bold text-2xl">Legend</h1>
-              </div>
+            <div className="flex flex-col gap-2 border-t border-t-gray-300 border-b border-b-gray-300 py-4">
               <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 p-2 flex items-center justify-center bg-gray-300 rounded-md font-bold">
-                    {
-                      questionsMeta.filter(
-                        (question) =>
-                          question.status === QUESTION_STATUS.NOT_VISITED
-                      ).length
-                    }
+                <div className="w-full grid grid-cols-2 gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 p-2 flex items-center justify-center bg-green-500 rounded-md font-bold text-white">
+                      {
+                        questionsMeta.filter(
+                          (question) =>
+                            question.status === QUESTION_STATUS.ATTEMPTED
+                        ).length
+                      }
+                    </div>
+                    <span>Answered</span>
                   </div>
-                  <span>Not Visited</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 p-2 flex items-center justify-center bg-red-500 rounded-md font-bold text-white">
-                    {
-                      questionsMeta.filter(
-                        (question) => question.status === "unanswered"
-                      ).length
-                    }
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 p-2 flex items-center justify-center bg-red-500 rounded-md font-bold text-white">
+                      {
+                        questionsMeta.filter(
+                          (question) => question.status === "unanswered"
+                        ).length
+                      }
+                    </div>
+                    <span>Not Answered</span>
                   </div>
-                  <span>Not Answered</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 p-2 flex items-center justify-center bg-green-500 rounded-md font-bold text-white">
-                    {
-                      questionsMeta.filter(
-                        (question) =>
-                          question.status === QUESTION_STATUS.ATTEMPTED
-                      ).length
-                    }
+
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 p-2 flex items-center justify-center bg-gray-300 rounded-md font-bold">
+                      {
+                        questionsMeta.filter(
+                          (question) =>
+                            question.status === QUESTION_STATUS.NOT_VISITED
+                        ).length
+                      }
+                    </div>
+                    <span>Not Visited</span>
                   </div>
-                  <span>Answered</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 p-2 flex items-center justify-center bg-purple-500 rounded-full font-bold text-white">
-                    {
-                      questionsMeta.filter(
-                        (question) =>
-                          question.status === QUESTION_STATUS.TO_REVIEW
-                      ).length
-                    }
+
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 p-2 flex items-center justify-center bg-purple-500 rounded-full font-bold text-white">
+                      {
+                        questionsMeta.filter(
+                          (question) =>
+                            question.status === QUESTION_STATUS.TO_REVIEW
+                        ).length
+                      }
+                    </div>
+                    <span>Marked For Review</span>
                   </div>
-                  <span>Marked For Review</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-9 h-8 p-2 flex items-center justify-center bg-purple-500 rounded-full font-bold text-white relative">
@@ -950,7 +953,7 @@ export default function ExamPage() {
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
                 <div>
-                  <h1 className="font-bold text-2xl">Questions</h1>
+                  <h1 className="font-bold text-xl">Questions Pallet</h1>
                 </div>
               </div>
               <div className="grid grid-cols-8 md:grid-cols-4 gap-2 mb-4">
@@ -986,10 +989,10 @@ export default function ExamPage() {
               </div>
             </div>
           </div>
-          <div className="w-full">
+          <div className="w-full flex justify-center">
             <button
               onClick={handleSubmit}
-              className="w-full text-nowrap px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium cursor-pointer mb-16 md:mb-0"
+              className="w-fit text-nowrap px-6 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded-md font-medium cursor-pointer mb-16 md:mb-0"
             >
               Submit Test
             </button>
