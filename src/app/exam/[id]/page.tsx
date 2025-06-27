@@ -717,7 +717,7 @@ export default function ExamPage() {
                             className="w-full flex flex-col gap-1 h-fit overflow-x-scroll mb-10 "
                             id="questionBox"
                           >
-                            <div className="w-[120vw] mb-20">
+                            <div className="mb-20">
                               <div>
                                 <h1 className="font-bold text-2xl">Question</h1>
                               </div>
