@@ -90,9 +90,9 @@ const ScrollXToggleButton: React.FC<ScrollXToggleButtonProps> = ({
       aria-label={atRight ? "Scroll to start" : "Scroll to end"}
     >
       {atRight ? (
-        <ArrowLeft className="w-6 h-6 text-gray-600" />
+        <ArrowLeft className="w-4 h-4 text-gray-600" />
       ) : (
-        <ArrowRight className="w-6 h-6 text-gray-600" />
+        <ArrowRight className="w-4 h-4 text-gray-600" />
       )}
     </button>
   );

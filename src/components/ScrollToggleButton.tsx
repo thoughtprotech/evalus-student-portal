@@ -102,9 +102,9 @@ const ScrollToggleButton: React.FC<ScrollToggleButtonProps> = ({
       aria-label={atBottom ? "Scroll to top" : "Scroll to bottom"}
     >
       {atBottom ? (
-        <ArrowUp className="w-6 h-6 text-gray-600" />
+        <ArrowUp className="w-4 h-4 text-gray-600" />
       ) : (
-        <ArrowDown className="w-6 h-6 text-gray-600" />
+        <ArrowDown className="w-4 h-4 text-gray-600" />
       )}
     </button>
   );
