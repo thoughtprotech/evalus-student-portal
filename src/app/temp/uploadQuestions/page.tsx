@@ -28,7 +28,7 @@ export default function Index() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-gray-100 flex justify-center px-4 py-8">
+    <div className="w-full min-h-screen h-full overflow-y-auto bg-gray-100 flex justify-center px-4 py-8">
       <div className="w-full space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -99,7 +99,7 @@ export default function Index() {
         </div>
 
         {/* Editor & Preview */}
-        <div className="flex gap-4 h-[70vh]">
+        <div className="flex gap-4 min-h-[70vh] h-fit">
           {/* Editor */}
           <div
             className={`flex-1 flex flex-col border border-gray-200 rounded-lg p-4 bg-white shadow ${
@@ -107,7 +107,7 @@ export default function Index() {
             }`}
           >
             <h2 className="text-xl font-semibold mb-2 text-gray-800">Editor</h2>
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1">
               <RichTextEditor
                 onChange={(content) => setQuestion(content)}
                 initialContent={question}
@@ -117,14 +117,14 @@ export default function Index() {
 
           {/* Preview */}
           <div
-            className={`flex-1 flex flex-col border border-gray-200 rounded-lg p-4 bg-white shadow ${
+            className={`flex-1 flex flex-col h-full border border-gray-200 rounded-lg p-4 bg-white shadow ${
               viewMode === "editor" ? "hidden" : ""
             }`}
           >
             <h2 className="text-xl font-semibold mb-2 text-gray-800">
               Preview
             </h2>
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1">
               <TextOrHtml content={question} />
             </div>
           </div>

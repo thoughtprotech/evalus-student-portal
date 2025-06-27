@@ -23,3 +23,9 @@ body {
 .editor-content blockquote {
   @apply border-l-4 border-gray-300 pl-4 italic text-gray-600;
 }
+
+.ProseMirror p:empty::before {
+  content: "\u00a0";
+  display: block;
+  height: 1em; /* optional for extra padding */
+}
