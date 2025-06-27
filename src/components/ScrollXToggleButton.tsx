@@ -1,16 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowDown, ArrowUp } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
-interface ScrollToggleButtonProps {
+interface ScrollXToggleButtonProps {
   containerSelector?: string;
   offset?: number;
 }
 
-const ScrollToggleButton: React.FC<ScrollToggleButtonProps> = ({
+const ScrollXToggleButton: React.FC<ScrollXToggleButtonProps> = ({
   containerSelector,
   offset = 0,
 }) => {
-  const [atBottom, setAtBottom] = useState(false);
+  const [atRight, setAtRight] = useState(false);
   const [isOverflowing, setIsOverflowing] = useState(false);
   const containerRef = useRef<HTMLElement | null>(null);
   const contentRef = useRef<HTMLElement | null>(null);
@@ -27,18 +27,12 @@ const ScrollToggleButton: React.FC<ScrollToggleButtonProps> = ({
     const el = containerRef.current;
     if (!el) return;
 
-    const scrollTop = el.scrollTop;
-    const clientHeight = el.clientHeight;
-    const scrollHeight = el.scrollHeight;
+    const scrollLeft = el.scrollLeft;
+    const clientWidth = el.clientWidth;
+    const scrollWidth = el.scrollWidth;
 
-    setIsOverflowing(scrollHeight > clientHeight + 1);
-
-    if (scrollTop === 0) {
-      setAtBottom(false);
-      return;
-    }
-
-    setAtBottom(scrollTop + clientHeight >= scrollHeight - offset - 1);
+    setIsOverflowing(scrollWidth > clientWidth + 1);
+    setAtRight(scrollLeft + clientWidth >= scrollWidth - offset - 1);
   };
 
   useEffect(() => {
@@ -46,19 +40,14 @@ const ScrollToggleButton: React.FC<ScrollToggleButtonProps> = ({
     if (!el) return;
 
     containerRef.current = el as HTMLElement;
-
-    // Try to get the first scrollable child as content reference
     contentRef.current = el.querySelector(":scope > *") as HTMLElement;
 
-    // Setup scroll and resize listeners
     el.addEventListener("scroll", checkScrollStatus, { passive: true });
     window.addEventListener("resize", checkScrollStatus);
 
-    // Observe changes in container size
     const resizeObserver = new ResizeObserver(checkScrollStatus);
     resizeObserver.observe(el);
 
-    // Observe DOM mutations in content
     const mutationObserver = new MutationObserver(checkScrollStatus);
     if (contentRef.current) {
       mutationObserver.observe(contentRef.current, {
@@ -69,7 +58,6 @@ const ScrollToggleButton: React.FC<ScrollToggleButtonProps> = ({
       });
     }
 
-    // Initial check
     requestAnimationFrame(checkScrollStatus);
 
     return () => {
@@ -84,10 +72,10 @@ const ScrollToggleButton: React.FC<ScrollToggleButtonProps> = ({
     const el = containerRef.current;
     if (!el) return;
 
-    if (atBottom) {
-      el.scrollTo({ top: 0, behavior: "smooth" });
+    if (atRight) {
+      el.scrollTo({ left: 0, behavior: "smooth" });
     } else {
-      el.scrollTo({ top: el.scrollHeight - offset, behavior: "smooth" });
+      el.scrollTo({ left: el.scrollWidth - offset, behavior: "smooth" });
     }
   };
 
@@ -96,18 +84,18 @@ const ScrollToggleButton: React.FC<ScrollToggleButtonProps> = ({
   return (
     <button
       onClick={handleClick}
-      className={`absolute w-fit h-fit ${
-        atBottom ? "bottom-6" : "top-0"
-      } right-0 m-2 z-50 p-1 bg-white border-2 border-gray-600 rounded-full transition-transform transform hover:scale-110 cursor-pointer`}
-      aria-label={atBottom ? "Scroll to top" : "Scroll to bottom"}
+      className={`absolute h-fit w-fit bottom-10 ${
+        atRight ? "right-6" : "left-0"
+      } m-2 z-50 p-1 bg-white border-2 border-gray-600 rounded-full transition-transform transform hover:scale-110 cursor-pointer`}
+      aria-label={atRight ? "Scroll to start" : "Scroll to end"}
     >
-      {atBottom ? (
-        <ArrowUp className="w-6 h-6 text-gray-600" />
+      {atRight ? (
+        <ArrowLeft className="w-6 h-6 text-gray-600" />
       ) : (
-        <ArrowDown className="w-6 h-6 text-gray-600" />
+        <ArrowRight className="w-6 h-6 text-gray-600" />
       )}
     </button>
   );
 };
 
-export default ScrollToggleButton;
+export default ScrollXToggleButton;

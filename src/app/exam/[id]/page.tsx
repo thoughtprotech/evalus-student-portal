@@ -29,6 +29,7 @@ import { QUESTION_STATUS, QUESTION_TYPES } from "@/utils/constants";
 import ScrollToggleButton from "@/components/ScrollToggleButton";
 import RichTextEditor from "@/components/RichTextEditor";
 import { TextOrHtml } from "@/components/TextOrHtml";
+import ScrollXToggleButton from "@/components/ScrollXToggleButton";
 
 export default function ExamPage() {
   const { id } = useParams();
@@ -711,47 +712,27 @@ export default function ExamPage() {
                     </div>
                     <div className="w-full h-full flex gap-5">
                       <div className="relative w-3/4 h-full border-r border-r-gray-300">
-                        <div
-                          className="w-full flex flex-col gap-4 h-full overflow-y-auto overflow-x-auto relative pr-4"
-                          id="questionBox"
-                        >
-                          <div className="w-full flex flex-col gap-1 h-fit">
-                            <div>
-                              <h1 className="font-bold text-2xl">Question</h1>
-                            </div>
-                            <div>
-                              <div className="text-md sm:text-lg font-medium">
-                                <TextOrHtml content={questions.questionText} />
+                        <div className="w-full flex flex-col gap-4 h-full pr-4 relative">
+                          <div
+                            className="w-full flex flex-col gap-1 h-fit overflow-x-scroll mb-10 "
+                            id="questionBox"
+                          >
+                            <div className="w-[120vw] mb-20">
+                              <div>
+                                <h1 className="font-bold text-2xl">Question</h1>
+                              </div>
+                              <div>
+                                <div className="text-md sm:text-lg font-medium">
+                                  <TextOrHtml
+                                    content={questions.questionText}
+                                  />
+                                </div>
                               </div>
                             </div>
-                           
                           </div>
-                          <div className="w-full flex flex-col gap-1 h-fit">
-                            <div>
-                              <h1 className="font-bold text-2xl">Video</h1>
-                            </div>
-                            <div className="w-3/4 aspect-video">
-                              <video
-                                src="https://videos.pexels.com/video-files/31630360/13475691_2560_1440_30fps.mp4"
-                                controls
-                                className="rounded-md border border-gray-300"
-                              />
-                            </div>
-                          </div>
-                          <div className="w-full flex flex-col gap-1 h-fit mb-10">
-                            <div>
-                              <h1 className="font-bold text-2xl">Image</h1>
-                            </div>
-                            <div className="w-3/4 aspect-auto">
-                              <img
-                                src="https://media.geeksforgeeks.org/wp-content/uploads/20221006220419/QuadraticFormula.png"
-                                alt="/"
-                                className="rounded-md border border-gray-300"
-                              />
-                            </div>
-                          </div>
+                          <ScrollXToggleButton containerSelector="#questionBox" />
+                          <ScrollToggleButton containerSelector="#questionBox" />
                         </div>
-                        <ScrollToggleButton containerSelector="#questionBox" />
                       </div>
                       {errorMessage && (
                         <div className="mb-4 text-sm text-red-600 font-medium">
