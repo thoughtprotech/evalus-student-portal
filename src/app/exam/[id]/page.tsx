@@ -27,6 +27,7 @@ import { fetchQuestionsMetaAction } from "@/app/actions/exam/questions/getQuesti
 import { fetchQuestionByIdAction } from "@/app/actions/exam/questions/getQuestionById";
 import { QUESTION_STATUS, QUESTION_TYPES } from "@/utils/constants";
 import ScrollToggleButton from "@/components/ScrollToggleButton";
+import RichTextEditor from "@/components/RichTextEditor";
 
 export default function ExamPage() {
   const { id } = useParams();
@@ -718,10 +719,15 @@ export default function ExamPage() {
                               <h1 className="font-bold text-2xl">Question</h1>
                             </div>
                             <div>
-                              <h1 className="text-md sm:text-lg font-medium text-gray-800">
+                              <h1 className="text-md sm:text-lg font-medium text-gray-800 whitespace-pre-wrap">
                                 {questions.questionText}
                               </h1>
                             </div>
+                            <RichTextEditor
+                              onChange={(content) => {
+                                console.log({ content });
+                              }}
+                            />
                           </div>
                           <div className="w-full flex flex-col gap-1 h-fit">
                             <div>
