@@ -1,26 +1,21 @@
 "use server";
 
-import ActionResponse from "@/types/ActionResponse";
 import { cookies } from "next/headers";
 import AnalyticsList from "@/mock/mockTests.json";
+import { ApiResponse } from "@/utils/api/types";
 
-export async function fetchAnalyticsListAction(): Promise<ActionResponse> {
-
+export async function fetchAnalyticsListAction(): Promise<
+  ApiResponse<typeof AnalyticsList>
+> {
   //   TODO: Add filters
   try {
-    // const { token, role, username, roleDetailsJson, isAuthorized, message } =
-    //   await apiHandler<LoginResponse>("/analyticsList", {
-    //     method: "GET",
-    //     routeType: "close",
-    //   });
-
     return {
-      status: "success",
+      status: 200,
       message: "Fetching Anaytics List Successful",
       data: AnalyticsList,
     };
   } catch (error) {
     console.log("Error Fetching Anaytics List", error);
-    return { status: "failure", message: "Error Fetching Anaytics List" };
+    return { status: 500, message: "Error Fetching Anaytics List" };
   }
 }

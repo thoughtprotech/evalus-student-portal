@@ -34,7 +34,7 @@ export default function TestsPage() {
     (async () => {
       setLoading(true);
       const res = await fetchTestsAction();
-      if (res.status === "success" && Array.isArray(res.data)) {
+      if (res.status === 200 && Array.isArray(res.data)) {
         setData(res.data);
       }
       setLoading(false);

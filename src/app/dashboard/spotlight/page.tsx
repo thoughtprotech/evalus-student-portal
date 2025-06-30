@@ -31,7 +31,7 @@ export default function AnnouncementsPage() {
     const res = await fetchSpotlightAction();
     const { data, status } = res;
     if (status) {
-      setAnnouncementList(data);
+      setAnnouncementList(data!);
       setLoaded(true);
     }
   };

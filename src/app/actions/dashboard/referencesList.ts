@@ -1,25 +1,19 @@
 "use server";
 
-import ActionResponse from "@/types/ActionResponse";
 import { cookies } from "next/headers";
 import ReferenceList from "@/mock/referencesList.json";
+import { ApiResponse } from "@/utils/api/types";
 
-export async function fetchReferencesListAction(): Promise<ActionResponse> {
+export async function fetchReferencesListAction(): Promise<ApiResponse<any>> {
   //   TODO: Add filters
   try {
-    // const { token, role, username, roleDetailsJson, isAuthorized, message } =
-    //   await apiHandler<LoginResponse>("/analyticsList", {
-    //     method: "GET",
-    //     routeType: "close",
-    //   });
-
     return {
-      status: "success",
+      status: 200,
       message: "Fetching References List Successful",
       data: ReferenceList,
     };
   } catch (error) {
     console.log("Error Fetching References List", error);
-    return { status: "failure", message: "Error Fetching References List" };
+    return { status: 500, message: "Error Fetching References List" };
   }
 }

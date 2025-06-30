@@ -27,7 +27,7 @@ export default function ProductsPage() {
     (async () => {
       setLoading(true);
       const res = await fetchProductsAction();
-      if (res.status === "success" && Array.isArray(res.data)) {
+      if (res.status === 200 && Array.isArray(res.data)) {
         setProducts(res.data);
       }
       setLoading(false);

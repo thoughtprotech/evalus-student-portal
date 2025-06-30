@@ -1,6 +1,6 @@
 "use server";
 
-import ActionResponse from "@/types/ActionResponse";
+import { ApiResponse } from "@/utils/api/types";
 
 interface Candidate {
   id: number;
@@ -11,7 +11,12 @@ interface Candidate {
 }
 
 const generateMockCandidates = (count: number): Candidate[] => {
-  const roles = ["Frontend Dev", "Backend Dev", "UI/UX Designer", "QA Engineer"];
+  const roles = [
+    "Frontend Dev",
+    "Backend Dev",
+    "UI/UX Designer",
+    "QA Engineer",
+  ];
   return Array.from({ length: count }, (_, i) => ({
     id: i + 1,
     name: `Candidate ${i + 1}`,
@@ -21,17 +26,19 @@ const generateMockCandidates = (count: number): Candidate[] => {
   }));
 };
 
-export async function fetchCandidatesAction(): Promise<ActionResponse> {
+export async function fetchCandidatesAction(): Promise<
+  ApiResponse<Candidate[]>
+> {
   try {
     const allCandidates = generateMockCandidates(25);
 
     return {
-      status: "success",
+      status: 200,
       message: "Fetching Candidates Successful",
       data: allCandidates,
     };
   } catch (error) {
     console.log("Error Fetching Candidates", error);
-    return { status: "failure", message: "Error Fetching Candidates" };
+    return { status: 500, message: "Error Fetching Candidates" };
   }
 }

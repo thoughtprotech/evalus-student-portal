@@ -62,7 +62,7 @@ export default function TestDetailsPage() {
   const fetchAnalytics = async () => {
     const res = await fetchAnalyticsAction(id as TestId);
     const { data, status } = res;
-    if (status === "success") {
+    if (status === 200) {
       setTestDetails(data);
       setLoaded(true);
     }

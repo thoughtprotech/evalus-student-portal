@@ -1,6 +1,6 @@
 "use server";
 
-import ActionResponse from "@/types/ActionResponse";
+import { ApiResponse } from "@/utils/api/types";
 
 interface Product {
   id: number;
@@ -22,17 +22,17 @@ const generateMockProducts = (count: number): Product[] => {
   }));
 };
 
-export async function fetchProductsAction(): Promise<ActionResponse> {
+export async function fetchProductsAction(): Promise<ApiResponse<Product[]>> {
   try {
     const allProducts = generateMockProducts(40);
 
     return {
-      status: "success",
+      status: 200,
       message: "Fetching Products Successful",
       data: allProducts,
     };
   } catch (error) {
     console.log("Error Fetching Products", error);
-    return { status: "failure", message: "Error Fetching Products" };
+    return { status: 500, message: "Error Fetching Products" };
   }
 }

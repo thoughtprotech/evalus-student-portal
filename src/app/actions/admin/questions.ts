@@ -1,6 +1,6 @@
 "use server";
 
-import ActionResponse from "@/types/ActionResponse";
+import { ApiResponse } from "@/utils/api/types";
 
 interface Question {
   id: number;
@@ -22,7 +22,7 @@ const generateMockQuestions = (count: number): Question[] => {
   }));
 };
 
-export async function fetchQuestonsAction(): Promise<ActionResponse> {
+export async function fetchQuestonsAction(): Promise<ApiResponse<Question[]>> {
   //   TODO: Add filters
   try {
     // const { token, role, username, roleDetailsJson, isAuthorized, message } =
@@ -33,12 +33,12 @@ export async function fetchQuestonsAction(): Promise<ActionResponse> {
     const allQuestions = generateMockQuestions(50);
 
     return {
-      status: "success",
+      status: 200,
       message: "Fetching Anaytics List Successful",
       data: allQuestions,
     };
   } catch (error) {
     console.log("Error Fetching Anaytics", error);
-    return { status: "failure", message: "Error Fetching Anaytics" };
+    return { status: 500, message: "Error Fetching Anaytics" };
   }
 }

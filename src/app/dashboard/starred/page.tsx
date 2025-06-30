@@ -22,8 +22,8 @@ export default function Index() {
   const fetchStarredList = async () => {
     const res = await fetchStarredListAction();
     const { data, status } = res;
-    if (status === "success") {
-      setTestList(data);
+    if (status === 200) {
+      setTestList(data!);
       setLoaded(true);
     }
   };

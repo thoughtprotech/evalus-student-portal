@@ -7,7 +7,7 @@ export async function fetchCandidateAction(userId: number) {
   try {
     const user = UserMock.filter((user) => user.CandidateID === userId);
     return {
-      status: "success",
+      status: 200,
       message: "Fetching Candidate Successful",
       data: user[0],
     };
@@ -27,7 +27,7 @@ export async function createCandidateAction(formData: FormData) {
     );
 
     return {
-      status: "success",
+      status: 200,
       message: "Candidate created successfully",
       data: {}, // Return newly created user data here
     };
@@ -50,7 +50,7 @@ export async function updateCandidateAction(
     );
 
     return {
-      status: "success",
+      status: 200,
       message: "Candidate updated successfully",
       data: {}, // Return updated user data here
     };

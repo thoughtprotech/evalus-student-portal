@@ -4,7 +4,7 @@ import React from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 
 import { useRouter } from "next/navigation";
-import { login } from "./actions/authentication/login";
+import { loginAction } from "./actions/authentication/login";
 import toast from "react-hot-toast";
 
 type FormData = {
@@ -25,16 +25,16 @@ export default function Home() {
       const formData = new FormData();
       formData.append("username", data.username);
       formData.append("password", data.password);
-      const res = await login(formData);
-      if (res.status === "success") {
-        if (res.data.role === "ADMIN") {
+      const res = await loginAction(formData);
+      if (res.status === 200) {
+        if (res.data!.role === "ADMIN") {
           router.push("/admin");
         } else {
           router.push("/dashboard");
         }
-        toast.success(res.message);
+        toast.success(res.message!);
       } else {
-        toast.error(res.message);
+        toast.error(res.errorMessage!);
       }
     } catch (error) {
       console.error("Login failed", error);

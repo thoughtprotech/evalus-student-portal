@@ -26,7 +26,7 @@ export default function Index() {
   const fetchTestList = async () => {
     const res = await fetchTestListAction();
     const { data, status } = res;
-    if (status === "success") {
+    if (status === 200) {
       setTestList(data);
       setLoaded(true);
     }

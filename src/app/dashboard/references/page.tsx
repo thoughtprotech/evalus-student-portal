@@ -14,8 +14,8 @@ export default function Index() {
   const fetchReferencesList = async () => {
     const res = fetchReferencesListAction();
     const { data, status } = await res;
-    if (status === "success") {
-      setReferenceList(data);
+    if (status === 200) {
+      setReferenceList(data!);
       setLoaded(true);
     }
   };

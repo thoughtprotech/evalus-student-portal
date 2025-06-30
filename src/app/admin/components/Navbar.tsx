@@ -4,7 +4,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { logout } from "@/app/actions/authentication/logout";
+import { logoutAction } from "@/app/actions/authentication/logout";
 import { DropDown } from "@/components/DropDown";
 import {
   LayoutDashboard,
@@ -46,8 +46,8 @@ export default function Navbar({ username }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = async () => {
-    const res = await logout();
-    if (res.status === "success") {
+    const res = await logoutAction();
+    if (res.status === 200) {
       router.push("/");
     }
   };

@@ -65,7 +65,7 @@ export default function ExamPage() {
     const res = await fetchQuestionByIdAction(questionId);
     const { data, status, error, errorMessage, message } = res;
     if (status === 200) {
-      setQuestion(data);
+      setQuestion(data!);
       // setTestList(data);
     } else {
       console.log({ status, error, errorMessage });
@@ -77,7 +77,7 @@ export default function ExamPage() {
     const res = await fetchQuestionsMetaAction(Number(id));
     const { data, status, error, errorMessage, message } = res;
     if (status === 200 && data) {
-      setQuestionsMeta(data);
+      setQuestionsMeta(data!);
       setCurrentQuestion({ questionId: data[0].questionId });
       setLoaded(true);
     } else {

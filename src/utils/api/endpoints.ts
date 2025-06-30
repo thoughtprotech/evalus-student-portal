@@ -1,4 +1,5 @@
 import {
+  CreateQuestionRequest,
   Endpoint,
   GetQuestionByIdRequest,
   GetQuestionByIdResponse,
@@ -41,4 +42,10 @@ export const endpoints = {
     path: ({ questionId }) => `/api/Questions/${questionId}`,
     type: "CLOSE",
   } as Endpoint<GetQuestionByIdRequest, GetQuestionByIdResponse>,
+
+  createQuestion: {
+    method: "POST",
+    path: () => `/api/Questions`,
+    type: "CLOSE",
+  } as Endpoint<CreateQuestionRequest, null>,
 };

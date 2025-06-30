@@ -18,7 +18,7 @@ import {
 import { JSX, ReactNode, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { logout } from "../actions/authentication/logout";
+import { logoutAction } from "../actions/authentication/logout";
 import { DropDown } from "@/components/DropDown";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -87,9 +87,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   };
 
   const handleLogout = async () => {
-    const res = await logout();
+    const res = await logoutAction();
     console.log({ res });
-    if (res.status === "success") {
+    if (res.status === 200) {
       router.push("/");
     } else {
       return toast.error("Something Went Wrong");
@@ -129,7 +129,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     { name: "SBI PO", href: "/dashboard" },
                     { name: "IBPS PO", href: "/dashboard" },
                     { name: "IBPS SO", href: "/dashboard" },
-                    { name: "IDBI Juinor Assistant Manager", href: "/dashboard" },
+                    {
+                      name: "IDBI Juinor Assistant Manager",
+                      href: "/dashboard",
+                    },
                     { name: "UBI LBO", href: "/dashboard" },
                     { name: "APCOB Staff Assistant", href: "/dashboard" },
                     { name: "APCOB Assistant Manager", href: "/dashboard" },

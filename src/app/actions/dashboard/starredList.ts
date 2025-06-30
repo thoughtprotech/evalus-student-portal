@@ -1,25 +1,19 @@
 "use server";
 
-import ActionResponse from "@/types/ActionResponse";
 import { cookies } from "next/headers";
 import TestList from "@/mock/testList.json";
+import { ApiResponse } from "@/utils/api/types";
 
-export async function fetchStarredListAction(): Promise<ActionResponse> {
+export async function fetchStarredListAction(): Promise<ApiResponse<any>> {
   //   TODO: Add filters
   try {
-    // const { token, role, username, roleDetailsJson, isAuthorized, message } =
-    //   await apiHandler<LoginResponse>("/analyticsList", {
-    //     method: "GET",
-    //     routeType: "close",
-    //   });
-
     return {
-      status: "success",
+      status: 200,
       message: "Fetching Starred List Successful",
       data: TestList,
     };
   } catch (error) {
     console.log("Error Fetching Starred List", error);
-    return { status: "failure", message: "Error Fetching Starred List" };
+    return { status: 500, message: "Error Fetching Starred List" };
   }
 }

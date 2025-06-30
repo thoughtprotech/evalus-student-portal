@@ -40,7 +40,7 @@ export default function ReportsPage() {
     (async () => {
       setLoading(true);
       const res = await fetchReportsAction();
-      if (res.status === "success" && Array.isArray(res.data)) {
+      if (res.status === 200 && Array.isArray(res.data)) {
         setReports(res.data);
       }
       setLoading(false);

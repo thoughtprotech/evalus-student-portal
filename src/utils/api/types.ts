@@ -109,3 +109,11 @@ export interface GetQuestionByIdResponse {
   writeUp: any;
   questionTags: any[];
 }
+
+export interface CreateQuestionRequest {
+  testId: number;
+  questionType: string;
+  questionText: string;
+  options?: string;
+  correctAnswer?: string;
+}

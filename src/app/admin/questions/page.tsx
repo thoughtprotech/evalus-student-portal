@@ -30,7 +30,7 @@ export default function QuestionsPage() {
     (async () => {
       setLoading(true);
       const res = await fetchQuestonsAction();
-      if (res.status === "success" && Array.isArray(res.data)) {
+      if (res.status === 200 && Array.isArray(res.data)) {
         setQuestions(res.data);
       }
       setLoading(false);

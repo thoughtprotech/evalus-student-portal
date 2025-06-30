@@ -1,6 +1,6 @@
 "use server";
 
-import ActionResponse from "@/types/ActionResponse";
+import { ApiResponse } from "@/utils/api/types";
 
 interface Test {
   id: number;
@@ -19,17 +19,17 @@ const generateMockTests = (count: number): Test[] => {
   }));
 };
 
-export async function fetchTestsAction(): Promise<ActionResponse> {
+export async function fetchTestsAction(): Promise<ApiResponse<Test[]>> {
   try {
     const allTests = generateMockTests(30);
 
     return {
-      status: "success",
+      status: 200,
       message: "Fetching Tests Successful",
       data: allTests,
     };
   } catch (error) {
     console.log("Error Fetching Tests", error);
-    return { status: "failure", message: "Error Fetching Tests" };
+    return { status: 500, message: "Error Fetching Tests" };
   }
 }

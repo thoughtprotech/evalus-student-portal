@@ -44,7 +44,7 @@ export default function CandidatesPage() {
     (async () => {
       setLoading(true);
       const res = await fetchCandidatesAction();
-      if (res.status === "success" && Array.isArray(res.data)) {
+      if (res.status === 200 && Array.isArray(res.data)) {
         setCands(res.data);
       }
       setLoading(false);

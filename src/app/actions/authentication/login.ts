@@ -1,12 +1,14 @@
 "use server";
 
-import ActionResponse from "@/types/ActionResponse";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
+import { ApiResponse } from "@/utils/api/types";
 
-export async function login(formData: FormData): Promise<ActionResponse> {
+export async function loginAction(
+  formData: FormData
+): Promise<ApiResponse<{ role: string }>> {
   const username = formData.get("username");
   const password = formData.get("password");
 
@@ -34,7 +36,7 @@ export async function login(formData: FormData): Promise<ActionResponse> {
       const decoded: any = jwt.decode(data?.token!);
 
       return {
-        status: "success",
+        status: 200,
         message: res.message || "User Authenticated",
         data: {
           role: decoded.role,
@@ -42,11 +44,11 @@ export async function login(formData: FormData): Promise<ActionResponse> {
       };
     }
     return {
-      status: "failure",
-      message: res.errorMessage ?? "Error Authenticating User",
+      status: 500,
+      errorMessage: res.errorMessage ?? "Error Authenticating User",
     };
   } catch (error) {
     console.log("Error Authenticating User", error);
-    return { status: "failure", message: "Error Authenticating User" };
+    return { status: 500, errorMessage: "Error Authenticating User" };
   }
 }

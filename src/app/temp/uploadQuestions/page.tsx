@@ -4,6 +4,8 @@ import { useState } from "react";
 import RichTextEditor from "@/components/RichTextEditor";
 import { QUESTION_TYPES } from "@/utils/constants";
 import QuestionOptionsInput from "./_components/QuestionOptionsInput";
+import { createQuestionAction } from "@/app/actions/dashboard/questions/createQuestion";
+import toast from "react-hot-toast";
 
 export default function Index() {
   const [testId, setTestId] = useState<number>();
@@ -11,15 +13,52 @@ export default function Index() {
   const [questionType, setQuestionType] = useState<
     (typeof QUESTION_TYPES)[keyof typeof QUESTION_TYPES]
   >(QUESTION_TYPES.SINGLE_MCQ);
-  const [questionOptions, setQuestionOptions] = useState<any>(null);
+  const [questionOptions, setQuestionOptions] = useState<{
+    options: any;
+    answer: any;
+  }>();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    // Safely stringify options (always an array)
+    const stringifiedOptions = JSON.stringify(questionOptions?.options);
+
+    // Conditionally stringify answers only if it's an array
+    const stringifiedAnswer = Array.isArray(questionOptions?.answer)
+      ? JSON.stringify(questionOptions.answer)
+      : questionOptions?.answer;
+
     console.log("Submitting Question:", {
       testId,
       questionType,
       question,
-      options: questionOptions,
+      options: {
+        options: stringifiedOptions,
+        answer: stringifiedAnswer,
+      },
     });
+
+    console.log(
+      "Options (stringified):",
+      stringifiedOptions,
+      typeof stringifiedOptions
+    );
+    console.log("Answer:", stringifiedAnswer, typeof stringifiedAnswer);
+
+    const res = await createQuestionAction(
+      Number(testId),
+      questionType,
+      question,
+      stringifiedOptions,
+      stringifiedAnswer
+    );
+    const { status, error, errorMessage, message } = res;
+    if (status === 200) {
+      toast.success(message!);
+      // setTestList(data);
+    } else {
+      toast.error(errorMessage!);
+      console.log({ status, error, errorMessage });
+    }
   };
 
   return (

@@ -24,7 +24,7 @@ export default function AnalyticsDashboard() {
     const res = await fetchAnalyticsListAction();
     const { data, status } = res;
     if (status) {
-      setMockTests(data);
+      setMockTests(data!);
       setLoaded(true);
     }
   };
