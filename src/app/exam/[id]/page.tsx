@@ -37,7 +37,7 @@ export default function ExamPage() {
   const [questionsMeta, setQuestionsMeta] = useState<QuestionsMetaResponse[]>(
     []
   );
-  const [questions, setQuestion] = useState<GetQuestionByIdResponse>();
+  const [question, setQuestion] = useState<GetQuestionByIdResponse>();
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -103,22 +103,22 @@ export default function ExamPage() {
   const cancelSubmit = () => setShowModal(false);
 
   useEffect(() => {
-    console.log({ questions });
-  }, [questions]);
+    console.log({ question });
+  }, [question]);
 
   const renderQuestion = () => {
-    switch (questions?.questionType.questionType) {
+    switch (question?.questionType.questionType) {
       case QUESTION_TYPES.SINGLE_MCQ:
         return (
           <div className="flex flex-col gap-2">
-            {JSON.parse(questions!.questionOptionsJson).map(
+            {JSON.parse(question!.questionOptionsJson).map(
               (option: string, index: number) => {
                 return (
                   <label
                     key={index}
                     className={clsx(
                       "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base",
-                      JSON?.parse(questions!.userAnswer)?.includes(option)
+                      JSON?.parse(question!.userAnswer)?.includes(option)
                         ? "border-indigo-600 bg-indigo-100 text-indigo-900"
                         : "border-gray-300 hover:bg-gray-100"
                     )}
@@ -152,14 +152,14 @@ export default function ExamPage() {
       case QUESTION_TYPES.MULTIPLE_MCQ:
         return (
           <div className="flex flex-col gap-2">
-            {JSON.parse(questions!.questionOptionsJson).map(
+            {JSON.parse(question!.questionOptionsJson).map(
               (option: string, index: number) => {
                 return (
                   <label
                     key={index}
                     className={clsx(
                       "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base",
-                      JSON?.parse(questions!.userAnswer)?.includes(option)
+                      JSON?.parse(question!.userAnswer)?.includes(option)
                         ? "border-indigo-600 bg-indigo-100 text-indigo-900"
                         : "border-gray-300 hover:bg-gray-100"
                     )}
@@ -213,7 +213,7 @@ export default function ExamPage() {
         return (
           <div className="w-full flex flex-col gap-5">
             <div className="w-full max-w-1/4 flex justify-between gap-2">
-              {JSON.parse(questions!.questionOptionsJson).map(
+              {JSON.parse(question!.questionOptionsJson).map(
                 (option: string[], index: number) => {
                   return (
                     <div className="flex flex-col gap-5" key={index}>
@@ -230,18 +230,18 @@ export default function ExamPage() {
               )}
             </div>
             <div>
-              {JSON.parse(questions!.questionOptionsJson)[0].map(
+              {JSON.parse(question!.questionOptionsJson)[0].map(
                 (col: string, index: number) => {
                   return (
                     <div key={index}>
                       <h1>{col}</h1>
                       <div className="flex gap-2">
-                        {JSON.parse(questions!.questionOptionsJson)[1].map(
+                        {JSON.parse(question!.questionOptionsJson)[1].map(
                           (row: string, idx: number) => {
                             return (
                               <div
                                 className={`rounded-md border p-2 border-gray-300 cursor-pointer ${
-                                  JSON.parse(questions!.userAnswer)[index] ===
+                                  JSON.parse(question!.userAnswer)[index] ===
                                   row
                                     ? "border-indigo-600 bg-indigo-100 text-indigo-900"
                                     : "border-gray-300 hover:bg-gray-100"
@@ -249,7 +249,7 @@ export default function ExamPage() {
                                 key={idx}
                                 onClick={() => {
                                   let updatedAnswer: string[] = JSON.parse(
-                                    questions!.userAnswer
+                                    question!.userAnswer
                                   );
                                   if (updatedAnswer.includes(row)) {
                                     const rplIdx = updatedAnswer.indexOf(row);
@@ -284,7 +284,7 @@ export default function ExamPage() {
         return (
           <div className="w-full flex flex-col gap-5">
             <div className="w-full max-w-1/4 flex justify-between gap-2">
-              {JSON.parse(questions!.questionOptionsJson).map(
+              {JSON.parse(question!.questionOptionsJson).map(
                 (option: string[], index: number) => {
                   return (
                     <div className="flex flex-col gap-5" key={index}>
@@ -301,18 +301,18 @@ export default function ExamPage() {
               )}
             </div>
             <div>
-              {JSON.parse(questions!.questionOptionsJson)[0].map(
+              {JSON.parse(question!.questionOptionsJson)[0].map(
                 (col: string, index: number) => {
                   return (
                     <div key={index}>
                       <h1>{col}</h1>
                       <div className="flex gap-2">
-                        {JSON.parse(questions!.questionOptionsJson)[1].map(
+                        {JSON.parse(question!.questionOptionsJson)[1].map(
                           (row: string, idx: number) => {
                             return (
                               <div
                                 className={`rounded-md border p-2 border-gray-300 cursor-pointer ${
-                                  JSON.parse(questions!.userAnswer)[
+                                  JSON.parse(question!.userAnswer)[
                                     index
                                   ].includes(row)
                                     ? "border-indigo-600 bg-indigo-100 text-indigo-900"
@@ -380,7 +380,7 @@ export default function ExamPage() {
                 });
                 console.log(e.target.value);
               }}
-              value={questions?.userAnswer}
+              value={question?.userAnswer}
             />
           </div>
         );
@@ -392,7 +392,7 @@ export default function ExamPage() {
               inputMode="decimal"
               pattern="\d*(\.\d*)?"
               className="w-full rounded-md border border-gray-300 px-4 py-2"
-              value={questions?.userAnswer ?? ""}
+              value={question?.userAnswer ?? ""}
               onChange={(e) => {
                 const val = e.target.value;
                 // allow empty string or valid numeric/float
@@ -412,7 +412,7 @@ export default function ExamPage() {
             <label
               className={clsx(
                 "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base",
-                questions!.userAnswer === "True"
+                question!.userAnswer === "True"
                   ? "border-indigo-600 bg-indigo-100 text-indigo-900"
                   : "border-gray-300 hover:bg-gray-100"
               )}
@@ -439,7 +439,7 @@ export default function ExamPage() {
             <label
               className={clsx(
                 "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base",
-                questions!.userAnswer === "False"
+                question!.userAnswer === "False"
                   ? "border-indigo-600 bg-indigo-100 text-indigo-900"
                   : "border-gray-300 hover:bg-gray-100"
               )}
@@ -471,7 +471,7 @@ export default function ExamPage() {
             <input
               type="text"
               className="w-full rounded-md border border-gray-300 px-4 py-2"
-              value={questions?.userAnswer ?? ""}
+              value={question?.userAnswer ?? ""}
               onChange={(e) => {
                 const val = e.target.value;
                 setQuestion((prev) => {
@@ -499,7 +499,7 @@ export default function ExamPage() {
   };
 
   const clearResponse = async () => {
-    switch (questions!.questionType.questionType) {
+    switch (question!.questionType.questionType) {
       case "Single MCQ":
         setQuestion((prev) => {
           if (!prev) {
@@ -546,7 +546,7 @@ export default function ExamPage() {
 
           let emptyArr: string[][] = [];
 
-          JSON.parse(questions!.questionOptionsJson)[0].map(() => {
+          JSON.parse(question!.questionOptionsJson)[0].map(() => {
             emptyArr.push([]);
           });
 
@@ -683,27 +683,27 @@ export default function ExamPage() {
 
           <TabsContent className="w-full h-full overflow-hidden">
             <div className="w-full h-full">
-              {questions && (
+              {question && (
                 <div className="w-full h-full bg-white rounded-md shadow-md border border-gray-300 flex flex-col justify-between flex-1">
                   <div className="w-full h-full overflow-hidden border-b border-b-gray-300 p-4">
                     <div className="w-full flex flex-col gap-2 md:flex md:flex-row justify-between font-semibold">
                       <div>
                         <h1 className="text-sm text-gray-600">
                           Question {currentIndex + 1} -{" "}
-                          {questions?.questionType?.questionType}
+                          {question?.questionType?.questionType}
                         </h1>
                       </div>
                       <div className="flex gap-3 items-center">
                         <div className="flex gap-3 text-xs md:text-sm">
                           <h1 className="text-green-500">Mark(s)</h1>
-                          <h1>{questions.marks}</h1>
+                          <h1>{question.marks}</h1>
                         </div>
                         <h1 className="text-gray-500">|</h1>
                         <div className="flex gap-3 text-xs md:text-sm pr-1">
                           <h1 className="text-red-500 text-nowrap">
                             Negative Mark(s)
                           </h1>
-                          <h1>{questions.negativeMarks}</h1>
+                          <h1>{question.negativeMarks}</h1>
                         </div>
                         <h1 className="text-gray-500">|</h1>
                         <div>
@@ -722,13 +722,30 @@ export default function ExamPage() {
                             id="questionBox"
                           >
                             <div className="w-[1200px] mb-20 relative">
+                              {question.headerText && (
+                                <>
+                                  <div>
+                                    <h1 className="font-bold text-2xl">
+                                      Directions
+                                    </h1>
+                                  </div>
+                                  <div>
+                                    <div className="text-md sm:text-lg font-medium">
+                                      <TextOrHtml
+                                        content={question.headerText}
+                                      />
+                                    </div>
+                                  </div>
+                                </>
+                              )}
+
                               <div>
                                 <h1 className="font-bold text-2xl">Question</h1>
                               </div>
                               <div>
                                 <div className="text-md sm:text-lg font-medium">
                                   <TextOrHtml
-                                    content={questions.questionText}
+                                    content={question.questionText}
                                   />
                                 </div>
                               </div>
@@ -766,10 +783,10 @@ export default function ExamPage() {
                         )}
                       >
                         Mark For Review & Next
-                        {/* {questions. === "review" ||
-                        questions.status === "answeredMarkedForReview"
+                        {/* {question. === "review" ||
+                        question.status === "answeredMarkedForReview"
                           ? "Unmark Review"
-                          : currentIndex < questions.length - 1
+                          : currentIndex < question.length - 1
                           ? "Mark For Review & Next"
                           : "Mark For Review"} */}
                       </button>
@@ -1039,14 +1056,15 @@ export default function ExamPage() {
         title={`Questions`}
         isOpen={showQuestionsModal}
         closeModal={() => setShowQuestionsModal(false)}
-        className={
-          "w-full h-full overflow-y-auto flex flex-col items-start"
-        }
+        className={"w-full h-full overflow-y-auto flex flex-col items-start"}
       >
         {questionsMeta.map((question, index) => {
           return (
             <div
-              className={`w-full flex flex-col items-start text-start ${index !== questionsMeta.length  - 1 && "border-b border-b-gray-300"} pb-4`}
+              className={`w-full flex flex-col items-start text-start ${
+                index !== questionsMeta.length - 1 &&
+                "border-b border-b-gray-300"
+              } pb-4`}
               key={question.questionId}
             >
               <div>

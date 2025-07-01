@@ -84,6 +84,7 @@ export interface GetQuestionByIdRequest {
 export interface GetQuestionByIdResponse {
   questionId: number;
   questionText: string;
+  headerText?: string;
   questionTypeId: number;
   subjectId: number;
   marks: number;
