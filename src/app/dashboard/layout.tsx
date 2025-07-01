@@ -151,10 +151,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                   name: "SSC",
                   href: "/dashboard",
                   subMenu: [
-                    { name: "SSC CGL", href: "/dashboard" },
-                    { name: "SSC CHSL", href: "/dashboard" },
-                    { name: "SSC MTS 2024", href: "/dashboard" },
-                    { name: "SSC GD Constable", href: "/dashboard" },
+                    { name: "SSC CGL TIER I MT - 107", href: "/dashboard" },
+                    { name: "IBPS CLERK MAINS MT - 22 REA", href: "/dashboard" },
                   ],
                 },
                 {
