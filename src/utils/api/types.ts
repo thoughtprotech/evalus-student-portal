@@ -111,9 +111,37 @@ export interface GetQuestionByIdResponse {
 }
 
 export interface CreateQuestionRequest {
-  testId: number;
-  questionType: string;
   questionText: string;
-  options?: string;
-  correctAnswer?: string;
+  questionTypeId: number;
+  subjectId: number;
+  marks: number;
+  negativeMarks: number;
+  graceMarks: number;
+  questionDifficultyLevelId: number;
+  additionalExplanation: string;
+  videoSolutionWeburl: string;
+  videoSolutionMobileurl: string;
+  allowCandidateComments: number;
+  writeUpId: number;
+  hasMultipleAnswers: boolean;
+  language: string;
+  isActive: number;
+  createdBy: string;
+  createdDate: string;
+  modifiedBy: string;
+  modifiedDate: string;
+  questionOptionsJson: string;
+  questionCorrectAnswerJson: string;
+  questionId: number;
+}
+
+export interface GetQuestionTypesResponse {
+  questionTypeId: number;
+  questionType: string;
+  language: string;
+  isActive: boolean;
+  createdBy: string;
+  createdDate: string;
+  modifiedBy: string;
+  modifiedDate: string;
 }

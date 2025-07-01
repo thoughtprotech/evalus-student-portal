@@ -142,7 +142,7 @@ export default function ExamPage() {
                         console.log(option);
                       }}
                     />
-                    {option}
+                    <TextOrHtml content={option} />
                   </label>
                 );
               }
@@ -202,7 +202,7 @@ export default function ExamPage() {
                         console.log(option);
                       }}
                     />
-                    {option}
+                    <TextOrHtml content={option} />
                   </label>
                 );
               }
@@ -220,7 +220,7 @@ export default function ExamPage() {
                       {option.map((col: string, index: number) => {
                         return (
                           <div key={index}>
-                            <h1>{col}</h1>
+                            <TextOrHtml content={col} />
                           </div>
                         );
                       })}
@@ -267,7 +267,7 @@ export default function ExamPage() {
                                   });
                                 }}
                               >
-                                <h1>{row}</h1>
+                                <TextOrHtml content={row} />
                               </div>
                             );
                           }
@@ -350,7 +350,7 @@ export default function ExamPage() {
                                   });
                                 }}
                               >
-                                <h1>{row}</h1>
+                                <TextOrHtml content={row} />
                               </div>
                             );
                           }
@@ -718,10 +718,10 @@ export default function ExamPage() {
                       <div className="relative w-3/4 h-full border-r border-r-gray-300">
                         <div className="w-full flex flex-col gap-4 h-full pr-4 relative">
                           <div
-                            className="w-full flex flex-col gap-1 h-fit overflow-x-scroll mb-10 "
+                            className="w-full flex flex-col gap-1 h-fit overflow-x-scroll mb-10"
                             id="questionBox"
                           >
-                            <div className="mb-20">
+                            <div className="w-[1200px] mb-20 relative">
                               <div>
                                 <h1 className="font-bold text-2xl">Question</h1>
                               </div>
@@ -732,9 +732,9 @@ export default function ExamPage() {
                                   />
                                 </div>
                               </div>
+                              <ScrollXToggleButton containerSelector="#questionBox" />
                             </div>
                           </div>
-                          <ScrollXToggleButton containerSelector="#questionBox" />
                           <ScrollToggleButton containerSelector="#questionBox" />
                         </div>
                       </div>

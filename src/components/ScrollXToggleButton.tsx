@@ -84,15 +84,15 @@ const ScrollXToggleButton: React.FC<ScrollXToggleButtonProps> = ({
   return (
     <button
       onClick={handleClick}
-      className={`absolute h-fit w-fit bottom-10 ${
+      className={`absolute h-fit w-fit -bottom-20 ${
         atRight ? "right-6" : "left-0"
-      } m-2 z-50 p-1 bg-white border-2 border-gray-600 rounded-full transition-transform transform hover:scale-110 cursor-pointer`}
+      } m-2 z-50 p-1 bg-white border-2 border-blue-600 rounded-full transition-transform transform hover:scale-110 cursor-pointer`}
       aria-label={atRight ? "Scroll to start" : "Scroll to end"}
     >
       {atRight ? (
-        <ArrowLeft className="w-4 h-4 text-gray-600" />
+        <ArrowLeft className="w-4 h-4 text-blue-600" />
       ) : (
-        <ArrowRight className="w-4 h-4 text-gray-600" />
+        <ArrowRight className="w-4 h-4 text-blue-600" />
       )}
     </button>
   );

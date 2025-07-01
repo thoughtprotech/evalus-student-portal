@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import RichTextEditor from "@/components/RichTextEditor";
 import { QUESTION_TYPES } from "@/utils/constants";
 import QuestionOptionsInput from "./_components/QuestionOptionsInput";
 import { createQuestionAction } from "@/app/actions/dashboard/questions/createQuestion";
 import toast from "react-hot-toast";
+import { GetQuestionTypesResponse } from "@/utils/api/types";
+import { getQuestionTypesAction } from "@/app/actions/dashboard/questions/getQuestionTypes";
 
 export default function Index() {
   const [testId, setTestId] = useState<number>();
@@ -17,6 +19,24 @@ export default function Index() {
     options: any;
     answer: any;
   }>();
+  const [questionTypes, setQuestionTypes] = useState<
+    GetQuestionTypesResponse[]
+  >([]);
+
+  const fetchQuestionTypes = async () => {
+    const res = await getQuestionTypesAction();
+    const { data, status, error, errorMessage, message } = res;
+    if (status === 200) {
+      setQuestionTypes(data!);
+      // setTestList(data);
+    } else {
+      console.log({ status, error, errorMessage });
+    }
+  };
+
+  useEffect(() => {
+    fetchQuestionTypes();
+  }, []);
 
   const handleSubmit = async () => {
     // Safely stringify options (always an array)
@@ -103,9 +123,12 @@ export default function Index() {
                 }
                 className="px-3 py-2 w-full border border-gray-300 rounded-md focus:outline-none bg-white"
               >
-                {Object.entries(QUESTION_TYPES).map(([key, label]) => (
-                  <option key={key} value={label}>
-                    {label}
+                {questionTypes?.map((questionType) => (
+                  <option
+                    key={questionType.questionTypeId}
+                    value={questionType.questionTypeId}
+                  >
+                    {questionType.questionType}
                   </option>
                 ))}
               </select>

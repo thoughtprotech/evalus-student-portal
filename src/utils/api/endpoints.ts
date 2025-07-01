@@ -5,6 +5,7 @@ import {
   GetQuestionByIdResponse,
   GetQuestionListRequest,
   GetQuestionListResponse,
+  GetQuestionTypesResponse,
   LoginRequest,
   LoginResponse,
   LogoutRequest,
@@ -48,4 +49,10 @@ export const endpoints = {
     path: () => `/api/Questions`,
     type: "CLOSE",
   } as Endpoint<CreateQuestionRequest, null>,
+
+  getQuestionTypes: {
+    method: "GET",
+    path: () => `/api/QuestionTypes`,
+    type: "CLOSE",
+  } as Endpoint<null, GetQuestionTypesResponse[]>,
 };

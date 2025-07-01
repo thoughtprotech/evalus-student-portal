@@ -98,13 +98,13 @@ const ScrollToggleButton: React.FC<ScrollToggleButtonProps> = ({
       onClick={handleClick}
       className={`absolute w-fit h-fit ${
         atBottom ? "bottom-6" : "top-0"
-      } right-0 m-2 z-50 p-1 bg-white border-2 border-gray-600 rounded-full transition-transform transform hover:scale-110 cursor-pointer`}
+      } right-0 m-2 z-50 p-1 bg-white border-2 border-blue-600 rounded-full transition-transform transform hover:scale-110 cursor-pointer`}
       aria-label={atBottom ? "Scroll to top" : "Scroll to bottom"}
     >
       {atBottom ? (
-        <ArrowUp className="w-4 h-4 text-gray-600" />
+        <ArrowUp className="w-4 h-4 text-blue-600" />
       ) : (
-        <ArrowDown className="w-4 h-4 text-gray-600" />
+        <ArrowDown className="w-4 h-4 text-blue-600" />
       )}
     </button>
   );
