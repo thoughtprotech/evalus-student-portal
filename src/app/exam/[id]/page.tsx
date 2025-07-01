@@ -30,6 +30,7 @@ import ScrollToggleButton from "@/components/ScrollToggleButton";
 import RichTextEditor from "@/components/RichTextEditor";
 import { TextOrHtml } from "@/components/TextOrHtml";
 import ScrollXToggleButton from "@/components/ScrollXToggleButton";
+import renderOptions from "./_components/RenderOptions";
 
 export default function ExamPage() {
   const { id } = useParams();
@@ -493,11 +494,6 @@ export default function ExamPage() {
     setCurrentIndex(currentIndex + 1);
   };
 
-  const handlePreviousQuestion = async () => {
-    fetchQuestionById(questionsMeta[currentIndex - 1].questionId);
-    setCurrentIndex(currentIndex - 1);
-  };
-
   const clearResponse = async () => {
     switch (question!.questionType.questionType) {
       case "Single MCQ":
@@ -744,9 +740,7 @@ export default function ExamPage() {
                               </div>
                               <div>
                                 <div className="text-md sm:text-lg font-medium">
-                                  <TextOrHtml
-                                    content={question.questionText}
-                                  />
+                                  <TextOrHtml content={question.questionText} />
                                 </div>
                               </div>
                               <ScrollXToggleButton containerSelector="#questionBox" />
@@ -1074,6 +1068,12 @@ export default function ExamPage() {
               </div>
               <div>
                 <TextOrHtml content={question.questionText} />
+              </div>
+              <div className="mt-4">
+                {renderOptions(
+                  question.questionOptionsJson,
+                  question.questionType?.questionType
+                )}
               </div>
             </div>
           );
