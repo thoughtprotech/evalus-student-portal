@@ -1036,57 +1036,30 @@ export default function ExamPage() {
       </Modal>
 
       <Modal
-        title={`Question ${currentIndex + 1}`}
+        title={`Questions`}
         isOpen={showQuestionsModal}
         closeModal={() => setShowQuestionsModal(false)}
-        className={"w-full h-full"}
+        className={
+          "w-full h-full overflow-y-auto flex flex-col items-start"
+        }
       >
-        <div className="w-full h-full flex gap-5">
-          <div className="relative w-full h-full border-r border-r-gray-300">
+        {questionsMeta.map((question, index) => {
+          return (
             <div
-              className="w-full flex flex-col items-start gap-4 h-full overflow-y-auto relative pr-4"
-              id="questionBoxModal"
+              className={`w-full flex flex-col items-start text-start ${index !== questionsMeta.length  - 1 && "border-b border-b-gray-300"} pb-4`}
+              key={question.questionId}
             >
-              <div className="w-full flex flex-col gap-1 h-fit">
-                <div className="w-full flex justify-start">
-                  <h1 className="font-bold text-2xl">Question</h1>
-                </div>
-                <div>
-                  <h1 className="text-md sm:text-lg font-medium text-gray-800 text-start">
-                    {questions?.questionText}
-                  </h1>
-                </div>
+              <div>
+                <h1 className="text-gray-600 font-bold text-sm">
+                  Question {index + 1}
+                </h1>
               </div>
-              <div className="w-full flex mb-14 gap-4">
-                <div className="w-1/2 flex flex-col gap-1 h-fit">
-                  <div className="w-full flex justify-start">
-                    <h1 className="font-bold text-2xl">Video</h1>
-                  </div>
-                  <div className="w-full aspect-video">
-                    <video
-                      src="https://videos.pexels.com/video-files/31630360/13475691_2560_1440_30fps.mp4"
-                      controls
-                      className="rounded-md border border-gray-300"
-                    />
-                  </div>
-                </div>
-                <div className="w-1/2 flex flex-col gap-1 h-fit">
-                  <div className="w-full flex justify-start">
-                    <h1 className="font-bold text-2xl">Image</h1>
-                  </div>
-                  <div className="w-full aspect-auto">
-                    <img
-                      src="https://media.geeksforgeeks.org/wp-content/uploads/20221006220419/QuadraticFormula.png"
-                      alt="/"
-                      className="rounded-md border border-gray-300"
-                    />
-                  </div>
-                </div>
+              <div>
+                <TextOrHtml content={question.questionText} />
               </div>
             </div>
-            <ScrollToggleButton containerSelector="#questionBoxModal" />
-          </div>
-        </div>
+          );
+        })}
       </Modal>
     </div>
   );

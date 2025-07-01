@@ -61,6 +61,7 @@ export interface QuestionsMetaRequest {
 export interface QuestionsMetaResponse {
   questionId: number;
   status: string;
+  questionText: string
 }
 
 export interface Subject {
