@@ -721,7 +721,7 @@ export default function ExamPage() {
                             className="w-full flex flex-col gap-1 h-fit overflow-x-scroll mb-10"
                             id="questionBox"
                           >
-                            <div className="w-[1200px] mb-20 relative">
+                            <div className="w-[1200px] mb-20 relative flex flex-col gap-4">
                               {question.headerText && (
                                 <>
                                   <div>
