@@ -637,7 +637,7 @@ export default function ExamPage() {
           >
             <ShieldQuestion className="text-gray-600 w-4 h-4 cursor-pointer" />
             <div className="text-gray-600">
-              <h1>Question Paper</h1>
+              <h1 className="text-xs">Question Paper</h1>
             </div>
           </div>
           <div
@@ -646,7 +646,7 @@ export default function ExamPage() {
           >
             <Info className="text-gray-600 w-4 h-4 cursor-pointer" />
             <div className="text-gray-600">
-              <h1>Instructions</h1>
+              <h1 className="text-xs">Instructions</h1>
             </div>
           </div>
         </div>
