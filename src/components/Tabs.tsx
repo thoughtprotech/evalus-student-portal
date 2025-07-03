@@ -1,5 +1,6 @@
 "use client";
 
+import { Info } from "lucide-react";
 import {
   createContext,
   useContext,
@@ -9,6 +10,8 @@ import {
   SetStateAction,
   useEffect,
 } from "react";
+import OnHover from "./OnHover";
+import QuestionCountPreview from "@/app/exam/[id]/_components/QuestionCountPreview";
 
 interface TabsContextType {
   activeIndex: number;
@@ -55,17 +58,28 @@ export function TabsList({ labels, className = "" }: TabsListProps) {
       className={`w-fit h-fit rounded-md flex space-x-4 border bg-white border-gray-300 shadow-md p-2 ${className}`}
     >
       {labels.map((label, index) => (
-        <button
+        <div
           key={index}
-          className={`px-4 py-2 h-fit transition-colors duration-300 cursor-pointer text-xs ${
+          className={`px-4 py-2 h-fit transition-colors duration-300 cursor-pointer text-xs flex items-center gap-2 ${
             ctx.activeIndex === index
               ? "bg-indigo-100 text-indigo-600 rounded-md"
               : "text-gray-700 hover:text-indigo-600"
           }`}
-          onClick={() => ctx.setActiveIndex(index)}
         >
-          {label}
-        </button>
+          <button onClick={() => ctx.setActiveIndex(index)}>{label}</button>
+          <OnHover
+            trigger={<Info className="w-5 h-5 text-indigo-600" />}
+            dropdownClassName="max-w-xs"
+          >
+            <QuestionCountPreview
+              answeredCount={0}
+              unansweredCount={0}
+              notVisitedCount={12}
+              reviewCount={0}
+              ansToReviewCount={0}
+            />
+          </OnHover>
+        </div>
       ))}
     </div>
   );

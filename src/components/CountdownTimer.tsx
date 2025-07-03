@@ -60,7 +60,7 @@ export default function CountdownTimer({
 
   return (
     <div className={className}>
-      <span>{formatTime(remaining)}</span>
+      <span className="font-bold">{formatTime(remaining)}</span>
     </div>
   );
 }

@@ -31,6 +31,8 @@ import RichTextEditor from "@/components/RichTextEditor";
 import { TextOrHtml } from "@/components/TextOrHtml";
 import ScrollXToggleButton from "@/components/ScrollXToggleButton";
 import renderOptions from "./_components/RenderOptions";
+import OnHover from "@/components/OnHover";
+import QuestionCountPreview from "./_components/QuestionCountPreview";
 
 export default function ExamPage() {
   const { id } = useParams();
@@ -625,177 +627,203 @@ export default function ExamPage() {
   }
 
   return (
-    <div className="w-full h-full flex flex-col md:flex-row bg-gray-100 overflow-hidden">
+    <div className="w-full h-full flex flex-col bg-gray-100 overflow-hidden">
       {/* Main */}
-      <main className="w-full flex-1 p-2 flex flex-col gap-2 relative overflow-y-auto">
-        <div className="bg-white p-2 rounded-md shadow-md border border-gray-300 space-y-4">
-          <div className="w-full flex justify-between">
-            <div className="flex items-center gap-2">
-              <div className="md:hidden">
-                <div onClick={() => setSidebarOpen(!sidebarOpen)}>
-                  {sidebarOpen ? (
-                    <X className="w-6 h-6" />
-                  ) : (
-                    <Menu className="w-6 h-6" />
-                  )}
-                </div>
-              </div>
-              <div>
-                <h1 className="font-bold text-sm md:text-xl">
-                  Aptitude Test - 1
-                </h1>
-              </div>
-            </div>
-            <div className="w-fit flex items-center gap-3 text-sm">
-              <div>
-                <CountdownTimer
-                  initialTime="00:05:00"
-                  onComplete={handleTimeout}
-                  className="text-sm"
-                />
-              </div>
-              <div>
-                <Info
-                  className="text-gray-600 w-5 h-5 cursor-pointer"
-                  onClick={() => setShowInstructionsModal(true)}
-                />
-              </div>
-              <div>
-                <ShieldQuestion
-                  className="text-gray-600 w-5 h-5 cursor-pointer"
-                  onClick={() => setShowQuestionsModal(true)}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        <TabsRoot defaultIndex={0}>
-          <div className="flex justify-between items-center">
-            <TabsList
-              className="w-full"
-              labels={["Section 1", "Section 2", "Section 3"]}
+      <div className="bg-white p-2 rounded-md shadow-md border border-gray-300 space-y-4 flex justify-end">
+        <div className="w-fit flex items-center gap-3 text-sm">
+          <div>
+            <Info
+              className="text-gray-600 w-5 h-5 cursor-pointer"
+              onClick={() => setShowInstructionsModal(true)}
             />
           </div>
-
-          <TabsContent className="w-full h-full overflow-hidden">
-            <div className="w-full h-full">
-              {question && (
-                <div className="w-full h-full bg-white rounded-md shadow-md border border-gray-300 flex flex-col justify-between flex-1">
-                  <div className="w-full h-full overflow-hidden border-b border-b-gray-300 p-4">
-                    <div className="w-full flex flex-col gap-2 md:flex md:flex-row justify-between font-semibold">
-                      <div>
-                        <h1 className="text-sm text-gray-600">
-                          Question {currentIndex + 1} -{" "}
-                          {question?.questionType?.questionType}
-                        </h1>
-                      </div>
-                      <div className="flex gap-3 items-center">
-                        <div className="flex gap-3 text-xs md:text-sm">
-                          <h1 className="text-green-500">Mark(s)</h1>
-                          <h1>{question.marks}</h1>
-                        </div>
-                        <h1 className="text-gray-500">|</h1>
-                        <div className="flex gap-3 text-xs md:text-sm pr-1">
-                          <h1 className="text-red-500 text-nowrap">
-                            Negative Mark(s)
-                          </h1>
-                          <h1>{question.negativeMarks}</h1>
-                        </div>
-                        <h1 className="text-gray-500">|</h1>
-                        <div>
-                          <select className="border border-gray-300 px-4 py-1 rounded-md shadow-md cursor-pointer text-sm md:text:base">
-                            <option value="english">English</option>
-                            <option value="telugu">Telugu</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="w-full h-full flex gap-5">
-                      <div className="relative w-3/4 h-full border-r border-r-gray-300">
-                        <div className="w-full flex flex-col gap-4 h-full pr-4 relative">
-                          <div
-                            className="w-full flex flex-col gap-1 h-fit overflow-x-scroll mb-10"
-                            id="questionBox"
-                          >
-                            <div className="w-[1200px] mb-20 relative flex flex-col gap-4">
-                              {question.headerText && (
-                                <>
-                                  <div>
-                                    <h1 className="font-bold text-2xl">
-                                      Directions
-                                    </h1>
-                                  </div>
-                                  <div>
-                                    <div className="text-md sm:text-lg font-medium">
-                                      <TextOrHtml
-                                        content={question.headerText}
-                                      />
-                                    </div>
-                                  </div>
-                                </>
-                              )}
-
-                              <div>
-                                <h1 className="font-bold text-2xl">Question</h1>
-                              </div>
-                              <div>
-                                <div className="text-md sm:text-lg font-medium">
-                                  <TextOrHtml content={question.questionText} />
-                                </div>
-                              </div>
-                              <ScrollXToggleButton containerSelector="#questionBox" />
-                            </div>
-                          </div>
-                          <ScrollToggleButton containerSelector="#questionBox" />
-                        </div>
-                      </div>
-                      {errorMessage && (
-                        <div className="mb-4 text-sm text-red-600 font-medium">
-                          {errorMessage}
-                        </div>
-                      )}
-                      <div className="relative w-1/4">
-                        <div
-                          className="w-full h-full flex flex-col gap-3 overflow-y-auto"
-                          id="answerBox"
-                        >
-                          <div>
-                            <h1 className="font-bold text-2xl">Answer</h1>
-                          </div>
-                          <div className="mb-10">{renderQuestion()}</div>
-                        </div>
-                        <ScrollToggleButton containerSelector="#answerBox" />
-                      </div>
-                    </div>
+          <div>
+            <ShieldQuestion
+              className="text-gray-600 w-5 h-5 cursor-pointer"
+              onClick={() => setShowQuestionsModal(true)}
+            />
+          </div>
+        </div>
+      </div>
+      <div className="w-full h-full flex flex-row pb-9">
+        <main className="w-full flex-1 p-2 flex flex-col gap-2 relative overflow-y-auto">
+          <div className="bg-white p-2 rounded-md shadow-md border border-gray-300 space-y-4">
+            <div className="w-full flex justify-between">
+              <div className="flex items-center gap-2">
+                <div className="md:hidden">
+                  <div onClick={() => setSidebarOpen(!sidebarOpen)}>
+                    {sidebarOpen ? (
+                      <X className="w-6 h-6" />
+                    ) : (
+                      <Menu className="w-6 h-6" />
+                    )}
                   </div>
-                  <div className="flex flex-col md:flex md:flex-row items-center justify-between bg-gray-100 p-4">
-                    <div className="w-full flex gap-3">
-                      <button
-                        onClick={toggleMarkForReview}
-                        className={clsx(
-                          "w-full md:w-fit px-4 py-1 rounded-md font-medium cursor-pointer bg-white hover:bg-gray-200 border border-gray-300"
+                </div>
+                <div className="bg-indigo-100 rounded-md px-2 py-1 flex items-center gap-2">
+                  <div>
+                    <h1 className="text-sm md:text-base text-indigo-600">
+                      Aptitude Test - 1
+                    </h1>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <OnHover
+                      trigger={<Info className="w-5 h-5 text-indigo-600" />}
+                      dropdownClassName="max-w-xs"
+                    >
+                      <QuestionCountPreview
+                        answeredCount={0}
+                        unansweredCount={0}
+                        notVisitedCount={12}
+                        reviewCount={0}
+                        ansToReviewCount={0}
+                      />
+                    </OnHover>
+                  </div>
+                </div>
+              </div>
+              <div className="w-fit flex items-center gap-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <h1 className="font-bold text-gray-600">Time Left</h1>
+                  <CountdownTimer
+                    initialTime="00:05:00"
+                    onComplete={handleTimeout}
+                    className="text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <TabsRoot defaultIndex={0}>
+            <div className="flex justify-between items-center">
+              <TabsList
+                className="w-full"
+                labels={["Section 1", "Section 2", "Section 3"]}
+              />
+            </div>
+
+            <TabsContent className="w-full h-full overflow-hidden">
+              <div className="w-full h-full">
+                {question && (
+                  <div className="w-full h-full bg-white rounded-md shadow-md border border-gray-300 flex flex-col justify-between flex-1">
+                    <div className="w-full h-full overflow-hidden border-b border-b-gray-300 p-4">
+                      <div className="w-full flex flex-col gap-2 md:flex md:flex-row justify-between font-semibold">
+                        <div>
+                          <h1 className="text-sm text-gray-600">
+                            Question {currentIndex + 1} -{" "}
+                            {question?.questionType?.questionType}
+                          </h1>
+                        </div>
+                        <div className="flex gap-3 items-center">
+                          <div className="flex gap-3 text-xs md:text-sm">
+                            <h1 className="text-green-500">Mark(s)</h1>
+                            <h1>{question.marks}</h1>
+                          </div>
+                          <h1 className="text-gray-500">|</h1>
+                          <div className="flex gap-3 text-xs md:text-sm pr-1">
+                            <h1 className="text-red-500 text-nowrap">
+                              Negative Mark(s)
+                            </h1>
+                            <h1>{question.negativeMarks}</h1>
+                          </div>
+                          <h1 className="text-gray-500">|</h1>
+                          <div>
+                            <select className="border border-gray-300 px-4 py-1 rounded-md shadow-md cursor-pointer text-sm md:text:base">
+                              <option value="english">English</option>
+                              <option value="telugu">Telugu</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="w-full h-full flex gap-5">
+                        <div className="relative w-3/4 h-full border-r border-r-gray-300">
+                          <div className="w-full flex flex-col gap-4 h-full pr-4 relative">
+                            <div
+                              className="w-full flex flex-col gap-1 h-fit overflow-x-scroll mb-10"
+                              id="questionBox"
+                            >
+                              <div className="w-[1200px] mb-20 relative flex flex-col gap-4">
+                                {question.headerText && (
+                                  <>
+                                    <div>
+                                      <h1 className="font-bold text-2xl">
+                                        Directions
+                                      </h1>
+                                    </div>
+                                    <div>
+                                      <div className="text-md sm:text-lg font-medium">
+                                        <TextOrHtml
+                                          content={question.headerText}
+                                        />
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
+
+                                <div>
+                                  <h1 className="font-bold text-2xl">
+                                    Question
+                                  </h1>
+                                </div>
+                                <div>
+                                  <div className="text-md sm:text-lg font-medium">
+                                    <TextOrHtml
+                                      content={question.questionText}
+                                    />
+                                  </div>
+                                </div>
+                                <ScrollXToggleButton containerSelector="#questionBox" />
+                              </div>
+                            </div>
+                            <ScrollToggleButton containerSelector="#questionBox" />
+                          </div>
+                        </div>
+                        {errorMessage && (
+                          <div className="mb-4 text-sm text-red-600 font-medium">
+                            {errorMessage}
+                          </div>
                         )}
-                      >
-                        Mark For Review & Next
-                        {/* {question. === "review" ||
+                        <div className="relative w-1/4">
+                          <div
+                            className="w-full h-full flex flex-col gap-3 overflow-y-auto"
+                            id="answerBox"
+                          >
+                            <div>
+                              <h1 className="font-bold text-2xl">Answer</h1>
+                            </div>
+                            <div className="mb-10">{renderQuestion()}</div>
+                          </div>
+                          <ScrollToggleButton containerSelector="#answerBox" />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col md:flex md:flex-row items-center justify-between bg-gray-100 p-4">
+                      <div className="w-full flex gap-3">
+                        <button
+                          onClick={toggleMarkForReview}
+                          className={clsx(
+                            "w-full md:w-fit px-4 py-1 rounded-md font-medium cursor-pointer bg-white hover:bg-gray-200 border border-gray-300"
+                          )}
+                        >
+                          Mark For Review & Next
+                          {/* {question. === "review" ||
                         question.status === "answeredMarkedForReview"
                           ? "Unmark Review"
                           : currentIndex < question.length - 1
                           ? "Mark For Review & Next"
                           : "Mark For Review"} */}
-                      </button>
-                      <button
-                        onClick={clearResponse}
-                        className={clsx(
-                          "w-full md:w-fit px-4 py-1 rounded-md font-medium cursor-pointer bg-white hover:bg-gray-200 border border-gray-300"
-                        )}
-                      >
-                        Clear Response
-                      </button>
-                    </div>
+                        </button>
+                        <button
+                          onClick={clearResponse}
+                          className={clsx(
+                            "w-full md:w-fit px-4 py-1 rounded-md font-medium cursor-pointer bg-white hover:bg-gray-200 border border-gray-300"
+                          )}
+                        >
+                          Clear Response
+                        </button>
+                      </div>
 
-                    <div className="w-full md:w-fit flex gap-3">
-                      {/* <div className="w-full md:w-fit">
+                      <div className="w-full md:w-fit flex gap-3">
+                        {/* <div className="w-full md:w-fit">
                         <button
                           onClick={handlePreviousQuestion}
                           disabled={currentIndex === 0}
@@ -806,210 +834,216 @@ export default function ExamPage() {
                           Previous
                         </button>
                       </div> */}
-                      {currentIndex + 1 === questionsMeta.length ? (
-                        <div className="w-full md:w-fit">
-                          <button
-                            onClick={handleSubmit}
-                            className="w-full text-nowrap px-6 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded-md font-medium cursor-pointer mb-16 md:mb-0"
-                          >
-                            Submit Test
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="w-full md:w-fit">
-                          <button
-                            onClick={handleNextQuestion}
-                            disabled={currentIndex + 1 === questionsMeta.length}
-                            className={clsx(
-                              "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 whitespace-nowrap"
-                            )}
-                          >
-                            Save & Next
-                          </button>
+                        {currentIndex + 1 === questionsMeta.length ? (
+                          <div className="w-full md:w-fit">
+                            <button
+                              onClick={handleSubmit}
+                              className="w-full text-nowrap px-6 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded-md font-medium cursor-pointer mb-16 md:mb-0"
+                            >
+                              Submit Test
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="w-full md:w-fit">
+                            <button
+                              onClick={handleNextQuestion}
+                              disabled={
+                                currentIndex + 1 === questionsMeta.length
+                              }
+                              className={clsx(
+                                "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 whitespace-nowrap"
+                              )}
+                            >
+                              Save & Next
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
+                <h1>Section 2</h1>
+              </div>
+
+              <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
+                <h1>Section 3</h1>
+              </div>
+            </TabsContent>
+          </TabsRoot>
+        </main>
+
+        {/* Sidebar */}
+        <aside
+          className={clsx(
+            // common styles
+            "bg-white border-gray-300 shadow-md flex flex-col gap-2 p-4 relative",
+            // positioning
+            "absolute lg:static w-full h-full transform transition-transform duration-300 z-50",
+            // mobile open/closed
+            sidebarOpen
+              ? "translate-x-0 md:w-80 transition-all"
+              : "-translate-x-full md:translate-x-full md:w-0 transition-all"
+          )}
+        >
+          <div
+            className={`w-7 h-15 rounded-md border-2 border-gray-500 absolute top-1/2 -translate-y-1/2 hidden lg:block ${
+              sidebarOpen ? "-left-5" : "-left-8"
+            } bg-white cursor-pointer`}
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
+            {sidebarOpen ? (
+              <ChevronRight className="w-full h-full text-gray-600" />
+            ) : (
+              <ChevronLeft className="w-full h-full text-gray-600" />
+            )}
+          </div>
+          <div className="w-full h-full flex flex-col justify-between">
+            <div className="flex flex-col gap-4 pl-2">
+              <div className="flex items-center space-x-4">
+                <div className="md:hidden">
+                  <div onClick={() => setSidebarOpen(!sidebarOpen)}>
+                    {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-7 h-7 md:w-12 md:h-12 bg-indigo-200 text-indigo-800 rounded-full flex items-center justify-center font-bold text-xl shadow-inner">
+                    U
+                  </div>
+                  <div>
+                    <h1 className="text-sm font-bold text-gray-800">
+                      Welcome John Doe
+                    </h1>
+                  </div>
+                </div>
+              </div>
+              {/* Legend */}
+              <div className="flex flex-col gap-2 border-t border-t-gray-300 border-b border-b-gray-300 py-4">
+                <div className="space-y-2 text-sm">
+                  <div className="w-full grid grid-cols-2 gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 p-2 flex items-center justify-center bg-green-500 rounded-md font-bold text-white">
+                        {
+                          questionsMeta.filter(
+                            (question) =>
+                              question.status === QUESTION_STATUS.ATTEMPTED
+                          ).length
+                        }
+                      </div>
+                      <span>Answered</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 p-2 flex items-center justify-center bg-red-500 rounded-md font-bold text-white">
+                        {
+                          questionsMeta.filter(
+                            (question) => question.status === "unanswered"
+                          ).length
+                        }
+                      </div>
+                      <span>Not Answered</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 p-2 flex items-center justify-center bg-gray-300 rounded-md font-bold">
+                        {
+                          questionsMeta.filter(
+                            (question) =>
+                              question.status === QUESTION_STATUS.NOT_VISITED
+                          ).length
+                        }
+                      </div>
+                      <span>Not Visited</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 p-2 flex items-center justify-center bg-purple-500 rounded-full font-bold text-white">
+                        {
+                          questionsMeta.filter(
+                            (question) =>
+                              question.status === QUESTION_STATUS.TO_REVIEW
+                          ).length
+                        }
+                      </div>
+                      <span>Marked For Review</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-9 h-8 p-2 flex items-center justify-center bg-purple-500 rounded-full font-bold text-white relative">
+                      <div>
+                        <CheckCheck className="text-green-500 w-5 h-5 absolute -top-3 -right-3" />
+                      </div>
+                      {
+                        questionsMeta.filter(
+                          (question) =>
+                            question.status ===
+                            QUESTION_STATUS.ANSWERED_TO_REVIEW
+                        ).length
+                      }
+                    </div>
+                    <div className="w-full ml-2">
+                      <span className="w-full">
+                        Answered And Marked For Review (Will Be Considered For
+                        Evaluation)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Question Index */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <div>
+                    <h1 className="font-bold text-xl">Questions Pallet</h1>
+                  </div>
+                </div>
+                <div className="grid grid-cols-8 md:grid-cols-4 gap-2 mb-4">
+                  {questionsMeta?.map((q, index) => (
+                    <button
+                      key={q.questionId}
+                      onClick={() => handleJumpTo(index, q.questionId)}
+                      className={clsx(
+                        "font-semibold text-xs sm:text-sm transition-colors cursor-pointer relative rounded-md",
+                        q.status === QUESTION_STATUS.NOT_VISITED &&
+                          "bg-gray-300 text-gray-700 hover:bg-gray-400 w-8 h-8 sm:w-full sm:h-10 rounded-md",
+                        q.status === QUESTION_STATUS.ATTEMPTED &&
+                          "bg-green-500 text-white hover:bg-green-600 w-8 h-8 sm:w-full sm:h-10 rounded-md",
+                        q.status === QUESTION_STATUS.TO_REVIEW &&
+                          "bg-purple-500 text-white hover:bg-purple-600 w-full h-10 rounded-full",
+                        q.status === QUESTION_STATUS.ANSWERED_TO_REVIEW &&
+                          "bg-purple-500 text-white hover:bg-purple-600 w-full h-10 rounded-full self-center",
+                        q.status === "unanswered" &&
+                          "bg-red-500 text-white hover:bg-red-600 w-8 h-8 sm:w-full sm:h-10 rounded-md",
+                        index === currentIndex
+                          ? "border-3 border-gray-600"
+                          : "border-3 border-transparent"
+                      )}
+                    >
+                      {q.status === "answeredMarkedForReview" && (
+                        <div>
+                          <CheckCheck className="text-green-500 w-5 h-5 absolute -top-3 -right-4" />
                         </div>
                       )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
-              <h1>Section 2</h1>
-            </div>
-
-            <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
-              <h1>Section 3</h1>
-            </div>
-          </TabsContent>
-        </TabsRoot>
-      </main>
-
-      {/* Sidebar */}
-      <aside
-        className={clsx(
-          // common styles
-          "bg-white border-gray-300 shadow-md flex flex-col gap-2 p-4 relative",
-          // positioning
-          "absolute lg:static w-full h-full transform transition-transform duration-300 z-50",
-          // mobile open/closed
-          sidebarOpen
-            ? "translate-x-0 md:w-80 transition-all"
-            : "-translate-x-full md:translate-x-full md:w-0 transition-all"
-        )}
-      >
-        <div
-          className={`w-7 h-15 rounded-md border-2 border-gray-500 absolute top-1/2 -translate-y-1/2 hidden lg:block ${
-            sidebarOpen ? "-left-5" : "-left-8"
-          } bg-white cursor-pointer`}
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-        >
-          {sidebarOpen ? (
-            <ChevronRight className="w-full h-full text-gray-600" />
-          ) : (
-            <ChevronLeft className="w-full h-full text-gray-600" />
-          )}
-        </div>
-        <div className="w-full h-full flex flex-col justify-between">
-          <div className="flex flex-col gap-4 pl-2">
-            <div className="flex items-center space-x-4">
-              <div className="md:hidden">
-                <div onClick={() => setSidebarOpen(!sidebarOpen)}>
-                  {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-7 h-7 md:w-12 md:h-12 bg-indigo-200 text-indigo-800 rounded-full flex items-center justify-center font-bold text-xl shadow-inner">
-                  U
-                </div>
-                <div>
-                  <h1 className="text-sm font-bold text-gray-800">
-                    Welcome John Doe
-                  </h1>
+                      {index + 1}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
-            {/* Legend */}
-            <div className="flex flex-col gap-2 border-t border-t-gray-300 border-b border-b-gray-300 py-4">
-              <div className="space-y-2 text-sm">
-                <div className="w-full grid grid-cols-2 gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 p-2 flex items-center justify-center bg-green-500 rounded-md font-bold text-white">
-                      {
-                        questionsMeta.filter(
-                          (question) =>
-                            question.status === QUESTION_STATUS.ATTEMPTED
-                        ).length
-                      }
-                    </div>
-                    <span>Answered</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 p-2 flex items-center justify-center bg-red-500 rounded-md font-bold text-white">
-                      {
-                        questionsMeta.filter(
-                          (question) => question.status === "unanswered"
-                        ).length
-                      }
-                    </div>
-                    <span>Not Answered</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 p-2 flex items-center justify-center bg-gray-300 rounded-md font-bold">
-                      {
-                        questionsMeta.filter(
-                          (question) =>
-                            question.status === QUESTION_STATUS.NOT_VISITED
-                        ).length
-                      }
-                    </div>
-                    <span>Not Visited</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 p-2 flex items-center justify-center bg-purple-500 rounded-full font-bold text-white">
-                      {
-                        questionsMeta.filter(
-                          (question) =>
-                            question.status === QUESTION_STATUS.TO_REVIEW
-                        ).length
-                      }
-                    </div>
-                    <span>Marked For Review</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-9 h-8 p-2 flex items-center justify-center bg-purple-500 rounded-full font-bold text-white relative">
-                    <div>
-                      <CheckCheck className="text-green-500 w-5 h-5 absolute -top-3 -right-3" />
-                    </div>
-                    {
-                      questionsMeta.filter(
-                        (question) =>
-                          question.status === QUESTION_STATUS.ANSWERED_TO_REVIEW
-                      ).length
-                    }
-                  </div>
-                  <div className="w-full ml-2">
-                    <span className="w-full">
-                      Answered And Marked For Review (Will Be Considered For
-                      Evaluation)
-                    </span>
-                  </div>
-                </div>
+            {sidebarOpen && (
+              <div className="w-full flex justify-center">
+                <button
+                  onClick={handleSubmit}
+                  className="w-fit text-nowrap px-6 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded-md font-medium cursor-pointer mb-16 md:mb-0"
+                >
+                  Submit Test
+                </button>
               </div>
-            </div>
-            {/* Question Index */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <div>
-                  <h1 className="font-bold text-xl">Questions Pallet</h1>
-                </div>
-              </div>
-              <div className="grid grid-cols-8 md:grid-cols-4 gap-2 mb-4">
-                {questionsMeta?.map((q, index) => (
-                  <button
-                    key={q.questionId}
-                    onClick={() => handleJumpTo(index, q.questionId)}
-                    className={clsx(
-                      "font-semibold text-xs sm:text-sm transition-colors cursor-pointer relative rounded-md",
-                      q.status === QUESTION_STATUS.NOT_VISITED &&
-                        "bg-gray-300 text-gray-700 hover:bg-gray-400 w-8 h-8 sm:w-full sm:h-10 rounded-md",
-                      q.status === QUESTION_STATUS.ATTEMPTED &&
-                        "bg-green-500 text-white hover:bg-green-600 w-8 h-8 sm:w-full sm:h-10 rounded-md",
-                      q.status === QUESTION_STATUS.TO_REVIEW &&
-                        "bg-purple-500 text-white hover:bg-purple-600 w-full h-10 rounded-full",
-                      q.status === QUESTION_STATUS.ANSWERED_TO_REVIEW &&
-                        "bg-purple-500 text-white hover:bg-purple-600 w-full h-10 rounded-full self-center",
-                      q.status === "unanswered" &&
-                        "bg-red-500 text-white hover:bg-red-600 w-8 h-8 sm:w-full sm:h-10 rounded-md",
-                      index === currentIndex
-                        ? "border-3 border-gray-600"
-                        : "border-3 border-transparent"
-                    )}
-                  >
-                    {q.status === "answeredMarkedForReview" && (
-                      <div>
-                        <CheckCheck className="text-green-500 w-5 h-5 absolute -top-3 -right-4" />
-                      </div>
-                    )}
-                    {index + 1}
-                  </button>
-                ))}
-              </div>
-            </div>
+            )}
           </div>
-          <div className="w-full flex justify-center">
-            <button
-              onClick={handleSubmit}
-              className="w-fit text-nowrap px-6 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded-md font-medium cursor-pointer mb-16 md:mb-0"
-            >
-              Submit Test
-            </button>
-          </div>
-        </div>
-      </aside>
+        </aside>
+      </div>
 
       <ConfirmationModal
         isOpen={showModal}

@@ -1,6 +1,7 @@
 // app/layout.tsx
 "use client";
 import type { Metadata } from "next";
+import Image from "next/image";
 import { useEffect } from "react";
 
 export default function ExamLayout({
@@ -79,8 +80,8 @@ export default function ExamLayout({
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-gray-100">
       {/* Fixed navbar */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-white shadow-md border-b border-b-gray-300 flex items-center z-30">
-        <div className="mx-auto px-3 sm:px-6 lg:px-8 flex justify-between items-center w-full">
+      <header className="fixed top-0 left-0 right-0 h-16 bg-white shadow-md border-b border-b-gray-300 flex justify-center items-center z-30">
+        <div className="mx-auto px-3 sm:px-6 lg:px-8 flex justify-between items-center absolute left-0">
           <div className="flex items-end gap-1">
             <h1 className="text-3xl font-bold text-indigo-700 transition duration-300">
               E
@@ -89,6 +90,15 @@ export default function ExamLayout({
               </span>
             </h1>
           </div>
+        </div>
+        <div className="px-3 sm:px-6 lg:px-8 flex justify-between items-center">
+          <Image
+            className="w-20"
+            src="/assets/company_logo.jpeg"
+            alt=""
+            width={10000}
+            height={1000}
+          />
         </div>
       </header>
       {/* Main content area with top padding equal to navbar height */}
