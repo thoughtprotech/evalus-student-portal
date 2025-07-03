@@ -629,7 +629,7 @@ export default function ExamPage() {
   return (
     <div className="w-full h-full flex flex-col bg-gray-100 overflow-hidden">
       {/* Main */}
-      <div className="bg-white p-2 rounded-md shadow-md border border-gray-300 space-y-4 flex justify-end">
+      <div className="bg-white p-2 rounded-b-md shadow-md border border-gray-300 space-y-4 flex justify-end">
         <div className="w-fit flex items-center gap-3 text-sm">
           <div>
             <Info
