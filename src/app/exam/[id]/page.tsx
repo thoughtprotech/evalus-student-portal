@@ -711,8 +711,8 @@ export default function ExamPage() {
               <div className="w-full h-full">
                 {question && (
                   <div className="w-full h-full bg-white rounded-md shadow-md border border-gray-300 flex flex-col justify-between flex-1">
-                    <div className="w-full h-full overflow-hidden border-b border-b-gray-300 p-4">
-                      <div className="w-full flex flex-col gap-2 md:flex md:flex-row justify-between font-semibold border-b border-b-gray-300 pb-2">
+                    <div className="w-full h-full overflow-hidden border-b border-b-gray-300 px-4 py-2">
+                      <div className="w-full flex flex-col gap-2 md:flex md:flex-row items-center justify-between font-semibold border-b border-b-gray-300 pb-2">
                         <div>
                           <h1 className="text-sm text-gray-600">
                             Question {currentIndex + 1} -{" "}
