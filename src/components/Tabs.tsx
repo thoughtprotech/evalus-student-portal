@@ -54,9 +54,7 @@ export function TabsList({ labels, className = "" }: TabsListProps) {
   if (!ctx) throw new Error("TabsList must be used within TabsRoot");
 
   return (
-    <div
-      className={`w-fit h-fit rounded-md flex space-x-4 border bg-white border-gray-300 shadow-md p-2 ${className}`}
-    >
+    <div className={`w-fit h-fit flex space-x-4 p-2 ${className}`}>
       {labels.map((label, index) => (
         <div
           key={index}
@@ -68,7 +66,15 @@ export function TabsList({ labels, className = "" }: TabsListProps) {
         >
           <button onClick={() => ctx.setActiveIndex(index)}>{label}</button>
           <OnHover
-            trigger={<Info className="w-5 h-5 text-indigo-600" />}
+            trigger={
+              <Info
+                className={`w-4 h-4 ${
+                  ctx.activeIndex === index
+                    ? "text-indigo-600 rounded-md"
+                    : "text-gray-700"
+                }`}
+              />
+            }
             dropdownClassName="max-w-xs"
           >
             <QuestionCountPreview

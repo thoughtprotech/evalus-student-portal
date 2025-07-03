@@ -629,19 +629,25 @@ export default function ExamPage() {
   return (
     <div className="w-full h-full flex flex-col bg-gray-100 overflow-hidden">
       {/* Main */}
-      <div className="bg-white p-2 rounded-b-md shadow-md border border-gray-300 space-y-4 flex justify-end">
+      <div className="bg-gray-100 px-2 py-1 shadow-md border border-gray-300 space-y-4 flex justify-end">
         <div className="w-fit flex items-center gap-3 text-sm">
-          <div>
-            <Info
-              className="text-gray-600 w-5 h-5 cursor-pointer"
-              onClick={() => setShowInstructionsModal(true)}
-            />
+          <div
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => setShowQuestionsModal(true)}
+          >
+            <ShieldQuestion className="text-gray-600 w-4 h-4 cursor-pointer" />
+            <div className="text-gray-600">
+              <h1>Question Paper</h1>
+            </div>
           </div>
-          <div>
-            <ShieldQuestion
-              className="text-gray-600 w-5 h-5 cursor-pointer"
-              onClick={() => setShowQuestionsModal(true)}
-            />
+          <div
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => setShowInstructionsModal(true)}
+          >
+            <Info className="text-gray-600 w-4 h-4 cursor-pointer" />
+            <div className="text-gray-600">
+              <h1>Instructions</h1>
+            </div>
           </div>
         </div>
       </div>
@@ -681,9 +687,17 @@ export default function ExamPage() {
                   </div>
                 </div>
               </div>
-              <div className="w-fit flex items-center gap-3 text-sm">
+            </div>
+          </div>
+          <TabsRoot defaultIndex={0}>
+            <div className="flex justify-between items-center bg-white rounded-md border border-gray-300 shadow-md">
+              <TabsList
+                className="w-full"
+                labels={["Section 1", "Section 2", "Section 3"]}
+              />
+              <div className="w-fit flex items-center gap-3 text-sm p-2 whitespace-nowrap">
                 <div className="flex items-center gap-2">
-                  <h1 className="font-bold text-gray-600">Time Left</h1>
+                  <h1 className="font-bold text-gray-600">Time Left: </h1>
                   <CountdownTimer
                     initialTime="00:05:00"
                     onComplete={handleTimeout}
@@ -692,21 +706,13 @@ export default function ExamPage() {
                 </div>
               </div>
             </div>
-          </div>
-          <TabsRoot defaultIndex={0}>
-            <div className="flex justify-between items-center">
-              <TabsList
-                className="w-full"
-                labels={["Section 1", "Section 2", "Section 3"]}
-              />
-            </div>
 
             <TabsContent className="w-full h-full overflow-hidden">
               <div className="w-full h-full">
                 {question && (
                   <div className="w-full h-full bg-white rounded-md shadow-md border border-gray-300 flex flex-col justify-between flex-1">
                     <div className="w-full h-full overflow-hidden border-b border-b-gray-300 p-4">
-                      <div className="w-full flex flex-col gap-2 md:flex md:flex-row justify-between font-semibold">
+                      <div className="w-full flex flex-col gap-2 md:flex md:flex-row justify-between font-semibold border-b border-b-gray-300 pb-2">
                         <div>
                           <h1 className="text-sm text-gray-600">
                             Question {currentIndex + 1} -{" "}
@@ -734,7 +740,7 @@ export default function ExamPage() {
                           </div>
                         </div>
                       </div>
-                      <div className="w-full h-full flex gap-5">
+                      <div className="w-full h-full flex gap-5 pt-2">
                         <div className="relative w-3/4 h-full border-r border-r-gray-300">
                           <div className="w-full flex flex-col gap-4 h-full pr-4 relative">
                             <div
