@@ -1,11 +1,17 @@
 import {
   CreateQuestionRequest,
   Endpoint,
+  GetCandidateStarredTestRequest,
+  GetCandidateStarredTestResponse,
+  GetCandidateTestRequest,
+  GetCandidateTestResponse,
   GetQuestionByIdRequest,
   GetQuestionByIdResponse,
   GetQuestionListRequest,
   GetQuestionListResponse,
   GetQuestionTypesResponse,
+  GetSpotlightRequest,
+  GetSpotlightResponse,
   LoginRequest,
   LoginResponse,
   LogoutRequest,
@@ -55,4 +61,26 @@ export const endpoints = {
     path: () => `/api/QuestionTypes`,
     type: "CLOSE",
   } as Endpoint<null, GetQuestionTypesResponse[]>,
+
+  getCandidateTests: {
+    method: "GET",
+    path: ({ username, groupId }) =>
+      `/api/TestAdminDashboard/candidategroup/tests?username=${username}&groupId=${groupId}`,
+    type: "CLOSE",
+  } as Endpoint<GetCandidateTestRequest, GetCandidateTestResponse[]>,
+
+  getCandidateStarredTests: {
+    method: "GET",
+    path: ({ username }) => `/api/Tests/starred/${username}`,
+    type: "CLOSE",
+  } as Endpoint<
+    GetCandidateStarredTestRequest,
+    GetCandidateStarredTestResponse[]
+  >,
+
+  getSpotLight: {
+    method: "GET",
+    path: () => `/api/Spotlights`,
+    type: "CLOSE",
+  } as Endpoint<GetSpotlightRequest, GetSpotlightResponse[]>,
 };

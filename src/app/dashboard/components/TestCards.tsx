@@ -16,9 +16,15 @@ import Link from "next/link";
 interface TestCardsProps {
   id: string;
   name: string;
-  startDateTimeString: string;
-  endDateTimeString: string;
-  status: "SignedUp" | "UpNext" | "Missed" | "Done";
+  startDateTimeString?: string;
+  endDateTimeString?: string;
+  status?:
+    | "Registered"
+    | "Completed"
+    | "Cancelled"
+    | "In Progress"
+    | "Missed"
+    | undefined;
   bookmarked?: boolean;
 }
 
@@ -31,37 +37,37 @@ export default function TestCards({
   bookmarked = false,
 }: TestCardsProps) {
   // Parse ISO date strings
-  const startDate = parseISO(startDateTimeString);
-  const endDate = parseISO(endDateTimeString);
+  let formattedStartDate;
+  let formattedStartTime;
+  let formattedEndDate;
+  let formattedEndTime;
+  let formattedDuration;
 
-  const formattedStartDate = format(startDate, "PPP"); // e.g., Jan 1, 2025
-  const formattedStartTime = format(startDate, "p"); // e.g., 10:00 AM
-  const formattedEndDate = format(endDate, "PPP");
-  const formattedEndTime = format(endDate, "p");
+  if (startDateTimeString && endDateTimeString) {
+    const startDate = parseISO(startDateTimeString);
+    const endDate = parseISO(endDateTimeString);
 
-  const durationInMinutes = differenceInMinutes(endDate, startDate);
-  const hours = Math.floor(durationInMinutes / 60);
-  const minutes = durationInMinutes % 60;
-  const formattedDuration =
-    hours > 0 ? `${hours}h ${minutes > 0 ? `${minutes}m` : ""}` : `${minutes}m`;
+    formattedStartDate = format(startDate, "PPP"); // e.g., Jan 1, 2025
+    formattedStartTime = format(startDate, "p"); // e.g., 10:00 AM
+    formattedEndDate = format(endDate, "PPP");
+    formattedEndTime = format(endDate, "p");
 
-  // Map status to color classes for status badge
-  const statusMapping: Record<
-    TestCardsProps["status"],
-    { bg: string; text: string }
-  > = {
-    SignedUp: { bg: "bg-purple-100", text: "text-purple-800" },
-    UpNext: { bg: "bg-blue-100", text: "text-blue-800" },
-    Missed: { bg: "bg-red-100", text: "text-red-800" },
-    Done: { bg: "bg-green-100", text: "text-green-800" },
-  };
+    const durationInMinutes = differenceInMinutes(endDate, startDate);
+    const hours = Math.floor(durationInMinutes / 60);
+    const minutes = durationInMinutes % 60;
+    formattedDuration =
+      hours > 0
+        ? `${hours}h ${minutes > 0 ? `${minutes}m` : ""}`
+        : `${minutes}m`;
+  }
 
   // Map status to action button colors
-  const actionButtonMapping: Record<TestCardsProps["status"], string> = {
-    SignedUp: "bg-green-600 hover:bg-green-700",
-    UpNext: "bg-blue-600 hover:bg-blue-700",
-    Missed: "bg-red-600 hover:bg-red-700",
-    Done: "bg-indigo-600 hover:bg-indigo-700",
+  const actionButtonMapping: Record<any, string> = {
+    Registered: "bg-purple-600 hover:bg-purple-700",
+    "In Progress": "bg-blue-600 hover:bg-blue-700",
+    Missed: "bg-orange-600 hover:bg-orange-700",
+    Cancelled: "bg-red-600 hover:bg-red-700",
+    Completed: "bg-green-600 hover:bg-green-700",
   };
 
   // Determine Link button content based on status
@@ -69,20 +75,24 @@ export default function TestCards({
   let linkIcon = null;
   let linkHref = "/";
 
-  if (status === "SignedUp") {
+  if (status === "Registered") {
     linkText = "Start";
     linkIcon = <Play className="w-5 h-5 ml-2" />;
     linkHref = `/exam/systemCheck/${encodeURIComponent(id)}`;
-  } else if (status === "UpNext") {
-    linkText = "SignUp";
+  } else if (status === "In Progress") {
+    linkText = "Resume";
     linkIcon = <CalendarCheckIcon className="w-5 h-5 ml-2" />;
     linkHref = `/dashboard/register/${encodeURIComponent(id)}`;
   } else if (status === "Missed") {
     linkText = "Reschedule";
     linkIcon = <RotateCcw className="w-5 h-5 ml-2" />;
     linkHref = `/dashboard/reschedule/${encodeURIComponent(id)}`;
-  } else if (status === "Done") {
+  } else if (status === "Completed") {
     linkText = "View Report";
+    linkIcon = <ArrowRight className="w-5 h-5 ml-2" />;
+    linkHref = `/dashboard/analytics/${encodeURIComponent(id)}`;
+  } else if (status === "Cancelled") {
+    linkText = "Enquire";
     linkIcon = <ArrowRight className="w-5 h-5 ml-2" />;
     linkHref = `/dashboard/analytics/${encodeURIComponent(id)}`;
   }
@@ -221,7 +231,9 @@ export default function TestCards({
         <a
           href={linkHref}
           onClick={openInPopup}
-          className={`w-full flex items-center justify-center px-4 py-2 font-bold text-white rounded shadow transition-colors ${actionButtonMapping[status]}`}
+          className={`w-full flex items-center justify-center px-4 py-2 font-bold text-white rounded shadow transition-colors ${
+            status && actionButtonMapping[status]
+          }`}
         >
           {linkIcon}
           {linkText}

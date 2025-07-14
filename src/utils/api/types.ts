@@ -149,3 +149,50 @@ export interface GetQuestionTypesResponse {
   modifiedBy: string;
   modifiedDate: string;
 }
+
+export interface GetCandidateTestRequest {
+  username: string;
+  groupId: number;
+}
+
+export interface GetCandidateTestResponse {
+  testName: string;
+  testStartDate: string;
+  testEndDate: string;
+  testStatus:
+    | "Registered"
+    | "Completed"
+    | "Cancelled"
+    | "In Progress"
+    | "Missed";
+  testId: number;
+}
+
+export interface GetCandidateStarredTestRequest {
+  username: string;
+}
+
+export interface GetCandidateStarredTestResponse {
+  testId: number;
+  testName: string;
+  description: string;
+  // testStatus:
+  //   | "Registered"
+  //   | "Completed"
+  //   | "Cancelled"
+  //   | "In Progress"
+  //   | "Missed";
+}
+
+export interface GetSpotlightRequest {
+  
+}
+
+export interface GetSpotlightResponse {
+  id: number;
+  spotlightName: string;
+  spotlightNameDescription: string;
+  addedDate: string;
+  validFrom: string;
+  validTo: string;
+}

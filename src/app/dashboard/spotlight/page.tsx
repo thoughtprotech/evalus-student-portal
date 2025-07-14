@@ -1,8 +1,9 @@
 "use client";
 
-import { fetchSpotlightAction } from "@/app/actions/dashboard/spotlight";
+import { fetchSpotlightListAction } from "@/app/actions/dashboard/spotlight/fetchSpotlightList";
 import Loader from "@/components/Loader";
 import SearchBar from "@/components/SearchBar";
+import { GetSpotlightResponse } from "@/utils/api/types";
 import { useEffect, useState } from "react";
 
 function daysAgo(dateStr: string): string {
@@ -19,16 +20,11 @@ export default function AnnouncementsPage() {
   const [loaded, setLoaded] = useState<boolean>(false);
   const [query, setQuery] = useState("");
   const [announcementList, setAnnouncementList] = useState<
-    {
-      id: number;
-      title: string;
-      date: string;
-      description: string;
-    }[]
+    GetSpotlightResponse[]
   >([]);
 
   const fetchSpotlightList = async () => {
-    const res = await fetchSpotlightAction();
+    const res = await fetchSpotlightListAction();
     const { data, status } = res;
     if (status) {
       setAnnouncementList(data!);
@@ -41,7 +37,7 @@ export default function AnnouncementsPage() {
   }, []);
 
   const filteredAnnouncements = announcementList.filter((a) =>
-    a.title.toLowerCase().includes(query.toLowerCase())
+    a.spotlightName.toLowerCase().includes(query.toLowerCase())
   );
 
   if (!loaded) {
@@ -67,7 +63,7 @@ export default function AnnouncementsPage() {
             filteredAnnouncements
               .sort(
                 (a, b) =>
-                  new Date(b.date).getTime() - new Date(a.date).getTime()
+                  new Date(b.validFrom).getTime() - new Date(a.validFrom).getTime()
               )
               .map((announcement) => (
                 <div
@@ -76,16 +72,16 @@ export default function AnnouncementsPage() {
                 >
                   <div className="flex justify-between items-center">
                     <h2 className="text-xl font-semibold text-indigo-600">
-                      {announcement.title}
+                      {announcement.spotlightName}
                     </h2>
                     <div className="flex gap-2 items-center">
                       <span className="text-sm text-gray-500">
-                        {daysAgo(announcement.date)}
+                        {daysAgo(announcement.validFrom)}
                       </span>
                     </div>
                   </div>
                   <p className="text-gray-700 text-sm">
-                    {announcement.description}
+                    {announcement.spotlightNameDescription}
                   </p>
                 </div>
               ))

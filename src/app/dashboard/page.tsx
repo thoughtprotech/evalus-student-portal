@@ -4,30 +4,23 @@ import SearchBar from "@/components/SearchBar";
 import { useEffect, useState } from "react";
 import TestCards from "./components/TestCards";
 import { Play, Clock, XCircle, CheckCircle } from "lucide-react";
-import { fetchTestListAction } from "../actions/dashboard/testList";
+import { fetchCandidateTestList } from "../actions/dashboard/testList";
 import Loader from "@/components/Loader";
+import { GetCandidateTestResponse } from "@/utils/api/types";
 
 export default function Index() {
   const [loaded, setLoaded] = useState<boolean>(false);
   const [currentTab, setCurrentTab] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
-  const [testList, setTestList] = useState<
-    {
-      id: string;
-      name: string;
-      startDateTimeString: string;
-      endDateTimeString: string;
-      status: "SignedUp" | "UpNext" | "Missed" | "Done";
-    }[]
-  >([]);
+  const [testList, setTestList] = useState<GetCandidateTestResponse[]>([]);
 
   const tabs = ["SignedUp", "UpNext", "Missed", "Done"];
 
   const fetchTestList = async () => {
-    const res = await fetchTestListAction();
+    const res = await fetchCandidateTestList();
     const { data, status } = res;
     if (status === 200) {
-      setTestList(data);
+      setTestList(data!);
       setLoaded(true);
     }
   };
@@ -38,37 +31,37 @@ export default function Index() {
   }, []);
 
   // Derive the filtered test list based on the current tab and search query
-  const filteredTestList = testList.filter(
-    (test) =>
-      test.status === tabs[currentTab] &&
-      test.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // const filteredTestList = testList.filter(
+  //   (test) =>
+  //     test.status === tabs[currentTab] &&
+  //     test.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // );
 
   // Prepare tab card data including count and an appropriate icon
-  const tabCardData = tabs.map((tab) => {
-    let icon;
-    switch (tab) {
-      case "SignedUp":
-        icon = <Play className="w-6 h-6 text-blue-500" />;
-        break;
-      case "UpNext":
-        icon = <Clock className="w-6 h-6 text-yellow-500" />;
-        break;
-      case "Missed":
-        icon = <XCircle className="w-6 h-6 text-red-500" />;
-        break;
-      case "Done":
-        icon = <CheckCircle className="w-6 h-6 text-green-500" />;
-        break;
-      default:
-        icon = null;
-    }
-    return {
-      label: tab,
-      count: testList.filter((test) => test.status === tab).length,
-      icon,
-    };
-  });
+  // const tabCardData = tabs.map((tab) => {
+  //   let icon;
+  //   switch (tab) {
+  //     case "SignedUp":
+  //       icon = <Play className="w-6 h-6 text-blue-500" />;
+  //       break;
+  //     case "UpNext":
+  //       icon = <Clock className="w-6 h-6 text-yellow-500" />;
+  //       break;
+  //     case "Missed":
+  //       icon = <XCircle className="w-6 h-6 text-red-500" />;
+  //       break;
+  //     case "Done":
+  //       icon = <CheckCircle className="w-6 h-6 text-green-500" />;
+  //       break;
+  //     default:
+  //       icon = null;
+  //   }
+  //   return {
+  //     label: tab,
+  //     count: testList.filter((test) => test.status === tab).length,
+  //     icon,
+  //   };
+  // });
 
   if (!loaded) {
     return <Loader />;
@@ -77,7 +70,7 @@ export default function Index() {
   return (
     <div className="w-full h-full flex flex-col space-y-8">
       {/* Page Header */}
-      <div className="w-full mx-auto flex flex-col-reverse md:flex-row justify-between items-center gap-4">
+      {/* <div className="w-full mx-auto flex flex-col-reverse md:flex-row justify-between items-center gap-4">
         <div className="md:flex grid grid-cols-1 gap-2 md:gap-0 space-x-4 w-full">
           {tabCardData.map((tabData, index) => (
             <div
@@ -103,20 +96,20 @@ export default function Index() {
             }}
           />
         </div>
-      </div>
+      </div> */}
 
       {/* Test Cards */}
       <div>
-        {filteredTestList.length > 0 ? (
+        {testList.length > 0 ? (
           <div className="w-full grid grid-cols-1 lg:grid-cols-4 gap-4">
-            {filteredTestList.map((test, index) => (
-              <div key={test.name}>
+            {testList.map((test, index) => (
+              <div key={test.testName}>
                 <TestCards
-                  id={test.id}
-                  name={test.name}
-                  startDateTimeString={test.startDateTimeString}
-                  endDateTimeString={test.endDateTimeString}
-                  status={test.status}
+                  id={test.testId.toString()}
+                  name={test.testName}
+                  startDateTimeString={test.testStartDate}
+                  endDateTimeString={test.testEndDate}
+                  status={test.testStatus}
                   bookmarked={index % 2 === 0}
                 />
               </div>

@@ -3,24 +3,19 @@
 import SearchBar from "@/components/SearchBar";
 import { useEffect, useState } from "react";
 import TestCards from "../components/TestCards";
-import { fetchStarredListAction } from "@/app/actions/dashboard/starredList";
 import Loader from "@/components/Loader";
+import { fetchCandidateStarredTestList } from "@/app/actions/dashboard/starred/fetchStarredTestList";
+import { GetCandidateStarredTestResponse } from "@/utils/api/types";
 
 export default function Index() {
   const [loaded, setLoaded] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [testList, setTestList] = useState<
-    {
-      id: string;
-      name: string;
-      startDateTimeString: string;
-      endDateTimeString: string;
-      status: "SignedUp" | "UpNext" | "Missed" | "Done";
-    }[]
-  >([]);
+  const [testList, setTestList] = useState<GetCandidateStarredTestResponse[]>(
+    []
+  );
 
   const fetchStarredList = async () => {
-    const res = await fetchStarredListAction();
+    const res = await fetchCandidateStarredTestList();
     const { data, status } = res;
     if (status === 200) {
       setTestList(data!);
@@ -35,7 +30,7 @@ export default function Index() {
 
   // Derive the filtered test list based on the current tab and search query
   const filteredTestList = testList.filter((test) =>
-    test.name.toLowerCase().includes(searchQuery.toLowerCase())
+    test.testName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (!loaded) {
@@ -59,15 +54,15 @@ export default function Index() {
         {filteredTestList.length > 0 ? (
           <div className="w-full grid grid-cols-1 lg:grid lg:grid-cols-4 gap-4">
             {filteredTestList.map((test) => (
-              <div key={test.name}>
+              <div key={test.testName}>
                 <TestCards
-                  id={test.id}
-                  name={test.name}
-                  startDateTimeString={test.startDateTimeString}
-                  endDateTimeString={test.endDateTimeString}
-                  status={
-                    test.status as "SignedUp" | "UpNext" | "Missed" | "Done"
-                  }
+                  id={test.testId.toString()}
+                  name={test.testName}
+                  // startDateTimeString={test.startDateTimeString}
+                  // endDateTimeString={test.endDateTimeString}
+                  // status={
+                  //   test.status as "SignedUp" | "UpNext" | "Missed" | "Done"
+                  // }
                   bookmarked={true}
                 />
               </div>

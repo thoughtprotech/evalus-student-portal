@@ -1,12 +1,12 @@
 "use server";
 
 import { apiHandler } from "@/utils/api/client";
-import { ApiResponse, GetCandidateTestResponse } from "@/utils/api/types";
+import { ApiResponse, GetCandidateStarredTestResponse } from "@/utils/api/types";
 import { endpoints } from "@/utils/api/endpoints";
-import { getUserAction } from "../getUser";
+import { getUserAction } from "../../getUser";
 
-export async function fetchCandidateTestList(): Promise<
-  ApiResponse<GetCandidateTestResponse[]>
+export async function fetchCandidateStarredTestList(): Promise<
+  ApiResponse<GetCandidateStarredTestResponse[]>
 > {
   //   TODO: Add filters
   try {
@@ -14,10 +14,9 @@ export async function fetchCandidateTestList(): Promise<
 
     if (username) {
       const { status, error, data, errorMessage, message } = await apiHandler(
-        endpoints.getCandidateTests,
+        endpoints.getCandidateStarredTests,
         {
           username,
-          groupId: 10,
         }
       );
 
@@ -27,7 +26,7 @@ export async function fetchCandidateTestList(): Promise<
         status: 200,
         error: false,
         data,
-        message: "Candidate Test List Retrieved",
+        message: "Candidate Starred Test List Retrieved",
       };
     }
     return {
@@ -36,11 +35,11 @@ export async function fetchCandidateTestList(): Promise<
       message: "Something Went Wrong",
     };
   } catch (error) {
-    console.log("Error Retrieving Candidate Test List", error);
+    console.log("Error Retrieving Candidate Starred Test List", error);
     return {
       status: 500,
       error: true,
-      errorMessage: "Error Retrieving Candidate Test List",
+      errorMessage: "Error Retrieving Candidate Starred Test List",
     };
   }
 }

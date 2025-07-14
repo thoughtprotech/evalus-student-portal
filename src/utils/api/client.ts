@@ -62,11 +62,11 @@ function createApiClient() {
       let json: Partial<ApiResponse<Res>> = {};
       try {
         json = await res.json();
-      } catch {
+      } catch (error) {
         logger("request:error", {
           endpoint,
           status: res.status,
-          errorMessage: "Invalid JSON response",
+          errorMessage: error || "Invalid JSON response",
           elapsed,
         });
         return {
