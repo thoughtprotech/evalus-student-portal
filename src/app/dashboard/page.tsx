@@ -14,7 +14,13 @@ export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
   const [testList, setTestList] = useState<GetCandidateTestResponse[]>([]);
 
-  const tabs = ["SignedUp", "UpNext", "Missed", "Done"];
+  const tabs = [
+    "Registered",
+    "In Progress",
+    "Cancelled",
+    "Completed",
+    "Missed",
+  ];
 
   const fetchTestList = async () => {
     const res = await fetchCandidateTestList();
@@ -31,37 +37,42 @@ export default function Index() {
   }, []);
 
   // Derive the filtered test list based on the current tab and search query
-  // const filteredTestList = testList.filter(
-  //   (test) =>
-  //     test.status === tabs[currentTab] &&
-  //     test.name.toLowerCase().includes(searchQuery.toLowerCase())
-  // );
+  const filteredTestList = testList.filter(
+    (test) =>
+      test.testCandidateRegistrationStatus === tabs[currentTab] &&
+      test.testName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   // Prepare tab card data including count and an appropriate icon
-  // const tabCardData = tabs.map((tab) => {
-  //   let icon;
-  //   switch (tab) {
-  //     case "SignedUp":
-  //       icon = <Play className="w-6 h-6 text-blue-500" />;
-  //       break;
-  //     case "UpNext":
-  //       icon = <Clock className="w-6 h-6 text-yellow-500" />;
-  //       break;
-  //     case "Missed":
-  //       icon = <XCircle className="w-6 h-6 text-red-500" />;
-  //       break;
-  //     case "Done":
-  //       icon = <CheckCircle className="w-6 h-6 text-green-500" />;
-  //       break;
-  //     default:
-  //       icon = null;
-  //   }
-  //   return {
-  //     label: tab,
-  //     count: testList.filter((test) => test.status === tab).length,
-  //     icon,
-  //   };
-  // });
+  const tabCardData = tabs.map((tab) => {
+    let icon;
+    switch (tab) {
+      case "Registered":
+        icon = <Play className="w-6 h-6 text-blue-500" />;
+        break;
+      case "In Progress":
+        icon = <Clock className="w-6 h-6 text-yellow-500" />;
+        break;
+      case "Cancelled":
+        icon = <XCircle className="w-6 h-6 text-red-500" />;
+        break;
+      case "Completed":
+        icon = <CheckCircle className="w-6 h-6 text-green-500" />;
+        break;
+      case "Missed":
+        icon = <XCircle className="w-6 h-6 text-orange-500" />;
+        break;
+      default:
+        icon = null;
+    }
+    return {
+      label: tab,
+      count: testList.filter(
+        (test) => test.testCandidateRegistrationStatus === tab
+      ).length,
+      icon,
+    };
+  });
 
   if (!loaded) {
     return <Loader />;
@@ -70,7 +81,7 @@ export default function Index() {
   return (
     <div className="w-full h-full flex flex-col space-y-8">
       {/* Page Header */}
-      {/* <div className="w-full mx-auto flex flex-col-reverse md:flex-row justify-between items-center gap-4">
+      <div className="w-full mx-auto flex flex-col-reverse md:flex-row justify-between items-center gap-4">
         <div className="md:flex grid grid-cols-1 gap-2 md:gap-0 space-x-4 w-full">
           {tabCardData.map((tabData, index) => (
             <div
@@ -96,20 +107,20 @@ export default function Index() {
             }}
           />
         </div>
-      </div> */}
+      </div>
 
       {/* Test Cards */}
       <div>
-        {testList.length > 0 ? (
+        {filteredTestList.length > 0 ? (
           <div className="w-full grid grid-cols-1 lg:grid-cols-4 gap-4">
-            {testList.map((test, index) => (
+            {filteredTestList.map((test, index) => (
               <div key={test.testName}>
                 <TestCards
                   id={test.testId.toString()}
                   name={test.testName}
                   startDateTimeString={test.testStartDate}
                   endDateTimeString={test.testEndDate}
-                  status={test.testStatus}
+                  status={test.testCandidateRegistrationStatus}
                   bookmarked={index % 2 === 0}
                 />
               </div>

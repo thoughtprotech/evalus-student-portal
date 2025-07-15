@@ -159,7 +159,7 @@ export interface GetCandidateTestResponse {
   testName: string;
   testStartDate: string;
   testEndDate: string;
-  testStatus:
+  testCandidateRegistrationStatus:
     | "Registered"
     | "Completed"
     | "Cancelled"
@@ -184,9 +184,23 @@ export interface GetCandidateStarredTestResponse {
   //   | "Missed";
 }
 
-export interface GetSpotlightRequest {
-  
+export interface GetCandidateCompletedTestRequest {
+  username: string;
 }
+
+export interface GetCandidateCompletedTestResponse {
+  testId: number;
+  testName: string;
+  description: string;
+  // testStatus:
+  //   | "Registered"
+  //   | "Completed"
+  //   | "Cancelled"
+  //   | "In Progress"
+  //   | "Missed";
+}
+
+export interface GetSpotlightRequest {}
 
 export interface GetSpotlightResponse {
   id: number;

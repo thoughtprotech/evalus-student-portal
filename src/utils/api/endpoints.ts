@@ -78,6 +78,15 @@ export const endpoints = {
     GetCandidateStarredTestResponse[]
   >,
 
+  getCandidateCompletedTests: {
+    method: "GET",
+    path: ({ username }) => `/api/Tests/completed/${username}`,
+    type: "CLOSE",
+  } as Endpoint<
+    GetCandidateStarredTestRequest,
+    GetCandidateStarredTestResponse[]
+  >,
+
   getSpotLight: {
     method: "GET",
     path: () => `/api/Spotlights`,
