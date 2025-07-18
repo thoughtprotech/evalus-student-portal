@@ -16,6 +16,16 @@ import {
   Cell,
   AreaChart,
   Area,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ScatterChart,
+  Scatter,
+  LineChart,
+  Line,
+  ZAxis,
 } from "recharts";
 import {
   Calendar,
@@ -24,6 +34,18 @@ import {
   ClipboardList,
   TrendingUp,
   ArrowLeft,
+  Award,
+  Zap,
+  BookOpen,
+  PieChart as PieIcon,
+  BarChart4,
+  Activity,
+  Gauge,
+  Timer,
+  CheckCircle,
+  XCircle,
+  HelpCircle,
+  Target,
 } from "lucide-react";
 import Link from "next/link";
 import formatToDDMMYYYY_HHMM from "@/utils/formatIsoTime";
@@ -40,22 +62,71 @@ interface TestDetails {
   totalMarks: number;
   date: string;
   duration: string;
+  userRank: number;
+  totalParticipants: number;
+  averageTimeByOthers: string;
+  averageTimeByUser: string;
+  percentile: number;
+  sections: {
+    name: string;
+    correct: number;
+    incorrect: number;
+    unanswered: number;
+    maxMarks: number;
+    marksObtained: number;
+    timeSpent: string;
+  }[];
   scoreBreakdown: {
     questionsAttempted: number;
     correctAnswers: number;
     incorrectAnswers: number;
     unanswered: number;
     score: number;
+    timeSpent: string;
+    marksPerCategory: {
+      name: string;
+      marks: number;
+    }[];
   };
   analytics: { date: string; score: number }[];
+  timeDistribution: {
+    name: string;
+    time: number;
+  }[];
+  rankDistribution: {
+    score: number;
+    count: number;
+  }[];
+  questionAnalysis: {
+    questionNumber: number;
+    timeSpent: number;
+    correct: boolean;
+    marks: number;
+  }[];
 }
 
 const COLORS = ["#4CAF50", "#F44336", "#FF9800", "#9E9E9E"];
+const SECTION_COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7300", "#a4de6c"];
+
+// Helper to convert time string to minutes
+const timeStringToMinutes = (timeStr: string) => {
+  const [hours, minutes, seconds] = timeStr.split(":").map(Number);
+  return hours * 60 + minutes + seconds / 60;
+};
+
+// Helper to format minutes for display
+const formatMinutes = (minutes: number) => {
+  const hrs = Math.floor(minutes / 60);
+  const mins = Math.floor(minutes % 60);
+  const secs = Math.round((minutes * 60) % 60);
+
+  if (hrs > 0) return `${hrs}h ${mins}m`;
+  if (mins > 0) return `${mins}m ${secs}s`;
+  return `${secs}s`;
+};
 
 export default function TestDetailsPage() {
-  // Use useParams to obtain the route parameter.
   const [loaded, setLoaded] = useState<boolean>(false);
-
   const { id } = useParams();
   const [testDetails, setTestDetails] = useState<TestDetails | null>(null);
 
@@ -74,30 +145,77 @@ export default function TestDetailsPage() {
     }
   }, [id]);
 
-  if (!testDetails) return;
+  if (!testDetails) return <Loader />;
 
-  const { name, score, totalMarks, date, duration, scoreBreakdown, analytics } =
-    testDetails;
+  const {
+    name,
+    score,
+    totalMarks,
+    date,
+    duration,
+    userRank,
+    totalParticipants,
+    percentile,
+    sections,
+    scoreBreakdown,
+    analytics,
+    timeDistribution,
+    rankDistribution,
+    questionAnalysis,
+  } = testDetails;
 
   const percentageScore = ((score / totalMarks) * 100).toFixed(2);
-  const accuracy = (
-    (scoreBreakdown.correctAnswers / scoreBreakdown.questionsAttempted) *
-    100
-  ).toFixed(2);
+  const accuracy =
+    scoreBreakdown.correctAnswers > 0
+      ? (
+          (scoreBreakdown.correctAnswers / scoreBreakdown.questionsAttempted) *
+          100
+        ).toFixed(2)
+      : "0";
 
-  const pieData = [
-    { name: "Correct", value: scoreBreakdown.correctAnswers },
-    { name: "Incorrect", value: scoreBreakdown.incorrectAnswers },
-    { name: "Unanswered", value: scoreBreakdown.unanswered },
+  // Time calculations
+  const totalTimeSpentMinutes = timeStringToMinutes(scoreBreakdown.timeSpent);
+  const avgTimePerQuestion =
+    totalTimeSpentMinutes /
+    (scoreBreakdown.correctAnswers + scoreBreakdown.incorrectAnswers);
+  const efficiencyRatio =
+    score /
+    totalMarks /
+    (totalTimeSpentMinutes / timeStringToMinutes(duration));
+
+  // Data for charts
+  const answerDistribution = [
+    { name: "Correct", value: scoreBreakdown.correctAnswers, color: COLORS[0] },
+    {
+      name: "Incorrect",
+      value: scoreBreakdown.incorrectAnswers,
+      color: COLORS[1],
+    },
+    { name: "Unanswered", value: scoreBreakdown.unanswered, color: COLORS[2] },
   ];
 
-  const barData = [
+  const marksDistribution = [
+    { name: "Earned", value: score, color: "#4CAF50" },
+    { name: "Missed", value: totalMarks - score, color: "#F44336" },
+  ];
+
+  const timeAnalysis = [
     {
-      name: "Score Summary",
-      Score: score,
-      Max: totalMarks,
+      name: "Time Spent",
+      time: totalTimeSpentMinutes,
+    },
+    {
+      name: "Avg. Time/Question",
+      time: avgTimePerQuestion,
     },
   ];
+
+  const sectionData = sections.map((section, index) => ({
+    subject: section.name,
+    A: section.marksObtained,
+    fullMark: section.maxMarks,
+    color: SECTION_COLORS[index % SECTION_COLORS.length],
+  }));
 
   if (!loaded) {
     return <Loader />;
@@ -105,161 +223,433 @@ export default function TestDetailsPage() {
 
   return (
     <div className="h-full w-full">
-      <div className="max-w-5xl mx-auto space-y-10">
-        <div className="w-full flex flex-col lg:flex lg:flex-row justify-between lg:items-center gap-4">
-          <div className="flex items-center gap-4">
+      <div className="w-full mx-auto px-4 space-y-8">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between gap-6">
+          <div className="flex items-start gap-4">
+            <Link href="/dashboard/analytics" className="mt-1">
+              <ArrowLeft className="w-8 h-8 hover:text-indigo-800 transition-colors" />
+            </Link>
             <div>
-              <Link href="/dashboard/analytics">
-                <ArrowLeft className="w-7 h-7 md:w-8 md:h-8" />
-              </Link>
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-4xl font-bold text-black">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
                 {name}
               </h1>
+              <div className="flex flex-wrap items-center gap-3 mt-2">
+                <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
+                  <Calendar className="text-indigo-600 w-4 h-4" />
+                  <span className="text-sm text-indigo-700 font-medium">
+                    {formatToDDMMYYYY_HHMM(date)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
+                  <Clock className="text-indigo-600 w-4 h-4" />
+                  <span className="text-sm text-indigo-700 font-medium">
+                    {duration}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
+                  <Award className="text-indigo-600 w-4 h-4" />
+                  <span className="text-sm text-indigo-700 font-medium">
+                    Rank: {userRank}/{totalParticipants}
+                    <span className="ml-1">(Top {percentile}%)</span>
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
-              <Clock className="text-gray-500 w-5 h-5" />
-              <h1 className="text-gray-500 font-bold">{duration}</h1>
+
+          <div className="flex flex-col items-start">
+            <div className="text-6xl font-bold text-gray-800">
+              {score}
+              <span className="text-2xl">/{totalMarks}</span>
             </div>
-            <div className="flex items-center gap-1">
-              <Calendar className="text-gray-500 w-5 h-5" />
-              <h1 className="text-gray-500 font-bold">
-                {formatToDDMMYYYY_HHMM(date)}
-              </h1>
-            </div>
+            <div className="text-sm font-bold text-gray-500">Overall Score</div>
           </div>
+
+          {/* <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-1 h-fit shadow-lg">
+            <div className="bg-white rounded-lg py-1 px-4 flex items-center">
+              <div className="flex flex-col">
+                <div className="text-sm font-bold text-gray-500">
+                  Overall Score
+                </div>
+                <div className="flex items-end gap-2">
+                  <div className="text-2xl font-bold text-gray-800">
+                    {score}
+                    <span className="text-lg">/{totalMarks}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div> */}
         </div>
 
-        {/* Overview Card */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Score Card */}
-          <div className="bg-white shadow-md px-6 py-4 flex flex-col items-start justify-center rounded-xl border border-gray-300">
-            <div className="flex items-center gap-2">
-              <BarChart2 className="w-5 h-5 text-indigo-500" />
-              <p className="text-lg font-bold text-gray-500">Score</p>
-            </div>
-            <p className="text-2xl font-bold mt-2">
-              {score}/{totalMarks} ({percentageScore}%)
-            </p>
-          </div>
+        {/* Overview Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+          <MetricCard
+            icon={<ClipboardList className="w-5 h-5" />}
+            title="Questions Attempted"
+            value={scoreBreakdown.questionsAttempted}
+            description={`out of ${
+              scoreBreakdown.correctAnswers +
+              scoreBreakdown.incorrectAnswers +
+              scoreBreakdown.unanswered
+            }`}
+            color="bg-blue-100 text-blue-600"
+          />
 
-          {/* Questions Attempted Card */}
-          <div className="bg-white shadow-md px-6 py-4 flex flex-col items-start justify-center rounded-xl border border-gray-300 hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-2">
-              <ClipboardList className="w-5 h-5 text-indigo-500" />
-              <p className="text-lg font-bold text-gray-500">
-                Questions Attempted
-              </p>
-            </div>
-            <p className="text-2xl font-bold mt-2">
-              {scoreBreakdown.questionsAttempted}
-            </p>
-          </div>
+          <MetricCard
+            icon={<CheckCircle className="w-5 h-5" />}
+            title="Correct Answers"
+            value={scoreBreakdown.correctAnswers}
+            description={`+${score} marks`}
+            color="bg-green-100 text-green-600"
+          />
 
-          {/* Accuracy Card */}
-          <div className="bg-white shadow-md px-6 py-4 flex flex-col items-start justify-center rounded-xl border border-gray-300 hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-indigo-500" />
-              <p className="text-lg font-bold text-gray-500">Accuracy</p>
-            </div>
-            <p className="text-2xl font-bold mt-2">{accuracy}%</p>
-          </div>
+          <MetricCard
+            icon={<XCircle className="w-5 h-5" />}
+            title="Incorrect Answers"
+            value={scoreBreakdown.incorrectAnswers}
+            description="Negative marking"
+            color="bg-red-100 text-red-600"
+          />
+
+          <MetricCard
+            icon={<HelpCircle className="w-5 h-5" />}
+            title="Unanswered"
+            value={scoreBreakdown.unanswered}
+            description="Potential marks"
+            color="bg-amber-100 text-amber-600"
+          />
+
+          <MetricCard
+            icon={<Zap className="w-5 h-5" />}
+            title="Accuracy"
+            value={`${accuracy}%`}
+            description="Based on attempts"
+            color="bg-purple-100 text-purple-600"
+          />
         </div>
 
-        {/* Pie + Bar Chart Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white shadow-md p-6 rounded-xl border border-gray-300">
-            <h3 className="text-lg font-semibold mb-4">Answer Distribution</h3>
-            <ResponsiveContainer width="100%" height={250}>
+        {/* Time Analysis Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <MetricCard
+            icon={<Timer className="w-5 h-5" />}
+            title="Time Spent"
+            value={formatMinutes(totalTimeSpentMinutes)}
+            description={`${(
+              (totalTimeSpentMinutes / timeStringToMinutes(duration)) *
+              100
+            ).toFixed(1)}% of total duration`}
+            color="bg-cyan-100 text-cyan-600"
+          />
+
+          <MetricCard
+            icon={<Gauge className="w-5 h-5" />}
+            title="Avg. Time/Question"
+            value={formatMinutes(avgTimePerQuestion)}
+            description="Across answered questions"
+            color="bg-orange-100 text-orange-600"
+          />
+
+          <MetricCard
+            icon={<Target className="w-5 h-5" />}
+            title="Efficiency Ratio"
+            value={efficiencyRatio.toFixed(2)}
+            description="Score vs Time spent"
+            color="bg-pink-100 text-pink-600"
+          />
+        </div>
+
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Answer Distribution Pie */}
+          <ChartCard
+            title="Answer Distribution"
+            icon={<PieIcon className="w-5 h-5" />}
+            description="Breakdown of correct, incorrect, and unanswered questions"
+          >
+            <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={pieData}
+                  data={answerDistribution}
                   dataKey="value"
                   nameKey="name"
                   cx="50%"
                   cy="50%"
-                  outerRadius={80}
-                  label
+                  outerRadius={100}
+                  innerRadius={60}
+                  label={({ name, percent }) =>
+                    `${name}: ${(percent * 100).toFixed(0)}%`
+                  }
                 >
-                  {pieData.map((_, index) => (
-                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                  {answerDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
+                <Tooltip
+                  formatter={(value) => [`${value} questions`, "Count"]}
+                />
               </PieChart>
             </ResponsiveContainer>
-            <div className="flex justify-center mt-4">
-              {pieData.map((entry, index) => (
-                <div key={entry.name} className="flex items-center mx-2">
-                  <div
-                    className="w-3 h-3 rounded-full mr-1"
-                    style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                  ></div>
-                  <span className="text-sm font-medium text-gray-700">
-                    {entry.name}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="bg-white shadow-md p-6 rounded-xl border border-gray-300">
-            <h3 className="text-lg font-semibold mb-4">Score Comparison</h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={barData}>
+          </ChartCard>
+
+          {/* Marks Distribution */}
+          <ChartCard
+            title="Marks Distribution"
+            icon={<BarChart4 className="w-5 h-5" />}
+            description="Earned vs missed marks comparison"
+          >
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={marksDistribution}>
+                <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="Score" fill="#4CAF50" />
-                <Bar dataKey="Max" fill="#432dd7" />
+                <Bar dataKey="value" name="Marks">
+                  {marksDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
-            <div className="flex justify-center mt-4">
-              <div className="flex items-center mx-2">
-                <div
-                  className="w-3 h-3 rounded-full mr-1"
-                  style={{ backgroundColor: "#4CAF50" }}
-                ></div>
-                <span className="text-sm font-medium text-gray-700">Score</span>
-              </div>
-              <div className="flex items-center mx-2">
-                <div
-                  className="w-3 h-3 rounded-full mr-1"
-                  style={{ backgroundColor: "#432dd7" }}
-                ></div>
-                <span className="text-sm font-medium text-gray-700">Max</span>
-              </div>
-            </div>
-          </div>
-        </div>
+          </ChartCard>
 
-        {/* Area + Line Chart Row */}
-        <div className="bg-white shadow-md p-6 rounded-xl border border-gray-300">
-          <h3 className="text-xl font-semibold mb-4">Progress Over Time</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={analytics}>
-              <defs>
-                <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="date" />
-              <YAxis />
-              <CartesianGrid strokeDasharray="3 3" />
-              <Tooltip />
-              <Area
-                type="monotone"
-                dataKey="score"
-                stroke="#8884d8"
-                fillOpacity={1}
-                fill="url(#colorScore)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          {/* Section-wise Performance */}
+          <ChartCard
+            title="Section-wise Performance"
+            icon={<BookOpen className="w-5 h-5" />}
+            description="Marks obtained per section"
+          >
+            <ResponsiveContainer width="100%" height={300}>
+              <RadarChart
+                cx="50%"
+                cy="50%"
+                outerRadius="80%"
+                data={sectionData}
+              >
+                <PolarGrid />
+                <PolarAngleAxis dataKey="subject" />
+                <PolarRadiusAxis angle={30} domain={[0, "dataMax + 5"]} />
+                <Radar
+                  name="Marks"
+                  dataKey="A"
+                  stroke="#8884d8"
+                  fill="#8884d8"
+                  fillOpacity={0.6}
+                />
+                <Tooltip />
+                <Legend />
+              </RadarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
+          {/* Time Distribution */}
+          <ChartCard
+            title="Time Distribution"
+            icon={<Activity className="w-5 h-5" />}
+            description="Time spent on different question types"
+          >
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={timeDistribution}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis
+                  tickFormatter={(value) => formatMinutes(value)}
+                  label={{
+                    value: "Time (min)",
+                    angle: -90,
+                    position: "insideLeft",
+                  }}
+                />
+                <Tooltip
+                  formatter={(value) => [formatMinutes(Number(value)), "Time"]}
+                />
+                <Bar dataKey="time" name="Time" fill="#4CAF50" />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
+          {/* Progress Over Time */}
+          <ChartCard
+            title="Progress Over Time"
+            icon={<TrendingUp className="w-5 h-5" />}
+            description="Historical performance trend"
+            fullWidth
+          >
+            <ResponsiveContainer width="100%" height={350}>
+              <AreaChart data={analytics}>
+                <defs>
+                  <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="date" />
+                <YAxis domain={[0, totalMarks]} />
+                <CartesianGrid strokeDasharray="3 3" />
+                <Tooltip
+                  formatter={(value) => [`${value}/${totalMarks}`, "Score"]}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="score"
+                  stroke="#8884d8"
+                  fillOpacity={1}
+                  fill="url(#colorScore)"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="score"
+                  stroke="#ff7300"
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
+          {/* Rank Distribution */}
+          <ChartCard
+            title="Rank Distribution"
+            icon={<BarChart2 className="w-5 h-5" />}
+            description="Score distribution among participants"
+            fullWidth
+          >
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={rankDistribution}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="score" />
+                <YAxis
+                  label={{
+                    value: "Participants",
+                    angle: -90,
+                    position: "insideLeft",
+                  }}
+                />
+                <Tooltip />
+                <Bar dataKey="count" name="Participants" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
+          {/* Question Analysis */}
+          <ChartCard
+            title="Question Analysis"
+            icon={<ClipboardList className="w-5 h-5" />}
+            description="Time spent vs correctness per question"
+            fullWidth
+          >
+            <ResponsiveContainer width="100%" height={400}>
+              <ScatterChart>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  type="number"
+                  dataKey="questionNumber"
+                  name="Question No."
+                  label={{
+                    value: "Question Number",
+                    position: "insideBottom",
+                    offset: -5,
+                  }}
+                />
+                <YAxis
+                  type="number"
+                  dataKey="timeSpent"
+                  name="Time (sec)"
+                  label={{
+                    value: "Time Spent (seconds)",
+                    angle: -90,
+                    position: "insideLeft",
+                  }}
+                />
+                {/* <ZAxis
+                  type="number"
+                  dataKey="marks"
+                  name="Marks"
+                  range={[50, 500]}
+                /> */}
+                <Tooltip
+                  cursor={{ strokeDasharray: "3 3" }}
+                  formatter={(value, name) => {
+                    if (name === "correct")
+                      return value ? "Correct" : "Incorrect";
+                    return [value, name === "timeSpent" ? "seconds" : name];
+                  }}
+                />
+                {/* <Legend /> */}
+                <Scatter
+                  name="Correct"
+                  data={questionAnalysis.filter((q) => q.correct)}
+                  fill="#4CAF50"
+                  shape="circle"
+                />
+                <Scatter
+                  name="Incorrect"
+                  data={questionAnalysis.filter((q) => !q.correct)}
+                  fill="#F44336"
+                  shape="circle"
+                />
+              </ScatterChart>
+            </ResponsiveContainer>
+          </ChartCard>
         </div>
       </div>
     </div>
   );
 }
+
+// Component for metric cards
+const MetricCard = ({
+  icon,
+  title,
+  value,
+  description,
+  color,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  value: string | number;
+  description: string;
+  color: string;
+}) => (
+  <div className="bg-white rounded-xl shadow-md border border-gray-200 p-5 transition-all">
+    <div className="flex items-center gap-3">
+      <div className={`p-2 rounded-lg ${color}`}>{icon}</div>
+      <div>
+        <h3 className="text-sm font-medium text-gray-500">{title}</h3>
+        <p className="text-2xl font-bold mt-1">{value}</p>
+      </div>
+    </div>
+    <p className="text-xs text-gray-500 font-bold mt-3">{description}</p>
+  </div>
+);
+
+// Component for chart cards
+const ChartCard = ({
+  title,
+  icon,
+  description,
+  children,
+  fullWidth = false,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  description: string;
+  children: React.ReactNode;
+  fullWidth?: boolean;
+}) => (
+  <div
+    className={`bg-white rounded-xl shadow-md border border-gray-200 p-5 h-fit ${
+      fullWidth ? "col-span-1 lg:col-span-2" : ""
+    }`}
+  >
+    <div className="flex items-center gap-2 mb-5">
+      <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">{icon}</div>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+        <p className="text-sm text-gray-500">{description}</p>
+      </div>
+    </div>
+    <div className="h-fit">{children}</div>
+  </div>
+);

@@ -27,7 +27,6 @@ import { fetchQuestionsMetaAction } from "@/app/actions/exam/questions/getQuesti
 import { fetchQuestionByIdAction } from "@/app/actions/exam/questions/getQuestionById";
 import { QUESTION_STATUS, QUESTION_TYPES } from "@/utils/constants";
 import ScrollToggleButton from "@/components/ScrollToggleButton";
-import RichTextEditor from "@/components/RichTextEditor";
 import { TextOrHtml } from "@/components/TextOrHtml";
 import ScrollXToggleButton from "@/components/ScrollXToggleButton";
 import renderOptions from "./_components/RenderOptions";
@@ -56,6 +55,8 @@ export default function ExamPage() {
   }>();
 
   const instructionsMap: Record<string, InstructionData> = mockInstructions;
+
+  const router = useRouter()
 
   useEffect(() => {
     if (id && instructionsMap[id as string]) {
@@ -622,6 +623,21 @@ export default function ExamPage() {
     // TODO: Implement API here to update question status
   };
 
+const confirmSubmit = () => {
+  const targetUrl = `/dashboard/analytics/${id}`
+
+  // If this window was opened via window.open(), window.opener points back to the parent
+  if (window.opener && !window.opener.closed) {
+    // Navigate the parent
+    window.opener.location.assign(targetUrl)
+    // Then close this popup
+    window.close()
+  } else {
+    // Fallback: same‐window navigation
+    router.push(targetUrl)
+  }
+}
+
   if (!loaded) {
     return <Loader />;
   }
@@ -1055,8 +1071,7 @@ export default function ExamPage() {
         isOpen={showModal}
         title="Submit Test?"
         message="Are you sure you want to submit the test? You won't be able to change your answers after this."
-        // onConfirm={confirmSubmit}
-        onConfirm={() => {}}
+        onConfirm={confirmSubmit}
         onCancel={cancelSubmit}
       />
 

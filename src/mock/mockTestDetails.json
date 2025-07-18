@@ -1,100 +1,394 @@
 {
-    "1": {
-      "name": "Aptitude Practice Test 1",
-      "score": 78,
-      "totalMarks": 100,
-      "date": "2025-03-15",
-      "duration": "60 mins",
-      "scoreBreakdown": {
-        "questionsAttempted": 40,
-        "correctAnswers": 32,
-        "incorrectAnswers": 8,
-        "unanswered": 10,
-        "score": 78
-      },
-      "analytics": [
-        { "date": "2025-03-01", "score": 65 },
-        { "date": "2025-03-05", "score": 70 },
-        { "date": "2025-03-10", "score": 73 },
-        { "date": "2025-03-15", "score": 78 }
-      ]
-    },
-    "2": {
-      "name": "Logical Reasoning Test",
-      "score": 85,
-      "totalMarks": 100,
-      "date": "2025-03-20",
-      "duration": "90 mins",
-      "scoreBreakdown": {
-        "questionsAttempted": 50,
-        "correctAnswers": 42,
-        "incorrectAnswers": 8,
-        "unanswered": 0,
-        "score": 85
-      },
-      "analytics": [
-        { "date": "2025-03-05", "score": 75 },
-        { "date": "2025-03-10", "score": 80 },
-        { "date": "2025-03-15", "score": 83 },
-        { "date": "2025-03-20", "score": 85 }
-      ]
-    },
-    "3": {
-      "name": "Quantitative Test 2",
-      "score": 66,
-      "totalMarks": 100,
-      "date": "2025-04-01",
-      "duration": "60 mins",
-      "scoreBreakdown": {
-        "questionsAttempted": 45,
-        "correctAnswers": 30,
-        "incorrectAnswers": 15,
+  "1": {
+    "name": "Aptitude Practice Test 1",
+    "score": 78,
+    "totalMarks": 100,
+    "date": "2025-03-15T10:30:00Z",
+    "duration": "01:00:00",
+    "userRank": 25,
+    "totalParticipants": 100,
+    "averageTimeByOthers": "00:48:22",
+    "averageTimeByUser": "00:45:30",
+    "percentile": 75,
+    "sections": [
+      {
+        "name": "Quantitative",
+        "correct": 12,
+        "incorrect": 3,
         "unanswered": 5,
-        "score": 66
+        "maxMarks": 40,
+        "marksObtained": 34,
+        "timeSpent": "00:18:30"
       },
-      "analytics": [
-        { "date": "2025-03-20", "score": 60 },
-        { "date": "2025-03-29", "score": 64 },
-        { "date": "2025-04-01", "score": 66 }
+      {
+        "name": "Verbal",
+        "correct": 10,
+        "incorrect": 2,
+        "unanswered": 3,
+        "maxMarks": 30,
+        "marksObtained": 24,
+        "timeSpent": "00:15:45"
+      },
+      {
+        "name": "Logical",
+        "correct": 10,
+        "incorrect": 3,
+        "unanswered": 2,
+        "maxMarks": 30,
+        "marksObtained": 20,
+        "timeSpent": "00:11:15"
+      }
+    ],
+    "scoreBreakdown": {
+      "questionsAttempted": 40,
+      "correctAnswers": 32,
+      "incorrectAnswers": 8,
+      "unanswered": 10,
+      "score": 78,
+      "timeSpent": "00:45:30",
+      "marksPerCategory": [
+        { "name": "Easy", "marks": 30 },
+        { "name": "Medium", "marks": 35 },
+        { "name": "Hard", "marks": 13 }
       ]
     },
-    "4": {
-      "name": "Final Mock Test",
-      "score": 91,
-      "totalMarks": 100,
-      "date": "2025-04-10",
-      "duration": "90 mins",
-      "scoreBreakdown": {
-        "questionsAttempted": 60,
-        "correctAnswers": 55,
-        "incorrectAnswers": 5,
-        "unanswered": 0,
-        "score": 91
+    "analytics": [
+      { "date": "2025-03-01", "score": 65 },
+      { "date": "2025-03-05", "score": 70 },
+      { "date": "2025-03-10", "score": 73 },
+      { "date": "2025-03-15", "score": 78 }
+    ],
+    "timeDistribution": [
+      { "name": "Quantitative", "time": 18.5 },
+      { "name": "Verbal", "time": 15.75 },
+      { "name": "Logical", "time": 11.25 }
+    ],
+    "rankDistribution": [
+      { "score": 50, "count": 10 },
+      { "score": 60, "count": 20 },
+      { "score": 70, "count": 30 },
+      { "score": 80, "count": 25 },
+      { "score": 90, "count": 15 }
+    ],
+    "questionAnalysis": [
+      { "questionNumber": 1, "timeSpent": 45, "correct": true, "marks": 2 },
+      { "questionNumber": 2, "timeSpent": 30, "correct": false, "marks": 0 },
+      { "questionNumber": 3, "timeSpent": 60, "correct": true, "marks": 3 },
+      { "questionNumber": 4, "timeSpent": 90, "correct": true, "marks": 3 },
+      { "questionNumber": 5, "timeSpent": 25, "correct": false, "marks": 0 }
+    ]
+  },
+  "2": {
+    "name": "Logical Reasoning Test",
+    "score": 85,
+    "totalMarks": 100,
+    "date": "2025-03-20T14:15:00Z",
+    "duration": "01:30:00",
+    "userRank": 12,
+    "totalParticipants": 150,
+    "averageTimeByOthers": "01:15:45",
+    "averageTimeByUser": "01:10:20",
+    "percentile": 92,
+    "sections": [
+      {
+        "name": "Analytical",
+        "correct": 15,
+        "incorrect": 2,
+        "unanswered": 3,
+        "maxMarks": 40,
+        "marksObtained": 36,
+        "timeSpent": "00:25:10"
       },
-      "analytics": [
-        { "date": "2025-04-01", "score": 85 },
-        { "date": "2025-04-05", "score": 88 },
-        { "date": "2025-04-10", "score": 91 }
+      {
+        "name": "Pattern Recognition",
+        "correct": 12,
+        "incorrect": 1,
+        "unanswered": 2,
+        "maxMarks": 30,
+        "marksObtained": 27,
+        "timeSpent": "00:20:45"
+      },
+      {
+        "name": "Deductive",
+        "correct": 15,
+        "incorrect": 5,
+        "unanswered": 0,
+        "maxMarks": 30,
+        "marksObtained": 22,
+        "timeSpent": "00:24:25"
+      }
+    ],
+    "scoreBreakdown": {
+      "questionsAttempted": 50,
+      "correctAnswers": 42,
+      "incorrectAnswers": 8,
+      "unanswered": 0,
+      "score": 85,
+      "timeSpent": "01:10:20",
+      "marksPerCategory": [
+        { "name": "Easy", "marks": 25 },
+        { "name": "Medium", "marks": 45 },
+        { "name": "Hard", "marks": 15 }
       ]
     },
-    "5": {
-      "name": "Final Mock Test",
-      "score": 91,
-      "totalMarks": 100,
-      "date": "2025-04-10",
-      "duration": "90 mins",
-      "scoreBreakdown": {
-        "questionsAttempted": 60,
-        "correctAnswers": 56,
-        "incorrectAnswers": 4,
-        "unanswered": 0,
-        "score": 91
+    "analytics": [
+      { "date": "2025-03-05", "score": 75 },
+      { "date": "2025-03-10", "score": 80 },
+      { "date": "2025-03-15", "score": 83 },
+      { "date": "2025-03-20", "score": 85 }
+    ],
+    "timeDistribution": [
+      { "name": "Analytical", "time": 25.17 },
+      { "name": "Pattern Recognition", "time": 20.75 },
+      { "name": "Deductive", "time": 24.42 }
+    ],
+    "rankDistribution": [
+      { "score": 60, "count": 20 },
+      { "score": 70, "count": 35 },
+      { "score": 80, "count": 45 },
+      { "score": 90, "count": 40 },
+      { "score": 100, "count": 10 }
+    ],
+    "questionAnalysis": [
+      { "questionNumber": 1, "timeSpent": 35, "correct": true, "marks": 2 },
+      { "questionNumber": 2, "timeSpent": 40, "correct": true, "marks": 2 },
+      { "questionNumber": 3, "timeSpent": 55, "correct": false, "marks": 0 },
+      { "questionNumber": 4, "timeSpent": 65, "correct": true, "marks": 3 },
+      { "questionNumber": 5, "timeSpent": 30, "correct": true, "marks": 2 }
+    ]
+  },
+  "3": {
+    "name": "Quantitative Test 2",
+    "score": 66,
+    "totalMarks": 100,
+    "date": "2025-04-01T09:00:00Z",
+    "duration": "01:00:00",
+    "userRank": 80,
+    "totalParticipants": 200,
+    "averageTimeByOthers": "00:50:15",
+    "averageTimeByUser": "00:42:50",
+    "percentile": 60,
+    "sections": [
+      {
+        "name": "Algebra",
+        "correct": 8,
+        "incorrect": 5,
+        "unanswered": 2,
+        "maxMarks": 30,
+        "marksObtained": 19,
+        "timeSpent": "00:15:20"
       },
-      "analytics": [
-        { "date": "2025-04-02", "score": 87 },
-        { "date": "2025-04-07", "score": 89 },
-        { "date": "2025-04-10", "score": 91 }
+      {
+        "name": "Geometry",
+        "correct": 10,
+        "incorrect": 4,
+        "unanswered": 1,
+        "maxMarks": 35,
+        "marksObtained": 24,
+        "timeSpent": "00:14:35"
+      },
+      {
+        "name": "Statistics",
+        "correct": 12,
+        "incorrect": 6,
+        "unanswered": 2,
+        "maxMarks": 35,
+        "marksObtained": 23,
+        "timeSpent": "00:12:55"
+      }
+    ],
+    "scoreBreakdown": {
+      "questionsAttempted": 45,
+      "correctAnswers": 30,
+      "incorrectAnswers": 15,
+      "unanswered": 5,
+      "score": 66,
+      "timeSpent": "00:42:50",
+      "marksPerCategory": [
+        { "name": "Easy", "marks": 22 },
+        { "name": "Medium", "marks": 30 },
+        { "name": "Hard", "marks": 14 }
       ]
-    }
+    },
+    "analytics": [
+      { "date": "2025-03-20", "score": 60 },
+      { "date": "2025-03-29", "score": 64 },
+      { "date": "2025-04-01", "score": 66 }
+    ],
+    "timeDistribution": [
+      { "name": "Algebra", "time": 15.33 },
+      { "name": "Geometry", "time": 14.58 },
+      { "name": "Statistics", "time": 12.92 }
+    ],
+    "rankDistribution": [
+      { "score": 40, "count": 30 },
+      { "score": 50, "count": 45 },
+      { "score": 60, "count": 60 },
+      { "score": 70, "count": 40 },
+      { "score": 80, "count": 25 }
+    ],
+    "questionAnalysis": [
+      { "questionNumber": 1, "timeSpent": 40, "correct": false, "marks": 0 },
+      { "questionNumber": 2, "timeSpent": 35, "correct": true, "marks": 2 },
+      { "questionNumber": 3, "timeSpent": 50, "correct": false, "marks": 0 },
+      { "questionNumber": 4, "timeSpent": 55, "correct": true, "marks": 3 },
+      { "questionNumber": 5, "timeSpent": 25, "correct": true, "marks": 2 }
+    ]
+  },
+  "4": {
+    "name": "Final Mock Test",
+    "score": 91,
+    "totalMarks": 100,
+    "date": "2025-04-10T13:45:00Z",
+    "duration": "01:30:00",
+    "userRank": 5,
+    "totalParticipants": 500,
+    "averageTimeByOthers": "01:25:10",
+    "averageTimeByUser": "01:18:40",
+    "percentile": 99,
+    "sections": [
+      {
+        "name": "Quantitative",
+        "correct": 18,
+        "incorrect": 1,
+        "unanswered": 1,
+        "maxMarks": 40,
+        "marksObtained": 38,
+        "timeSpent": "00:26:15"
+      },
+      {
+        "name": "Verbal",
+        "correct": 17,
+        "incorrect": 0,
+        "unanswered": 3,
+        "maxMarks": 30,
+        "marksObtained": 27,
+        "timeSpent": "00:22:40"
+      },
+      {
+        "name": "Logical",
+        "correct": 20,
+        "incorrect": 3,
+        "unanswered": 0,
+        "maxMarks": 30,
+        "marksObtained": 26,
+        "timeSpent": "00:29:45"
+      }
+    ],
+    "scoreBreakdown": {
+      "questionsAttempted": 60,
+      "correctAnswers": 55,
+      "incorrectAnswers": 5,
+      "unanswered": 0,
+      "score": 91,
+      "timeSpent": "01:18:40",
+      "marksPerCategory": [
+        { "name": "Easy", "marks": 30 },
+        { "name": "Medium", "marks": 45 },
+        { "name": "Hard", "marks": 16 }
+      ]
+    },
+    "analytics": [
+      { "date": "2025-04-01", "score": 85 },
+      { "date": "2025-04-05", "score": 88 },
+      { "date": "2025-04-10", "score": 91 }
+    ],
+    "timeDistribution": [
+      { "name": "Quantitative", "time": 26.25 },
+      { "name": "Verbal", "time": 22.67 },
+      { "name": "Logical", "time": 29.75 }
+    ],
+    "rankDistribution": [
+      { "score": 70, "count": 50 },
+      { "score": 80, "count": 100 },
+      { "score": 85, "count": 150 },
+      { "score": 90, "count": 120 },
+      { "score": 95, "count": 80 }
+    ],
+    "questionAnalysis": [
+      { "questionNumber": 1, "timeSpent": 40, "correct": true, "marks": 2 },
+      { "questionNumber": 2, "timeSpent": 35, "correct": true, "marks": 2 },
+      { "questionNumber": 3, "timeSpent": 45, "correct": true, "marks": 3 },
+      { "questionNumber": 4, "timeSpent": 50, "correct": false, "marks": 0 },
+      { "questionNumber": 5, "timeSpent": 30, "correct": true, "marks": 2 }
+    ]
+  },
+  "5": {
+    "name": "Advanced Problem Solving",
+    "score": 91,
+    "totalMarks": 100,
+    "date": "2025-04-15T11:30:00Z",
+    "duration": "02:00:00",
+    "userRank": 3,
+    "totalParticipants": 250,
+    "averageTimeByOthers": "01:50:25",
+    "averageTimeByUser": "01:42:15",
+    "percentile": 98.8,
+    "sections": [
+      {
+        "name": "Advanced Math",
+        "correct": 22,
+        "incorrect": 1,
+        "unanswered": 2,
+        "maxMarks": 50,
+        "marksObtained": 47,
+        "timeSpent": "00:35:20"
+      },
+      {
+        "name": "Critical Analysis",
+        "correct": 18,
+        "incorrect": 1,
+        "unanswered": 1,
+        "maxMarks": 30,
+        "marksObtained": 27,
+        "timeSpent": "00:32:45"
+      },
+      {
+        "name": "Data Interpretation",
+        "correct": 16,
+        "incorrect": 2,
+        "unanswered": 0,
+        "maxMarks": 20,
+        "marksObtained": 17,
+        "timeSpent": "00:34:10"
+      }
+    ],
+    "scoreBreakdown": {
+      "questionsAttempted": 60,
+      "correctAnswers": 56,
+      "incorrectAnswers": 4,
+      "unanswered": 0,
+      "score": 91,
+      "timeSpent": "01:42:15",
+      "marksPerCategory": [
+        { "name": "Easy", "marks": 25 },
+        { "name": "Medium", "marks": 50 },
+        { "name": "Hard", "marks": 16 }
+      ]
+    },
+    "analytics": [
+      { "date": "2025-04-02", "score": 87 },
+      { "date": "2025-04-07", "score": 89 },
+      { "date": "2025-04-10", "score": 91 }
+    ],
+    "timeDistribution": [
+      { "name": "Advanced Math", "time": 35.33 },
+      { "name": "Critical Analysis", "time": 32.75 },
+      { "name": "Data Interpretation", "time": 34.17 }
+    ],
+    "rankDistribution": [
+      { "score": 70, "count": 25 },
+      { "score": 80, "count": 50 },
+      { "score": 85, "count": 75 },
+      { "score": 90, "count": 70 },
+      { "score": 95, "count": 30 }
+    ],
+    "questionAnalysis": [
+      { "questionNumber": 1, "timeSpent": 45, "correct": true, "marks": 3 },
+      { "questionNumber": 2, "timeSpent": 50, "correct": true, "marks": 3 },
+      { "questionNumber": 3, "timeSpent": 55, "correct": true, "marks": 3 },
+      { "questionNumber": 4, "timeSpent": 40, "correct": false, "marks": 0 },
+      { "questionNumber": 5, "timeSpent": 35, "correct": true, "marks": 3 }
+    ]
   }
-  
+}
