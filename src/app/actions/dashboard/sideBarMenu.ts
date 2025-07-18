@@ -1,23 +1,24 @@
 "use server";
 
 import { apiHandler } from "@/utils/api/client";
-import { ApiResponse, GetCandidateTestResponse } from "@/utils/api/types";
+import {
+  ApiResponse,
+  GetSidebarMenusResponse,
+} from "@/utils/api/types";
 import { endpoints } from "@/utils/api/endpoints";
 import { getUserAction } from "../getUser";
 
-export async function fetchCandidateTestList(
-  groupId: number
-): Promise<ApiResponse<GetCandidateTestResponse[]>> {
-  //   TODO: Add filters
+export async function fetchSideBarMenuAction(): Promise<
+  ApiResponse<GetSidebarMenusResponse[]>
+> {
   try {
     const username = await getUserAction();
 
     if (username) {
       const { status, error, data, errorMessage, message } = await apiHandler(
-        endpoints.getCandidateTests,
+        endpoints.getSidebarMenus,
         {
           username,
-          groupId,
         }
       );
 
@@ -27,7 +28,7 @@ export async function fetchCandidateTestList(
         status: 200,
         error: false,
         data,
-        message: "Candidate Test List Retrieved",
+        message: "Sidebar Menu Retrieved",
       };
     }
     return {
@@ -36,11 +37,11 @@ export async function fetchCandidateTestList(
       message: "Something Went Wrong",
     };
   } catch (error) {
-    console.log("Error Retrieving Candidate Test List", error);
+    console.log("Error Retrieving Sidebar Menu", error);
     return {
       status: 500,
       error: true,
-      errorMessage: "Error Retrieving Candidate Test List",
+      errorMessage: "Error Retrieving Sidebar Menu",
     };
   }
 }
