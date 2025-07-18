@@ -265,22 +265,6 @@ export default function TestDetailsPage() {
             </div>
             <div className="text-sm font-bold text-gray-500">Overall Score</div>
           </div>
-
-          {/* <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-1 h-fit shadow-lg">
-            <div className="bg-white rounded-lg py-1 px-4 flex items-center">
-              <div className="flex flex-col">
-                <div className="text-sm font-bold text-gray-500">
-                  Overall Score
-                </div>
-                <div className="flex items-end gap-2">
-                  <div className="text-2xl font-bold text-gray-800">
-                    {score}
-                    <span className="text-lg">/{totalMarks}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div> */}
         </div>
 
         {/* Overview Cards */}

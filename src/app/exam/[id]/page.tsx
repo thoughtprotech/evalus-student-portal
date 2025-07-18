@@ -56,7 +56,7 @@ export default function ExamPage() {
 
   const instructionsMap: Record<string, InstructionData> = mockInstructions;
 
-  const router = useRouter()
+  const router = useRouter();
 
   useEffect(() => {
     if (id && instructionsMap[id as string]) {
@@ -623,20 +623,20 @@ export default function ExamPage() {
     // TODO: Implement API here to update question status
   };
 
-const confirmSubmit = () => {
-  const targetUrl = `/dashboard/analytics/${id}`
+  const confirmSubmit = () => {
+    const targetUrl = `/dashboard/analytics/${id}`;
 
-  // If this window was opened via window.open(), window.opener points back to the parent
-  if (window.opener && !window.opener.closed) {
-    // Navigate the parent
-    window.opener.location.assign(targetUrl)
-    // Then close this popup
-    window.close()
-  } else {
-    // Fallback: same‐window navigation
-    router.push(targetUrl)
-  }
-}
+    // If this window was opened via window.open(), window.opener points back to the parent
+    if (window.opener && !window.opener.closed) {
+      // Navigate the parent
+      window.opener.location.assign(targetUrl);
+      // Then close this popup
+      window.close();
+    } else {
+      // Fallback: same‐window navigation
+      router.push(targetUrl);
+    }
+  };
 
   if (!loaded) {
     return <Loader />;
@@ -960,7 +960,8 @@ const confirmSubmit = () => {
                       <div className="w-8 h-8 p-2 flex items-center justify-center bg-red-500 rounded-md font-bold text-white">
                         {
                           questionsMeta.filter(
-                            (question) => question.status === "unanswered"
+                            (question) =>
+                              question.status === QUESTION_STATUS.UNATTEMPTED
                           ).length
                         }
                       </div>
@@ -1073,13 +1074,76 @@ const confirmSubmit = () => {
         message="Are you sure you want to submit the test? You won't be able to change your answers after this."
         onConfirm={confirmSubmit}
         onCancel={cancelSubmit}
-      />
+        className="max-w-1/2"
+      >
+        <div className="overflow-x-auto my-8">
+          <table className="min-w-full text-left text-sm rounded-md">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="px-4 py-2">Section Name</th>
+                <th className="px-4 py-2">Total Questions</th>
+                <th className="px-4 py-2">Answered</th>
+                <th className="px-4 py-2">Not Answered</th>
+                <th className="px-4 py-2">Not Visited</th>
+                <th className="px-4 py-2">Marked for Review</th>
+                <th className="px-4 py-2">Answered &amp; Marked</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="border-t border-gray-300 px-4 py-2">Math</td>
+                <td className="border-t border-gray-300 px-4 py-2"> {questionsMeta.length}</td>
+                <td className="border-t border-gray-300 px-4 py-2">
+                  {
+                    questionsMeta.filter(
+                      (question) =>
+                        question.status === QUESTION_STATUS.ATTEMPTED
+                    ).length
+                  }
+                </td>
+                <td className="border-t border-gray-300 px-4 py-2">
+                  {
+                    questionsMeta.filter(
+                      (question) =>
+                        question.status === QUESTION_STATUS.UNATTEMPTED
+                    ).length
+                  }
+                </td>
+                <td className="border-t border-gray-300 px-4 py-2">
+                  {
+                    questionsMeta.filter(
+                      (question) =>
+                        question.status === QUESTION_STATUS.NOT_VISITED
+                    ).length
+                  }
+                </td>
+                <td className="border-t border-gray-300 px-4 py-2">
+                  {
+                    questionsMeta.filter(
+                      (question) =>
+                        question.status === QUESTION_STATUS.TO_REVIEW
+                    ).length
+                  }
+                </td>
+                <td className="border-t border-gray-300 px-4 py-2">
+                  {
+                    questionsMeta.filter(
+                      (question) =>
+                        question.status === QUESTION_STATUS.ANSWERED_TO_REVIEW
+                    ).length
+                  }
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ConfirmationModal>
 
       <Modal
         title="Instructions"
         isOpen={showInstructionsModal}
         closeModal={() => setShowInstructionsModal(false)}
-        className={"max-w-md"}
+        className={"max-w-3/4 w-full"}
       >
         <div className="mb-8 space-y-4">
           {instructionData?.instructions.map((inst, index) => (
@@ -1094,7 +1158,7 @@ const confirmSubmit = () => {
           ))}
         </div>
         <button
-          className="w-full px-4 py-2 rounded-md cursor-pointer shadow-md bg-blue-600 text-white font-bold"
+          className="w-full max-w-64 px-4 py-2 rounded-md cursor-pointer shadow-md bg-blue-600 text-white font-bold"
           onClick={() => setShowInstructionsModal(false)}
         >
           Done
