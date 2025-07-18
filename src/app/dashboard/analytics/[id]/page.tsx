@@ -330,6 +330,59 @@ export default function TestDetailsPage() {
           />
         </div>
 
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Answer Distribution Pie */}
+          <ChartCard
+            title="Answer Distribution"
+            icon={<PieIcon className="w-5 h-5" />}
+            description="Breakdown of correct, incorrect, and unanswered questions"
+          >
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={answerDistribution}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  innerRadius={60}
+                  label={({ name, percent }) =>
+                    `${name}: ${(percent * 100).toFixed(0)}%`
+                  }
+                >
+                  {answerDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value) => [`${value} questions`, "Count"]}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </ChartCard>
+          {/* Marks Distribution */}
+          <ChartCard
+            title="Marks Distribution"
+            icon={<BarChart4 className="w-5 h-5" />}
+            description="Earned vs missed marks comparison"
+          >
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={marksDistribution}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="value" name="Marks">
+                  {marksDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </div>
+
         {/* Time Analysis Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <MetricCard
@@ -362,58 +415,6 @@ export default function TestDetailsPage() {
 
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Answer Distribution Pie */}
-          <ChartCard
-            title="Answer Distribution"
-            icon={<PieIcon className="w-5 h-5" />}
-            description="Breakdown of correct, incorrect, and unanswered questions"
-          >
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={answerDistribution}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  innerRadius={60}
-                  label={({ name, percent }) =>
-                    `${name}: ${(percent * 100).toFixed(0)}%`
-                  }
-                >
-                  {answerDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value) => [`${value} questions`, "Count"]}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </ChartCard>
-
-          {/* Marks Distribution */}
-          <ChartCard
-            title="Marks Distribution"
-            icon={<BarChart4 className="w-5 h-5" />}
-            description="Earned vs missed marks comparison"
-          >
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={marksDistribution}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="value" name="Marks">
-                  {marksDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
-
           {/* Section-wise Performance */}
           <ChartCard
             title="Section-wise Performance"
