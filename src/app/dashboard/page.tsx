@@ -3,7 +3,7 @@
 import SearchBar from "@/components/SearchBar";
 import { useEffect, useState } from "react";
 import TestCards from "./components/TestCards";
-import { Play, Clock, XCircle, CheckCircle } from "lucide-react";
+import { Play, Clock, XCircle, CheckCircle, CircleArrowRight } from "lucide-react";
 import { fetchCandidateTestList } from "../actions/dashboard/testList";
 import Loader from "@/components/Loader";
 import { GetCandidateTestResponse } from "@/utils/api/types";
@@ -20,13 +20,7 @@ export default function Index() {
   const { username, setUsername, currentGroupId, setCurrentGroupId } =
     useUser();
 
-  const tabs = [
-    "Registered",
-    "In Progress",
-    "Cancelled",
-    "Completed",
-    "Missed",
-  ];
+  const tabs = ["Registered", "In Progress", "Up Next", "Completed", "Missed"];
 
   const fetchTestList = async () => {
     const res = await fetchCandidateTestList(Number(currentGroupId));
@@ -64,8 +58,8 @@ export default function Index() {
       case "In Progress":
         icon = <Clock className="w-6 h-6 text-yellow-500" />;
         break;
-      case "Cancelled":
-        icon = <XCircle className="w-6 h-6 text-red-500" />;
+      case "Up Next":
+        icon = <CircleArrowRight className="w-6 h-6 text-purple-500" />;
         break;
       case "Completed":
         icon = <CheckCircle className="w-6 h-6 text-green-500" />;
