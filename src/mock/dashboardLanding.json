@@ -1,0 +1,20 @@
+{
+  "totalExams": 24,
+  "averageScore": 78,
+  "bestSubject": "Quantitative Aptitude",
+  "examsThisWeek": 3,
+  "avgTimePerExam": "52 min",
+  "successRate": "82%",
+  "scoreTrend": [
+    { "name": "Week 1", "score": 65 },
+    { "name": "Week 2", "score": 70 },
+    { "name": "Week 3", "score": 75 },
+    { "name": "Week 4", "score": 80 }
+  ],
+  "subjectPerformance": [
+    { "subject": "Quant", "score": 85 },
+    { "subject": "Logic", "score": 72 },
+    { "subject": "English", "score": 79 },
+    { "subject": "GK", "score": 64 }
+  ]
+}

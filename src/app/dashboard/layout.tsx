@@ -10,8 +10,6 @@ import {
   LogOut,
   UserCircle,
   LampDesk,
-  Banknote,
-  ArrowDown,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
@@ -23,13 +21,23 @@ import { DropDown } from "@/components/DropDown";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { getUserAction } from "../actions/getUser";
+import { GetSidebarMenusResponse } from "@/utils/api/types";
+import { fetchSideBarMenuAction } from "../actions/dashboard/sideBarMenu";
+import Loader from "@/components/Loader";
+import { SideBarFileTree } from "./components/SideBarFileTree";
+import { useUser } from "@/contexts/UserContext";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [username, setUsername] = useState("User");
   const router = useRouter();
+  const [sideBarItems, setSideBarItems] = useState<GetSidebarMenusResponse[]>(
+    []
+  );
+  const [sideBarLoader, setSideBarLoader] = useState<boolean>(false);
+
+  const { username, setUsername, setCurrentGroupId } = useUser();
 
   const getUser = async () => {
     const user = await getUserAction();
@@ -38,8 +46,33 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     }
   };
 
+  const fetchSideBarMenus = async () => {
+    try {
+      const response = await fetchSideBarMenuAction();
+
+      const { data, status } = response;
+
+      if (status === 200) {
+        if (data) {
+          setSideBarItems(data);
+          setSideBarLoader(true);
+          setCurrentGroupId(
+            data
+              .filter((item) => item.relation === "SELF")[0]
+              .candidateGroupId.toString()
+          );
+        }
+      } else {
+        toast.error("Something Went Wrong");
+      }
+    } catch (error) {
+      toast.error("Something Went Wrong");
+    }
+  };
+
   useEffect(() => {
     setIsMounted(true);
+    fetchSideBarMenus();
     getUser();
   }, []);
 
@@ -99,7 +132,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="h-screen overflow-hidden bg-gradient-to-br from-gray-100 to-indigo-100 text-gray-800 relative flex">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col transition-all duration-300 ease-in-out overflow-hidden bg-white border-r border-gray-300 shadow-md min:w-48 w-fit max-w-72">
+      <aside className="hidden md:flex flex-col transition-all duration-300 ease-in-out overflow-hidden bg-white border-r border-gray-300 shadow-md min:w-48 w-fit min-w-58 max-w-72">
         <div className="h-16 px-2 flex gap-1 items-center justify-center shadow-md border-b border-gray-300 relative">
           <div className="absolute top-3 left-7 flex items-end gap-1">
             <h1 className="text-3xl font-bold text-indigo-700 transition duration-300">
@@ -110,118 +143,49 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </h1>
           </div>
         </div>
-
-        <nav className="flex-1 py-5 px-4 space-y-2">
-          <SidebarItem
-            category={{
-              name: "TestHub",
-              href: "/dashboard",
-              icon: NotebookPen,
-              menu: [
-                {
-                  name: "Bank",
-                  href: "/dashboard",
-                  subMenu: [
-                    { name: "IBPS Clerk", href: "/dashboard" },
-                    { name: "IBPS RRB Office Assistant", href: "/dashboard" },
-                    { name: "IBPS RRB Officer Scale 1", href: "/dashboard" },
-                    { name: "SBI Clerk", href: "/dashboard" },
-                    { name: "SBI PO", href: "/dashboard" },
-                    { name: "IBPS PO", href: "/dashboard" },
-                    { name: "IBPS SO", href: "/dashboard" },
-                    {
-                      name: "IDBI Juinor Assistant Manager",
-                      href: "/dashboard",
-                    },
-                    { name: "UBI LBO", href: "/dashboard" },
-                    { name: "APCOB Staff Assistant", href: "/dashboard" },
-                    { name: "APCOB Assistant Manager", href: "/dashboard" },
-                  ],
-                },
-                {
-                  name: "Insurance",
-                  href: "/dashboard",
-                  subMenu: [
-                    { name: "LIC Assistant", href: "/dashboard" },
-                    { name: "NIACL Assistant", href: "/dashboard" },
-                    { name: "NICL Assistant", href: "/dashboard" },
-                  ],
-                },
-                {
-                  name: "SSC",
-                  href: "/dashboard",
-                  subMenu: [
-                    { name: "SSC CGL TIER I MT - 107", href: "/dashboard" },
-                    { name: "IBPS CLERK MAINS MT - 22 REA", href: "/dashboard" },
-                  ],
-                },
-                {
-                  name: "Railway",
-                  href: "/dashboard",
-                  subMenu: [
-                    { name: "RRB ALP", href: "/dashboard" },
-                    { name: "RRB NTPC", href: "/dashboard" },
-                    { name: "RRB Technician Grade 1", href: "/dashboard" },
-                  ],
-                },
-                {
-                  name: "Current Affairs",
-                  href: "/dashboard",
-                  subMenu: [
-                    { name: "MCAT", href: "/dashboard" },
-                    { name: "WCAT", href: "/dashboard" },
-                  ],
-                },
-                {
-                  name: "Topic Tests",
-                  href: "/dashboard",
-                  subMenu: [
-                    { name: "Bank", href: "/dashboard" },
-                    { name: "SSC", href: "/dashboard" },
-                  ],
-                },
-                {
-                  name: "PQRE",
-                  href: "/dashboard",
-                  subMenu: [
-                    { name: "Pure Maths", href: "/dashboard" },
-                    { name: "Quantitive Aptitude", href: "/dashboard" },
-                    { name: "Reasoning", href: "/dashboard" },
-                    { name: "English Language", href: "/dashboard" },
-                  ],
-                },
-              ],
-            }}
-          />
-          <SidebarItem
-            category={{
-              name: "Analytics",
-              href: "/dashboard/analytics",
-              icon: ClipboardList,
-            }}
-          />
-          <SidebarItem
-            category={{
-              name: "Starred",
-              href: "/dashboard/starred",
-              icon: Bookmark,
-            }}
-          />
-          <SidebarItem
-            category={{
-              name: "Documents",
-              href: "/dashboard/references",
-              icon: FileText,
-            }}
-          />
-          <SidebarItem
-            category={{
-              name: "Spotlight",
-              href: "/dashboard/spotlight",
-              icon: LampDesk,
-            }}
-          />
-        </nav>
+        {sideBarLoader ? (
+          <nav className="flex-1 py-5 px-4 space-y-2">
+            <SideBarFileTree
+              data={sideBarItems}
+              rootLabel="TestHub"
+              rootLink="/dashboard"
+              regExp="^/dashboard(?:/\\d+)?$"
+              rootIcon={<NotebookPen className="w-6 h-6 min-w-[24px]" />}
+              initiallyExpanded={false}
+              pathname={pathname}
+            />
+            <SidebarItem
+              category={{
+                name: "Analytics",
+                href: "/dashboard/analytics",
+                icon: ClipboardList,
+              }}
+            />
+            <SidebarItem
+              category={{
+                name: "Starred",
+                href: "/dashboard/starred",
+                icon: Bookmark,
+              }}
+            />
+            <SidebarItem
+              category={{
+                name: "Documents",
+                href: "/dashboard/references",
+                icon: FileText,
+              }}
+            />
+            <SidebarItem
+              category={{
+                name: "Spotlight",
+                href: "/dashboard/spotlight",
+                icon: LampDesk,
+              }}
+            />
+          </nav>
+        ) : (
+          <Loader />
+        )}
       </aside>
 
       {/* Mobile Background Overlay */}

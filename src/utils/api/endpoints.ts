@@ -10,6 +10,8 @@ import {
   GetQuestionListRequest,
   GetQuestionListResponse,
   GetQuestionTypesResponse,
+  GetSidebarMenusRequest,
+  GetSidebarMenusResponse,
   GetSpotlightRequest,
   GetSpotlightResponse,
   LoginRequest,
@@ -92,4 +94,11 @@ export const endpoints = {
     path: () => `/api/Spotlights`,
     type: "CLOSE",
   } as Endpoint<GetSpotlightRequest, GetSpotlightResponse[]>,
+
+  getSidebarMenus: {
+    method: "GET",
+    path: ({ username }) =>
+      `/api/TestAdminDashboard/candidategroup/hierarchy?username=${username}`,
+    type: "CLOSE",
+  } as Endpoint<GetSidebarMenusRequest, GetSidebarMenusResponse[]>,
 };

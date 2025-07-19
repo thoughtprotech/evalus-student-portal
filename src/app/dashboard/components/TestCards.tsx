@@ -153,7 +153,7 @@ export default function TestCards({
   };
 
   return (
-    <div className="w-full h-full rounded-md shadow-md p-4 border border-gray-300 bg-white flex flex-col gap-4 justify-between">
+    <div className="w-full h-full rounded-xl shadow-md p-4 border border-gray-300 bg-white flex flex-col gap-4 justify-between">
       {/* Test Title */}
       <div className="w-full border-b border-b-gray-300 pb-4">
         <h1 className="text-2xl font-bold text-gray-800 truncate text-ellipsis">
@@ -231,7 +231,7 @@ export default function TestCards({
         <a
           href={linkHref}
           onClick={openInPopup}
-          className={`w-full flex items-center justify-center px-4 py-2 font-bold text-white rounded shadow transition-colors ${
+          className={`w-full flex items-center justify-center px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${
             status && actionButtonMapping[status]
           }`}
         >

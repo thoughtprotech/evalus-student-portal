@@ -210,3 +210,15 @@ export interface GetSpotlightResponse {
   validFrom: string;
   validTo: string;
 }
+
+export interface GetSidebarMenusRequest {
+  username: string;
+}
+
+export interface GetSidebarMenusResponse {
+  candidateGroupId: number;
+  candidateGroupName: string;
+  parentId: number;
+  relation: "PARENT" | "SELF";
+  level: 0;
+}

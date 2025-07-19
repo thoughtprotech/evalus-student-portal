@@ -29,7 +29,7 @@ export default function SearchBar({
 
   return (
     <div
-      className={`relative w-full h-12 border border-gray-300 rounded-md bg-white shadow-md flex items-center py-4 px-4 ${className}`}
+      className={`relative w-full h-12 border border-gray-300 rounded-xl bg-white shadow-md flex items-center py-4 px-4 ${className}`}
     >
       <Search className="w-6 h-6 text-gray-500 mr-2" />
       <input

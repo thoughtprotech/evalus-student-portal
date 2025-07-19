@@ -1,24 +1,33 @@
-// app/admin/layout.tsx
-import { ReactNode } from "react";
+"use client";
+
+import { ReactNode, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import { getUserAction } from "../actions/getUser";
+import { useUser } from "@/contexts/UserContext";
 
-export default async function AdminDashboardLayout({
+export default function AdminDashboardLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  let user = "";
-  const userRes = await getUserAction();
-  if (userRes) {
-    user = userRes;
-  }
+  const { username, setUsername } = useUser();
+
+  const getUser = async () => {
+    const user = await getUserAction();
+    if (user) {
+      setUsername(user);
+    }
+  };
+
+  useEffect(() => {
+    getUser();
+  }, []);
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       {/* Navbar stays fixed at top and receives server‐side username */}
       <header className="flex-none">
-        <Navbar username={user} />
+        <Navbar username={username} />
       </header>
 
       {/* Content fills remaining space and scrolls */}

@@ -7,12 +7,18 @@ import { Play, Clock, XCircle, CheckCircle } from "lucide-react";
 import { fetchCandidateTestList } from "../actions/dashboard/testList";
 import Loader from "@/components/Loader";
 import { GetCandidateTestResponse } from "@/utils/api/types";
+import { useParams } from "next/navigation";
+import { useUser } from "@/contexts/UserContext";
+import toast from "react-hot-toast";
 
 export default function Index() {
   const [loaded, setLoaded] = useState<boolean>(false);
   const [currentTab, setCurrentTab] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [testList, setTestList] = useState<GetCandidateTestResponse[]>([]);
+
+  const { username, setUsername, currentGroupId, setCurrentGroupId } =
+    useUser();
 
   const tabs = [
     "Registered",
@@ -23,18 +29,24 @@ export default function Index() {
   ];
 
   const fetchTestList = async () => {
-    const res = await fetchCandidateTestList();
+    const res = await fetchCandidateTestList(Number(currentGroupId));
     const { data, status } = res;
+    setLoaded(true);
     if (status === 200) {
+      console.log({ data });
       setTestList(data!);
+      setLoaded(true);
+    } else {
+      toast.error("Something Went Wrong Fetching Tests");
       setLoaded(true);
     }
   };
 
   // Load the test list once on mount
   useEffect(() => {
+    console.log({ currentGroupId });
     fetchTestList();
-  }, []);
+  }, [currentGroupId]);
 
   // Derive the filtered test list based on the current tab and search query
   const filteredTestList = testList.filter(
@@ -151,12 +163,12 @@ function StatCard({
     <div
       className={`border border-gray-300 ${
         current ? "bg-indigo-50 border-indigo-300" : "bg-white"
-      } rounded-md shadow-md duration-200 ease-in-out px-6 py-2 flex items-center gap-5 min-w-[150px] w-full`}
+      } rounded-xl shadow-md duration-200 ease-in-out px-6 py-1 flex items-center gap-5 min-w-[150px] w-full`}
     >
       <div className="flex-shrink-0 rounded-full">{icon}</div>
       <div className="flex flex-col">
-        <span className="text-2xl font-bold text-gray-800">{value}</span>
-        <span className="text-sm font-medium text-gray-500">{label}</span>
+        <span className="text-xl font-bold text-gray-800">{value}</span>
+        <span className="text-xs font-medium text-gray-500">{label}</span>
       </div>
     </div>
   );
