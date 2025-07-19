@@ -10,8 +10,6 @@ import {
   LogOut,
   UserCircle,
   LampDesk,
-  Banknote,
-  ArrowDown,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
@@ -27,17 +25,19 @@ import { GetSidebarMenusResponse } from "@/utils/api/types";
 import { fetchSideBarMenuAction } from "../actions/dashboard/sideBarMenu";
 import Loader from "@/components/Loader";
 import { SideBarFileTree } from "./components/SideBarFileTree";
+import { useUser } from "@/contexts/UserContext";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [username, setUsername] = useState("User");
   const router = useRouter();
   const [sideBarItems, setSideBarItems] = useState<GetSidebarMenusResponse[]>(
     []
   );
   const [sideBarLoader, setSideBarLoader] = useState<boolean>(false);
+
+  const { username, setUsername, setCurrentGroupId } = useUser();
 
   const getUser = async () => {
     const user = await getUserAction();
@@ -50,12 +50,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     try {
       const response = await fetchSideBarMenuAction();
 
-      const { data, status, error, errorMessage, message } = response;
+      const { data, status } = response;
 
       if (status === 200) {
         if (data) {
           setSideBarItems(data);
           setSideBarLoader(true);
+          setCurrentGroupId(
+            data
+              .filter((item) => item.relation === "SELF")[0]
+              .candidateGroupId.toString()
+          );
         }
       } else {
         toast.error("Something Went Wrong");

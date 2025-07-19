@@ -106,11 +106,11 @@ function StatCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-md shadow-md duration-200 ease-in-out px-6 py-2 flex items-center gap-5 min-w-[150px]">
+    <div className="bg-white border border-gray-200 rounded-xl shadow-md duration-200 ease-in-out px-6 py-1 flex items-center gap-5 min-w-[150px]">
       <div className="flex-shrink-0 rounded-full">{icon}</div>
       <div className="flex flex-col">
-        <span className="text-2xl font-bold text-gray-800">{value}</span>
-        <span className="mt-1 text-sm font-medium text-gray-500">{label}</span>
+        <span className="text-xl font-bold text-gray-800">{value}</span>
+        <span className="text-xs font-medium text-gray-500">{label}</span>
       </div>
     </div>
   );

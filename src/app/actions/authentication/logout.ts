@@ -28,18 +28,21 @@ export async function logoutAction(): Promise<ApiResponse<null>> {
       return { status: 500, message: "Username claim missing" };
     }
 
-    // Call logout endpoint
-    const res = await apiHandler(endpoints.logoutUser, { Username });
-    if (res.status === 200) {
-      // Delete the cookie server-side
-      (await cookieStore).delete("token");
-      return { status: 200, message: "User Logged Out" };
-    }
+    (await cookieStore).delete("token");
+    return { status: 200, message: "User Logged Out" };
 
-    return {
-      status: 500,
-      message: res.errorMessage ?? "Error Logging Out User",
-    };
+    // // Call logout endpoint
+    // const res = await apiHandler(endpoints.logoutUser, { Username });
+    // if (res.status === 200) {
+    //   // Delete the cookie server-side
+    //   (await cookieStore).delete("token");
+    //   return { status: 200, message: "User Logged Out" };
+    // }
+
+    // return {
+    //   status: 500,
+    //   message: res.errorMessage ?? "Error Logging Out User",
+    // };
   } catch (error) {
     console.error("Error Logging Out", error);
     return { status: 500, message: "Error Logging Out User" };

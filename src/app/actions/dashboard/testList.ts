@@ -13,6 +13,7 @@ export async function fetchCandidateTestList(
     const username = await getUserAction();
 
     if (username) {
+      console.log({ username, groupId });
       const { status, error, data, errorMessage, message } = await apiHandler(
         endpoints.getCandidateTests,
         {

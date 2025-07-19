@@ -1,13 +1,8 @@
 import React, { useState, ReactNode } from "react";
 import Link from "next/link";
-import {
-  ChevronDown,
-  ChevronRight,
-  Tag,
-  Badge,
-  ExternalLink,
-  ChevronUp,
-} from "lucide-react";
+import { ChevronDown, ChevronRight, Tag, Badge, ChevronUp } from "lucide-react";
+import { useUser } from "@/contexts/UserContext";
+import { useRouter } from "next/navigation";
 
 interface CandidateGroup {
   candidateGroupId: number;
@@ -50,6 +45,10 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
   const [rootExpanded, setRootExpanded] = useState(initiallyExpanded);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
 
+  const { setCurrentGroupId } = useUser();
+
+  const router = useRouter();
+
   const toggleRoot = () => {
     setRootExpanded((prev) => !prev);
   };
@@ -64,15 +63,16 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
       .map((child) => (
         <div
           key={child.candidateGroupId}
-          className="flex items-center ml-8 py-1 hover:bg-gray-100 rounded-md transition-colors"
+          className="flex items-center ml-8 py-1 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
+          onClick={() => {
+            router.push("/dashboard");
+            setCurrentGroupId(child.candidateGroupId.toString());
+          }}
         >
           <Badge size={14} />
-          <Link
-            href={`/dashboard/${child.candidateGroupId}`}
-            className="ml-2 flex items-center space-x-1 text-sm text-gray-700"
-          >
+          <h1 className="ml-2 flex items-center space-x-1 text-sm text-gray-700">
             <span>{child.candidateGroupName}</span>
-          </Link>
+          </h1>
         </div>
       ));
   };

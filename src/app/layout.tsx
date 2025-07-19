@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Lexend } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import { UserProvider } from "@/contexts/UserContext";
 
 const lexend = Lexend({
   variable: "--font-lexend",
@@ -21,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${lexend.variable} antialiased font-main`}>
-        {children}
+        <UserProvider>{children}</UserProvider>
         <Toaster />
       </body>
     </html>
