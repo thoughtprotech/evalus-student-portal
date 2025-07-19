@@ -31,7 +31,7 @@ export default function Index() {
   const fetchTestList = async () => {
     const res = await fetchCandidateTestList(Number(currentGroupId));
     const { data, status } = res;
-    setLoaded(true);
+    setLoaded(false);
     if (status === 200) {
       console.log({ data });
       setTestList(data!);
@@ -44,7 +44,6 @@ export default function Index() {
 
   // Load the test list once on mount
   useEffect(() => {
-    console.log({ currentGroupId });
     fetchTestList();
   }, [currentGroupId]);
 
