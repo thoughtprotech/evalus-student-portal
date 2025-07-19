@@ -351,7 +351,7 @@ function SidebarItem({ onClick, category }: SidebarItemProps) {
         <a
           onClick={onClick}
           href={category.href}
-          className={`w-full flex items-center space-x-3 px-2 py-3 font-semibold transition-all rounded-lg ${
+          className={`w-full flex items-center space-x-3 p-2 font-semibold transition-all rounded-lg ${
             pathname === category.href ? "text-indigo-600" : "text-gray-600"
           } hover:bg-indigo-100 hover:text-indigo-600`}
         >

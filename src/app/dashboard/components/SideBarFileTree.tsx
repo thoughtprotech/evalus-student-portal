@@ -63,7 +63,7 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
       .map((child) => (
         <div
           key={child.candidateGroupId}
-          className="flex items-center ml-8 py-1 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
+          className="flex items-center ml-4 px-2 py-1 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
           onClick={() => {
             router.push("/dashboard");
             setCurrentGroupId(child.candidateGroupId.toString());
@@ -83,10 +83,10 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
   );
 
   return (
-    <nav className="space-y-2 w-full">
+    <nav className="space-y- w-full">
       {/* Root toggler */}
       <div
-        className={`w-full flex items-center space-x-3 px-2 py-3 font-semibold transition-all rounded-lg ${
+        className={`w-full flex items-center space-x-3 p-2 font-semibold transition-all rounded-lg ${
           new RegExp(regExp).test(pathname)
             ? "text-indigo-600"
             : "text-gray-600"
@@ -113,7 +113,7 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
             return (
               <div key={root.candidateGroupId}>
                 <div
-                  className="flex items-center justify-between px-4 py-1 hover:bg-gray-100 rounded-md cursor-pointer transition-colors"
+                  className="flex items-center justify-between px-2 py-1 hover:bg-gray-100 rounded-md cursor-pointer transition-colors"
                   onClick={() => hasChildren && toggle(root.candidateGroupId)}
                 >
                   <div className="flex items-center space-x-2">
@@ -126,7 +126,7 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
                     ) : (
                       <Tag size={14} />
                     )}
-                    <span className="font-medium text-gray-800">
+                    <span className="text-sm font-medium text-gray-800">
                       {root.candidateGroupName}
                     </span>
                   </div>
