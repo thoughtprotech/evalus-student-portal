@@ -9,6 +9,7 @@ import Modal from "@/components/Modal";
 import PageHeader from "@/components/PageHeader";
 import PaginationControls from "@/components/PaginationControls";
 import { TabsContent, TabsList, TabsRoot } from "@/components/Tabs";
+import { useRouter } from "next/navigation";
 
 interface Question {
   id: number;
@@ -24,6 +25,7 @@ export default function QuestionsPage() {
   const [pageSize, setPageSize] = useState(10);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const router = useRouter();
 
   // fetch
   useEffect(() => {
@@ -58,7 +60,7 @@ export default function QuestionsPage() {
       <PageHeader
         icon={<HelpCircle className="w-6 h-6 text-indigo-600" />}
         title="Questions"
-        onNewClick={() => setIsModalOpen(true)}
+        onNewClick={() => router.push("/admin/questions/createQuestion")}
         onSearch={(e) => setQuery(e)}
       />
 

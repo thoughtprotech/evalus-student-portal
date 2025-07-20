@@ -102,7 +102,7 @@ const QuestionOptionsInput = ({
 
                 setOptions(newOpts);
               }}
-              className="px-3 py-2 border border-gray-300 rounded-md flex-1"
+              className="px-3 py-2 border border-gray-300 rounded-xl flex-1"
               placeholder={`Option ${idx + 1}`}
             />
           </label>
@@ -110,7 +110,7 @@ const QuestionOptionsInput = ({
         <div className="flex gap-2">
           <button
             onClick={() => setOptions([...options, ""])}
-            className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm"
+            className="px-4 py-2 font-bold bg-indigo-500 text-white rounded-xl cursor-pointer text-sm"
           >
             Add Option
           </button>
@@ -142,7 +142,7 @@ const QuestionOptionsInput = ({
                     updated[col][idx] = e.target.value;
                     setMatchCols(updated);
                   }}
-                  className="px-3 py-2 border border-gray-300 rounded-md"
+                  className="px-3 py-2 border border-gray-300 rounded-xl"
                   placeholder={`Value ${idx + 1}`}
                 />
               ))}
@@ -152,7 +152,7 @@ const QuestionOptionsInput = ({
                   updated[col].push("");
                   setMatchCols(updated);
                 }}
-                className="px-2 py-1 bg-blue-500 text-white rounded-md text-sm"
+                className="px-2 py-1 bg-indigo-500 text-white rounded-xl text-sm"
               >
                 Add Row
               </button>
@@ -164,34 +164,36 @@ const QuestionOptionsInput = ({
           <div className="mt-4">
             <h4 className="font-semibold">Correct Answer</h4>
             {matchCols[0].map((left, idx) => (
-              <div key={idx} className="flex gap-2 items-center">
+              <div key={idx} className="flex gap-10 items-center">
                 <span className="w-12">{left}</span>
-                {matchCols[1].map((right, jdx) => (
-                  <label key={jdx} className="flex items-center gap-1">
-                    <input
-                      type="checkbox"
-                      checked={
-                        isMultiple
-                          ? matchAnswer[idx]?.includes(right)
-                          : matchAnswer[idx] === right
-                      }
-                      onChange={() => {
-                        const updated = [...matchAnswer];
-                        if (isMultiple) {
-                          const list = [...(updated[idx] || [])];
-                          const i = list.indexOf(right);
-                          if (i >= 0) list.splice(i, 1);
-                          else list.push(right);
-                          updated[idx] = list;
-                        } else {
-                          updated[idx] = right;
+                <div className="flex gap-2">
+                  {matchCols[1].map((right, jdx) => (
+                    <label key={jdx} className="flex items-center gap-1">
+                      <input
+                        type="checkbox"
+                        checked={
+                          isMultiple
+                            ? matchAnswer[idx]?.includes(right)
+                            : matchAnswer[idx] === right
                         }
-                        setMatchAnswer(updated);
-                      }}
-                    />
-                    {right}
-                  </label>
-                ))}
+                        onChange={() => {
+                          const updated = [...matchAnswer];
+                          if (isMultiple) {
+                            const list = [...(updated[idx] || [])];
+                            const i = list.indexOf(right);
+                            if (i >= 0) list.splice(i, 1);
+                            else list.push(right);
+                            updated[idx] = list;
+                          } else {
+                            updated[idx] = right;
+                          }
+                          setMatchAnswer(updated);
+                        }}
+                      />
+                      {right}
+                    </label>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
@@ -228,7 +230,7 @@ const QuestionOptionsInput = ({
           type="text"
           inputMode="decimal"
           pattern="\d*(\.\d*)?"
-          className="px-3 py-2 border border-gray-300 rounded-md"
+          className="px-3 py-2 border border-gray-300 rounded-xl"
           value={textAnswer}
           onChange={(e) => {
             const val = e.target.value;
@@ -262,7 +264,7 @@ const QuestionOptionsInput = ({
         value={textAnswer}
         onChange={(e) => setTextAnswer(e.target.value)}
         placeholder="Enter correct answer"
-        className="px-3 py-2 border border-gray-300 rounded-md"
+        className="px-3 py-2 border border-gray-300 rounded-xl"
       />
     </div>
   );

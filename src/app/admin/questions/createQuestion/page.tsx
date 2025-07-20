@@ -8,6 +8,8 @@ import { createQuestionAction } from "@/app/actions/dashboard/questions/createQu
 import toast from "react-hot-toast";
 import { GetQuestionTypesResponse } from "@/utils/api/types";
 import { getQuestionTypesAction } from "@/app/actions/dashboard/questions/getQuestionTypes";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function Index() {
   const [testId, setTestId] = useState<number>();
@@ -81,15 +83,26 @@ export default function Index() {
     }
   };
 
+  useEffect(() => {
+    console.log({ questionType });
+  }, [questionType]);
+
   return (
-    <div className="w-full min-h-screen h-full overflow-y-auto bg-gray-100 flex justify-center px-4 py-8">
-      <div className="w-full space-y-8">
+    <div className="w-full min-h-screen h-full overflow-y-auto bg-gray-100 flex justify-center p-4">
+      <div className="w-full space-y-4">
         {/* Header */}
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">
-              Upload Question
-            </h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div>
+              <Link href={"/admin/questions"}>
+                <ArrowLeft />
+              </Link>
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800">
+                Create Question
+              </h1>
+            </div>
           </div>
           <div className="flex gap-2 items-end">
             <div className="space-y-1">
@@ -104,7 +117,7 @@ export default function Index() {
                 type="number"
                 onChange={(e) => setTestId(Number(e.target.value))}
                 value={testId ?? ""}
-                className="px-3 py-2 w-full border border-gray-300 rounded-md focus:outline-none bg-white"
+                className="px-3 py-2 w-full border border-gray-300 rounded-xl focus:outline-none bg-white"
                 placeholder="Enter test ID"
               />
             </div>
@@ -121,12 +134,12 @@ export default function Index() {
                 onChange={(e) =>
                   setQuestionType(e.target.value as typeof questionType)
                 }
-                className="px-3 py-2 w-full border border-gray-300 rounded-md focus:outline-none bg-white"
+                className="px-3 py-2 w-full border border-gray-300 rounded-xl focus:outline-none bg-white"
               >
                 {questionTypes?.map((questionType) => (
                   <option
-                    key={questionType.questionTypeId}
-                    value={questionType.questionTypeId}
+                    key={questionType.questionType}
+                    value={questionType.questionType}
                   >
                     {questionType.questionType}
                   </option>
@@ -135,7 +148,7 @@ export default function Index() {
             </div>
             <button
               onClick={handleSubmit}
-              className="flex items-center gap-2 px-4 py-2 border border-blue-300 rounded-md text-sm hover:bg-blue-600 transition bg-blue-500 text-white cursor-pointer font-bold"
+              className="flex items-center gap-2 px-4 py-2 border border-indigo-300 rounded-xl text-sm hover:bg-indigo-600 transition bg-indigo-500 text-white cursor-pointer font-bold"
             >
               Create Question
             </button>
@@ -147,7 +160,7 @@ export default function Index() {
         {/* Split View */}
         <div className="flex gap-4 min-h-[70vh] h-fit">
           <div
-            className={`flex-1 flex flex-col border border-gray-200 rounded-lg p-4 bg-white shadow`}
+            className={`flex-1 flex flex-col border border-gray-200 rounded-xl p-4 bg-white shadow`}
           >
             <h2 className="text-xl font-semibold mb-2 text-gray-800">Editor</h2>
             <div className="flex-1">
@@ -160,7 +173,7 @@ export default function Index() {
 
           {/* Options Configurator instead of Preview */}
           <div
-            className={`flex-1 flex flex-col border border-gray-200 rounded-lg p-4 bg-white shadow`}
+            className={`flex-1 flex flex-col border border-gray-200 rounded-xl p-4 bg-white shadow`}
           >
             <h2 className="text-xl font-semibold mb-2 text-gray-800">
               Options Setup

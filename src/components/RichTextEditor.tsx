@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 
 // Tailwind classes for toolbar buttons
-const btn = "p-2 rounded hover:bg-gray-200 flex items-center justify-center";
+const btn = "p-2 rounded-xl hover:bg-gray-200 flex items-center justify-center";
 
 export interface RichTextEditorProps {
   initialContent?: string;
@@ -98,9 +98,9 @@ export default function RichTextEditor({
     .filter((w) => w.length > 0).length;
 
   return (
-    <div className="flex flex-col h-full border border-gray-300 rounded">
+    <div className="flex flex-col h-full border border-gray-300 rounded-xl">
       {/* Toolbar */}
-      <div className="flex flex-wrap gap-1 border-b border-gray-300 p-2 bg-white z-10">
+      <div className="flex flex-wrap gap-1 border-b border-b-gray-300 p-2 bg-white z-10 rounded-t-xl">
         <button
           onClick={() => editor.chain().focus().toggleBold().run()}
           className={btn + (editor.isActive("bold") ? " bg-gray-200" : "")}
