@@ -60,7 +60,7 @@ export default function QuestionsPage() {
       <PageHeader
         icon={<HelpCircle className="w-6 h-6 text-indigo-600" />}
         title="Questions"
-        onNewClick={() => router.push("/admin/questions/createQuestion")}
+        onNewClick={() => router.push("/admin/questions/new")}
         onSearch={(e) => setQuery(e)}
       />
 

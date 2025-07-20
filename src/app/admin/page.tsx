@@ -32,6 +32,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  LabelList,
 } from "recharts";
 
 interface StatCard {
@@ -103,10 +104,6 @@ const testTrend = [
   { month: "May", tests: 42 },
 ];
 
-const passFailData = [
-  { name: "Passed", value: 375 },
-  { name: "Failed", value: 201 },
-];
 
 const avgScoreTrend = [
   { month: "Jan", avg: 62 },
@@ -150,9 +147,9 @@ const recentActivity = [
 ];
 
 const TABS = [
-  { key: "candidates", label: "Candidate Growth", Icon: BarChart2 },
-  { key: "tests", label: "Test Creation", Icon: LineChartIcon },
-  { key: "passFail", label: "Pass/Fail Rate", Icon: PieIcon },
+  { key: "candidates", label: "Candidates", Icon: BarChart2 },
+  { key: "questions", label: "Questions", Icon: BarChart2 },
+  { key: "tests", label: "Tests", Icon: LineChartIcon },
   { key: "avgScore", label: "Avg. Score Trend", Icon: TrendingUp },
 ];
 
@@ -169,7 +166,9 @@ export default function AdminDashboard() {
           <XAxis dataKey="month" />
           <YAxis />
           <Tooltip />
-          <Bar dataKey="count" fill="#3B82F6" barSize={64} />
+          <Bar dataKey="count" fill="#3B82F6" barSize={64}>
+            <LabelList dataKey="count" position="top" />
+          </Bar>
         </BarChart>
       );
       break;
@@ -186,28 +185,23 @@ export default function AdminDashboard() {
             stroke="#10B981"
             strokeWidth={2}
             dot={{ r: 4 }}
-          />
+          >
+            <LabelList dataKey="tests" position="top" />
+          </Line>
         </LineChart>
       );
       break;
-    case "passFail":
+    case "questions":
       chartElement = (
-        <PieChart>
-          <Pie
-            data={passFailData}
-            dataKey="value"
-            nameKey="name"
-            innerRadius={"50%"}
-            outerRadius={"100%"}
-            label
-          >
-            {passFailData.map((_, idx) => (
-              <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
-            ))}
-          </Pie>
-          <Legend verticalAlign="bottom" height={36} />
+        <BarChart data={candidateTrend}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="month" />
+          <YAxis />
           <Tooltip />
-        </PieChart>
+          <Bar dataKey="count" fill="#3B82F6" barSize={64}>
+            <LabelList dataKey="count" position="top" />
+          </Bar>
+        </BarChart>
       );
       break;
     case "avgScore":
@@ -232,7 +226,9 @@ export default function AdminDashboard() {
             stroke="#6366F1"
             strokeWidth={2}
             fill="url(#colorAvg)"
-          />
+          >
+            <LabelList dataKey="avg" position="top" />
+          </Area>
         </AreaChart>
       );
       break;

@@ -7,7 +7,6 @@ import CountdownTimer from "@/components/CountdownTimer";
 import { Info, Menu, X } from "lucide-react";
 import { InstructionData } from "../instructions/[id]/page";
 import mockInstructions from "@/mock/mockInstructions.json";
-import { TabsContent, TabsList, TabsRoot } from "@/components/Tabs";
 import {
   GetQuestionByIdResponse,
   QuestionsMetaResponse,
@@ -26,6 +25,7 @@ import InstructionsModal from "./_components/Header/InstructioncsModal";
 import QuestionPreviewModal from "./_components/Header/QuestionsPreviewModal";
 import renderQuestion from "./_components/RenderQuestions";
 import Sidebar from "./_components/Sidebar/Sidebar";
+import { ExamTabsContent, ExamTabsList, ExamTabsRoot } from "./_components/ExamTabs";
 
 export default function ExamPage() {
   const { id } = useParams();
@@ -300,9 +300,9 @@ export default function ExamPage() {
               </div>
             </div>
           </div>
-          <TabsRoot defaultIndex={0}>
+          <ExamTabsRoot defaultIndex={0}>
             <div className="flex justify-between items-center bg-white rounded-md border border-gray-300 shadow-md">
-              <TabsList
+              <ExamTabsList
                 className="w-full"
                 labels={["Section 1", "Section 2", "Section 3"]}
               />
@@ -318,7 +318,7 @@ export default function ExamPage() {
               </div>
             </div>
 
-            <TabsContent className="w-full h-full overflow-hidden">
+            <ExamTabsContent className="w-full h-full overflow-hidden">
               <div className="w-full h-full">
                 {question && (
                   <div className="w-full h-full bg-white rounded-md shadow-md border border-gray-300 flex flex-col justify-between flex-1">
@@ -490,8 +490,8 @@ export default function ExamPage() {
               <div className="bg-white p-4 sm:p-6 rounded-md shadow-md border border-gray-300 space-y-4">
                 <h1>Section 3</h1>
               </div>
-            </TabsContent>
-          </TabsRoot>
+            </ExamTabsContent>
+          </ExamTabsRoot>
         </main>
 
         {/* Sidebar */}

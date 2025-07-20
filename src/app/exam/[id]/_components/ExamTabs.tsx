@@ -1,5 +1,6 @@
 "use client";
 
+import { Info } from "lucide-react";
 import {
   createContext,
   useContext,
@@ -9,6 +10,8 @@ import {
   SetStateAction,
   useEffect,
 } from "react";
+import QuestionCountPreview from "@/app/exam/[id]/_components/QuestionCountPreview";
+import OnHover from "@/components/OnHover";
 
 interface TabsContextType {
   activeIndex: number;
@@ -23,7 +26,7 @@ interface TabsRootProps {
   onTabChange?: (index: number) => void;
 }
 
-export function TabsRoot({
+export function ExamTabsRoot({
   defaultIndex = 0,
   children,
   onTabChange,
@@ -46,7 +49,7 @@ interface TabsListProps {
   className?: string;
 }
 
-export function TabsList({ labels, className = "" }: TabsListProps) {
+export function ExamTabsList({ labels, className = "" }: TabsListProps) {
   const ctx = useContext(TabsContext);
   if (!ctx) throw new Error("TabsList must be used within TabsRoot");
 
@@ -67,6 +70,26 @@ export function TabsList({ labels, className = "" }: TabsListProps) {
           >
             {label}
           </button>
+          <OnHover
+            trigger={
+              <Info
+                className={`w-4 h-4 ${
+                  ctx.activeIndex === index
+                    ? "text-indigo-600 rounded-md"
+                    : "text-gray-700"
+                }`}
+              />
+            }
+            dropdownClassName="max-w-xs"
+          >
+            <QuestionCountPreview
+              answeredCount={0}
+              unansweredCount={0}
+              notVisitedCount={12}
+              reviewCount={0}
+              ansToReviewCount={0}
+            />
+          </OnHover>
         </div>
       ))}
     </div>
@@ -78,7 +101,10 @@ interface TabsContentProps {
   className?: string;
 }
 
-export function TabsContent({ children, className = "" }: TabsContentProps) {
+export function ExamTabsContent({
+  children,
+  className = "",
+}: TabsContentProps) {
   const ctx = useContext(TabsContext);
   if (!ctx) throw new Error("TabsContent must be used within TabsRoot");
 

@@ -46,6 +46,8 @@ import {
   XCircle,
   HelpCircle,
   Target,
+  ArrowBigUp,
+  TypeOutline,
 } from "lucide-react";
 import Link from "next/link";
 import formatToDDMMYYYY_HHMM from "@/utils/formatIsoTime";
@@ -236,15 +238,22 @@ export default function TestDetailsPage() {
               </h1>
               <div className="flex flex-wrap items-center gap-3 mt-2">
                 <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
-                  <Calendar className="text-indigo-600 w-4 h-4" />
+                  <TypeOutline className="text-indigo-600 w-4 h-4" />
                   <span className="text-sm text-indigo-700 font-medium">
-                    {formatToDDMMYYYY_HHMM(date)}
+                    Type: Assessment
+                  </span>
+                </div>{" "}
+                <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
+                  <Calendar className="text-indigo-600 w-4 h-4" />
+
+                  <span className="text-sm text-indigo-700 font-medium">
+                    Date: {formatToDDMMYYYY_HHMM(date)}
                   </span>
                 </div>
                 <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
                   <Clock className="text-indigo-600 w-4 h-4" />
                   <span className="text-sm text-indigo-700 font-medium">
-                    {duration}
+                    Duration: {duration}
                   </span>
                 </div>
                 <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
@@ -252,6 +261,12 @@ export default function TestDetailsPage() {
                   <span className="text-sm text-indigo-700 font-medium">
                     Rank: {userRank}/{totalParticipants}
                     <span className="ml-1">(Top {percentile}%)</span>
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
+                  <ArrowBigUp className="text-indigo-600 w-4 h-4" />
+                  <span className="text-sm text-indigo-700 font-medium">
+                    Test Top Score: 98/100
                   </span>
                 </div>
               </div>
@@ -263,7 +278,7 @@ export default function TestDetailsPage() {
               {score}
               <span className="text-2xl">/{totalMarks}</span>
             </div>
-            <div className="text-sm font-bold text-gray-500">Overall Score</div>
+            <div className="text-sm font-bold text-gray-500">My Score</div>
           </div>
         </div>
 
@@ -456,9 +471,9 @@ export default function TestDetailsPage() {
 
           {/* Progress Over Time */}
           <ChartCard
-            title="Progress Over Time"
+            title="Time Progress"
             icon={<TrendingUp className="w-5 h-5" />}
-            description="Historical performance trend"
+            description="Time alloted vs Time taken"
             fullWidth
           >
             <ResponsiveContainer width="100%" height={350}>
@@ -469,22 +484,32 @@ export default function TestDetailsPage() {
                     <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="date" />
-                <YAxis domain={[0, totalMarks]} />
+                <XAxis dataKey="question" />
+                <YAxis
+                  domain={[0, totalMarks]}
+                  label={{
+                    value: "Time",
+                    angle: -90,
+                    position: "insideLeft",
+                  }}
+                />
                 <CartesianGrid strokeDasharray="3 3" />
                 <Tooltip
-                  formatter={(value) => [`${value}/${totalMarks}`, "Score"]}
+                  formatter={(value) => [
+                    `${(Number(value) / 60).toFixed(2)}min`,
+                    "Time Taken",
+                  ]}
                 />
                 <Area
                   type="monotone"
-                  dataKey="score"
+                  dataKey="timeTaken"
                   stroke="#8884d8"
                   fillOpacity={1}
                   fill="url(#colorScore)"
                 />
                 <Line
                   type="monotone"
-                  dataKey="score"
+                  dataKey="timeTaken"
                   stroke="#ff7300"
                   dot={{ r: 4 }}
                   activeDot={{ r: 6 }}
