@@ -7,7 +7,6 @@ import { Play, Clock, XCircle, CheckCircle, CircleArrowRight } from "lucide-reac
 import { fetchCandidateTestList } from "../actions/dashboard/testList";
 import Loader from "@/components/Loader";
 import { GetCandidateTestResponse } from "@/utils/api/types";
-import { useParams } from "next/navigation";
 import { useUser } from "@/contexts/UserContext";
 import toast from "react-hot-toast";
 

@@ -11,7 +11,6 @@ import {
   Play,
 } from "lucide-react";
 import { format, parseISO, differenceInMinutes } from "date-fns";
-import Link from "next/link";
 
 interface TestCardsProps {
   id: string;
@@ -98,6 +97,8 @@ export default function TestCards({
   }
 
   const openInPopup = (e: React.MouseEvent) => {
+    if (status !== "Registered") return;
+
     e.preventDefault();
 
     const features = [
