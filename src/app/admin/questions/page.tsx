@@ -66,9 +66,7 @@ export default function QuestionsPage() {
 
       <TabsRoot defaultIndex={0}>
         <div className="flex justify-between items-center mb-4">
-          <TabsList
-            labels={["Questions", "Import Question", "Subject", "Question Set"]}
-          />
+          <TabsList labels={["Questions", "Import Question", "Subject"]} />
         </div>
 
         <TabsContent>
