@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 import CountdownTimer from "@/components/CountdownTimer";
-import { Info, Menu, X } from "lucide-react";
+import { Info, Menu, ShieldQuestion, X } from "lucide-react";
 import { InstructionData } from "../instructions/[id]/page";
 import mockInstructions from "@/mock/mockInstructions.json";
 import {
@@ -25,7 +25,11 @@ import InstructionsModal from "./_components/Header/InstructioncsModal";
 import QuestionPreviewModal from "./_components/Header/QuestionsPreviewModal";
 import renderQuestion from "./_components/RenderQuestions";
 import Sidebar from "./_components/Sidebar/Sidebar";
-import { ExamTabsContent, ExamTabsList, ExamTabsRoot } from "./_components/ExamTabs";
+import {
+  ExamTabsContent,
+  ExamTabsList,
+  ExamTabsRoot,
+} from "./_components/ExamTabs";
 
 export default function ExamPage() {
   const { id } = useParams();
@@ -105,6 +109,11 @@ export default function ExamPage() {
   const handleNextQuestion = async () => {
     fetchQuestionById(questionsMeta[currentIndex + 1].questionId);
     setCurrentIndex(currentIndex + 1);
+  };
+
+  const handlePreviousQuestion = async () => {
+    fetchQuestionById(questionsMeta[currentIndex - 1].questionId);
+    setCurrentIndex(currentIndex - 1);
   };
 
   const clearResponse = async () => {
@@ -259,69 +268,168 @@ export default function ExamPage() {
         setShowQuestionsModal={setShowQuestionsModal}
         setShowInstructionsModal={setShowInstructionsModal}
       />
-
-      {/* Test Area */}
-      <div className="w-full h-full flex flex-row pb-9">
-        {/* Main */}
-        <main className="w-full flex-1 p-2 flex flex-col gap-2 relative overflow-y-auto">
-          <div className="bg-white p-2 rounded-md shadow-md border border-gray-300 space-y-4">
-            <div className="w-full flex justify-between">
-              <div className="flex items-center gap-2">
-                <div className="md:hidden">
-                  <div onClick={() => setSidebarOpen(!sidebarOpen)}>
-                    {sidebarOpen ? (
-                      <X className="w-6 h-6" />
-                    ) : (
-                      <Menu className="w-6 h-6" />
-                    )}
-                  </div>
-                </div>
-                <div className="bg-indigo-100 rounded-md px-2 py-1 flex items-center gap-2">
-                  <div>
-                    <h1 className="text-sm md:text-base text-indigo-600">
-                      Aptitude Test - 1
-                    </h1>
-                  </div>
-                  <div className="flex items-center justify-center">
-                    <OnHover
-                      trigger={<Info className="w-5 h-5 text-indigo-600" />}
-                      dropdownClassName="max-w-xs"
-                    >
-                      <QuestionCountPreview
-                        answeredCount={0}
-                        unansweredCount={0}
-                        notVisitedCount={12}
-                        reviewCount={0}
-                        ansToReviewCount={0}
-                      />
-                    </OnHover>
-                  </div>
-                </div>
+      {/* <div className="bg-white p-2 rounded-md shadow-md border border-gray-300 space-y-4">
+        <div className="w-full flex justify-between">
+          <div className="flex items-center gap-2">
+            <div className="md:hidden">
+              <div onClick={() => setSidebarOpen(!sidebarOpen)}>
+                {sidebarOpen ? (
+                  <X className="w-6 h-6" />
+                ) : (
+                  <Menu className="w-6 h-6" />
+                )}
+              </div>
+            </div>
+            <div className="bg-indigo-100 rounded-md px-2 py-1 flex items-center gap-2">
+              <div>
+                <h1 className="text-sm md:text-base text-indigo-600">
+                  Aptitude Test - 1
+                </h1>
+              </div>
+              <div className="flex items-center justify-center">
+                <OnHover
+                  trigger={<Info className="w-5 h-5 text-indigo-600" />}
+                  dropdownClassName="max-w-xs"
+                >
+                  <QuestionCountPreview
+                    answeredCount={0}
+                    unansweredCount={0}
+                    notVisitedCount={12}
+                    reviewCount={0}
+                    ansToReviewCount={0}
+                  />
+                </OnHover>
               </div>
             </div>
           </div>
+        </div>
+      </div> */}
+      <div className="w-full h-32 flex flex-col">
+        <div className="w-full flex justify-between px-4 py-2">
+          <div className="flex items-center gap-2 text-sm">
+            <button
+              onClick={() => setShowQuestionsModal(true)}
+              className="flex items-center space-x-2 hover:bg-gray-100 rounded transition"
+            >
+              <ShieldQuestion className="w-5 h-5" />
+              <span>Question Paper</span>
+            </button>
+            <button
+              onClick={() => setShowInstructionsModal(true)}
+              className="flex items-center space-x-2 hover:bg-gray-100 rounded transition"
+            >
+              <Info className="w-5 h-5" />
+              <span>Instructions</span>
+            </button>
+          </div>
+          <div>
+            <h1 className="text-red-500">
+              Please note that this is only a mock test designed for practice
+              purposes. Some of the questions may be repeated or similar.
+            </h1>
+          </div>
+        </div>
+        <div className="flex flex-col md:flex md:flex-row items-center justify-between px-4 py-2">
+          <div className="flex items-center gap-2">
+            <div className="bg-white rounded-md shadow-xl border border-gray-300 px-4 whitespace-nowrap cursor-pointer">
+              <h1>Part A</h1>
+            </div>
+            <div className="bg-white rounded-md shadow-xl border border-gray-300 px-4 whitespace-nowrap cursor-pointer">
+              <h1>Part B</h1>
+            </div>
+            <div className="bg-white rounded-md shadow-xl border border-gray-300 px-4 whitespace-nowrap cursor-pointer">
+              <h1>Part C</h1>
+            </div>
+            <div className="bg-white rounded-md shadow-xl border border-gray-300 px-4 whitespace-nowrap cursor-pointer">
+              <h1>Part D</h1>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={toggleMarkForReview}
+              className={clsx(
+                "w-full md:w-fit px-4 py-1 rounded-md font-medium cursor-pointer bg-white hover:bg-gray-200 border border-gray-300 text-sm"
+              )}
+            >
+              Mark For Review & Next
+              {/* {question. === "review" ||
+                        question.status === "answeredMarkedForReview"
+                          ? "Unmark Review"
+                          : currentIndex < question.length - 1
+                          ? "Mark For Review & Next"
+                          : "Mark For Review"} */}
+            </button>
+            {/* <button
+            onClick={clearResponse}
+            className={clsx(
+              "w-full md:w-fit px-4 py-1 rounded-md font-medium cursor-pointer bg-white hover:bg-gray-200 border border-gray-300 text-sm"
+            )}
+          >
+            Clear Response
+          </button> */}
+            <div className="flex gap-3">
+              <div className="w-full md:w-fit">
+                <button
+                  onClick={handlePreviousQuestion}
+                  disabled={currentIndex === 0}
+                  className={clsx(
+                    "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+                  )}
+                >
+                  Previous
+                </button>
+              </div>
+              {currentIndex + 1 === questionsMeta.length ? (
+                <div className="w-full md:w-fit">
+                  <button
+                    onClick={handleSubmit}
+                    className="w-full text-nowrap px-6 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded-md font-medium cursor-pointer mb-16 md:mb-0 text-sm"
+                  >
+                    Submit Test
+                  </button>
+                </div>
+              ) : (
+                <div className="w-full md:w-fit">
+                  <button
+                    onClick={handleNextQuestion}
+                    disabled={currentIndex + 1 === questionsMeta.length}
+                    className={clsx(
+                      "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 whitespace-nowrap text-sm"
+                    )}
+                  >
+                    Save & Next
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+          <div>
+            <div>
+              <h1>Total Questions Answered: 3</h1>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Last 15 Minutes</h1>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Test Area */}
+      <div className="w-full h-full flex flex-row-reverse pb-9">
+        {/* Main */}
+        <main className="w-full flex-1 px-2 flex flex-col gap-2 relative overflow-y-auto">
           <ExamTabsRoot defaultIndex={0}>
-            <div className="flex justify-between items-center bg-white rounded-md border border-gray-300 shadow-md">
+            {/* <div className="flex justify-between items-center bg-white rounded-md border border-gray-300 shadow-md">
               <ExamTabsList
                 className="w-full"
                 labels={["Section 1", "Section 2", "Section 3"]}
               />
-              <div className="w-fit flex items-center gap-3 text-sm p-2 whitespace-nowrap">
-                <div className="flex items-center gap-2">
-                  <h1 className="font-bold text-gray-600">Time Left: </h1>
-                  <CountdownTimer
-                    initialTime="00:05:00"
-                    onComplete={handleTimeout}
-                    className="text-sm"
-                  />
-                </div>
-              </div>
-            </div>
+            </div> */}
 
             <ExamTabsContent className="w-full h-full overflow-hidden">
               <div className="w-full h-full">
                 {question && (
-                  <div className="w-full h-full bg-white rounded-md shadow-md border border-gray-300 flex flex-col justify-between flex-1">
+                  <div className="w-full h-full bg-white rounded-md shadow-md border border-gray-300 flex flex-col-reverse justify-between flex-1">
                     <div className="w-full h-full overflow-hidden border-b border-b-gray-300 px-4 py-2">
                       <div className="w-full flex flex-col gap-2 md:flex md:flex-row items-center justify-between font-semibold border-b border-b-gray-300 pb-2">
                         <div>
@@ -351,14 +459,14 @@ export default function ExamPage() {
                           </div>
                         </div>
                       </div>
-                      <div className="w-full h-full flex gap-5 pt-2">
-                        <div className="relative w-3/4 h-full border-r border-r-gray-300">
+                      <div className="w-full h-full flex flex-col gap-5 pt-2">
+                        <div className="relative w-full h-full border-r border-r-gray-300">
                           <div className="w-full flex flex-col gap-4 h-full pr-4 relative">
                             <div
-                              className="w-full flex flex-col gap-1 h-fit overflow-x-scroll mb-10"
+                              className="w-full flex flex-col gap-4 h-fit overflow-x-scroll mb-10"
                               id="questionBox"
                             >
-                              <div className="w-[1200px] mb-20 relative flex flex-col gap-4">
+                              <div className="w-[1200px] relative flex flex-col gap-4">
                                 {question.headerText && (
                                   <>
                                     <div>
@@ -390,6 +498,18 @@ export default function ExamPage() {
                                 </div>
                                 <ScrollXToggleButton containerSelector="#questionBox" />
                               </div>
+                              <div className="relative w-full mb-20">
+                                <div className="w-full h-full flex flex-col gap-3 overflow-y-auto">
+                                  <div>
+                                    <h1 className="font-bold text-2xl">
+                                      Answer
+                                    </h1>
+                                  </div>
+                                  <div className="mb-10">
+                                    {renderQuestion(question, setQuestion)}
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                             <ScrollToggleButton containerSelector="#questionBox" />
                           </div>
@@ -397,84 +517,6 @@ export default function ExamPage() {
                         {errorMessage && (
                           <div className="mb-4 text-sm text-red-600 font-medium">
                             {errorMessage}
-                          </div>
-                        )}
-                        <div className="relative w-1/4">
-                          <div
-                            className="w-full h-full flex flex-col gap-3 overflow-y-auto"
-                            id="answerBox"
-                          >
-                            <div>
-                              <h1 className="font-bold text-2xl">Answer</h1>
-                            </div>
-                            <div className="mb-10">
-                              {renderQuestion(question, setQuestion)}
-                            </div>
-                          </div>
-                          <ScrollToggleButton containerSelector="#answerBox" />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col md:flex md:flex-row items-center justify-between bg-gray-100 px-4 py-2">
-                      <div className="w-full flex gap-3">
-                        <button
-                          onClick={toggleMarkForReview}
-                          className={clsx(
-                            "w-full md:w-fit px-4 py-1 rounded-md font-medium cursor-pointer bg-white hover:bg-gray-200 border border-gray-300 text-sm"
-                          )}
-                        >
-                          Mark For Review & Next
-                          {/* {question. === "review" ||
-                        question.status === "answeredMarkedForReview"
-                          ? "Unmark Review"
-                          : currentIndex < question.length - 1
-                          ? "Mark For Review & Next"
-                          : "Mark For Review"} */}
-                        </button>
-                        <button
-                          onClick={clearResponse}
-                          className={clsx(
-                            "w-full md:w-fit px-4 py-1 rounded-md font-medium cursor-pointer bg-white hover:bg-gray-200 border border-gray-300 text-sm"
-                          )}
-                        >
-                          Clear Response
-                        </button>
-                      </div>
-
-                      <div className="w-full md:w-fit flex gap-3">
-                        {/* <div className="w-full md:w-fit">
-                        <button
-                          onClick={handlePreviousQuestion}
-                          disabled={currentIndex === 0}
-                          className={clsx(
-                            "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
-                          )}
-                        >
-                          Previous
-                        </button>
-                      </div> */}
-                        {currentIndex + 1 === questionsMeta.length ? (
-                          <div className="w-full md:w-fit">
-                            <button
-                              onClick={handleSubmit}
-                              className="w-full text-nowrap px-6 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded-md font-medium cursor-pointer mb-16 md:mb-0 text-sm"
-                            >
-                              Submit Test
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="w-full md:w-fit">
-                            <button
-                              onClick={handleNextQuestion}
-                              disabled={
-                                currentIndex + 1 === questionsMeta.length
-                              }
-                              className={clsx(
-                                "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 whitespace-nowrap text-sm"
-                              )}
-                            >
-                              Save & Next
-                            </button>
                           </div>
                         )}
                       </div>
@@ -502,6 +544,8 @@ export default function ExamPage() {
           handleSubmit={handleSubmit}
           handleJumpTo={handleJumpTo}
           currentIndex={currentIndex}
+          setShowQuestionsModal={setShowQuestionsModal}
+          setShowInstructionsModal={setShowInstructionsModal}
         />
       </div>
 
