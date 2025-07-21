@@ -463,7 +463,7 @@ export default function ExamPage() {
                         <div className="relative w-full h-full border-r border-r-gray-300">
                           <div className="w-full flex flex-col gap-4 h-full pr-4 relative">
                             <div
-                              className="w-full flex flex-col gap-4 h-fit overflow-x-scroll mb-10"
+                              className="w-full flex flex-col gap-4 h-fit overflow-x-scroll mb-20"
                               id="questionBox"
                             >
                               <div className="w-[1200px] relative flex flex-col gap-4">
