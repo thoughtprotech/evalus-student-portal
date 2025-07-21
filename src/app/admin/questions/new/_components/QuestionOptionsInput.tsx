@@ -73,7 +73,6 @@ const QuestionOptionsInput = ({
   ) {
     return (
       <div className="flex flex-col gap-3">
-        <h1>Options</h1>
         {options.map((opt, idx) => (
           <label key={idx} className="flex items-center gap-2">
             <input
@@ -137,7 +136,6 @@ const QuestionOptionsInput = ({
 
     return (
       <div className="flex flex-col gap-4">
-        <h1>Match Pairs</h1>
         <div className="flex gap-4">
           {[0, 1].map((col) => (
             <div key={col} className="flex flex-col gap-2">
@@ -171,7 +169,6 @@ const QuestionOptionsInput = ({
 
         {matchCols[0].length > 0 && (
           <div className="mt-4">
-            <h4 className="font-semibold">Correct Answer</h4>
             {matchCols[0].map((left, idx) => (
               <div key={idx} className="flex gap-10 items-center">
                 <span className="w-12">{left}</span>
@@ -215,7 +212,6 @@ const QuestionOptionsInput = ({
   if (type === QUESTION_TYPES.TRUEFALSE) {
     return (
       <div className="flex flex-col gap-3">
-        <h1>True/False</h1>
         {["True", "False"].map((val) => (
           <label key={val} className="flex items-center gap-2">
             <input
@@ -234,7 +230,6 @@ const QuestionOptionsInput = ({
   if (type === QUESTION_TYPES.NUMERIC) {
     return (
       <div className="flex flex-col gap-3">
-        <h1>Correct Answer</h1>
         <input
           type="text"
           inputMode="decimal"
@@ -267,7 +262,6 @@ const QuestionOptionsInput = ({
   // Fallback: Text-based answers (Fill in the Blank, Essay, Short, Numeric, etc.)
   return (
     <div className="flex flex-col gap-3">
-      <h1>Correct Answer</h1>
       <input
         type="text"
         value={textAnswer}
