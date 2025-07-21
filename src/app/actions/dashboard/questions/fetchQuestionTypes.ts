@@ -4,7 +4,7 @@ import { apiHandler } from "@/utils/api/client";
 import { ApiResponse, GetQuestionTypesResponse } from "@/utils/api/types";
 import { endpoints } from "@/utils/api/endpoints";
 
-export async function getQuestionTypesAction(): Promise<
+export async function fetchQuestionTypesAction(): Promise<
   ApiResponse<GetQuestionTypesResponse[]>
 > {
   //   TODO: Add filters

@@ -11,7 +11,7 @@ export async function fetchSpotlightListAction(): Promise<
   try {
     const { status, error, data, errorMessage, message } = await apiHandler(
       endpoints.getSpotLight,
-      {}
+      null
     );
 
     console.log({ status, error, data, errorMessage, message });

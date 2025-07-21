@@ -5,6 +5,8 @@ import {
   GetCandidateStarredTestResponse,
   GetCandidateTestRequest,
   GetCandidateTestResponse,
+  GetDifficultyLevelsResponse,
+  GetLanguagesResponse,
   GetQuestionByIdRequest,
   GetQuestionByIdResponse,
   GetQuestionListRequest,
@@ -12,8 +14,11 @@ import {
   GetQuestionTypesResponse,
   GetSidebarMenusRequest,
   GetSidebarMenusResponse,
-  GetSpotlightRequest,
   GetSpotlightResponse,
+  GetSubjectsResponse,
+  GetTopicsRequest,
+  GetTopicsResponse,
+  GetWriteUpsResponse,
   LoginRequest,
   LoginResponse,
   LogoutRequest,
@@ -93,7 +98,7 @@ export const endpoints = {
     method: "GET",
     path: () => `/api/Spotlights`,
     type: "CLOSE",
-  } as Endpoint<GetSpotlightRequest, GetSpotlightResponse[]>,
+  } as Endpoint<null, GetSpotlightResponse[]>,
 
   getSidebarMenus: {
     method: "GET",
@@ -101,4 +106,34 @@ export const endpoints = {
       `/api/TestAdminDashboard/candidategroup/hierarchy?username=${username}`,
     type: "CLOSE",
   } as Endpoint<GetSidebarMenusRequest, GetSidebarMenusResponse[]>,
+
+  getSubjects: {
+    method: "GET",
+    path: () => `/api/Subjects`,
+    type: "CLOSE",
+  } as Endpoint<null, GetSubjectsResponse[]>,
+
+  getTopics: {
+    method: "GET",
+    path: ({ subjectId }) => `/api/Subjects/6/topics`,
+    type: "CLOSE",
+  } as Endpoint<GetTopicsRequest, GetTopicsResponse[]>,
+
+  getWriteUps: {
+    method: "GET",
+    path: () => `/api/Writeups`,
+    type: "CLOSE",
+  } as Endpoint<null, GetWriteUpsResponse[]>,
+
+  getLanguages: {
+    method: "GET",
+    path: () => `/api/Languages`,
+    type: "CLOSE",
+  } as Endpoint<null, GetLanguagesResponse[]>,
+
+  getDifficultyLevels: {
+    method: "GET",
+    path: () => `/api/QuestionDifficultyLevels`,
+    type: "CLOSE",
+  } as Endpoint<null, GetDifficultyLevelsResponse[]>,
 };

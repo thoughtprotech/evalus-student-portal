@@ -115,28 +115,24 @@ export interface GetQuestionByIdResponse {
 }
 
 export interface CreateQuestionRequest {
-  questionText: string;
-  questionTypeId: number;
-  subjectId: number;
-  marks: number;
-  negativeMarks: number;
-  graceMarks: number;
-  questionDifficultyLevelId: number;
-  additionalExplanation: string;
-  videoSolutionWeburl: string;
-  videoSolutionMobileurl: string;
-  allowCandidateComments: number;
-  writeUpId: number;
-  hasMultipleAnswers: boolean;
-  language: string;
-  isActive: number;
-  createdBy: string;
-  createdDate: string;
-  modifiedBy: string;
-  modifiedDate: string;
-  questionOptionsJson: string;
-  questionCorrectAnswerJson: string;
-  questionId: number;
+  explanation: string;
+  videoSolURL: string;
+  questionsMeta: {
+    tags: string;
+    marks: number;
+    negativeMarks: number;
+    difficultyLevelId: number;
+    questionTypeId: number;
+    subjectId: number;
+    topicId: number;
+    language: string;
+    writeUpId?: number | null;
+  };
+  question: string;
+  options: {
+    options: string;
+    answer: string;
+  };
 }
 
 export interface GetQuestionTypesResponse {
@@ -200,8 +196,6 @@ export interface GetCandidateCompletedTestResponse {
   //   | "Missed";
 }
 
-export interface GetSpotlightRequest {}
-
 export interface GetSpotlightResponse {
   id: number;
   spotlightName: string;
@@ -221,4 +215,55 @@ export interface GetSidebarMenusResponse {
   parentId: number;
   relation: "PARENT" | "SELF";
   level: 0;
+}
+
+export interface GetSubjectsResponse {
+  subjectId: number;
+  subjectName: string;
+  subjectType: string;
+  parentId: number;
+  language: string;
+  isActive: number;
+  createdBy: string;
+  createdDate: string;
+  modifiedBy: string;
+  modifiedDate: string;
+}
+
+export interface GetTopicsRequest {
+  subjectId: number;
+}
+
+export interface GetTopicsResponse {
+  subjectId: number;
+  subjectName: string;
+}
+
+export interface GetWriteUpsResponse {
+  writeUpId: number;
+  writeUpName: string;
+  writeUp1: string;
+  language: string;
+  isActive: number;
+  createdBy: string;
+  createdDate: string;
+  modifiedBy: null;
+  modifiedDate: string;
+  writeuptags: string[];
+}
+
+export interface GetLanguagesResponse {
+  language: string;
+  isActive: number;
+}
+
+export interface GetDifficultyLevelsResponse {
+  questionDifficultylevelId: number;
+  questionDifficultylevel1: string;
+  language: string;
+  isActive: number;
+  createdBy: string;
+  createdDate: string;
+  modifiedBy: string;
+  modifiedDate: string;
 }

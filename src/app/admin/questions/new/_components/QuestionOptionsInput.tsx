@@ -2,14 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { QUESTION_TYPES } from "@/utils/constants";
+import { GetQuestionTypesResponse } from "@/utils/api/types";
 
 const QuestionOptionsInput = ({
-  type,
+  questionTypeId,
+  questionTypes,
   onDataChange,
 }: {
-  type: string;
+  questionTypeId: number;
+  questionTypes: GetQuestionTypesResponse[];
   onDataChange: (data: any) => void;
 }) => {
+  const [type, setType] = useState<string>();
   const [options, setOptions] = useState<string[]>(["", ""]);
   const [correctOptions, setCorrectOptions] = useState<string[]>([]);
 
@@ -20,6 +24,11 @@ const QuestionOptionsInput = ({
 
   const [trueFalseAnswer, setTrueFalseAnswer] = useState<string>("True");
   const [textAnswer, setTextAnswer] = useState<string>("");
+
+  useEffect(() => {
+    const qt = questionTypes.find((q) => q.questionTypeId === questionTypeId);
+    setType(qt?.questionType);
+  }, [questionTypeId]);
 
   useEffect(() => {
     if (
@@ -64,7 +73,7 @@ const QuestionOptionsInput = ({
   ) {
     return (
       <div className="flex flex-col gap-3">
-        <h3 className="font-semibold">Options</h3>
+        <h1>Options</h1>
         {options.map((opt, idx) => (
           <label key={idx} className="flex items-center gap-2">
             <input
@@ -128,7 +137,7 @@ const QuestionOptionsInput = ({
 
     return (
       <div className="flex flex-col gap-4">
-        <h3 className="font-semibold">Match Pairs</h3>
+        <h1>Match Pairs</h1>
         <div className="flex gap-4">
           {[0, 1].map((col) => (
             <div key={col} className="flex flex-col gap-2">
@@ -206,7 +215,7 @@ const QuestionOptionsInput = ({
   if (type === QUESTION_TYPES.TRUEFALSE) {
     return (
       <div className="flex flex-col gap-3">
-        <h3 className="font-semibold">True/False</h3>
+        <h1>True/False</h1>
         {["True", "False"].map((val) => (
           <label key={val} className="flex items-center gap-2">
             <input
@@ -225,7 +234,7 @@ const QuestionOptionsInput = ({
   if (type === QUESTION_TYPES.NUMERIC) {
     return (
       <div className="flex flex-col gap-3">
-        <h3 className="font-semibold">Correct Answer</h3>
+        <h1>Correct Answer</h1>
         <input
           type="text"
           inputMode="decimal"
@@ -258,7 +267,7 @@ const QuestionOptionsInput = ({
   // Fallback: Text-based answers (Fill in the Blank, Essay, Short, Numeric, etc.)
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="font-semibold">Correct Answer</h3>
+      <h1>Correct Answer</h1>
       <input
         type="text"
         value={textAnswer}
