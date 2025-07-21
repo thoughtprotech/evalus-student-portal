@@ -127,6 +127,7 @@ export interface CreateQuestionRequest {
     topicId: number;
     language: string;
     writeUpId?: number | null;
+    headerText?: string | null;
   };
   question: string;
   options: {

@@ -50,6 +50,7 @@ export default function Index() {
     writeUpId: 0,
   });
   const [explanation, setExplanation] = useState<string>("");
+  const [questionHeader, setQuestionHeader] = useState<string>("");
   const [videoSolURL, setVideoSolURL] = useState<string>("");
   const [questionOptions, setQuestionOptions] = useState<{
     options: any;
@@ -215,6 +216,7 @@ export default function Index() {
         topicId: questionsMeta.topicId,
         writeUpId:
           questionsMeta.writeUpId !== 0 ? questionsMeta.writeUpId : null,
+        headerText: questionHeader.length !== 0 ? questionHeader : null,
       },
       videoSolURL,
     };
@@ -394,6 +396,16 @@ export default function Index() {
           <div
             className={`flex-1 flex flex-col gap-5 border border-gray-200 rounded-xl p-4 bg-white shadow`}
           >
+            <Accordion title="Directions">
+              <div className={`flex-1 flex flex-col rounded-xl`}>
+                <div className="flex-1">
+                  <RichTextEditor
+                    onChange={(content) => setQuestionHeader(content)}
+                    initialContent={questionHeader}
+                  />
+                </div>
+              </div>
+            </Accordion>
             <div className={`flex-1 flex flex-col rounded-xl`}>
               <h2 className="text-xl font-semibold mb-2 text-gray-800">
                 Question
