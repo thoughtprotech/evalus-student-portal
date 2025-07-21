@@ -41,7 +41,7 @@ export default function Index() {
   }, [currentGroupId]);
 
   // Derive the filtered test list based on the current tab and search query
-  const filteredTestList = testList.filter(
+  const filteredTestList = testList?.filter(
     (test) =>
       test.testCandidateRegistrationStatus === tabs[currentTab] &&
       test.testName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -95,7 +95,7 @@ export default function Index() {
             >
               <StatCard
                 label={tabData.label}
-                value={tabData.count}
+                value={tabData.count || 0}
                 icon={tabData.icon}
                 current={currentTab === index}
               />
@@ -115,9 +115,9 @@ export default function Index() {
 
       {/* Test Cards */}
       <div>
-        {filteredTestList.length > 0 ? (
+        {filteredTestList?.length > 0 ? (
           <div className="w-full grid grid-cols-1 lg:grid-cols-4 gap-4">
-            {filteredTestList.map((test, index) => (
+            {filteredTestList?.map((test, index) => (
               <div key={test.testName}>
                 <TestCards
                   id={test.testId.toString()}
