@@ -252,7 +252,7 @@ export default function Index() {
     <div className="w-full min-h-screen h-full overflow-y-auto bg-gray-100 flex justify-center p-4">
       <div className="w-full space-y-4">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col items-start justify-between">
           <div className="flex items-center gap-2">
             <div>
               <Link href={"/admin/questions"}>
@@ -374,18 +374,6 @@ export default function Index() {
                 ))}
               </select>
             </div>
-            <button
-              onClick={() => handleSubmit()}
-              className="w-fit whitespace-nowrap flex items-center justify-center gap-2 px-4 py-2 border border-indigo-300 rounded-xl text-sm hover:bg-indigo-600 transition bg-indigo-500 text-white cursor-pointer font-bold"
-            >
-              Save
-            </button>
-            <button
-              onClick={handleSaveAndNew}
-              className="w-fit whitespace-nowrap flex items-center justify-center gap-2 px-4 py-2 border border-indigo-300 rounded-xl text-sm hover:bg-indigo-600 transition bg-indigo-500 text-white cursor-pointer font-bold"
-            >
-              Save & New
-            </button>
           </div>
         </div>
 
@@ -567,6 +555,21 @@ export default function Index() {
               </div>
             </Accordion>
           </div>
+        </div>
+
+        <div className="w-full flex justify-end gap-4 pb-4">
+          <button
+            onClick={() => handleSubmit()}
+            className="w-fit whitespace-nowrap flex items-center justify-center gap-2 px-6 py-2 border border-indigo-300 rounded-xl text-sm hover:bg-indigo-600 transition bg-indigo-500 text-white cursor-pointer font-bold"
+          >
+            Save
+          </button>
+          <button
+            onClick={handleSaveAndNew}
+            className="w-fit whitespace-nowrap flex items-center justify-center gap-2 px-6 py-2 border border-indigo-300 rounded-xl text-sm hover:bg-indigo-600 transition bg-indigo-500 text-white cursor-pointer font-bold"
+          >
+            Save & New
+          </button>
         </div>
       </div>
     </div>
