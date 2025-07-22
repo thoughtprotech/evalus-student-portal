@@ -268,3 +268,19 @@ export interface GetDifficultyLevelsResponse {
   modifiedBy: string;
   modifiedDate: string;
 }
+
+export interface GetInstructionsRequest {
+  language: string;
+}
+
+export interface GetInstructionsResponse {
+  testInstructionId: number;
+  testInstructionName: string;
+  testInstruction1: string;
+  language: string;
+  isActive: number;
+  createdBy: string;
+  createdDate: string;
+  modifiedBy: string;
+  modifiedDate: string;
+}

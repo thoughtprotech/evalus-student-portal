@@ -6,6 +6,8 @@ import {
   GetCandidateTestRequest,
   GetCandidateTestResponse,
   GetDifficultyLevelsResponse,
+  GetInstructionsRequest,
+  GetInstructionsResponse,
   GetLanguagesResponse,
   GetQuestionByIdRequest,
   GetQuestionByIdResponse,
@@ -136,4 +138,10 @@ export const endpoints = {
     path: () => `/api/QuestionDifficultyLevels`,
     type: "CLOSE",
   } as Endpoint<null, GetDifficultyLevelsResponse[]>,
+
+  getInstructions: {
+    method: "GET",
+    path: ({language}) => `/api/TestInstructions?includeInactive=false&language=${language}`,
+    type: "CLOSE",
+  } as Endpoint<GetInstructionsRequest, GetInstructionsResponse[]>,
 };
