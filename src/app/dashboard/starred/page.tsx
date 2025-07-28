@@ -29,9 +29,9 @@ export default function Index() {
   }, []);
 
   // Derive the filtered test list based on the current tab and search query
-  const filteredTestList = testList.filter((test) =>
-    test.testName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredTestList = testList?.filter((test) =>
+    test?.testName?.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
 
   if (!loaded) {
     return <Loader />;

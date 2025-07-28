@@ -36,9 +36,9 @@ export default function AnnouncementsPage() {
     fetchSpotlightList();
   }, []);
 
-  const filteredAnnouncements = announcementList.filter((a) =>
-    a.spotlightName.toLowerCase().includes(query.toLowerCase())
-  );
+  const filteredAnnouncements = announcementList?.filter((a) =>
+    a?.spotlightName?.toLowerCase().includes(query.toLowerCase())
+  ) || [];
 
   if (!loaded) {
     return <Loader />;
