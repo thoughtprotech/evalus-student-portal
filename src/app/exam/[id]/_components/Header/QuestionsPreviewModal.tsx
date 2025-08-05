@@ -12,6 +12,8 @@ export default function QuestionPreviewModal({
   showQuestionsModal: any;
   setShowQuestionsModal: any;
 }) {
+  console.log({ questionsMeta });
+
   return (
     <Modal
       title={`Questions`}

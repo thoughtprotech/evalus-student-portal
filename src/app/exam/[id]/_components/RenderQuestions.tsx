@@ -12,7 +12,7 @@ export default function renderQuestion(
     case QUESTION_TYPES.SINGLE_MCQ:
       return (
         <div className="flex flex-col gap-2">
-          {JSON.parse(question!.questionOptionsJson).map(
+          {JSON?.parse(question!.questionOptions[0].questionOptionsJson).map(
             (option: string, index: number) => {
               return (
                 <label
@@ -53,7 +53,7 @@ export default function renderQuestion(
     case QUESTION_TYPES.MULTIPLE_MCQ:
       return (
         <div className="flex flex-col gap-2">
-          {JSON.parse(question!.questionOptionsJson).map(
+          {JSON.parse(question!.questionOptions[0].questionOptionsJson).map(
             (option: string, index: number) => {
               return (
                 <label
@@ -114,7 +114,7 @@ export default function renderQuestion(
       return (
         <div className="w-full flex flex-col gap-5">
           <div className="w-full max-w-1/4 flex justify-between gap-2">
-            {JSON.parse(question!.questionOptionsJson).map(
+            {JSON.parse(question!.questionOptions[0].questionOptionsJson).map(
               (option: string[], index: number) => {
                 return (
                   <div className="flex flex-col gap-5" key={index}>
@@ -131,13 +131,13 @@ export default function renderQuestion(
             )}
           </div>
           <div>
-            {JSON.parse(question!.questionOptionsJson)[0].map(
+            {JSON.parse(question!.questionOptions[0].questionOptionsJson)[0].map(
               (col: string, index: number) => {
                 return (
                   <div key={index}>
                     <h1>{col}</h1>
                     <div className="flex gap-2">
-                      {JSON.parse(question!.questionOptionsJson)[1].map(
+                      {JSON.parse(question!.questionOptions[0].questionOptionsJson)[1].map(
                         (row: string, idx: number) => {
                           return (
                             <div
@@ -184,7 +184,7 @@ export default function renderQuestion(
       return (
         <div className="w-full flex flex-col gap-5">
           <div className="w-full max-w-1/4 flex justify-between gap-2">
-            {JSON.parse(question!.questionOptionsJson).map(
+            {JSON.parse(question!.questionOptions[0].questionOptionsJson).map(
               (option: string[], index: number) => {
                 return (
                   <div className="flex flex-col gap-5" key={index}>
@@ -201,13 +201,13 @@ export default function renderQuestion(
             )}
           </div>
           <div>
-            {JSON.parse(question!.questionOptionsJson)[0].map(
+            {JSON.parse(question!.questionOptions[0].questionOptionsJson)[0].map(
               (col: string, index: number) => {
                 return (
                   <div key={index}>
                     <h1>{col}</h1>
                     <div className="flex gap-2">
-                      {JSON.parse(question!.questionOptionsJson)[1].map(
+                      {JSON.parse(question!.questionOptions[0].questionOptionsJson)[1].map(
                         (row: string, idx: number) => {
                           return (
                             <div

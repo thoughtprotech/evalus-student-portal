@@ -116,117 +116,117 @@ export default function ExamPage() {
     setCurrentIndex(currentIndex - 1);
   };
 
-  const clearResponse = async () => {
-    switch (question!.questionType.questionType) {
-      case "Single MCQ":
-        setQuestion((prev) => {
-          if (!prev) {
-            return prev;
-          }
+  // const clearResponse = async () => {
+  //   switch (question!.questionType.questionType) {
+  //     case "Single MCQ":
+  //       setQuestion((prev) => {
+  //         if (!prev) {
+  //           return prev;
+  //         }
 
-          return {
-            ...prev,
-            userAnswer: JSON.stringify([]),
-          };
-        });
-        break;
-      case "Multiple MCQ":
-        setQuestion((prev) => {
-          if (!prev) {
-            return prev;
-          }
+  //         return {
+  //           ...prev,
+  //           userAnswer: JSON.stringify([]),
+  //         };
+  //       });
+  //       break;
+  //     case "Multiple MCQ":
+  //       setQuestion((prev) => {
+  //         if (!prev) {
+  //           return prev;
+  //         }
 
-          return {
-            ...prev,
-            userAnswer: JSON.stringify([]),
-          };
-        });
-        break;
-      case "Match Pairs Single":
-        console.log("SINGLE MATCH");
-        setQuestion((prev) => {
-          if (!prev) {
-            return prev;
-          }
+  //         return {
+  //           ...prev,
+  //           userAnswer: JSON.stringify([]),
+  //         };
+  //       });
+  //       break;
+  //     case "Match Pairs Single":
+  //       console.log("SINGLE MATCH");
+  //       setQuestion((prev) => {
+  //         if (!prev) {
+  //           return prev;
+  //         }
 
-          return {
-            ...prev,
-            userAnswer: JSON.stringify([]),
-          };
-        });
-        break;
-      case "Match Pairs Multiple":
-        console.log("MULTIPLE MATCH");
-        setQuestion((prev) => {
-          if (!prev) {
-            return prev;
-          }
+  //         return {
+  //           ...prev,
+  //           userAnswer: JSON.stringify([]),
+  //         };
+  //       });
+  //       break;
+  //     case "Match Pairs Multiple":
+  //       console.log("MULTIPLE MATCH");
+  //       setQuestion((prev) => {
+  //         if (!prev) {
+  //           return prev;
+  //         }
 
-          let emptyArr: string[][] = [];
+  //         let emptyArr: string[][] = [];
 
-          JSON.parse(question!.questionOptionsJson)[0].map(() => {
-            emptyArr.push([]);
-          });
+  //         JSON.parse(question!.questionOptions)[0].map(() => {
+  //           emptyArr.push([]);
+  //         });
 
-          console.log({ emptyArr });
-          console.log(JSON.stringify(emptyArr));
+  //         console.log({ emptyArr });
+  //         console.log(JSON.stringify(emptyArr));
 
-          return {
-            ...prev,
-            userAnswer: JSON.stringify(emptyArr),
-          };
-        });
-        break;
-      case "Write Up":
-        setQuestion((prev) => {
-          if (!prev) {
-            return prev;
-          }
+  //         return {
+  //           ...prev,
+  //           userAnswer: JSON.stringify(emptyArr),
+  //         };
+  //       });
+  //       break;
+  //     case "Write Up":
+  //       setQuestion((prev) => {
+  //         if (!prev) {
+  //           return prev;
+  //         }
 
-          return {
-            ...prev,
-            userAnswer: "",
-          };
-        });
-        break;
-      case "Numeric":
-        setQuestion((prev) => {
-          if (!prev) {
-            return prev;
-          }
+  //         return {
+  //           ...prev,
+  //           userAnswer: "",
+  //         };
+  //       });
+  //       break;
+  //     case "Numeric":
+  //       setQuestion((prev) => {
+  //         if (!prev) {
+  //           return prev;
+  //         }
 
-          return {
-            ...prev,
-            userAnswer: "",
-          };
-        });
-        break;
-      case "TrueFalse":
-        setQuestion((prev) => {
-          if (!prev) {
-            return prev;
-          }
+  //         return {
+  //           ...prev,
+  //           userAnswer: "",
+  //         };
+  //       });
+  //       break;
+  //     case "TrueFalse":
+  //       setQuestion((prev) => {
+  //         if (!prev) {
+  //           return prev;
+  //         }
 
-          return {
-            ...prev,
-            userAnswer: "",
-          };
-        });
-        break;
-      case "Fill Answer":
-        setQuestion((prev) => {
-          if (!prev) {
-            return prev;
-          }
+  //         return {
+  //           ...prev,
+  //           userAnswer: "",
+  //         };
+  //       });
+  //       break;
+  //     case "Fill Answer":
+  //       setQuestion((prev) => {
+  //         if (!prev) {
+  //           return prev;
+  //         }
 
-          return {
-            ...prev,
-            userAnswer: "",
-          };
-        });
-        break;
-    }
-  };
+  //         return {
+  //           ...prev,
+  //           userAnswer: "",
+  //         };
+  //       });
+  //       break;
+  //   }
+  // };
 
   const handleJumpTo = (index: number, questionId: number) => {
     setCurrentQuestion({ questionId });
@@ -467,7 +467,7 @@ export default function ExamPage() {
                               id="questionBox"
                             >
                               <div className="w-[1200px] relative flex flex-col gap-4">
-                                {question.headerText && (
+                                {question.questionOptions[0]?.additionalExplanation && (
                                   <>
                                     <div>
                                       <h1 className="font-bold text-2xl">
@@ -477,7 +477,9 @@ export default function ExamPage() {
                                     <div>
                                       <div className="text-md sm:text-lg font-medium">
                                         <TextOrHtml
-                                          content={question.headerText}
+                                          content={
+                                            question.questionOptions[0]?.additionalExplanation
+                                          }
                                         />
                                       </div>
                                     </div>
@@ -492,7 +494,7 @@ export default function ExamPage() {
                                 <div>
                                   <div className="text-md sm:text-lg font-medium">
                                     <TextOrHtml
-                                      content={question.questionText}
+                                      content={question.questionOptions[0]?.questionText}
                                     />
                                   </div>
                                 </div>

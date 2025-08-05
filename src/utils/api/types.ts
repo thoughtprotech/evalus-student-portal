@@ -85,33 +85,46 @@ export interface GetQuestionByIdRequest {
 
 export interface GetQuestionByIdResponse {
   questionId: number;
-  questionText: string;
-  headerText?: string;
   questionTypeId: number;
   subjectId: number;
   marks: number;
   negativeMarks: number;
   graceMarks: number;
   questionDifficultyLevelId: number;
-  additionalExplanation: string;
-  videoSolutionWeburl: string;
-  videoSolutionMobileurl: string;
   allowCandidateComments: number;
-  writeUpId: number | null;
-  hasMultipleAnswers: string;
-  questionOptionsJson: string;
-  userAnswer: any;
-  questionCorrectAnswerJson: string;
   language: string;
   isActive: number;
   createdBy: string;
   createdDate: string;
   modifiedBy: string;
   modifiedDate: string;
-  subject: Subject;
-  questionType: QuestionType;
-  writeUp: any;
+  userAnswer: string; // This is a stringified array like "[]", you might parse it to string[] when using
+  subject: {
+    subjectId: number;
+    subjectName: string;
+    subjectType: string;
+  };
+  questionType: {
+    questionTypeId: number;
+    questionType: string;
+  };
   questionTags: any[];
+  questionOptions: {
+    questionOptionId: number;
+    questionId: number;
+    questionText: string;
+    additionalExplanation: string;
+    videoSolutionWeburl: string;
+    videoSolutionMobileurl: string;
+    writeUpId: number;
+    questionOptionsJson: string; // stringified array, e.g., '["A. ...", "B. ..."]'
+    questionCorrectAnswerJson: string; // stringified array, e.g., '["B"]'
+    language: string;
+    isActive: number;
+    createdBy: string;
+    createdDate: string;
+    modifiedDate: string;
+  }[];
 }
 
 export interface CreateQuestionRequest {
