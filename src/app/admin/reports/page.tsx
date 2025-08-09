@@ -54,7 +54,7 @@ export default function ReportsPage() {
       <PageHeader
         icon={<BarChart2 className="w-6 h-6 text-purple-600" />}
         title="Reports"
-        newLink="/admin/candidates/new"
+        newLink="/admin/reports/new"
         onSearch={(e) => setQuery(e)}
       />
       <TabsRoot defaultIndex={0}>

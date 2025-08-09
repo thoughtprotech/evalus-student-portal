@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Stepper from "@/components/Stepper";
 import TestConfiguration from "./_components/stepper/TestConfiguration";
+import SectionUnderConstruction from "@/components/SectionUnderConstruction";
 
 export default function Index() {
   // Combined state for Step 1 fields
@@ -41,11 +42,14 @@ export default function Index() {
         onSubmit={() => console.log("Form Data:", testConfiguration)}
       >
         {/* Step 1: Test Setup Form */}
-        <TestConfiguration testConfiguration={testConfiguration} handleChange={handleStep1Change} />
+        <TestConfiguration
+          testConfiguration={testConfiguration}
+          handleChange={handleStep1Change}
+        />
 
         {/* Placeholder for Step 2 & 3 */}
-        <div>Step 2 content...</div>
-        <div>Step 3 content...</div>
+        <SectionUnderConstruction />
+        <SectionUnderConstruction />
       </Stepper>
     </div>
   );

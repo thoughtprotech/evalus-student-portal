@@ -55,7 +55,7 @@ export default function Navbar({ username }: NavbarProps) {
   const toggleMenu = () => setMenuOpen((prev) => !prev);
 
   return (
-    <header className="w-full border-b border-gray-300 shadow-md px-6 flex items-center justify-between h-16 relative">
+    <header className="w-full border-b border-gray-300 shadow-md px-6 flex items-center justify-between h-16 relative z-50">
       {/* Logo */}
       <div className="flex items-center space-x-1">
         <h1 className="text-2xl sm:text-3xl font-bold text-indigo-700">

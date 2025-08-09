@@ -7,7 +7,6 @@ import { ApiResponse, GetAdminQuestionListResponse } from "@/utils/api/types";
 export async function fetchQuestionsAction(): Promise<
   ApiResponse<GetAdminQuestionListResponse[]>
 > {
-  //   TODO: Add filters
   try {
     const { status, error, data, errorMessage, message } = await apiHandler(
       endpoints.getAdminQuestionList,

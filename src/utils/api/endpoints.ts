@@ -2,6 +2,7 @@ import {
   CreateQuestionRequest,
   Endpoint,
   GetAdminQuestionListResponse,
+  GetAdminTestList,
   GetCandidateStarredTestRequest,
   GetCandidateStarredTestResponse,
   GetCandidateTestRequest,
@@ -142,7 +143,8 @@ export const endpoints = {
 
   getInstructions: {
     method: "GET",
-    path: ({language}) => `/api/TestInstructions?includeInactive=false&language=${language}`,
+    path: ({ language }) =>
+      `/api/TestInstructions?includeInactive=false&language=${language}`,
     type: "CLOSE",
   } as Endpoint<GetInstructionsRequest, GetInstructionsResponse[]>,
 
@@ -151,4 +153,10 @@ export const endpoints = {
     path: () => `/api/Questions/all`,
     type: "CLOSE",
   } as Endpoint<null, GetAdminQuestionListResponse[]>,
+
+  getAdminTestList: {
+    method: "GET",
+    path: () => `/api/Tests?IncludeInactive=false`,
+    type: "CLOSE",
+  } as Endpoint<null, GetAdminTestList[]>,
 };

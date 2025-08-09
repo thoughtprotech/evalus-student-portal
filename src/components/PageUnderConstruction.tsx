@@ -43,7 +43,7 @@ export default function UnderConstructionPage() {
         {/* Back Button */}
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-lg shadow-md transition"
+          className="inline-flex items-center px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-lg shadow-md transition cursor-pointer"
         >
           <ChevronLeft className="mr-2 cursor-pointer" size={20} />
           Go Back
