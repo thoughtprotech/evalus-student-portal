@@ -3,17 +3,10 @@ import Link from "next/link";
 import { ChevronDown, ChevronRight, Tag, Badge, ChevronUp } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useRouter } from "next/navigation";
-
-interface CandidateGroup {
-  candidateGroupId: number;
-  candidateGroupName: string;
-  parentId: number;
-  relation: "PARENT" | "SELF" | string;
-  level: number;
-}
+import { GetSidebarMenusResponse } from "@/utils/api/types";
 
 interface SideBarFileTreeProps {
-  data: CandidateGroup[];
+  data: GetSidebarMenusResponse[];
   rootLabel: string;
   rootLink: string;
   regExp: string;
@@ -23,8 +16,8 @@ interface SideBarFileTreeProps {
 }
 
 // Build map from parentId to children
-const buildTree = (data: CandidateGroup[]) => {
-  const map: Record<number, CandidateGroup[]> = {};
+const buildTree = (data: GetSidebarMenusResponse[]) => {
+  const map: Record<number, GetSidebarMenusResponse[]> = {};
   data.forEach((item) => {
     map[item.parentId] = map[item.parentId] || [];
     map[item.parentId].push(item);
@@ -59,7 +52,7 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
 
   const renderChildren = (parentId: number) => {
     return tree[parentId]
-      ?.filter((c) => c.relation === "SELF")
+      ?.filter((c) => c.parentId !== 0)
       .map((child) => (
         <div
           key={child.candidateGroupId}
@@ -79,7 +72,7 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
 
   // Top-level parents
   const roots = data.filter(
-    (item) => item.parentId === 0 || item.relation === "PARENT"
+    (item) => item.parentId === 0
   );
 
   return (
@@ -108,7 +101,7 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
         <div className="space-y-1">
           {roots.map((root) => {
             const children = tree[root.candidateGroupId] || [];
-            const hasChildren = children.some((c) => c.relation === "SELF");
+            const hasChildren = children.some((c) => c.parentId !== 0);
             const isOpen = !!expanded[root.candidateGroupId];
             return (
               <div key={root.candidateGroupId}>

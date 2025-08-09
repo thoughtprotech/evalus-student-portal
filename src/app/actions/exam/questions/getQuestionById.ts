@@ -16,8 +16,6 @@ export async function fetchQuestionByIdAction(
       }
     );
 
-    console.log({ status, error, data, errorMessage, message });
-
     return {
       status: 200,
       error: false,

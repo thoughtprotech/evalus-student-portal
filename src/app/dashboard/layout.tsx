@@ -58,7 +58,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           setSideBarLoader(true);
           setCurrentGroupId(
             data
-              .filter((item) => item.relation === "SELF")[0]
+              .filter((item) => item.parentId !== 0)[0]
               .candidateGroupId.toString()
           );
         }
@@ -66,6 +66,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         toast.error("Something Went Wrong");
       }
     } catch (error) {
+      console.log({ error });
       toast.error("Something Went Wrong");
     }
   };

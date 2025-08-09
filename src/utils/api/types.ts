@@ -227,7 +227,6 @@ export interface GetSidebarMenusResponse {
   candidateGroupId: number;
   candidateGroupName: string;
   parentId: number;
-  relation: "PARENT" | "SELF";
   level: 0;
 }
 
@@ -296,4 +295,70 @@ export interface GetInstructionsResponse {
   createdDate: string;
   modifiedBy: string;
   modifiedDate: string;
+}
+
+export interface GetAdminQuestionListResponse {
+  questionId: number;
+  questionTypeId: number;
+  subjectId: number;
+  marks: number;
+  negativeMarks: number;
+  graceMarks: number;
+  questionDifficultyLevelId: number;
+  allowCandidateComments: number;
+  language: string;
+  isActive: number;
+  createdBy: string;
+  createdDate: string; // ISO date string
+  modifiedBy: string;
+  modifiedDate: string; // ISO date string
+  subject: {
+    subjectId: number;
+    subjectName: string;
+    subjectType: string;
+  };
+  questionType: {
+    questionTypeId: number;
+    questionType: string;
+  };
+  questionTags: any[];
+  questionOptions: {
+    questionOptionId: number;
+    questionId: number;
+    questionText: string;
+    additionalExplanation: string;
+    videoSolutionWeburl: string;
+    videoSolutionMobileurl: string;
+    writeUpId: number;
+    questionOptionsJson: string; // raw JSON string of options
+    questionCorrectAnswerJson: string; // raw JSON string of answers
+    language: string;
+    isActive: number;
+    createdBy: string;
+    createdDate: string; // ISO date string
+    modifiedDate: string; // ISO date string
+  }[];
+}
+
+export interface GetAdminTestList {
+  testId: number;
+  testName: string;
+  description: string;
+  testDurationMinutes: number;
+  testDurationForHandicappedMinutes: number;
+  testCategoryId: number;
+  testStartDate: string; // ISO date string
+  testEndDate: string;   // ISO date string
+  testStatus: string;
+  testTypeId: number;
+  testDifficultyLevelId: number;
+  allowAttachments: number; // 1 or 0
+  language: string;
+  isActive: number; // 1 or 0
+  createdBy: string;
+  createdDate: string; // ISO date string
+  modifiedBy: string;
+  modifiedDate: string; // ISO date string
+  isCreateOperation: boolean;
+  isUpdateOperation: boolean;
 }
