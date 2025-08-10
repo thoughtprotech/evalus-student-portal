@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Edit, Tag, Calendar, HelpCircle, BarChart2 } from "lucide-react";
+import { Edit, Tag, Calendar, HelpCircle, BarChart2, Trash2, User } from "lucide-react";
 import { fetchQuestonsAction } from "@/app/actions/admin/questions";
 import Loader from "@/components/Loader";
 import Link from "next/link";
@@ -14,9 +14,11 @@ import { useRouter } from "next/navigation";
 interface Question {
   id: number;
   title: string;
-  category: string;
-  difficulty: string;
+  subject: string;
+  topic: string;
+  level: string;
   createdAt: string;
+  updatedAt: string;
 }
 export default function QuestionsPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -25,6 +27,7 @@ export default function QuestionsPage() {
   const [pageSize, setPageSize] = useState(10);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [selectedQuestions, setSelectedQuestions] = useState<number[]>([]);
   const router = useRouter();
 
   // fetch
@@ -45,6 +48,28 @@ export default function QuestionsPage() {
 
   const onSubmit = () => {
     setIsModalOpen(false);
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedQuestions(slice.map(q => q.id));
+    } else {
+      setSelectedQuestions([]);
+    }
+  };
+
+  const handleSelectQuestion = (questionId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedQuestions(prev => [...prev, questionId]);
+    } else {
+      setSelectedQuestions(prev => prev.filter(id => id !== questionId));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    // TODO: Implement bulk delete
+    console.log("Deleting questions:", selectedQuestions);
+    setSelectedQuestions([]);
   };
 
   if (loading) return <Loader />;
@@ -70,8 +95,23 @@ export default function QuestionsPage() {
         </div>
 
         <TabsContent>
-          {/* 0: Test Report */}
+          {/* 0: Questions List */}
           <div>
+            {selectedQuestions.length > 0 && (
+              <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded-md flex items-center justify-between">
+                <span className="text-indigo-700">
+                  {selectedQuestions.length} question(s) selected
+                </span>
+                <button
+                  onClick={handleBulkDelete}
+                  className="flex items-center px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded-md transition-colors duration-300"
+                >
+                  <Trash2 className="w-4 h-4 mr-1" />
+                  Delete
+                </button>
+              </div>
+            )}
+            
             <PaginationControls
               page={page}
               pageSize={pageSize}
@@ -85,54 +125,93 @@ export default function QuestionsPage() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-100">
                   <tr>
-                    {[
-                      {
-                        key: "id",
-                        label: "ID",
-                        icon: <Edit className="w-4 h-4 mr-1" />,
-                      },
-                      { key: "title", label: "Title" },
-                      {
-                        key: "category",
-                        label: "Category",
-                        icon: <Tag className="w-4 h-4 mr-1" />,
-                      },
-                      { key: "difficulty", label: "Difficulty" },
-                      {
-                        key: "createdAt",
-                        label: "Created At",
-                        icon: <Calendar className="w-4 h-4 mr-1" />,
-                      },
-                    ].map((col) => (
-                      <th
-                        key={col.key}
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        <div className="flex items-center">
-                          {col.icon}
-                          {col.label}
-                        </div>
-                      </th>
-                    ))}
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <input 
+                        type="checkbox" 
+                        className="rounded"
+                        checked={selectedQuestions.length === slice.length && slice.length > 0}
+                        onChange={(e) => handleSelectAll(e.target.checked)}
+                      />
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      S.No.
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Question Details
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Subject
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Topic
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Level
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Created Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Update Date
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Action
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {slice.map((q) => (
+                  {slice.map((q, index) => (
                     <tr key={q.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 text-sm text-gray-700">
-                        {q.id}
+                        <input 
+                          type="checkbox" 
+                          className="rounded"
+                          checked={selectedQuestions.includes(q.id)}
+                          onChange={(e) => handleSelectQuestion(q.id, e.target.checked)}
+                        />
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {(page - 1) * pageSize + index + 1}
                       </td>
                       <td className="px-6 py-4 text-sm text-indigo-600">
                         <Link href={`/admin/questions/${q.id}`}>{q.title}</Link>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-700">
-                        {q.category}
+                        {q.subject}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-700">
-                        {q.difficulty}
+                        {q.topic}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          q.level === 'Beginner' ? 'bg-green-100 text-green-800' :
+                          q.level === 'Intermediate' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {q.level}
+                        </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
                         {new Date(q.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {new Date(q.updatedAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        <div className="flex items-center justify-center space-x-2">
+                          <button
+                            className="text-indigo-600 hover:text-indigo-900"
+                            title="Edit"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            className="text-red-600 hover:text-red-900"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -141,213 +220,25 @@ export default function QuestionsPage() {
             </div>
           </div>
 
-          <div>
-            <PaginationControls
-              page={page}
-              pageSize={pageSize}
-              total={total}
-              onPageChange={setPage}
-              onPageSizeChange={setPageSize}
-              pageSizeOptions={[5, 10, 20, 50]}
-            />
-
-            <div className="overflow-x-auto bg-white shadow rounded-md border border-gray-300">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-100">
-                  <tr>
-                    {[
-                      {
-                        key: "id",
-                        label: "ID",
-                        icon: <Edit className="w-4 h-4 mr-1" />,
-                      },
-                      { key: "title", label: "Title" },
-                      {
-                        key: "category",
-                        label: "Category",
-                        icon: <Tag className="w-4 h-4 mr-1" />,
-                      },
-                      { key: "difficulty", label: "Difficulty" },
-                      {
-                        key: "createdAt",
-                        label: "Created At",
-                        icon: <Calendar className="w-4 h-4 mr-1" />,
-                      },
-                    ].map((col) => (
-                      <th
-                        key={col.key}
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        <div className="flex items-center">
-                          {col.icon}
-                          {col.label}
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {slice.map((q) => (
-                    <tr key={q.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {q.id}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-indigo-600">
-                        <Link href={`/admin/questions/${q.id}`}>{q.title}</Link>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {q.category}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {q.difficulty}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {new Date(q.createdAt).toLocaleDateString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {/* 1: Import Question */}
+          <div className="bg-white p-6 rounded-md shadow border border-gray-300">
+            <div className="text-center py-12">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Import Questions</h3>
+              <p className="text-gray-500 mb-4">Upload a CSV or Excel file to import multiple questions at once.</p>
+              <div className="flex justify-center">
+                <label className="inline-flex items-center px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-md cursor-pointer transition-colors duration-300">
+                  <input type="file" className="hidden" accept=".csv,.xlsx,.xls" />
+                  Choose File
+                </label>
+              </div>
             </div>
           </div>
 
-          <div>
-            <PaginationControls
-              page={page}
-              pageSize={pageSize}
-              total={total}
-              onPageChange={setPage}
-              onPageSizeChange={setPageSize}
-              pageSizeOptions={[5, 10, 20, 50]}
-            />
-
-            <div className="overflow-x-auto bg-white shadow rounded-md border border-gray-300">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-100">
-                  <tr>
-                    {[
-                      {
-                        key: "id",
-                        label: "ID",
-                        icon: <Edit className="w-4 h-4 mr-1" />,
-                      },
-                      { key: "title", label: "Title" },
-                      {
-                        key: "category",
-                        label: "Category",
-                        icon: <Tag className="w-4 h-4 mr-1" />,
-                      },
-                      { key: "difficulty", label: "Difficulty" },
-                      {
-                        key: "createdAt",
-                        label: "Created At",
-                        icon: <Calendar className="w-4 h-4 mr-1" />,
-                      },
-                    ].map((col) => (
-                      <th
-                        key={col.key}
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        <div className="flex items-center">
-                          {col.icon}
-                          {col.label}
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {slice.map((q) => (
-                    <tr key={q.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {q.id}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-indigo-600">
-                        <Link href={`/admin/questions/${q.id}`}>{q.title}</Link>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {q.category}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {q.difficulty}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {new Date(q.createdAt).toLocaleDateString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div>
-            <PaginationControls
-              page={page}
-              pageSize={pageSize}
-              total={total}
-              onPageChange={setPage}
-              onPageSizeChange={setPageSize}
-              pageSizeOptions={[5, 10, 20, 50]}
-            />
-
-            <div className="overflow-x-auto bg-white shadow rounded-md border border-gray-300">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-100">
-                  <tr>
-                    {[
-                      {
-                        key: "id",
-                        label: "ID",
-                        icon: <Edit className="w-4 h-4 mr-1" />,
-                      },
-                      { key: "title", label: "Title" },
-                      {
-                        key: "category",
-                        label: "Category",
-                        icon: <Tag className="w-4 h-4 mr-1" />,
-                      },
-                      { key: "difficulty", label: "Difficulty" },
-                      {
-                        key: "createdAt",
-                        label: "Created At",
-                        icon: <Calendar className="w-4 h-4 mr-1" />,
-                      },
-                    ].map((col) => (
-                      <th
-                        key={col.key}
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        <div className="flex items-center">
-                          {col.icon}
-                          {col.label}
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {slice.map((q) => (
-                    <tr key={q.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {q.id}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-indigo-600">
-                        <Link href={`/admin/questions/${q.id}`}>{q.title}</Link>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {q.category}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {q.difficulty}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {new Date(q.createdAt).toLocaleDateString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {/* 2: Subject */}
+          <div className="bg-white p-6 rounded-md shadow border border-gray-300">
+            <div className="text-center py-12">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Subject Management</h3>
+              <p className="text-gray-500">Manage subjects and topics for questions organization.</p>
             </div>
           </div>
         </TabsContent>

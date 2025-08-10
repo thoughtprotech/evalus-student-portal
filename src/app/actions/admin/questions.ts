@@ -5,20 +5,25 @@ import { ApiResponse } from "@/utils/api/types";
 interface Question {
   id: number;
   title: string;
-  category: string;
-  difficulty: string;
+  subject: string;
+  topic: string;
+  level: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 const generateMockQuestions = (count: number): Question[] => {
-  const categories = ["Math", "Science", "History", "Literature"];
-  const difficulties = ["Easy", "Medium", "Hard"];
+  const subjects = ["English", "Math", "Science", "History"];
+  const topics = ["Chapter 1", "Chapter 2", "Chapter 3", "Chapter 4"];
+  const levels = ["Beginner", "Intermediate", "Advanced"];
   return Array.from({ length: count }, (_, i) => ({
     id: i + 1,
-    title: `Sample Question ${i + 1}`,
-    category: categories[i % categories.length],
-    difficulty: difficulties[i % difficulties.length],
+    title: `Test${i + 1}`,
+    subject: subjects[i % subjects.length],
+    topic: topics[i % topics.length],
+    level: levels[i % levels.length],
     createdAt: new Date(Date.now() - i * 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - i * 43200000).toISOString(), // 12 hours later
   }));
 };
 
