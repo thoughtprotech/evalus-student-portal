@@ -136,4 +136,46 @@ export const endpoints = {
     path: () => `/api/QuestionDifficultyLevels`,
     type: "CLOSE",
   } as Endpoint<null, GetDifficultyLevelsResponse[]>,
+
+  // Admin Tests (server actions moved here)
+  getAdminTests: {
+    method: "GET",
+    // query should include leading ?params already: e.g., ?$top=25&$skip=0...
+    path: ({ query }) => `/odata/Tests${query ? (query.startsWith('?') ? query : `?${query}`) : ''}`,
+    type: "OPEN",
+  } as Endpoint<import('./types').GetTestsODataRequest, {
+    "@odata.count"?: number;
+    value: any[];
+  }>,
+
+  deleteAdminTest: {
+    method: "DELETE",
+    path: ({ id }) => `/api/tests/${id}`,
+    type: "CLOSE",
+  } as Endpoint<import('./types').DeleteTestRequest, null>,
+
+  // OData lists for Admin Test creation
+  getTestTypes: {
+    method: "GET",
+  path: () => `/odata/TestTypes?$select=TestTypeId,TestType1`,
+    type: "OPEN",
+  } as Endpoint<null, import('./types').ODataList<import('./types').TestTypeOData>>,
+
+  getTestCategories: {
+    method: "GET",
+  path: () => `/odata/TestCategories?$select=TestCategoryId,TestCategoryName`,
+    type: "OPEN",
+  } as Endpoint<null, import('./types').ODataList<import('./types').TestCategoryOData>>,
+
+  getTestInstructions: {
+    method: "GET",
+  path: () => `/odata/TestInstructions?$select=TestInstructionId,TestInstructionName`,
+    type: "OPEN",
+  } as Endpoint<null, import('./types').ODataList<import('./types').TestInstructionOData>>,
+
+  getTestDifficultyLevelsOData: {
+    method: "GET",
+  path: () => `/odata/TestDifficultyLevels?$select=TestDifficultyLevelId,TestDifficultyLevel1`,
+    type: "OPEN",
+  } as Endpoint<null, import('./types').ODataList<import('./types').TestDifficultyLevelOData>>,
 };

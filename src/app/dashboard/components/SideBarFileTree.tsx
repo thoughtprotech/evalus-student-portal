@@ -22,10 +22,11 @@ interface SideBarFileTreeProps {
   pathname: string;
 }
 
-// Build map from parentId to children
-const buildTree = (data: CandidateGroup[]) => {
+// Build map from parentId to children (defensive against non-array)
+const buildTree = (data: CandidateGroup[] | undefined | null) => {
   const map: Record<number, CandidateGroup[]> = {};
-  data.forEach((item) => {
+  const arr: CandidateGroup[] = Array.isArray(data) ? data : [];
+  arr.forEach((item) => {
     map[item.parentId] = map[item.parentId] || [];
     map[item.parentId].push(item);
   });
@@ -78,7 +79,8 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
   };
 
   // Top-level parents
-  const roots = data.filter(
+  const safeData = Array.isArray(data) ? data : [];
+  const roots = safeData.filter(
     (item) => item.parentId === 0 || item.relation === "PARENT"
   );
 

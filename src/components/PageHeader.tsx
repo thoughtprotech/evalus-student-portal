@@ -10,7 +10,9 @@ interface PageHeaderProps {
   title: string;
   newLink?: string;
   onSearch: (e: string) => void;
+  showSearch?: boolean;
   onNewClick?: () => void;
+  searchValue?: string;
 }
 
 export default function PageHeader({
@@ -18,7 +20,9 @@ export default function PageHeader({
   title,
   newLink,
   onSearch,
+  showSearch = true,
   onNewClick,
+  searchValue,
 }: PageHeaderProps) {
   return (
     <div className="flex items-center justify-between">
@@ -27,7 +31,9 @@ export default function PageHeader({
         <span className="ml-2">{title}</span>
       </h1>
       <div className="flex items-center gap-5">
-        <SearchBar onSearch={onSearch} className="px-4 py-2" />
+        {showSearch && (
+          <SearchBar onSearch={onSearch} value={searchValue} className="px-4 py-2" />
+        )}
         {newLink || onNewClick ? (
           newLink ? (
             <Link href={newLink}>

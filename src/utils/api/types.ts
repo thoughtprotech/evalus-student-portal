@@ -268,3 +268,40 @@ export interface GetDifficultyLevelsResponse {
   modifiedBy: string;
   modifiedDate: string;
 }
+
+// Admin Tests (OData)
+export interface GetTestsODataRequest {
+  // Prebuilt OData query string: "$top=...&$skip=...&..."
+  query: string;
+}
+
+export interface DeleteTestRequest {
+  id: number;
+}
+
+// Generic OData list wrapper
+export type ODataList<T> = {
+  value: T[];
+  "@odata.count"?: number;
+};
+
+// OData entities for Admin Test creation
+export interface TestTypeOData {
+  TestTypeId: number;
+  TestType1: string;
+}
+
+export interface TestCategoryOData {
+  TestCategoryId: number;
+  TestCategoryName: string;
+}
+
+export interface TestInstructionOData {
+  TestInstructionId: number;
+  TestInstructionName: string;
+}
+
+export interface TestDifficultyLevelOData {
+  TestDifficultyLevelId: number;
+  TestDifficultyLevel1: string;
+}
