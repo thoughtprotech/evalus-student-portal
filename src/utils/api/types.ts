@@ -268,3 +268,25 @@ export interface GetDifficultyLevelsResponse {
   modifiedBy: string;
   modifiedDate: string;
 }
+
+// Question Options API Types
+export interface GetQuestionOptionsRequest {
+  // No request parameters needed for getting all questions
+}
+
+export interface GetQuestionOptionsResponse {
+  questionOptionId: number;
+  questionId: number;
+  questionText: string;
+  additionalExplanation: string;
+  videoSolutionWeburl?: string;
+  videoSolutionMobileurl?: string;
+  writeUpId?: number;
+  questionOptionsJson: string;
+  questionCorrectAnswerJson: string;
+  language: string;
+  isActive: number;
+  createdBy: string;
+  createdDate: string;
+  modifiedDate: string;
+}

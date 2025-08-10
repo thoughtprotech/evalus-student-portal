@@ -11,6 +11,8 @@ import {
   GetQuestionByIdResponse,
   GetQuestionListRequest,
   GetQuestionListResponse,
+  GetQuestionOptionsRequest,
+  GetQuestionOptionsResponse,
   GetQuestionTypesResponse,
   GetSidebarMenusRequest,
   GetSidebarMenusResponse,
@@ -136,4 +138,10 @@ export const endpoints = {
     path: () => `/api/QuestionDifficultyLevels`,
     type: "CLOSE",
   } as Endpoint<null, GetDifficultyLevelsResponse[]>,
+
+  getQuestionOptions: {
+    method: "GET",
+    path: () => `/api/QuestionOptions`,
+    type: "CLOSE",
+  } as Endpoint<GetQuestionOptionsRequest, GetQuestionOptionsResponse[]>,
 };

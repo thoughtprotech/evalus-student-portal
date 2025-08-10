@@ -19,6 +19,14 @@ interface Question {
   level: string;
   createdAt: string;
   updatedAt: string;
+  additionalExplanation?: string;
+  videoSolutionWeburl?: string;
+  videoSolutionMobileurl?: string;
+  questionOptionsJson?: string;
+  questionCorrectAnswerJson?: string;
+  language?: string;
+  isActive?: number;
+  createdBy?: string;
 }
 export default function QuestionsPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -42,8 +50,11 @@ export default function QuestionsPage() {
     })();
   }, []);
 
-  const filteredAnnouncements = questions.filter((a) =>
-    a.title.toLowerCase().includes(query.toLowerCase())
+  const filteredQuestions = questions.filter((q) =>
+    q.title.toLowerCase().includes(query.toLowerCase()) ||
+    q.subject.toLowerCase().includes(query.toLowerCase()) ||
+    q.topic.toLowerCase().includes(query.toLowerCase()) ||
+    (q.language && q.language.toLowerCase().includes(query.toLowerCase()))
   );
 
   const onSubmit = () => {
@@ -52,7 +63,7 @@ export default function QuestionsPage() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedQuestions(slice.map(q => q.id));
+      setSelectedQuestions(slice.map((q: Question) => q.id));
     } else {
       setSelectedQuestions([]);
     }
@@ -74,8 +85,8 @@ export default function QuestionsPage() {
 
   if (loading) return <Loader />;
 
-  const total = filteredAnnouncements.length;
-  const slice = filteredAnnouncements.slice(
+  const total = filteredQuestions.length;
+  const slice = filteredQuestions.slice(
     (page - 1) * pageSize,
     page * pageSize
   );
@@ -149,6 +160,9 @@ export default function QuestionsPage() {
                       Level
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Language
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Created Date
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -160,7 +174,7 @@ export default function QuestionsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {slice.map((q, index) => (
+                  {slice.map((q: Question, index: number) => (
                     <tr key={q.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 text-sm text-gray-700">
                         <input 
@@ -174,7 +188,11 @@ export default function QuestionsPage() {
                         {(page - 1) * pageSize + index + 1}
                       </td>
                       <td className="px-6 py-4 text-sm text-indigo-600">
-                        <Link href={`/admin/questions/${q.id}`}>{q.title}</Link>
+                        <Link href={`/admin/questions/${q.id}`} title={q.title}>
+                          <div className="max-w-xs truncate">
+                            {q.title}
+                          </div>
+                        </Link>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-700">
                         {q.subject}
@@ -189,6 +207,11 @@ export default function QuestionsPage() {
                           'bg-red-100 text-red-800'
                         }`}>
                           {q.level}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                          {q.language || 'EN'}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
