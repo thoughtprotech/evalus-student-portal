@@ -50,17 +50,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     try {
       const response = await fetchSideBarMenuAction();
 
-      const { data, status } = response;
+  const { data, status } = response;
 
       if (status === 200) {
-        if (data) {
-          setSideBarItems(data);
-          setSideBarLoader(true);
-          setCurrentGroupId(
-            data
-              .filter((item) => item.relation === "SELF")[0]
-              .candidateGroupId.toString()
-          );
+        const list = Array.isArray(data) ? data : [];
+        setSideBarItems(list);
+        setSideBarLoader(true);
+        const firstSelf = list.find((item) => item.relation === "SELF");
+        if (firstSelf) {
+          setCurrentGroupId(firstSelf.candidateGroupId.toString());
         }
       } else {
         toast.error("Something Went Wrong");

@@ -1,6 +1,9 @@
 import getCookie from "../getCookie";
 import { logger } from "../logger/logger";
 import type { ApiResponse, Endpoint } from "./types";
+import { env } from '../env';
+import { log } from "console";
+
 
 function createApiClient() {
   return async function <Req, Res>(
@@ -34,16 +37,18 @@ function createApiClient() {
         };
       }
     }
+    
 
     logger("request:start", {
       endpoint,
       headers,
       body,
+      url: `${env.API_BASE_URL}${endpoint.path(body as Req)}`,      
     });
 
     try {
       const res = await fetch(
-        `${process.env.API_BASE_URL}${endpoint.path(body as Req)}`,
+        `${env.API_BASE_URL}${endpoint.path(body as Req)}`,
         {
           method: endpoint.method,
           headers,
@@ -79,14 +84,12 @@ function createApiClient() {
       }
 
       const finalResponse: ApiResponse<Res> = {
-        status: json.status ?? res.status,
-        error: json.error ?? !res.ok,
-        message: json.message ?? res.statusText ?? "No message",
-        errorMessage:
-          json.errorMessage ??
-          (!res.ok ? "Request failed" : "") ??
-          "Unknown error",
-        data: json.data as Res,
+        status: (json as any).status ?? res.status,
+        error: (json as any).error ?? !res.ok,
+        message: (json as any).message ?? res.statusText ?? "No message",
+        errorMessage: (json as any).errorMessage ?? (!res.ok ? "Request failed" : ""),
+        // If the server doesn’t wrap payloads, fall back to the raw JSON
+        data: ((json as any).data !== undefined ? (json as any).data : (json as any)) as Res,
       };
 
       if (finalResponse.error) {
@@ -109,16 +112,32 @@ function createApiClient() {
       return finalResponse;
     } catch (err: any) {
       const elapsed = `${Date.now() - startTime}ms`;
+      
+      // Provide more detailed error messages
+      let errorMessage = "Network error occurred";
+      if (err?.message) {
+        if (err.message.includes("fetch")) {
+          errorMessage = `Failed to connect to ${env.API_BASE_URL} - Server may be down or unreachable`;
+        } else if (err.message.includes("CORS")) {
+          errorMessage = `CORS error - Check server CORS configuration`;
+        } else if (err.message.includes("SSL") || err.message.includes("certificate")) {
+          errorMessage = `SSL/Certificate error - Check server certificates`;
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
       logger("request:network-error", {
         endpoint,
-        errorMessage: err?.message || "An unknown error occurred",
+        errorMessage,
         elapsed,
       });
+      
       return {
         status: 500,
         error: true,
         message: "Network error",
-        errorMessage: err?.message || "An unknown error occurred",
+        errorMessage,
         data: undefined,
       };
     }

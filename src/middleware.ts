@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import jwt from "jsonwebtoken";
 
 interface JwtPayload {
   role?: string;
@@ -28,11 +27,22 @@ export function middleware(req: NextRequest) {
 
   // 3. If this is an /admin route, verify token & check role
   if (token && pathname.startsWith("/admin")) {
-    let payload: JwtPayload;
-    try {
-      payload = jwt.decode(token) as JwtPayload;
-    } catch (err) {
-      // invalid or expired token
+    // Lightweight, Edge-compatible JWT payload decode (no signature verification)
+    const decodeJwtPayload = (tok: string): JwtPayload | null => {
+      try {
+        const parts = tok.split(".");
+        if (parts.length < 2) return null;
+        const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+        const padded = base64 + "===".slice((base64.length + 3) % 4);
+        const json = atob(padded);
+        return JSON.parse(json);
+      } catch {
+        return null;
+      }
+    };
+
+    const payload = decodeJwtPayload(token);
+    if (!payload) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 

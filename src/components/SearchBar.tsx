@@ -1,20 +1,29 @@
 'use client';
 
 import { Search, XCircle } from 'lucide-react';
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 
 interface SearchBarProps {
   placeholder?: string;
   onSearch: (value: string) => void;
   className?: string;
+  value?: string; // controlled value
 }
 
 export default function SearchBar({
   placeholder = 'Search...',
   onSearch,
   className = '',
+  value: controlledValue,
 }: SearchBarProps) {
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState(controlledValue ?? '');
+
+  // Sync internal state when controlled value changes
+  useEffect(() => {
+    if (controlledValue !== undefined) {
+      setValue(controlledValue);
+    }
+  }, [controlledValue]);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;

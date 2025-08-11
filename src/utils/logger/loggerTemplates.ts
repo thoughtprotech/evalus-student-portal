@@ -12,10 +12,10 @@ function stringifyBody(body: any): string {
 }
 
 export const templates: Record<string, LogTemplateFn<any>> = {
-  "request:start": ({ endpoint, headers, body, timestamp }) =>
+  "request:start": ({ endpoint, headers, body, url,timestamp }) =>
     `[${timestamp}] [MAKING REQUEST]\n${endpoint.method} ${
       endpoint.path
-    }\nheaders: ${JSON.stringify(headers)}\nbody: ${stringifyBody(body)}`,
+    }\nheaders: ${JSON.stringify(headers)}\nbody: ${stringifyBody(body)}\nUrl:${url}`,
 
   "request:success": ({
     endpoint,
