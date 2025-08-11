@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/utils/env";
 
-export async function GET(req: NextRequest, { params }: { params: { path: string[] } }) {
+// In Next.js 15, route params may be provided as a Promise in the context argument.
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<{ path: string[] }> }
+) {
   try {
-    const segments = params.path || [];
+    const { path } = await context.params;
+    const segments = path || [];
     const target = new URL(`${env.API_BASE_URL}/odata/${segments.join("/")}`);
     const search = req.nextUrl.searchParams;
     search.forEach((v, k) => target.searchParams.set(k, v));
