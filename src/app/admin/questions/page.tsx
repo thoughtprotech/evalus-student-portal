@@ -209,7 +209,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           return isActive ? 'Active' : 'Inactive';
         },
         cellRenderer: IsActiveCellRenderer, 
-        width: 100 
+        width: 125 
       },
       { 
         field: "createdAt", 
