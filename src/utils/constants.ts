@@ -2,6 +2,8 @@ export const USERNAME_TOKEN_KEY: string = "userName";
 
 export const ROLE_TOKEN_KEY: string = "role";
 
+export const API_BASE_URL: string = process.env.API_BASE_URL || "";
+
 export const QUESTION_TYPES: {
   SINGLE_MCQ: string;
   MULTIPLE_MCQ: string;

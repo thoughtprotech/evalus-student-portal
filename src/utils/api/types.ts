@@ -269,6 +269,28 @@ export interface GetDifficultyLevelsResponse {
   modifiedDate: string;
 }
 
+
+// Question Options API Types
+export interface GetQuestionOptionsRequest {
+  // No request parameters needed for getting all questions
+}
+
+export interface GetQuestionOptionsResponse {
+  questionOptionId: number;
+  questionId: number;
+  questionText: string;
+  additionalExplanation: string;
+  videoSolutionWeburl?: string;
+  videoSolutionMobileurl?: string;
+  writeUpId?: number;
+  questionOptionsJson: string;
+  questionCorrectAnswerJson: string;
+  language: string;
+  isActive: number;
+  createdBy: string;
+  createdDate: string;
+  modifiedDate: string;
+  
 // Admin Tests (OData)
 export interface GetTestsODataRequest {
   // Prebuilt OData query string: "$top=...&$skip=...&..."
@@ -304,4 +326,5 @@ export interface TestInstructionOData {
 export interface TestDifficultyLevelOData {
   TestDifficultyLevelId: number;
   TestDifficultyLevel1: string;
+
 }
