@@ -84,7 +84,8 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
   const [showFilters, setShowFilters] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [pendingDelete, setPendingDelete] = useState<QuestionRow | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<QuestionRow[]>([]);
+  const [selectedCount, setSelectedCount] = useState(0);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" | "warning" } | null>(null);
   const sortModelRef = useRef<SortModelItem[] | undefined>(undefined);
   const filterModelRef = useRef<any>({});
@@ -219,6 +220,30 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         minWidth: 150, 
         flex: 1 
       },
+      {
+        headerName: "Actions",
+        cellRenderer: (props: { data: QuestionRow }) => (
+          <div className="flex items-center gap-2 h-full">
+            <Link href={`/admin/questions/${props.data.id}/edit`}>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                title="Edit question"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit
+              </button>
+            </Link>
+          </div>
+        ),
+        width: 80,
+        sortable: false,
+        filter: false,
+        resizable: false,
+        pinned: 'right'
+      },
       { field: "id", headerName: "ID", hide: true },
     ],
     [] // No dependencies needed for client-side operations
@@ -313,20 +338,24 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
               const api = gridApiRef.current;
               if (!api) return;
               const selected = api.getSelectedRows?.() as QuestionRow[];
-              const row = selected && selected[0];
-              if (!row) {
-                setToast({ message: "Please select a question to delete.", type: "info" });
+              if (!selected || selected.length === 0) {
+                setToast({ message: "Please select at least one question to delete.", type: "info" });
                 return;
               }
-              setPendingDelete(row);
+              setPendingDelete(selected);
               setConfirmOpen(true);
             }}
             disabled={deleting}
             className="inline-flex items-center justify-center gap-2 w-32 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50"
-            title="Delete selected question"
+            title="Delete selected questions"
           >
             <Trash2 className="w-4 h-4" /> {deleting ? "Deleting..." : "Delete"}
           </button>
+          {selectedCount > 0 && (
+            <span className="text-sm text-gray-600 bg-blue-50 px-2 py-1 rounded">
+              {selectedCount} selected
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {/* Show/Hide filters toggle button */}
@@ -493,12 +522,18 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
             // No API call needed for client-side filtering
             console.log('Client-side filtering applied');
           }}
+          onSelectionChanged={() => {
+            const api = gridApiRef.current;
+            if (!api) return;
+            const selected = api.getSelectedRows?.() as QuestionRow[];
+            setSelectedCount(selected?.length || 0);
+          }}
           // Enable client-side pagination
           pagination={true}
           paginationPageSize={pageSize}
           paginationPageSizeSelector={[10, 25, 50, 100]}
           // Client-side operations
-          rowSelection={{ mode: 'singleRow', checkboxes: true }}
+          rowSelection={{ mode: 'multiRow', checkboxes: true }}
           selectionColumnDef={{ pinned: 'left', width: 44, headerName: '', resizable: false, cellClass: 'no-right-border', headerClass: 'no-right-border', suppressMovable: true }}
           animateRows
           domLayout="autoHeight"
@@ -532,25 +567,51 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
       
       <ConfirmationModal
         title="Confirm Delete"
-        message={pendingDelete ? `Are you sure you want to delete "${pendingDelete.title}"? This action cannot be undone.` : ""}
+        message={pendingDelete.length > 0 
+          ? pendingDelete.length === 1 
+            ? `Are you sure you want to delete "${pendingDelete[0].title}"? This action cannot be undone.`
+            : `Are you sure you want to delete ${pendingDelete.length} questions? This action cannot be undone.`
+          : ""
+        }
         isOpen={confirmOpen}
         variant="danger"
         confirmText={deleting ? "Deleting..." : "Delete"}
         cancelText="Cancel"
-        onCancel={() => { setConfirmOpen(false); setPendingDelete(null); }}
+        onCancel={() => { setConfirmOpen(false); setPendingDelete([]); }}
         onConfirm={async () => {
-          if (!pendingDelete) return;
+          if (pendingDelete.length === 0) return;
           setDeleting(true);
-          const res = await deleteQuestionAction(pendingDelete.id);
+          
+          try {
+            // Delete all selected questions
+            const deletePromises = pendingDelete.map(question => deleteQuestionAction(question.id));
+            const results = await Promise.all(deletePromises);
+            
+            const failedDeletes = results.filter(res => res.status !== 200);
+            
+            if (failedDeletes.length === 0) {
+              setToast({ 
+                message: pendingDelete.length === 1 
+                  ? "Question deleted successfully." 
+                  : `${pendingDelete.length} questions deleted successfully.`, 
+                type: "success" 
+              });
+            } else {
+              setToast({ 
+                message: `${failedDeletes.length} questions failed to delete.`, 
+                type: "error" 
+              });
+            }
+            
+            // Refresh the data
+            fetchPage();
+          } catch (error) {
+            setToast({ message: "Delete operation failed", type: "error" });
+          }
+          
           setDeleting(false);
           setConfirmOpen(false);
-          setPendingDelete(null);
-          if (res.status === 200) {
-            fetchPage();
-            setToast({ message: "Question deleted successfully.", type: "success" });
-          } else {
-            setToast({ message: res.message || "Delete failed", type: "error" });
-          }
+          setPendingDelete([]);
         }}
       />
       
