@@ -11,6 +11,7 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { Trash2, PlusCircle } from "lucide-react";
 import Loader from "@/components/Loader";
 import Toast from "@/components/Toast";
+import PaginationControls from "@/components/PaginationControls";
 
 // AG Grid
 import { AgGridReact } from "ag-grid-react";
@@ -63,6 +64,19 @@ function LanguageCellRenderer(props: { value: string }) {
   );
 }
 
+function IsActiveCellRenderer(props: { value: number | boolean }) {
+  const isActive = Boolean(props.value);
+  return (
+    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+      isActive 
+        ? 'bg-green-100 text-green-800' 
+        : 'bg-red-100 text-red-800'
+    }`}>
+      {isActive ? 'Active' : 'Inactive'}
+    </span>
+  );
+}
+
 // Local date formatter: expects ISO or YYYY-MM-DD, outputs dd/mm/yyyy
 function formatDate(value?: string) {
   if (!value) return "";
@@ -80,7 +94,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(15);
   const [showFilters, setShowFilters] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -100,9 +114,9 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
       { 
         headerName: "S.No.", 
         valueGetter: (p: any) => {
-          // For client-side pagination, use the row index directly
+          // Calculate serial number based on current page and row index
           const idx = (p?.node?.rowIndex ?? 0) as number;
-          return idx + 1;
+          return idx + 1 + (page - 1) * pageSize;
         }, 
         width: 90, 
         pinned: 'left', 
@@ -180,6 +194,24 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         width: 120 
       },
       { 
+        field: "isActive", 
+        headerName: "Status", 
+        headerTooltip: "Active Status", 
+        sortable: true, 
+        filter: 'agTextColumnFilter', 
+        filterParams: { 
+          buttons: ['apply','reset','clear'],
+          debounceMs: 200
+        }, 
+        valueGetter: (params: any) => {
+          // Convert numeric value to text for filtering purposes
+          const isActive = Boolean(params.data?.isActive);
+          return isActive ? 'Active' : 'Inactive';
+        },
+        cellRenderer: IsActiveCellRenderer, 
+        width: 125 
+      },
+      { 
         field: "createdAt", 
         headerName: "Created Date", 
         headerTooltip: "Question Created Date", 
@@ -246,7 +278,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
       },
       { field: "id", headerName: "ID", hide: true },
     ],
-    [] // No dependencies needed for client-side operations
+    [page, pageSize] // Dependencies for S.No. calculation
   );
 
   const defaultColDef = useMemo<ColDef>(() => ({
@@ -265,57 +297,118 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
     const reqId = ++lastReqIdRef.current;
     setLoading(true);
     
-    console.log('Fetching all questions for client-side operations');
-    
     const sort = sortModelRef.current?.[0];
     const fieldMap: Record<string, string> = {
       id: "questionId",
-      title: "questionText",
+      title: "questionText", 
       subject: "subject",
       topic: "topic",
       level: "questionDifficultyLevel",
       language: "language",
+      isActive: "isActive",
       createdAt: "createdDate",
       updatedAt: "modifiedDate",
       createdBy: "createdBy",
     };
     const orderBy = sort ? `${fieldMap[sort.colId] ?? "questionId"} ${sort.sort}` : "questionId desc";
     
-    // Only apply global search filter, let AG Grid handle column filters client-side
+    // Build filter from both global search and column filters
     const filters: string[] = [];
     const search = (query ?? "").trim();
     if (search) filters.push(`contains(questionText,'${search.replace(/'/g, "''")}')`);
     
+    // Add column filters from AG Grid
+    const filterModel = filterModelRef.current || {};
+    console.log('Filter model:', filterModel);
+    Object.entries(filterModel).forEach(([field, filterConfig]: [string, any]) => {
+      if (!filterConfig) return;
+      
+      console.log(`Processing filter for field: ${field}`, filterConfig);
+      const serverField = fieldMap[field] || field;
+      
+      // Handle text filters
+      if (filterConfig.filterType === 'text' && filterConfig.filter) {
+        const value = filterConfig.filter.replace(/'/g, "''");
+        
+        // Special handling for isActive field
+        if (field === 'isActive') {
+          const lowerValue = value.toLowerCase();
+          if (lowerValue === 'active' || lowerValue === '1' || lowerValue === 'true') {
+            filters.push(`${serverField} eq 1`);
+          } else if (lowerValue === 'inactive' || lowerValue === '0' || lowerValue === 'false') {
+            filters.push(`${serverField} eq 0`);
+          }
+          return;
+        }
+        
+        switch (filterConfig.type) {
+          case 'contains':
+            filters.push(`contains(${serverField},'${value}')`);
+            break;
+          case 'startsWith':
+            filters.push(`startswith(${serverField},'${value}')`);
+            break;
+          case 'endsWith':
+            filters.push(`endswith(${serverField},'${value}')`);
+            break;
+          case 'equals':
+            filters.push(`${serverField} eq '${value}'`);
+            break;
+        }
+      }
+      
+      // Handle other filter types (e.g., set filter, number filter, etc.)
+      else if (filterConfig.filter !== undefined) {
+        const value = String(filterConfig.filter).replace(/'/g, "''");
+        
+        // Special handling for isActive field
+        if (field === 'isActive') {
+          const lowerValue = value.toLowerCase();
+          if (lowerValue === 'active' || lowerValue === '1' || lowerValue === 'true') {
+            filters.push(`${serverField} eq 1`);
+          } else if (lowerValue === 'inactive' || lowerValue === '0' || lowerValue === 'false') {
+            filters.push(`${serverField} eq 0`);
+          }
+          return;
+        }
+        
+        // Default to contains for other fields
+        filters.push(`contains(${serverField},'${value}')`);
+      }
+    });
+    
     const filter = filters.length ? Array.from(new Set(filters)).join(" and ") : undefined;
 
-    // Load all data for client-side operations (or a reasonable large subset)
-    console.log('Making API call with params:', { top: 1000, skip: 0, orderBy, filter });
-
-    const res = await fetchQuestionsAction({ top: 1000, skip: 0, orderBy, filter });
+    console.log('API call params:', { top: pageSize, skip: (page - 1) * pageSize, orderBy, filter });
+    const res = await fetchQuestionsAction({ top: pageSize, skip: (page - 1) * pageSize, orderBy, filter });
     
     console.log('API response:', res);
+    console.log('API status:', res.status);
+    console.log('API error:', res.error);
+    console.log('API message:', res.message);
     
     // Only apply if this is the latest request
     if (reqId === lastReqIdRef.current) {
       if (res.status === 200 && res.data) {
-        console.log('Setting rows for client-side operations:', res.data.rows.length);
+        console.log('Setting rows:', res.data.rows.length);
+        console.log('Setting total:', res.data.total);
         setRows(res.data.rows.slice());
         setTotal(res.data.total);
       } else {
-        console.error('API call failed:', res);
+        console.error('API call failed with response:', res);
         setToast({ message: res.message || "Failed to fetch questions", type: "error" });
       }
       setLoading(false);
     }
-  }, [query]); // Removed page and pageSize from dependencies since we're doing client-side pagination
+  }, [page, pageSize, query]); // Restore proper pagination dependencies
 
   useEffect(() => { fetchPage(); }, [fetchPage]);
 
   const onSortChanged = useCallback(() => {
     const model = (gridApiRef.current as any)?.getSortModel?.() as SortModelItem[] | undefined;
     sortModelRef.current = model;
-    console.log('Sort changed - client-side sorting applied:', model);
-    // No need to reset page or fetch data for client-side sorting
+    // Reset to first page on sort change for server-side sorting
+    setPage(1);
   }, []);
 
   return (
@@ -357,6 +450,14 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
             </span>
           )}
         </div>
+        <PaginationControls
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          onPageChange={setPage}
+          onPageSizeChange={(s: number) => { setPageSize(s); setPage(1); }}
+          pageSizeOptions={[15, 25, 50]}
+        />
         <div className="flex items-center gap-2">
           {/* Show/Hide filters toggle button */}
           <button
@@ -504,23 +605,25 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           onGridReady={onGridReady}
           onSortChanged={onSortChanged}
           onFilterChanged={() => {
-            console.log('Filter changed event triggered - using client-side filtering');
-            // For client-side filtering, we don't need to fetch new data
-            // AG Grid will handle the filtering automatically
             const api = gridApiRef.current as any;
-            if (!api) {
-              console.log('Grid API not available');
-              return;
-            }
+            if (!api) return;
             
             const fm = api.getFilterModel?.() as any;
-            console.log('Current filter model:', fm);
-            
             filterModelRef.current = fm || {};
             setFiltersVersion((v) => v + 1);
             
-            // No API call needed for client-side filtering
-            console.log('Client-side filtering applied');
+            // Clear the debounce timer
+            if (filterDebounceRef.current) {
+              clearTimeout(filterDebounceRef.current);
+            }
+            
+            // Debounce the filter request
+            filterDebounceRef.current = setTimeout(() => {
+              if (!skipNextFilterFetchRef.current) {
+                setPage(1); // Reset to first page when filter changes
+              }
+              skipNextFilterFetchRef.current = false;
+            }, 300);
           }}
           onSelectionChanged={() => {
             const api = gridApiRef.current;
@@ -528,10 +631,8 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
             const selected = api.getSelectedRows?.() as QuestionRow[];
             setSelectedCount(selected?.length || 0);
           }}
-          // Enable client-side pagination
-          pagination={true}
-          paginationPageSize={pageSize}
-          paginationPageSizeSelector={[10, 25, 50, 100]}
+          // Disable client-side pagination since we're doing server-side
+          pagination={false}
           // Client-side operations
           rowSelection={{ mode: 'multiRow', checkboxes: true }}
           selectionColumnDef={{ pinned: 'left', width: 44, headerName: '', resizable: false, cellClass: 'no-right-border', headerClass: 'no-right-border', suppressMovable: true }}
