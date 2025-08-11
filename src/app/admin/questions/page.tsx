@@ -5,7 +5,6 @@ import { HelpCircle } from "lucide-react";
 import { Filter, XCircle } from "lucide-react";
 import { fetchQuestionsAction, deleteQuestionAction, type QuestionRow } from "@/app/actions/admin/questions";
 import PageHeader from "@/components/PageHeader";
-import { TabsContent, TabsList, TabsRoot } from "@/components/Tabs";
 import Link from "next/link";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { Trash2, PlusCircle } from "lucide-react";
@@ -759,26 +758,9 @@ export default function QuestionsPage() {
         />
       </div>
 
-      <TabsRoot defaultIndex={0}>
-        <div className="flex justify-between items-center mb-4">
-          <TabsList labels={["Questions", "Subject"]} />
-        </div>
-
-        <TabsContent>
-          {/* 0: Questions List */}
-          <div className="bg-white shadow rounded-lg p-2">
-            <QuestionsGrid query={query} onClearQuery={() => setQuery("")} />
-          </div>
-
-          {/* 1: Subject */}
-          <div className="bg-white p-6 rounded-md shadow border border-gray-300">
-            <div className="text-center py-12">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Subject Management</h3>
-              <p className="text-gray-500">Manage subjects and topics for questions organization.</p>
-            </div>
-          </div>
-        </TabsContent>
-      </TabsRoot>
+      <div className="bg-white shadow rounded-lg p-2">
+        <QuestionsGrid query={query} onClearQuery={() => setQuery("")} />
+      </div>
     </div>
   );
 }
