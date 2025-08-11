@@ -377,13 +377,68 @@ export async function fetchQuestionsAction(
       
       // Apply filtering if specified
       if (params.filter) {
-        // Simple contains filter for now
-        const filterLower = params.filter.toLowerCase();
+        console.log('Applying filter:', params.filter);
+        
+        // Parse OData-style filters
+        const filterParts = params.filter.split(' and ');
+        
         allItems = allItems.filter((item: any) => {
-          return Object.values(item).some(value => 
-            String(value).toLowerCase().includes(filterLower)
-          );
+          return filterParts.every(filterPart => {
+            const trimmedFilter = filterPart.trim();
+            
+            // Handle 'contains' filters
+            const containsMatch = trimmedFilter.match(/contains\((\w+),'(.+?)'\)/);
+            if (containsMatch) {
+              const [, field, value] = containsMatch;
+              const itemValue = String(item[field] || '').toLowerCase();
+              return itemValue.includes(value.toLowerCase());
+            }
+            
+            // Handle 'eq' filters for numbers/booleans
+            const eqMatch = trimmedFilter.match(/(\w+)\s+eq\s+(\d+|true|false|'[^']*')/);
+            if (eqMatch) {
+              const [, field, value] = eqMatch;
+              const itemValue = item[field];
+              
+              // Handle numeric comparisons
+              if (/^\d+$/.test(value)) {
+                return Number(itemValue) === Number(value);
+              }
+              
+              // Handle boolean comparisons
+              if (value === 'true' || value === 'false') {
+                return Boolean(itemValue) === (value === 'true');
+              }
+              
+              // Handle string comparisons (remove quotes)
+              const stringValue = value.replace(/^'|'$/g, '');
+              return String(itemValue).toLowerCase() === stringValue.toLowerCase();
+            }
+            
+            // Handle 'startswith' filters
+            const startsWithMatch = trimmedFilter.match(/startswith\((\w+),'(.+?)'\)/);
+            if (startsWithMatch) {
+              const [, field, value] = startsWithMatch;
+              const itemValue = String(item[field] || '').toLowerCase();
+              return itemValue.startsWith(value.toLowerCase());
+            }
+            
+            // Handle 'endswith' filters
+            const endsWithMatch = trimmedFilter.match(/endswith\((\w+),'(.+?)'\)/);
+            if (endsWithMatch) {
+              const [, field, value] = endsWithMatch;
+              const itemValue = String(item[field] || '').toLowerCase();
+              return itemValue.endsWith(value.toLowerCase());
+            }
+            
+            // If no pattern matches, fall back to simple contains across all values
+            const filterLower = trimmedFilter.toLowerCase();
+            return Object.values(item).some(value => 
+              String(value).toLowerCase().includes(filterLower)
+            );
+          });
         });
+        
         total = allItems.length; // Update total after filtering
       }
       

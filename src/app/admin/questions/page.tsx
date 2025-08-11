@@ -203,6 +203,11 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           buttons: ['apply','reset','clear'],
           debounceMs: 200
         }, 
+        valueGetter: (params: any) => {
+          // Convert numeric value to text for filtering purposes
+          const isActive = Boolean(params.data?.isActive);
+          return isActive ? 'Active' : 'Inactive';
+        },
         cellRenderer: IsActiveCellRenderer, 
         width: 100 
       },
@@ -314,11 +319,14 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
     
     // Add column filters from AG Grid
     const filterModel = filterModelRef.current || {};
+    console.log('Filter model:', filterModel);
     Object.entries(filterModel).forEach(([field, filterConfig]: [string, any]) => {
       if (!filterConfig) return;
       
+      console.log(`Processing filter for field: ${field}`, filterConfig);
       const serverField = fieldMap[field] || field;
       
+      // Handle text filters
       if (filterConfig.filterType === 'text' && filterConfig.filter) {
         const value = filterConfig.filter.replace(/'/g, "''");
         
@@ -347,6 +355,25 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
             filters.push(`${serverField} eq '${value}'`);
             break;
         }
+      }
+      
+      // Handle other filter types (e.g., set filter, number filter, etc.)
+      else if (filterConfig.filter !== undefined) {
+        const value = String(filterConfig.filter).replace(/'/g, "''");
+        
+        // Special handling for isActive field
+        if (field === 'isActive') {
+          const lowerValue = value.toLowerCase();
+          if (lowerValue === 'active' || lowerValue === '1' || lowerValue === 'true') {
+            filters.push(`${serverField} eq 1`);
+          } else if (lowerValue === 'inactive' || lowerValue === '0' || lowerValue === 'false') {
+            filters.push(`${serverField} eq 0`);
+          }
+          return;
+        }
+        
+        // Default to contains for other fields
+        filters.push(`contains(${serverField},'${value}')`);
       }
     });
     
