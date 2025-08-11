@@ -118,7 +118,7 @@ const QuestionOptionsInput = ({
         <div className="flex gap-2">
           <button
             onClick={() => setOptions([...options, ""])}
-            className="px-4 py-2 font-bold bg-indigo-500 text-white rounded-xl cursor-pointer text-sm"
+            className="px-6 py-3 rounded-md bg-indigo-600 text-white text-sm font-medium shadow hover:bg-indigo-700"
           >
             Add Option
           </button>
@@ -159,7 +159,7 @@ const QuestionOptionsInput = ({
                   updated[col].push("");
                   setMatchCols(updated);
                 }}
-                className="px-2 py-1 bg-indigo-500 text-white rounded-xl text-sm"
+                className="px-6 py-3 rounded-md bg-indigo-600 text-white text-sm font-medium shadow hover:bg-indigo-700"
               >
                 Add Row
               </button>

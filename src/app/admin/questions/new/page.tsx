@@ -57,16 +57,12 @@ export default function Index() {
     answer: any;
   }>();
 
-  const [questionTypes, setQuestionTypes] = useState<
-    GetQuestionTypesResponse[]
-  >([]);
+  const [questionTypes, setQuestionTypes] = useState<GetQuestionTypesResponse[]>([]);
   const [subjects, setSubjects] = useState<GetSubjectsResponse[]>([]);
   const [topics, setTopics] = useState<GetTopicsResponse[]>([]);
   const [languages, setLanguages] = useState<GetLanguagesResponse[]>([]);
   const [writeUps, setWriteUps] = useState<GetWriteUpsResponse[]>([]);
-  const [difficultyLevels, setDifficultyLevels] = useState<
-    GetDifficultyLevelsResponse[]
-  >([]);
+  const [difficultyLevels, setDifficultyLevels] = useState<GetDifficultyLevelsResponse[]>([]);
 
   const router = useRouter();
 
@@ -75,7 +71,6 @@ export default function Index() {
     const { data, status, error, errorMessage } = res;
     if (status === 200) {
       setQuestionTypes(data!);
-
       setQuestionsMeta((prev) => {
         const updated = { ...prev };
         updated.questionType = data![0].questionTypeId;
@@ -109,7 +104,7 @@ export default function Index() {
       setTopics(data!);
       setQuestionsMeta((prev) => {
         const updated = { ...prev };
-        updated.topicId = data![0].subjectId;
+        updated.topicId = data![0].topicId;
         return updated;
       });
     } else {
@@ -199,40 +194,42 @@ export default function Index() {
     }
 
     const payload: CreateQuestionRequest = {
-      explanation,
-      options: {
-        options: stringifiedOptions,
-        answer: stringifiedAnswer,
-      },
-      question,
+      explanation: explanation,
+      videoSolURL: videoSolURL,
       questionsMeta: {
-        difficultyLevelId: questionsMeta.difficulty,
-        language: questionsMeta.languageId,
+        tags: questionsMeta.tags,
         marks: questionsMeta.marks,
         negativeMarks: questionsMeta.negativeMarks,
+        difficultyLevelId: questionsMeta.difficulty,
         questionTypeId: questionsMeta.questionType,
         subjectId: questionsMeta.subjectId,
-        tags: questionsMeta.tags,
         topicId: questionsMeta.topicId,
-        writeUpId:
-          questionsMeta.writeUpId !== 0 ? questionsMeta.writeUpId : null,
-        headerText: questionHeader.length !== 0 ? questionHeader : null,
+        language: questionsMeta.languageId,
+        writeUpId: questionsMeta.writeUpId,
+        headerText: questionHeader,
       },
-      videoSolURL,
+      question: question,
+      options: {
+        options: stringifiedOptions!,
+        answer: stringifiedAnswer!,
+      },
     };
 
     console.log({ payload });
 
     const res = await createQuestionAction(payload);
-    const { status, error, errorMessage, message } = res;
-    if (status === 201) {
-      toast.success(message!);
 
+    const { data, status, error, errorMessage } = res;
+
+    if (status === 201 || status === 200) {
+      toast.success("Question Created Successfully");
       if (goBack) {
-        router.push("/admin/questions");
+        setTimeout(() => {
+          router.back();
+        }, 2000);
       }
     } else {
-      toast.error(errorMessage!);
+      toast.error(errorMessage || "Failed to create question");
       console.log({ status, error, errorMessage });
     }
   };
@@ -249,32 +246,25 @@ export default function Index() {
   }, [questionsMeta]);
 
   return (
-    <div className="w-full min-h-screen h-full overflow-y-auto bg-gray-100 flex justify-center p-4">
-      <div className="w-full space-y-4">
-        {/* Header */}
-        <div className="flex flex-col items-start justify-between">
-          <div className="flex items-center gap-2">
-            <div>
-              <Link href={"/admin/questions"}>
-                <ArrowLeft />
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-white rounded-lg shadow-sm border p-8 space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Link href="/admin/questions" className="text-gray-600 hover:text-gray-900">
+                <ArrowLeft className="w-5 h-5" />
               </Link>
+              <h1 className="text-xl font-semibold">Create Question</h1>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800">
-                Create Question
-              </h1>
-            </div>
+            <Link href="/admin/questions" className="text-sm text-blue-600 hover:underline">Back to Questions</Link>
           </div>
-          <div className="w-full max-w-3/4 flex gap-2 items-end">
-            <div className="w-full space-y-1">
-              <label
-                htmlFor="question-type"
-                className="text-sm font-medium text-gray-700"
-              >
-                Language
-              </label>
+
+          {/* Question Configuration */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Language <span className="text-red-600">*</span></label>
               <select
-                id="question-type"
+                required
                 value={questionsMeta?.languageId}
                 onChange={(e) => {
                   setQuestionsMeta(() => {
@@ -283,8 +273,9 @@ export default function Index() {
                     return updated;
                   });
                 }}
-                className="px-3 py-2 w-full border border-gray-300 rounded-xl focus:outline-none bg-white"
+                className="w-full border rounded-md px-4 py-3"
               >
+                <option value="">Select language</option>
                 {languages?.map((language) => (
                   <option key={language.language} value={language.language}>
                     {language.language}
@@ -292,15 +283,10 @@ export default function Index() {
                 ))}
               </select>
             </div>
-            <div className="w-full space-y-1">
-              <label
-                htmlFor="question-type"
-                className="text-sm font-medium text-gray-700"
-              >
-                Subject
-              </label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Subject <span className="text-red-600">*</span></label>
               <select
-                id="question-type"
+                required
                 value={questionsMeta?.subjectId}
                 onChange={(e) => {
                   setQuestionsMeta(() => {
@@ -310,8 +296,9 @@ export default function Index() {
                   });
                   fetchTopics(Number(e.target.value));
                 }}
-                className="px-3 py-2 w-full border border-gray-300 rounded-xl focus:outline-none bg-white"
+                className="w-full border rounded-md px-4 py-3"
               >
+                <option value="">Select subject</option>
                 {subjects?.map((subject) => (
                   <option key={subject.subjectId} value={subject.subjectId}>
                     {subject.subjectName}
@@ -319,15 +306,10 @@ export default function Index() {
                 ))}
               </select>
             </div>
-            <div className="w-full space-y-1">
-              <label
-                htmlFor="question-type"
-                className="text-sm font-medium text-gray-700"
-              >
-                Topic
-              </label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Topic <span className="text-red-600">*</span></label>
               <select
-                id="question-type"
+                required
                 value={questionsMeta?.topicId}
                 onChange={(e) => {
                   setQuestionsMeta(() => {
@@ -336,24 +318,20 @@ export default function Index() {
                     return updated;
                   });
                 }}
-                className="px-3 py-2 w-full border border-gray-300 rounded-xl focus:outline-none bg-white"
+                className="w-full border rounded-md px-4 py-3"
               >
+                <option value="">Select topic</option>
                 {topics?.map((topic) => (
-                  <option key={topic.subjectId} value={topic.subjectId}>
-                    {topic.subjectName}
+                  <option key={topic.topicId} value={topic.topicId}>
+                    {topic.topicName}
                   </option>
                 ))}
               </select>
             </div>
-            <div className="w-full space-y-1">
-              <label
-                htmlFor="question-type"
-                className="text-sm font-medium text-gray-700"
-              >
-                Question Type
-              </label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Question Type <span className="text-red-600">*</span></label>
               <select
-                id="question-type"
+                required
                 value={questionsMeta?.questionType}
                 onChange={(e) => {
                   setQuestionsMeta(() => {
@@ -362,8 +340,9 @@ export default function Index() {
                     return updated;
                   });
                 }}
-                className="px-3 py-2 w-full border border-gray-300 rounded-xl focus:outline-none bg-white"
+                className="w-full border rounded-md px-4 py-3"
               >
+                <option value="">Select type</option>
                 {questionTypes?.map((questionType) => (
                   <option
                     key={questionType.questionTypeId}
@@ -375,201 +354,201 @@ export default function Index() {
               </select>
             </div>
           </div>
-        </div>
 
-        {/* Inputs */}
-
-        {/* Split View */}
-        <div className="flex gap-4 min-h-[70vh] h-fit">
-          <div
-            className={`flex-1 flex flex-col gap-5 border border-gray-200 rounded-xl p-4 bg-white shadow`}
-          >
-            <Accordion title="Directions">
-              <div className={`flex-1 flex flex-col rounded-xl`}>
-                <div className="flex-1">
+          {/* Main Content Area with Accordions */}
+          <div className="space-y-6">
+            {/* Question Content Section */}
+            <Accordion title="Type Your Question" open={true}>
+              <div className="space-y-6 p-4">
+                <div>
                   <RichTextEditor
-                    onChange={(content) => setQuestionHeader(content)}
-                    initialContent={questionHeader}
+                    onChange={(content) => setQuestion(content)}
+                    initialContent={question}
+                    placeholder="Type your question here..."
                   />
                 </div>
               </div>
             </Accordion>
-            <div className={`flex-1 flex flex-col rounded-xl`}>
-              <h2 className="text-xl font-semibold mb-2 text-gray-800">
-                Question
-              </h2>
-              <div className="flex-1">
-                <RichTextEditor
-                  onChange={(content) => setQuestion(content)}
-                  initialContent={question}
+
+            {/* Question Options Section */}
+            <Accordion title="Question Options" open={true}>
+              <div className="space-y-6 p-4">
+                <QuestionOptionsInput
+                  questionTypeId={questionsMeta?.questionType}
+                  questionTypes={questionTypes}
+                  onDataChange={(data) => setQuestionOptions(data)}
                 />
               </div>
-            </div>
-            <div className={`flex-1 flex flex-col rounded-xl`}>
-              <h1 className="text-xl font-semibold mb-2 text-gray-800">
-                Answers
-              </h1>
-              <QuestionOptionsInput
-                questionTypeId={questionsMeta?.questionType}
-                questionTypes={questionTypes}
-                onDataChange={(data) => setQuestionOptions(data)}
-              />
-            </div>
-          </div>
+            </Accordion>
 
-          {/* Options Configurator instead of Preview */}
-          <div
-            className={`flex-1 flex flex-col border border-gray-200 rounded-xl p-4 bg-white shadow`}
-          >
-            <Accordion title="Explanation" open={true}>
-              <div className="flex flex-col gap-2">
-                <div className={`flex-1 flex flex-col rounded-xl`}>
-                  {/* <h2 className="text-xl font-semibold mb-2 text-gray-800">
-                  Explanation
-                </h2> */}
-                  <div className="flex-1">
-                    <RichTextEditor
-                      onChange={(content) => setExplanation(content)}
-                      initialContent={explanation}
-                    />
-                  </div>
-                </div>
+            {/* Add Explanation Section */}
+            <Accordion title="Add Explanation">
+              <div className="space-y-6 p-4">
+                <RichTextEditor
+                  onChange={(content) => setExplanation(content)}
+                  initialContent={explanation}
+                  placeholder="Add explanation for the correct answer..."
+                />
                 <div>
-                  <h2 className="text-xl font-semibold mb-2 text-gray-800">
-                    Video Solution URL
-                  </h2>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Video Solution URL</label>
                   <input
-                    placeholder="Enter URL"
-                    className="w-full rounded-xl border border-gray-300 shadow-md px-4 py-2"
+                    placeholder="Enter video URL"
+                    className="w-full border rounded-md px-4 py-3"
                     onChange={(e) => setVideoSolURL(e.target.value)}
                     value={videoSolURL}
                   />
                 </div>
               </div>
             </Accordion>
-            <Accordion title="Advance Options">
-              <div>
-                <div className="flex flex-col gap-4">
+
+            {/* Advanced Options Section */}
+            <Accordion title="Advanced Options">
+              <div className="space-y-6 p-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+                  <input
+                    placeholder="Add a tag"
+                    className="w-full border rounded-md px-4 py-3"
+                    onChange={(e) => {
+                      setQuestionsMeta(() => {
+                        let updated = { ...questionsMeta };
+                        updated.tags = e.target.value;
+                        return updated;
+                      });
+                    }}
+                    value={questionsMeta.tags}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <h1>Tags</h1>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Right Marks <span className="text-red-600">*</span></label>
                     <input
-                      placeholder="Enter Tags"
-                      className="w-full rounded-xl border border-gray-300 shadow-md px-4 py-2"
+                      required
+                      type="number"
+                      min={0}
+                      placeholder="Enter marks"
+                      className="w-full border rounded-md px-4 py-3"
                       onChange={(e) => {
                         setQuestionsMeta(() => {
                           let updated = { ...questionsMeta };
-                          updated.tags = e.target.value;
+                          updated.marks = Number(e.target.value);
                           return updated;
                         });
                       }}
-                      value={questionsMeta.tags}
+                      value={questionsMeta.marks || ''}
                     />
                   </div>
-                  <div className="flex gap-2">
-                    <div className="w-full">
-                      <h1>Right Marks</h1>
-                      <input
-                        placeholder="Enter Marks"
-                        className="w-full rounded-xl border border-gray-300 shadow-md px-4 py-2"
-                        type="number"
-                        onChange={(e) => {
-                          setQuestionsMeta(() => {
-                            let updated = { ...questionsMeta };
-                            updated.marks = Number(e.target.value);
-                            return updated;
-                          });
-                        }}
-                        value={questionsMeta.marks}
-                      />
-                    </div>
-                    <div className="w-full">
-                      <h1>Negative Marks</h1>
-                      <input
-                        placeholder="Enter Marks"
-                        className="w-full rounded-xl border border-gray-300 shadow-md px-4 py-2"
-                        type="number"
-                        onChange={(e) => {
-                          setQuestionsMeta(() => {
-                            let updated = { ...questionsMeta };
-                            updated.negativeMarks = Number(e.target.value);
-                            return updated;
-                          });
-                        }}
-                        value={questionsMeta.negativeMarks}
-                      />
-                    </div>
-                    <div className="w-full">
-                      <h1>Question Difficulty</h1>
-                      <select
-                        className="w-full rounded-xl border border-gray-300 shadow-md px-4 py-2"
-                        onChange={(e) => {
-                          setQuestionsMeta(() => {
-                            let updated = { ...questionsMeta };
-                            updated.difficulty = Number(e.target.value);
-                            return updated;
-                          });
-                        }}
-                      >
-                        {difficultyLevels?.map((level) => (
-                          <option
-                            key={level.questionDifficultylevelId}
-                            value={level.questionDifficultylevelId}
-                          >
-                            {level.questionDifficultylevel1}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="w-full space-y-1">
-                    <label
-                      htmlFor="writeUp"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Write Up
-                    </label>
-                    <select
-                      id="writeUp"
-                      value={questionsMeta?.writeUpId}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Negative Marks</label>
+                    <input
+                      type="number"
+                      min={0}
+                      placeholder="Enter negative marks"
+                      className="w-full border rounded-md px-4 py-3"
                       onChange={(e) => {
                         setQuestionsMeta(() => {
                           let updated = { ...questionsMeta };
-                          updated.writeUpId = Number(e.target.value);
+                          updated.negativeMarks = Number(e.target.value);
                           return updated;
                         });
                       }}
-                      className="px-3 py-2 w-full border border-gray-300 rounded-xl focus:outline-none bg-white"
+                      value={questionsMeta.negativeMarks || ''}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty Level <span className="text-red-600">*</span></label>
+                    <select
+                      required
+                      className="w-full border rounded-md px-4 py-3"
+                      value={questionsMeta?.difficulty}
+                      onChange={(e) => {
+                        setQuestionsMeta(() => {
+                          let updated = { ...questionsMeta };
+                          updated.difficulty = Number(e.target.value);
+                          return updated;
+                        });
+                      }}
                     >
-                      <option value="">None</option>
-                      {writeUps?.map((writeUp) => (
+                      <option value="">Select Difficulty</option>
+                      {difficultyLevels?.map((level) => (
                         <option
-                          key={writeUp.writeUpId}
-                          value={writeUp.writeUpId}
+                          key={level.questionDifficultylevelId}
+                          value={level.questionDifficultylevelId}
                         >
-                          {writeUp.writeUpName}
+                          {level.questionDifficultylevel1}
                         </option>
                       ))}
                     </select>
                   </div>
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Option Marks</label>
+                    <input
+                      type="number"
+                      min={0}
+                      placeholder="0"
+                      className="w-full border rounded-md px-4 py-3"
+                      disabled
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Free Space</label>
+                    <input
+                      type="number"
+                      min={0}
+                      placeholder="0"
+                      className="w-full border rounded-md px-4 py-3"
+                      disabled
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Write Up</label>
+                  <select
+                    value={questionsMeta?.writeUpId}
+                    onChange={(e) => {
+                      setQuestionsMeta(() => {
+                        let updated = { ...questionsMeta };
+                        updated.writeUpId = Number(e.target.value);
+                        return updated;
+                      });
+                    }}
+                    className="w-full border rounded-md px-4 py-3"
+                  >
+                    <option value="">None</option>
+                    {writeUps?.map((writeUp) => (
+                      <option
+                        key={writeUp.writeUpId}
+                        value={writeUp.writeUpId}
+                      >
+                        {writeUp.writeUpName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </Accordion>
           </div>
-        </div>
 
-        <div className="w-full flex justify-end gap-4 pb-4">
-          <button
-            onClick={() => handleSubmit()}
-            className="w-fit whitespace-nowrap flex items-center justify-center gap-2 px-6 py-2 border border-indigo-300 rounded-xl text-sm hover:bg-indigo-600 transition bg-indigo-500 text-white cursor-pointer font-bold"
-          >
-            Save
-          </button>
-          <button
-            onClick={handleSaveAndNew}
-            className="w-fit whitespace-nowrap flex items-center justify-center gap-2 px-6 py-2 border border-indigo-300 rounded-xl text-sm hover:bg-indigo-600 transition bg-indigo-500 text-white cursor-pointer font-bold"
-          >
-            Save & New
-          </button>
+          {/* Action Buttons */}
+          <div className="flex items-center justify-end gap-4 pt-8 border-t border-gray-200">
+            <button
+              onClick={() => handleSubmit()}
+              className="px-6 py-3 rounded-md bg-indigo-600 text-white text-sm font-medium shadow hover:bg-indigo-700"
+            >
+              Save Question
+            </button>
+            <button
+              onClick={handleSaveAndNew}
+              className="px-6 py-3 rounded-md border border-gray-300 text-sm font-medium hover:bg-gray-50"
+            >
+              Save & New
+            </button>
+      </div>
         </div>
       </div>
     </div>

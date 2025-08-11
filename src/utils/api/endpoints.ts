@@ -117,7 +117,7 @@ export const endpoints = {
 
   getTopics: {
     method: "GET",
-    path: ({ subjectId }) => `/api/Subjects/6/topics`,
+    path: ({ subjectId }) => `/api/Subjects/${subjectId}/topics`,
     type: "CLOSE",
   } as Endpoint<GetTopicsRequest, GetTopicsResponse[]>,
 

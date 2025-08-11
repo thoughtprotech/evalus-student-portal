@@ -236,8 +236,9 @@ export interface GetTopicsRequest {
 }
 
 export interface GetTopicsResponse {
+  topicId: number;
+  topicName: string;
   subjectId: number;
-  subjectName: string;
 }
 
 export interface GetWriteUpsResponse {

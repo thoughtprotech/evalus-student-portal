@@ -54,12 +54,13 @@ export default function RichTextEditor({
   const editor = useEditor({
     extensions,
     content: initialContent,
-      editorProps: {
-    attributes: {
-      class:
-        "ProseMirror min-h-full p-4 focus:outline-none overflow-auto",
+    immediatelyRender: false,
+    editorProps: {
+      attributes: {
+        class:
+          "ProseMirror min-h-full p-4 focus:outline-none overflow-auto",
+      },
     },
-  },
     onUpdate: ({ editor }) => onChange?.(editor.getHTML()),
   });
 
