@@ -222,7 +222,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           debounceMs: 200
         }, 
         valueFormatter: ({ value }) => formatDate(value), 
-        width: 140 
+        width: 180 
       },
       { 
         field: "updatedAt", 
@@ -236,7 +236,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           debounceMs: 200
         }, 
         valueFormatter: ({ value }) => formatDate(value), 
-        width: 140 
+        width: 180 
       },
       { 
         field: "createdBy", 
