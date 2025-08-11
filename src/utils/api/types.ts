@@ -290,6 +290,7 @@ export interface GetQuestionOptionsResponse {
   createdBy: string;
   createdDate: string;
   modifiedDate: string;
+}
   
 // Admin Tests (OData)
 export interface GetTestsODataRequest {
@@ -299,6 +300,12 @@ export interface GetTestsODataRequest {
 
 export interface DeleteTestRequest {
   id: number;
+}
+
+// Admin Questions (OData)
+export interface GetQuestionsODataRequest {
+  // Prebuilt OData query string: "$top=...&$skip=...&..."
+  query: string;
 }
 
 // Generic OData list wrapper

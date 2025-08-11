@@ -187,4 +187,12 @@ export const endpoints = {
   path: () => `/odata/TestDifficultyLevels?$select=TestDifficultyLevelId,TestDifficultyLevel1`,
     type: "OPEN",
   } as Endpoint<null, import('./types').ODataList<import('./types').TestDifficultyLevelOData>>,
+
+  // Admin Questions (server actions moved here)
+  getAdminQuestions: {
+    method: "GET",
+    // Use your specific API endpoint for getting questions by language
+    path: ({ query }) => `/odata/Questions/GetAllQuestionsByLanguage(language=English)${query ? (query.startsWith('?') ? query : `?${query}`) : ''}`,
+    type: "OPEN",
+  } as Endpoint<import('./types').GetQuestionsODataRequest, any[]>,
 };
