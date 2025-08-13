@@ -18,6 +18,7 @@ import {
   Menu,
   X,
   Settings,
+  BarcodeIcon,
 } from "lucide-react";
 
 interface NavItem {
@@ -28,7 +29,8 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "Dashboard", path: "/admin", Icon: LayoutDashboard },
-  { label: "Questions", path: "/admin/questions", Icon: HelpCircle },
+  { label: "Companies", path: "/admin/companies", Icon: BarcodeIcon },
+  { label: "Questions", path: "/admin/questions", Icon: HelpCircle }, 
   { label: "Tests", path: "/admin/tests", Icon: ClipboardList },
   { label: "Products", path: "/admin/products", Icon: Box },
   { label: "Candidates", path: "/admin/candidates", Icon: User },
