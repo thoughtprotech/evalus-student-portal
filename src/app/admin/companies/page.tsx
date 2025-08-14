@@ -417,8 +417,8 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
   }, []);
 
   return (
-    <div className="ag-theme-alpine ag-theme-evalus" style={{ width: "100%" }}>
-      <div className="mb-3 flex items-center justify-between gap-3">
+    <div className="ag-theme-alpine ag-theme-evalus flex flex-col h-full min-h-0" style={{ width: "100%", height: "100%" }}>
+      <div className="mb-3 flex items-center justify-between gap-3 flex-none">
         <div className="flex items-center gap-3 flex-wrap">
           <Link href="/admin/companies/new">
             <button
@@ -502,7 +502,7 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
       </div>
       
       {(query || Object.keys(filterModelRef.current || {}).length > 0) && (
-        <div className="mb-3 flex items-center flex-wrap gap-2">
+        <div className="mb-3 flex items-center flex-wrap gap-2 flex-none">
           <span className="text-xs text-gray-500">Active filters:</span>
           {query ? (
             <button
@@ -579,10 +579,11 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         </div>
       )}
       
+      <div className="flex-1 min-h-0">
       {loading ? (
         <Loader />
       ) : rows.length === 0 ? (
-        <div className="bg-white shadow rounded-md border border-gray-300 p-8">
+        <div className="bg-white shadow rounded-md border border-gray-300 p-8 h-full overflow-auto">
           <div className="text-center">
             <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No Companies Found</h3>
@@ -597,6 +598,7 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           </div>
         </div>
       ) : (
+        <div className="h-full min-h-0">
         <AgGridReact<CompanyRow>
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
@@ -628,11 +630,10 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
             const selected = api.getSelectedRows?.() as CompanyRow[];
             setSelectedCount(selected?.length || 0);
           }}
-          pagination={false}
+      pagination={false}
           rowSelection={{ mode: 'multiRow', checkboxes: true }}
           selectionColumnDef={{ pinned: 'left', width: 44, headerName: '', resizable: false, cellClass: 'no-right-border', headerClass: 'no-right-border', suppressMovable: true }}
           animateRows
-          domLayout="autoHeight"
           headerHeight={36}
           rowHeight={48}
           tooltipShowDelay={300}
@@ -641,7 +642,9 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           stopEditingWhenCellsLoseFocus={true}
           theme="legacy"
         />
-      )}
+        </div>
+    )}
+    </div>
       
       <style jsx global>{`
         .ag-theme-alpine.ag-theme-evalus .ag-cell.no-right-border,
@@ -706,7 +709,7 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         }}
       />
       
-      <div className="fixed top-4 right-4 z-50 space-y-2">
+  <div className="fixed top-4 right-4 z-50 space-y-2">
         {toast ? (
           <Toast
             message={toast.message}
@@ -735,8 +738,8 @@ export default function CompaniesPage() {
   }, [query]);
 
   return (
-    <div className="p-4 bg-gray-50 min-h-screen">
-      <div className="sticky top-0 z-20 bg-gray-50 pt-2 pb-3">
+    <div className="p-4 bg-gray-50 h-full min-h-0 flex flex-col">
+      <div className="sticky top-0 z-20 bg-gray-50 pt-2 pb-3 flex-none">
         <PageHeader
           icon={<Building2 className="w-6 h-6 text-indigo-600" />}
           title="Companies"
@@ -746,7 +749,7 @@ export default function CompaniesPage() {
         />
       </div>
 
-      <div className="bg-white shadow rounded-lg p-2">
+      <div className="bg-white shadow rounded-lg p-2 flex-1 min-h-0 overflow-hidden">
         <CompaniesGrid query={query} onClearQuery={() => setQuery("")} />
       </div>
     </div>

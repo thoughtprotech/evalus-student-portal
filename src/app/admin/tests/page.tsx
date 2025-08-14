@@ -284,8 +284,8 @@ function TestsGrid({ query, onClearQuery }: { query: string; onClearQuery?: () =
   // Filtering is server-driven via the top-right search bar
 
   return (
-  <div className="ag-theme-alpine ag-theme-evalus" style={{ width: "100%" }}>
-      <div className="mb-3 flex items-center justify-between gap-3">
+  <div className="ag-theme-alpine ag-theme-evalus flex flex-col h-full min-h-0" style={{ width: "100%", height: "100%" }}>
+      <div className="mb-3 flex items-center justify-between gap-3 flex-none">
   <div className="flex items-center gap-3 flex-wrap">
           {/* Actions: New and Delete */}
           <Link href="/admin/tests/new">
@@ -367,7 +367,7 @@ function TestsGrid({ query, onClearQuery }: { query: string; onClearQuery?: () =
       </div>
       {/* Active filter chips */}
       {(query || Object.keys(filterModelRef.current || {}).length > 0) && (
-        <div className="mb-3 flex items-center flex-wrap gap-2">
+        <div className="mb-3 flex items-center flex-wrap gap-2 flex-none">
           <span className="text-xs text-gray-500">Active filters:</span>
           {query ? (
             <button
@@ -451,9 +451,11 @@ function TestsGrid({ query, onClearQuery }: { query: string; onClearQuery?: () =
           </button>
         </div>
       )}
+      <div className="flex-1 min-h-0">
       {loading ? (
         <Loader />
       ) : (
+  <div className="h-full min-h-0">
   <AgGridReact<TestRow>
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
@@ -483,14 +485,15 @@ function TestsGrid({ query, onClearQuery }: { query: string; onClearQuery?: () =
   rowSelection={{ mode: 'singleRow', checkboxes: true }}
       selectionColumnDef={{ pinned: 'left', width: 44, headerName: '', resizable: false, cellClass: 'no-right-border', headerClass: 'no-right-border', suppressMovable: true }}
   animateRows
-  domLayout="autoHeight"
       headerHeight={36}
       rowHeight={32}
       tooltipShowDelay={300}
           // Let the last column flex to consume remaining space
           theme="legacy"
         />
+  </div>
       )}
+      </div>
       {/* Remove separator between selection checkbox column and S.No */}
       <style jsx global>{`
         .ag-theme-alpine.ag-theme-evalus .ag-cell.no-right-border,
@@ -563,8 +566,8 @@ export default function TestsPage() {
   }, [query]);
 
   return (
-    <div className="p-4 bg-gray-50 min-h-screen">
-      <div className="sticky top-0 z-20 bg-gray-50 pt-2 pb-3">
+    <div className="p-4 bg-gray-50 h-full min-h-0 flex flex-col">
+      <div className="sticky top-0 z-20 bg-gray-50 pt-2 pb-3 flex-none">
         <PageHeader
           icon={<ClipboardList className="w-6 h-6 text-blue-600" />}
           title="Tests"
@@ -574,7 +577,7 @@ export default function TestsPage() {
         />
       </div>
 
-      <div className="bg-white shadow rounded-lg p-2">
+      <div className="bg-white shadow rounded-lg p-2 flex-1 min-h-0 overflow-hidden">
         <TestsGrid query={query} onClearQuery={() => setQuery("")} />
       </div>
     </div>
