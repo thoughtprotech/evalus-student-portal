@@ -133,7 +133,6 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         filter: 'agTextColumnFilter', 
         filterParams: { 
           buttons: ['apply','reset','clear'],
-          debounceMs: 200,
           suppressAndOrCondition: false
         }, 
         width: 300, 
@@ -149,8 +148,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         sortable: true, 
         filter: 'agTextColumnFilter', 
         filterParams: { 
-          buttons: ['apply','reset','clear'],
-          debounceMs: 200
+          buttons: ['apply','reset','clear']
         }, 
         width: 150 
       },
@@ -161,8 +159,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         sortable: true, 
         filter: 'agTextColumnFilter', 
         filterParams: { 
-          buttons: ['apply','reset','clear'],
-          debounceMs: 200
+          buttons: ['apply','reset','clear']
         }, 
         width: 150 
       },
@@ -173,8 +170,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         sortable: true, 
         filter: 'agTextColumnFilter', 
         filterParams: { 
-          buttons: ['apply','reset','clear'],
-          debounceMs: 200
+          buttons: ['apply','reset','clear']
         }, 
         cellRenderer: LevelCellRenderer, 
         width: 130 
@@ -186,8 +182,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         sortable: true, 
         filter: 'agTextColumnFilter', 
         filterParams: { 
-          buttons: ['apply','reset','clear'],
-          debounceMs: 200
+          buttons: ['apply','reset','clear']
         }, 
         cellRenderer: LanguageCellRenderer, 
         width: 120 
@@ -218,8 +213,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         filter: 'agDateColumnFilter', 
         filterParams: { 
           buttons: ['apply','reset','clear'], 
-          browserDatePicker: true,
-          debounceMs: 200
+          browserDatePicker: true
         }, 
         valueFormatter: ({ value }) => formatDate(value), 
         width: 180 
@@ -232,8 +226,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         filter: 'agDateColumnFilter', 
         filterParams: { 
           buttons: ['apply','reset','clear'], 
-          browserDatePicker: true,
-          debounceMs: 200
+          browserDatePicker: true
         }, 
         valueFormatter: ({ value }) => formatDate(value), 
         width: 180 
@@ -245,8 +238,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         sortable: true, 
         filter: 'agTextColumnFilter', 
         filterParams: { 
-          buttons: ['apply','reset','clear'],
-          debounceMs: 200
+          buttons: ['apply','reset','clear']
         }, 
         minWidth: 150, 
         flex: 1 
@@ -636,7 +628,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           // Disable client-side pagination since we're doing server-side
           pagination={false}
           // Client-side operations
-          rowSelection={{ mode: 'multiRow', checkboxes: true }}
+          rowSelection={{ mode: 'multiRow', checkboxes: true, enableClickSelection: true }}
           selectionColumnDef={{ pinned: 'left', width: 44, headerName: '', resizable: false, cellClass: 'no-right-border', headerClass: 'no-right-border', suppressMovable: true }}
           animateRows
           
@@ -644,7 +636,6 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           rowHeight={32}
           tooltipShowDelay={300}
           suppressMenuHide={false}
-          suppressRowDeselection={true}
           stopEditingWhenCellsLoseFocus={true}
           theme="legacy"
         />

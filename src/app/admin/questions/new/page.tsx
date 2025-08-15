@@ -59,6 +59,7 @@ export default function Index() {
 
   const [questionTypes, setQuestionTypes] = useState<GetQuestionTypesResponse[]>([]);
   const [subjects, setSubjects] = useState<GetSubjectsResponse[]>([]);
+  const [allLanguageSubjects, setAllLanguageSubjects] = useState<GetSubjectsResponse[]>([]);
   const [topics, setTopics] = useState<GetTopicsResponse[]>([]);
   const [languages, setLanguages] = useState<GetLanguagesResponse[]>([]);
   const [writeUps, setWriteUps] = useState<GetWriteUpsResponse[]>([]);
@@ -70,43 +71,97 @@ export default function Index() {
     const res = await fetchQuestionTypesAction();
     const { data, status, error, errorMessage } = res;
     if (status === 200) {
-      setQuestionTypes(data!);
-      setQuestionsMeta((prev) => {
-        const updated = { ...prev };
-        updated.questionType = data![0].questionTypeId;
-        return updated;
-      });
+      setQuestionTypes(data ?? []);
     } else {
       console.log({ status, error, errorMessage });
     }
   };
 
-  const fetchSubjects = async () => {
+  const fetchSubjects = async (language?: string) => {
     const res = await fetchSubjectsAction();
     const { data, status, error, errorMessage } = res;
     if (status === 200) {
-      setSubjects(data!);
-      setQuestionsMeta((prev) => {
-        const updated = { ...prev };
-        updated.subjectId = data![0].subjectId;
-        return updated;
+      // Robust filter by language (handles code vs name, whitespace, case)
+      const normalize = (v?: string) => (v ?? '').toString().trim().toLowerCase();
+      const clean = (v?: string) => normalize(v).replace(/[^a-z]/g, '');
+      const sel = clean(language);
+      // First, filter by language (robust)
+  const languageRows = (data ?? []).filter((s) => {
+        if (!language) return true;
+        const subj = clean(s.language);
+        if (!subj) return true; // include unlabeled subjects
+        return subj === sel || subj.includes(sel) || sel.includes(subj);
       });
-      fetchTopics(data![0].subjectId);
+  setAllLanguageSubjects(languageRows);
+
+      // Find the root for this language (SubjectType === 'Subject', ParentID === 0)
+      const isType = (s: any, t: string) => (s?.subjectType ?? '').toString().trim().toLowerCase() === t;
+      const root = languageRows.find((s) => isType(s, 'subject') && (s.parentId === 0 || s.parentId === null));
+
+      // Preferred: list Chapters under the root Subject
+      let hierarchicalList = languageRows.filter((s) => isType(s, 'chapter') && (root ? s.parentId === root.subjectId : true));
+
+      // Fallback 1: if no chapters exist, include any immediate children of root (whatever their type)
+      if (hierarchicalList.length === 0 && root) {
+        hierarchicalList = languageRows.filter((s) => s.parentId === root.subjectId && !isType(s, 'subject'));
+      }
+
+      // Fallback 2: if still none, include all chapters for this language (even if parentId differs)
+      if (hierarchicalList.length === 0) {
+        hierarchicalList = languageRows.filter((s) => isType(s, 'chapter'));
+      }
+
+      // Final fallback: if filter yields empty but data exists, show languageRows to avoid empty UI
+      if (hierarchicalList.length === 0 && languageRows.length > 0) {
+        hierarchicalList = languageRows;
+      }
+
+      setSubjects(hierarchicalList);
+      // Do not auto-select; keep subjectId empty until user chooses
+      setTopics([]);
+      setQuestionsMeta((prev) => ({ ...prev, subjectId: 0, topicId: 0 }));
     } else {
       console.log({ status, error, errorMessage });
     }
+  };
+
+  // Build Topic and Sub Topic list for a given Chapter (subject) from the language-specific subjects
+  const buildTopicsForChapter = (chapterId: number): GetTopicsResponse[] => {
+    if (!chapterId) return [];
+    const isType = (s: any, t: string) => (s?.subjectType ?? '').toString().trim().toLowerCase() === t;
+    const byId: Record<number, GetSubjectsResponse> = Object.fromEntries(
+      (allLanguageSubjects || []).map((s) => [s.subjectId, s])
+    );
+
+    // Direct topics under the chapter
+    const directTopics = (allLanguageSubjects || []).filter(
+      (s) => isType(s, 'topic') && s.parentId === chapterId
+    );
+
+    // Sub topics under topics under the chapter
+    const subTopics = (allLanguageSubjects || []).filter((s) => {
+      if (!isType(s, 'sub topic')) return false;
+      const parentTopic = s.parentId ? byId[s.parentId] : undefined;
+      return !!(parentTopic && isType(parentTopic, 'topic') && parentTopic.parentId === chapterId);
+    });
+
+    const toTopicRow = (s: GetSubjectsResponse): GetTopicsResponse => ({
+      topicId: s.subjectId,
+      topicName: s.subjectName,
+      subjectId: s.parentId,
+    });
+
+    return [...directTopics.map(toTopicRow), ...subTopics.map(toTopicRow)];
   };
 
   const fetchTopics = async (subjectId: number) => {
     const res = await fetchTopicsAction(subjectId);
     const { data, status, error, errorMessage } = res;
     if (status === 200) {
-      setTopics(data!);
-      setQuestionsMeta((prev) => {
-        const updated = { ...prev };
-        updated.topicId = data![0].topicId;
-        return updated;
-      });
+      const list = data ?? [];
+      setTopics(list);
+      // Do not auto-select; keep topicId empty until user chooses
+      setQuestionsMeta((prev) => ({ ...prev, topicId: 0 }));
     } else {
       console.log({ status, error, errorMessage });
     }
@@ -116,12 +171,8 @@ export default function Index() {
     const res = await fetchLanguagesAction();
     const { data, status, error, errorMessage } = res;
     if (status === 200) {
-      setLanguages(data!);
-      setQuestionsMeta((prev) => {
-        const updated = { ...prev };
-        updated.languageId = data![0].language;
-        return updated;
-      });
+      setLanguages(data ?? []);
+      // Keep language unselected initially
     } else {
       console.log({ status, error, errorMessage });
     }
@@ -141,23 +192,17 @@ export default function Index() {
     const res = await fetchDifficultyLevelsAction();
     const { data, status, error, errorMessage } = res;
     if (status === 200) {
-      setDifficultyLevels(data!);
-      setQuestionsMeta((prev) => {
-        const updated = { ...prev };
-        updated.difficulty = data![0].questionDifficultylevelId;
-        return updated;
-      });
+      setDifficultyLevels(data ?? []);
     } else {
       console.log({ status, error, errorMessage });
     }
   };
 
   useEffect(() => {
+    // Load only languages and question types initially
     fetchQuestionTypes();
-    fetchSubjects();
     fetchLanguages();
-    fetchWriteUps();
-    fetchDifficultyLevels();
+    // Subjects and topics are loaded on dropdown selection
   }, []);
 
   const handleSubmit = async (goBack: boolean = true) => {
@@ -267,17 +312,20 @@ export default function Index() {
                 required
                 value={questionsMeta?.languageId}
                 onChange={(e) => {
-                  setQuestionsMeta(() => {
-                    let updated = { ...questionsMeta };
-                    updated.languageId = e.target.value;
-                    return updated;
-                  });
+                  const lang = e.target.value.trim();
+                  // Update language and reset dependent selections
+                  setQuestionsMeta((prev) => ({ ...prev, languageId: lang, subjectId: 0, topicId: 0 }));
+                  setSubjects([]);
+                  setTopics([]);
+                  if (lang) {
+                    fetchSubjects(lang);
+                  }
                 }}
                 className="w-full border rounded-md px-4 py-3"
               >
                 <option value="">Select language</option>
-                {languages?.map((language) => (
-                  <option key={language.language} value={language.language}>
+                {languages?.map((language, idx) => (
+                  <option key={`${language.language}-${idx}`} value={language.language}>
                     {language.language}
                   </option>
                 ))}
@@ -285,22 +333,29 @@ export default function Index() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Subject <span className="text-red-600">*</span></label>
-              <select
+               <select
                 required
-                value={questionsMeta?.subjectId}
+                 value={questionsMeta?.subjectId || ''}
                 onChange={(e) => {
-                  setQuestionsMeta(() => {
-                    let updated = { ...questionsMeta };
-                    updated.subjectId = Number(e.target.value);
-                    return updated;
-                  });
-                  fetchTopics(Number(e.target.value));
+                  const newSubjectId = Number(e.target.value);
+                  // reset topics immediately for better UX while loading
+                    setTopics([]);
+                  setQuestionsMeta((prev) => ({ ...prev, subjectId: newSubjectId, topicId: 0 }));
+                    // Prefer deriving topics+subtopics from subject hierarchy
+                    const derived = buildTopicsForChapter(newSubjectId);
+                    if (derived.length > 0) {
+                      setTopics(derived);
+                    } else {
+                      // Fallback to API if nothing derived
+                      fetchTopics(newSubjectId);
+                    }
                 }}
+                disabled={!questionsMeta.languageId}
                 className="w-full border rounded-md px-4 py-3"
               >
                 <option value="">Select subject</option>
-                {subjects?.map((subject) => (
-                  <option key={subject.subjectId} value={subject.subjectId}>
+                {subjects?.map((subject, idx) => (
+                  <option key={`${subject.subjectId}-${idx}`} value={subject.subjectId}>
                     {subject.subjectName}
                   </option>
                 ))}
@@ -308,21 +363,18 @@ export default function Index() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Topic <span className="text-red-600">*</span></label>
-              <select
+               <select
                 required
-                value={questionsMeta?.topicId}
+                 value={questionsMeta?.topicId || ''}
                 onChange={(e) => {
-                  setQuestionsMeta(() => {
-                    let updated = { ...questionsMeta };
-                    updated.topicId = Number(e.target.value);
-                    return updated;
-                  });
+                  setQuestionsMeta((prev) => ({ ...prev, topicId: Number(e.target.value) }));
                 }}
+                disabled={!questionsMeta.subjectId}
                 className="w-full border rounded-md px-4 py-3"
               >
                 <option value="">Select topic</option>
-                {topics?.map((topic) => (
-                  <option key={topic.topicId} value={topic.topicId}>
+                {topics?.map((topic, idx) => (
+                  <option key={`${topic.topicId}-${idx}`} value={topic.topicId}>
                     {topic.topicName}
                   </option>
                 ))}
@@ -334,18 +386,14 @@ export default function Index() {
                 required
                 value={questionsMeta?.questionType}
                 onChange={(e) => {
-                  setQuestionsMeta(() => {
-                    let updated = { ...questionsMeta };
-                    updated.questionType = Number(e.target.value);
-                    return updated;
-                  });
+                  setQuestionsMeta((prev) => ({ ...prev, questionType: Number(e.target.value) }));
                 }}
                 className="w-full border rounded-md px-4 py-3"
               >
                 <option value="">Select type</option>
-                {questionTypes?.map((questionType) => (
+                {questionTypes?.map((questionType, idx) => (
                   <option
-                    key={questionType.questionTypeId}
+                    key={`${questionType.questionTypeId}-${idx}`}
                     value={questionType.questionTypeId}
                   >
                     {questionType.questionType}
@@ -463,17 +511,13 @@ export default function Index() {
                       className="w-full border rounded-md px-4 py-3"
                       value={questionsMeta?.difficulty}
                       onChange={(e) => {
-                        setQuestionsMeta(() => {
-                          let updated = { ...questionsMeta };
-                          updated.difficulty = Number(e.target.value);
-                          return updated;
-                        });
+                        setQuestionsMeta((prev) => ({ ...prev, difficulty: Number(e.target.value) }));
                       }}
                     >
                       <option value="">Select Difficulty</option>
-                      {difficultyLevels?.map((level) => (
+                      {difficultyLevels?.map((level, idx) => (
                         <option
-                          key={level.questionDifficultylevelId}
+                          key={`${level.questionDifficultylevelId}-${idx}`}
                           value={level.questionDifficultylevelId}
                         >
                           {level.questionDifficultylevel1}
@@ -511,18 +555,14 @@ export default function Index() {
                   <select
                     value={questionsMeta?.writeUpId}
                     onChange={(e) => {
-                      setQuestionsMeta(() => {
-                        let updated = { ...questionsMeta };
-                        updated.writeUpId = Number(e.target.value);
-                        return updated;
-                      });
+                      setQuestionsMeta((prev) => ({ ...prev, writeUpId: Number(e.target.value) }));
                     }}
                     className="w-full border rounded-md px-4 py-3"
                   >
                     <option value="">None</option>
-                    {writeUps?.map((writeUp) => (
+                    {writeUps?.map((writeUp, idx) => (
                       <option
-                        key={writeUp.writeUpId}
+                        key={`${writeUp.writeUpId}-${idx}`}
                         value={writeUp.writeUpId}
                       >
                         {writeUp.writeUpName}
