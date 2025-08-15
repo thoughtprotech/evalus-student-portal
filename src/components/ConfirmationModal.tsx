@@ -64,12 +64,14 @@ export default function ConfirmationModal({
           </div>
         </div>
         <div className="mt-6 flex items-center justify-end gap-3">
-          <button
-            onClick={onCancel}
-            className="min-w-28 px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer"
-          >
-            {cancelText}
-          </button>
+          {cancelText && (
+            <button
+              onClick={onCancel}
+              className="min-w-28 px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer"
+            >
+              {cancelText}
+            </button>
+          )}
           <button
             onClick={onConfirm}
             className={`min-w-28 px-4 py-2 rounded-md text-white cursor-pointer ${

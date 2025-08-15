@@ -36,6 +36,7 @@ export default function Index() {
     difficulty: number;
     questionType: number;
     subjectId: number;
+    chapterId: number;
     topicId: number;
     languageId: string;
     writeUpId: number;
@@ -48,6 +49,7 @@ export default function Index() {
     difficulty: 0,
     questionType: 0,
     subjectId: 0,
+    chapterId: 0,
     topicId: 0,
     languageId: "",
     writeUpId: 0,
@@ -64,6 +66,7 @@ export default function Index() {
 
   const [questionTypes, setQuestionTypes] = useState<GetQuestionTypesResponse[]>([]);
   const [subjects, setSubjects] = useState<GetSubjectsResponse[]>([]);
+  const [chapters, setChapters] = useState<GetSubjectsResponse[]>([]);
   const [allLanguageSubjects, setAllLanguageSubjects] = useState<GetSubjectsResponse[]>([]);
   const [topics, setTopics] = useState<GetTopicsResponse[]>([]);
   const [languages, setLanguages] = useState<GetLanguagesResponse[]>([]);
@@ -101,32 +104,17 @@ export default function Index() {
       });
   setAllLanguageSubjects(languageRows);
 
-      // Find the root for this language (SubjectType === 'Subject', ParentID === 0)
+      // Filter to show only items where SubjectType === 'Subject'
       const isType = (s: any, t: string) => (s?.subjectType ?? '').toString().trim().toLowerCase() === t;
-      const root = languageRows.find((s) => isType(s, 'subject') && (s.parentId === 0 || s.parentId === null));
+      
+      // Only include items with SubjectType === 'Subject'
+      const subjectTypeItems = languageRows.filter((s) => isType(s, 'subject'));
 
-      // Preferred: list Chapters under the root Subject
-      let hierarchicalList = languageRows.filter((s) => isType(s, 'chapter') && (root ? s.parentId === root.subjectId : true));
-
-      // Fallback 1: if no chapters exist, include any immediate children of root (whatever their type)
-      if (hierarchicalList.length === 0 && root) {
-        hierarchicalList = languageRows.filter((s) => s.parentId === root.subjectId && !isType(s, 'subject'));
-      }
-
-      // Fallback 2: if still none, include all chapters for this language (even if parentId differs)
-      if (hierarchicalList.length === 0) {
-        hierarchicalList = languageRows.filter((s) => isType(s, 'chapter'));
-      }
-
-      // Final fallback: if filter yields empty but data exists, show languageRows to avoid empty UI
-      if (hierarchicalList.length === 0 && languageRows.length > 0) {
-        hierarchicalList = languageRows;
-      }
-
-      setSubjects(hierarchicalList);
+      setSubjects(subjectTypeItems);
       // Do not auto-select; keep subjectId empty until user chooses
+      setChapters([]);
       setTopics([]);
-      setQuestionsMeta((prev) => ({ ...prev, subjectId: 0, topicId: 0 }));
+      setQuestionsMeta((prev) => ({ ...prev, subjectId: 0, chapterId: 0, topicId: 0 }));
     } else {
       console.log({ status, error, errorMessage });
     }
@@ -174,6 +162,25 @@ export default function Index() {
     }
   };
 
+  const fetchChapters = (subjectId: number) => {
+    if (!subjectId || !allLanguageSubjects.length) {
+      setChapters([]);
+      return;
+    }
+
+    const isType = (s: any, t: string) => (s?.subjectType ?? '').toString().trim().toLowerCase() === t;
+    
+    // Filter chapters that belong to the selected subject
+    const chapterList = allLanguageSubjects.filter((s) => 
+      isType(s, 'chapter') && s.parentId === subjectId
+    );
+
+    setChapters(chapterList);
+    
+    // Reset chapter and topic selection
+    setQuestionsMeta((prev) => ({ ...prev, chapterId: 0, topicId: 0 }));
+  };
+
   const fetchLanguages = async () => {
     const res = await fetchLanguagesAction();
     const { data, status, error, errorMessage } = res;
@@ -213,14 +220,7 @@ export default function Index() {
     // Subjects and topics are loaded on dropdown selection
   }, []);
 
-  const handleSubmit = async (goBack: boolean = true) => {
-    // Prevent multiple submissions
-    if (isSaving) {
-      return;
-    }
-
-    setIsSaving(true);
-
+  const submitQuestion = async (showModal: boolean = true): Promise<{success: boolean}> => {
     try {
       // Safely stringify options (always an array)
       const stringifiedOptions = JSON.stringify(questionOptions?.options);
@@ -241,35 +241,59 @@ export default function Index() {
         }
       };
 
+      console.log("Form validation - Subject ID:", questionsMeta.subjectId);
+      console.log("Form validation - Chapter ID:", questionsMeta.chapterId);
+      console.log("Form validation - Topic ID:", questionsMeta.topicId);
+
+      if (questionsMeta.subjectId === 0) {
+        toast.error("Subject Is Required");
+        return {success: false};
+      }
+
+      if (questionsMeta.chapterId === 0) {
+        toast.error("Chapter Is Required");
+        return {success: false};
+      }
+
       if (questionsMeta.topicId === 0) {
-        setIsSaving(false);
-        return toast.error("Topic Is Required");
+        toast.error("Topic Is Required");
+        return {success: false};
       }
 
       if (questionsMeta.languageId === "") {
-        setIsSaving(false);
-        return toast.error("Language Is Required");
+        toast.error("Language Is Required");
+        return {success: false};
+      }
+
+      if (questionsMeta.difficulty === 0) {
+        toast.error("Difficulty Level Is Required");
+        return {success: false};
+      }
+
+      if (questionsMeta.questionType === 0) {
+        toast.error("Question Type Is Required");
+        return {success: false};
       }
 
       if (questionsMeta.marks === 0) {
-        setIsSaving(false);
-        return toast.error("Marks Is Required");
+        toast.error("Marks Is Required");
+        return {success: false};
       }
 
       if (stringifiedOptions?.length === 0 || stringifiedOptions === "[]") {
-        setIsSaving(false);
-        return toast.error("Options Are Required");
+        toast.error("Options Are Required");
+        return {success: false};
       }
 
       if (stringifiedAnswer?.length === 0 || stringifiedAnswer === "[]") {
-        setIsSaving(false);
-        return toast.error("Answer Is Required");
+        toast.error("Answer Is Required");
+        return {success: false};
       }
 
       // Validate video URL if provided
       if (videoSolURL.trim() && !isValidUrl(videoSolURL.trim())) {
-        setIsSaving(false);
-        return toast.error("Please enter a valid video URL or leave it empty");
+        toast.error("Please enter a valid video URL or leave it empty");
+        return {success: false};
       }
 
       // Function to strip HTML tags and get plain text
@@ -289,14 +313,9 @@ export default function Index() {
       const cleanQuestion = stripHtmlTags(question.trim());
       const cleanExplanation = stripHtmlTags(explanation.trim());
 
-      console.log("Original question:", question);
-      console.log("Cleaned question:", cleanQuestion);
-      console.log("Original explanation:", explanation);
-      console.log("Cleaned explanation:", cleanExplanation);
-
       if (cleanQuestion.trim().length === 0) {
-        setIsSaving(false);
-        return toast.error("Question Is Required");
+        toast.error("Question Is Required");
+        return {success: false};
       }
 
       const cleanVideoUrl = videoSolURL.trim();
@@ -311,7 +330,7 @@ export default function Index() {
           graceMarks: questionsMeta.graceMarks,
           difficultyLevelId: questionsMeta.difficulty,
           questionTypeId: questionsMeta.questionType,
-          subjectId: questionsMeta.subjectId,
+          subjectId: questionsMeta.subjectId, // Use actual subjectId from Subject dropdown
           topicId: questionsMeta.topicId,
           language: questionsMeta.languageId,
           writeUpId: questionsMeta.writeUpId,
@@ -324,7 +343,11 @@ export default function Index() {
         },
       };
 
-      console.log({ payload });
+      console.log("Payload being sent to API:");
+      console.log("- subjectId (from Subject dropdown):", questionsMeta.subjectId);
+      console.log("- chapterId (from Chapter dropdown):", questionsMeta.chapterId);
+      console.log("- topicId (from Topic dropdown):", questionsMeta.topicId);
+      console.log("Full payload:", payload);
 
       // Step 1: Create the question
       const res = await createQuestionAction(payload);
@@ -337,9 +360,11 @@ export default function Index() {
 
       if (isQuestionCreated) {
         // Success! The API creates both question and options in one call
-        setIsSaving(false);
-        setShowSuccessModal(true);
+        if (showModal) {
+          setShowSuccessModal(true);
+        }
         console.log("Question and options created successfully!");
+        return {success: true};
       } else {
         console.error("CreateQuestionAction failed", {
           status,
@@ -368,20 +393,69 @@ export default function Index() {
         
         toast.error(detailedError);
         console.error("CreateQuestionAction error", { status, error, errorMessage, data });
-        setIsSaving(false);
+        return {success: false};
       }
     } catch (error) {
-      console.error("Error in handleSubmit:", error);
+      console.error("Error in submitQuestion:", error);
       toast.error("An unexpected error occurred while saving the question");
-      setIsSaving(false);
+      return {success: false};
     }
   };
 
+  const handleSubmit = async (goBack: boolean = true) => {
+    // Prevent multiple submissions
+    if (isSaving) {
+      return;
+    }
+
+    setIsSaving(true);
+    
+    const result = await submitQuestion(true); // true means show modal
+    
+    setIsSaving(false);
+  };
+
   const handleSaveAndNew = async () => {
-    await handleSubmit(false);
-    setTimeout(() => {
-      window.location.reload();
-    }, 2000);
+    // Prevent multiple submissions
+    if (isSaving) {
+      return;
+    }
+
+    setIsSaving(true);
+
+    const result = await submitQuestion(false); // false means don't show modal
+    
+    if (result.success) {
+      // Show success toast instead of modal
+      toast.success("Question saved successfully! Creating new question...");
+      
+      // Reset form for creating another question
+      setQuestion("");
+      setExplanation("");
+      setQuestionHeader("");
+      setVideoSolURL("");
+      setQuestionOptions(undefined);
+      setQuestionsMeta({
+        tags: "",
+        marks: 0,
+        negativeMarks: 0,
+        difficulty: 0,
+        questionType: 0,
+        subjectId: 0,
+        chapterId: 0,
+        topicId: 0,
+        languageId: "",
+        writeUpId: 0,
+        graceMarks: 0,
+        freeSpace: 0,
+      });
+      
+      // Reset dependent dropdowns
+      setChapters([]);
+      setTopics([]);
+    }
+    
+    setIsSaving(false);
   };
 
   useEffect(() => {
@@ -412,7 +486,7 @@ export default function Index() {
                 onChange={(e) => {
                   const lang = e.target.value.trim();
                   // Update language and reset dependent selections
-                  setQuestionsMeta((prev) => ({ ...prev, languageId: lang, subjectId: 0, topicId: 0, difficulty: 0 }));
+                  setQuestionsMeta((prev) => ({ ...prev, languageId: lang, subjectId: 0, chapterId: 0, topicId: 0, difficulty: 0 }));
                   setSubjects([]);
                   setTopics([]);
                   setDifficultyLevels([]);
@@ -438,17 +512,17 @@ export default function Index() {
                  value={questionsMeta?.subjectId || ''}
                 onChange={(e) => {
                   const newSubjectId = Number(e.target.value);
-                  // reset topics immediately for better UX while loading
-                    setTopics([]);
-                  setQuestionsMeta((prev) => ({ ...prev, subjectId: newSubjectId, topicId: 0 }));
-                    // Prefer deriving topics+subtopics from subject hierarchy
-                    const derived = buildTopicsForChapter(newSubjectId);
-                    if (derived.length > 0) {
-                      setTopics(derived);
-                    } else {
-                      // Fallback to API if nothing derived
-                      fetchTopics(newSubjectId);
-                    }
+                  console.log("Subject dropdown changed - Selected Subject ID:", newSubjectId);
+                  
+                  // reset chapters and topics immediately for better UX while loading
+                  setChapters([]);
+                  setTopics([]);
+                  setQuestionsMeta((prev) => ({ ...prev, subjectId: newSubjectId, chapterId: 0, topicId: 0 }));
+                  
+                  // Fetch chapters for the selected subject
+                  if (newSubjectId) {
+                    fetchChapters(newSubjectId);
+                  }
                 }}
                 disabled={!questionsMeta.languageId}
                 className="w-full border rounded-md px-4 py-3"
@@ -462,6 +536,41 @@ export default function Index() {
               </select>
             </div>
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Chapter <span className="text-red-600">*</span></label>
+               <select
+                required
+                 value={questionsMeta?.chapterId || ''}
+                onChange={(e) => {
+                  const newChapterId = Number(e.target.value);
+                  console.log("Chapter dropdown changed - Selected Chapter ID:", newChapterId);
+                  
+                  // reset topics immediately for better UX while loading
+                  setTopics([]);
+                  setQuestionsMeta((prev) => ({ ...prev, chapterId: newChapterId, topicId: 0 }));
+                  
+                  // Prefer deriving topics+subtopics from chapter hierarchy
+                  if (newChapterId) {
+                    const derived = buildTopicsForChapter(newChapterId);
+                    if (derived.length > 0) {
+                      setTopics(derived);
+                    } else {
+                      // Fallback to API if nothing derived
+                      fetchTopics(newChapterId);
+                    }
+                  }
+                }}
+                disabled={!questionsMeta.subjectId}
+                className="w-full border rounded-md px-4 py-3"
+              >
+                <option value="">Select chapter</option>
+                {chapters?.map((chapter, idx) => (
+                  <option key={`${chapter.subjectId}-${idx}`} value={chapter.subjectId}>
+                    {chapter.subjectName}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Topic <span className="text-red-600">*</span></label>
                <select
                 required
@@ -469,7 +578,7 @@ export default function Index() {
                 onChange={(e) => {
                   setQuestionsMeta((prev) => ({ ...prev, topicId: Number(e.target.value) }));
                 }}
-                disabled={!questionsMeta.subjectId}
+                disabled={!questionsMeta.chapterId}
                 className="w-full border rounded-md px-4 py-3"
               >
                 <option value="">Select topic</option>
@@ -720,31 +829,12 @@ export default function Index() {
           router.push("/admin/questions");
         }}
         onCancel={() => {
-          setShowSuccessModal(false);
-          // Reset form for creating another question
-          setQuestion("");
-          setExplanation("");
-          setQuestionHeader("");
-          setVideoSolURL("");
-          setQuestionOptions(undefined);
-          setQuestionsMeta({
-            tags: "",
-            marks: 0,
-            negativeMarks: 0,
-            difficulty: 0,
-            questionType: 0,
-            subjectId: 0,
-            topicId: 0,
-            languageId: "",
-            writeUpId: 0,
-            graceMarks: 0,
-            freeSpace: 0,
-          });
+          // Do nothing - this button won't be shown with our CSS modification
         }}
         title="Question Created Successfully! 🎉"
-        message="Your question has been successfully created and saved to the database. Would you like to go back to the questions list or create another question?"
+        message="Your question has been successfully created and saved to the database."
         confirmText="Go to Questions"
-        cancelText="Create Another"
+        cancelText=""
         variant="success"
         className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200"
       />
