@@ -582,7 +582,7 @@ export default function Index() {
                       </option>
                     ))}
                   </select>
-                  {chapters.length === 0 && questionsMeta.subjectId && (
+                  {chapters.length === 0 && questionsMeta.subjectId > 0 && (
                     <p className="text-xs text-amber-600">No chapters available for selected subject</p>
                   )}
                 </div>
@@ -608,7 +608,7 @@ export default function Index() {
                       </option>
                     ))}
                   </select>
-                  {topics.length === 0 && questionsMeta.chapterId && (
+                  {topics.length === 0 && questionsMeta.chapterId > 0 && (
                     <p className="text-xs text-amber-600">No topics available for selected chapter</p>
                   )}
                 </div>
@@ -620,7 +620,7 @@ export default function Index() {
                   </label>
                   <select
                     required
-                    value={questionsMeta?.questionType}
+                    value={questionsMeta?.questionType || ''}
                     onChange={(e) => {
                       setQuestionsMeta((prev) => ({ ...prev, questionType: Number(e.target.value) }));
                     }}
@@ -654,7 +654,7 @@ export default function Index() {
                     required
                     className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
                     disabled={!questionsMeta.languageId}
-                    value={questionsMeta?.difficulty}
+                    value={questionsMeta?.difficulty || ''}
                     onChange={(e) => {
                       setQuestionsMeta((prev) => ({ ...prev, difficulty: Number(e.target.value) }));
                     }}
@@ -771,7 +771,7 @@ export default function Index() {
                     <div className="space-y-1">
                       <label className="block text-xs font-medium text-gray-600">Write Up</label>
                       <select
-                        value={questionsMeta?.writeUpId}
+                        value={questionsMeta?.writeUpId || ''}
                         onChange={(e) => {
                           setQuestionsMeta((prev) => ({ ...prev, writeUpId: Number(e.target.value) }));
                         }}
