@@ -188,8 +188,8 @@ export default function Index() {
     }
   };
 
-  const fetchDifficultyLevels = async () => {
-    const res = await fetchDifficultyLevelsAction();
+  const fetchDifficultyLevels = async (language?: string) => {
+    const res = await fetchDifficultyLevelsAction(language);
     const { data, status, error, errorMessage } = res;
     if (status === 200) {
       setDifficultyLevels(data ?? []);
@@ -314,11 +314,13 @@ export default function Index() {
                 onChange={(e) => {
                   const lang = e.target.value.trim();
                   // Update language and reset dependent selections
-                  setQuestionsMeta((prev) => ({ ...prev, languageId: lang, subjectId: 0, topicId: 0 }));
+                  setQuestionsMeta((prev) => ({ ...prev, languageId: lang, subjectId: 0, topicId: 0, difficulty: 0 }));
                   setSubjects([]);
                   setTopics([]);
+                  setDifficultyLevels([]);
                   if (lang) {
                     fetchSubjects(lang);
+                    fetchDifficultyLevels(lang);
                   }
                 }}
                 className="w-full border rounded-md px-4 py-3"
@@ -509,6 +511,7 @@ export default function Index() {
                     <select
                       required
                       className="w-full border rounded-md px-4 py-3"
+                      disabled={!questionsMeta.languageId}
                       value={questionsMeta?.difficulty}
                       onChange={(e) => {
                         setQuestionsMeta((prev) => ({ ...prev, difficulty: Number(e.target.value) }));

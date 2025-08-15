@@ -139,6 +139,19 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<null, GetDifficultyLevelsResponse[]>,
 
+  // OData - Question Difficulty Levels filtered by language
+  getQuestionDifficultyLevelsOData: {
+    method: "GET",
+    path: ({ language }) => {
+      // Escape single quotes per OData rules by doubling them
+      const lang = (language ?? "").replace(/'/g, "''");
+      const base = `/odata/QuestionDifficultyLevels?$select=QuestionDifficultylevelId,QuestionDifficultylevel1,Language,IsActive`;
+      const filter = lang ? `&$filter=Language eq '${lang}' and IsActive eq 1` : `&$filter=IsActive eq 1`;
+      return `${base}${filter}`;
+    },
+    type: "OPEN",
+  } as Endpoint<{ language?: string }, import('./types').ODataList<GetDifficultyLevelsResponse>>, 
+
 
   getQuestionOptions: {
     method: "GET",
