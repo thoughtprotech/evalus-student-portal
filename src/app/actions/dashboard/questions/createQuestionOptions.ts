@@ -34,6 +34,7 @@ export async function createQuestionOptionsAction(
       QuestionCorrectAnswerJSON: payload.questionCorrectAnswerJson,
       Language: payload.language,
       IsActive: 1,
+      CreatedBy: "system", // Add required CreatedBy field
     };
 
     const { status, error, data, errorMessage, message } = await apiHandler(

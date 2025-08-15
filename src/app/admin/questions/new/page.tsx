@@ -5,7 +5,6 @@ import RichTextEditor from "@/components/RichTextEditor";
 import { QUESTION_TYPES } from "@/utils/constants";
 import QuestionOptionsInput from "./_components/QuestionOptionsInput";
 import { createQuestionAction } from "@/app/actions/dashboard/questions/createQuestion";
-import { createQuestionOptionsAction } from "@/app/actions/dashboard/questions/createQuestionOptions";
 import toast from "react-hot-toast";
 import {
   CreateQuestionRequest,
@@ -69,6 +68,7 @@ export default function Index() {
   const [languages, setLanguages] = useState<GetLanguagesResponse[]>([]);
   const [writeUps, setWriteUps] = useState<GetWriteUpsResponse[]>([]);
   const [difficultyLevels, setDifficultyLevels] = useState<GetDifficultyLevelsResponse[]>([]);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
 
   const router = useRouter();
 
@@ -212,82 +212,118 @@ export default function Index() {
   }, []);
 
   const handleSubmit = async (goBack: boolean = true) => {
-    // Safely stringify options (always an array)
-    const stringifiedOptions = JSON.stringify(questionOptions?.options);
-
-    // Conditionally stringify answers only if it's an array
-    const stringifiedAnswer = Array.isArray(questionOptions?.answer)
-      ? JSON.stringify(questionOptions.answer)
-      : questionOptions?.answer;
-
-    // Helper function to validate URL
-    const isValidUrl = (string: string) => {
-      if (!string || string.trim() === '') return true; // Empty is valid
-      try {
-        new URL(string);
-        return true;
-      } catch (_) {
-        return false;
-      }
-    };
-
-    if (questionsMeta.topicId === 0) {
-      return toast.error("Topic Is Required");
+    // Prevent multiple submissions
+    if (isSaving) {
+      return;
     }
 
-    if (questionsMeta.languageId === "") {
-      return toast.error("Language Is Required");
-    }
-
-    if (question.trim().length === 0) {
-      return toast.error("Question Is Required");
-    }
-
-    if (questionsMeta.marks === 0) {
-      return toast.error("Marks Is Required");
-    }
-
-    if (stringifiedOptions?.length === 0 || stringifiedOptions === "[]") {
-      return toast.error("Options Are Required");
-    }
-
-    if (stringifiedAnswer?.length === 0 || stringifiedAnswer === "[]") {
-      return toast.error("Answer Is Required");
-    }
-
-    // Validate video URL if provided
-    if (videoSolURL.trim() && !isValidUrl(videoSolURL.trim())) {
-      return toast.error("Please enter a valid video URL or leave it empty");
-    }
-
-    const cleanVideoUrl = videoSolURL.trim();
-    
-    const payload: CreateQuestionRequest = {
-      explanation: explanation,
-      ...(cleanVideoUrl && { videoSolURL: cleanVideoUrl }), // Only include if not empty
-      questionsMeta: {
-        tags: questionsMeta.tags,
-        marks: questionsMeta.marks,
-        negativeMarks: questionsMeta.negativeMarks,
-        difficultyLevelId: questionsMeta.difficulty,
-        questionTypeId: questionsMeta.questionType,
-        subjectId: questionsMeta.subjectId,
-        topicId: questionsMeta.topicId,
-        language: questionsMeta.languageId,
-        writeUpId: questionsMeta.writeUpId,
-        headerText: questionHeader,
-      },
-      question: question,
-      options: {
-        options: stringifiedOptions!,
-        answer: stringifiedAnswer!,
-      },
-    };
-
-    console.log({ payload });
+    setIsSaving(true);
 
     try {
-      // Step 1: Create the question
+      // Safely stringify options (always an array)
+      const stringifiedOptions = JSON.stringify(questionOptions?.options);
+
+      // Conditionally stringify answers only if it's an array
+      const stringifiedAnswer = Array.isArray(questionOptions?.answer)
+        ? JSON.stringify(questionOptions.answer)
+        : questionOptions?.answer;
+
+      // Helper function to validate URL
+      const isValidUrl = (string: string) => {
+        if (!string || string.trim() === '') return true; // Empty is valid
+        try {
+          new URL(string);
+          return true;
+        } catch (_) {
+          return false;
+        }
+      };
+
+      if (questionsMeta.topicId === 0) {
+        setIsSaving(false);
+        return toast.error("Topic Is Required");
+      }
+
+      if (questionsMeta.languageId === "") {
+        setIsSaving(false);
+        return toast.error("Language Is Required");
+      }
+
+      if (questionsMeta.marks === 0) {
+        setIsSaving(false);
+        return toast.error("Marks Is Required");
+      }
+
+      if (stringifiedOptions?.length === 0 || stringifiedOptions === "[]") {
+        setIsSaving(false);
+        return toast.error("Options Are Required");
+      }
+
+      if (stringifiedAnswer?.length === 0 || stringifiedAnswer === "[]") {
+        setIsSaving(false);
+        return toast.error("Answer Is Required");
+      }
+
+      // Validate video URL if provided
+      if (videoSolURL.trim() && !isValidUrl(videoSolURL.trim())) {
+        setIsSaving(false);
+        return toast.error("Please enter a valid video URL or leave it empty");
+      }
+
+      // Function to strip HTML tags and get plain text
+      const stripHtmlTags = (html: string): string => {
+        if (!html) return '';
+        
+        // Create a temporary div element
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        
+        // Get text content and clean up extra whitespace
+        const textContent = div.textContent || div.innerText || '';
+        return textContent.trim();
+      };
+
+      // Ensure we have plain text for both question and explanation
+      const cleanQuestion = stripHtmlTags(question.trim());
+      const cleanExplanation = stripHtmlTags(explanation.trim());
+
+      console.log("Original question:", question);
+      console.log("Cleaned question:", cleanQuestion);
+      console.log("Original explanation:", explanation);
+      console.log("Cleaned explanation:", cleanExplanation);
+
+      if (cleanQuestion.trim().length === 0) {
+        setIsSaving(false);
+        return toast.error("Question Is Required");
+      }
+
+      const cleanVideoUrl = videoSolURL.trim();
+      
+      const payload: CreateQuestionRequest = {
+        explanation: cleanExplanation,
+        ...(cleanVideoUrl && { videoSolURL: cleanVideoUrl }), // Only include if not empty
+        questionsMeta: {
+          tags: questionsMeta.tags,
+          marks: questionsMeta.marks,
+          negativeMarks: questionsMeta.negativeMarks,
+          difficultyLevelId: questionsMeta.difficulty,
+          questionTypeId: questionsMeta.questionType,
+          subjectId: questionsMeta.subjectId,
+          topicId: questionsMeta.topicId,
+          language: questionsMeta.languageId,
+          writeUpId: questionsMeta.writeUpId,
+          headerText: questionHeader,
+        },
+        question: cleanQuestion,
+        options: {
+          options: stringifiedOptions!,
+          answer: stringifiedAnswer!,
+        },
+      };
+
+      console.log({ payload });
+
+      // Create the question (API creates both question and options in one call)
       const res = await createQuestionAction(payload);
 
       const { data, status, error, errorMessage, message } = res;
@@ -298,60 +334,12 @@ export default function Index() {
       const isQuestionCreated = (status >= 200 && status < 300) || (!error && status !== 0);
 
       if (isQuestionCreated) {
-        // Step 2: Create question options if question creation was successful
-        // Get the question ID from the response
-        const questionData = data as any;
-        let questionId = questionData?.questionId || questionData?.id || questionData?.QuestionId;
-
-        // If no ID is returned, we might need to handle this differently
-        // For now, let's assume the API works and just create the options with a placeholder
-        if (!questionId) {
-          console.warn("No question ID returned from API, using timestamp as fallback");
-          questionId = Date.now(); // Fallback - you might want to handle this better
-        }
-
-        const optionsPayload = {
-          questionId: questionId,
-          questionHeaderText: questionHeader || null,
-          questionText: question,
-          additionalExplanation: explanation,
-          videoSolutionWeburl: cleanVideoUrl || null,
-          videoSolutionMobileurl: null,
-          writeUpId: questionsMeta.writeUpId || null,
-          questionOptionsJson: stringifiedOptions!,
-          questionCorrectAnswerJson: stringifiedAnswer!,
-          language: questionsMeta.languageId,
-        };
-
-        const optionsRes = await createQuestionOptionsAction(optionsPayload);
-
-        console.log("Question options creation response:", { 
-          status: optionsRes.status, 
-          error: optionsRes.error, 
-          errorMessage: optionsRes.errorMessage,
-          message: optionsRes.message 
-        });
-
-        // Check for success more broadly
-        const isOptionsCreated = (optionsRes.status >= 200 && optionsRes.status < 300) || (!optionsRes.error && optionsRes.status !== 0);
-
-        if (isOptionsCreated) {
-          toast.success("Question Created Successfully");
-          if (goBack) {
-            setTimeout(() => {
-              router.back();
-            }, 2000);
-          }
-        } else {
-          toast.error(optionsRes.errorMessage || "Failed to save question options");
-          console.error("CreateQuestionOptionsAction failed", {
-            status: optionsRes.status,
-            error: optionsRes.error,
-            errorMessage: optionsRes.errorMessage,
-            message: optionsRes.message,
-            data: optionsRes.data,
-            payload: optionsPayload,
-          });
+        // Success! The API creates both question and options in one call
+        toast.success("Question Created Successfully");
+        if (goBack) {
+          setTimeout(() => {
+            router.push("/admin/questions");
+          }, 2000);
         }
       } else {
         console.error("CreateQuestionAction failed", {
@@ -385,6 +373,8 @@ export default function Index() {
     } catch (error) {
       console.error("Error in handleSubmit:", error);
       toast.error("An unexpected error occurred while saving the question");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -699,15 +689,25 @@ export default function Index() {
           <div className="flex items-center justify-end gap-4 pt-8 border-t border-gray-200">
             <button
               onClick={() => handleSubmit()}
-              className="px-6 py-3 rounded-md bg-indigo-600 text-white text-sm font-medium shadow hover:bg-indigo-700"
+              disabled={isSaving}
+              className={`px-6 py-3 rounded-md text-white text-sm font-medium shadow ${
+                isSaving 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-indigo-600 hover:bg-indigo-700'
+              }`}
             >
-              Save Question
+              {isSaving ? 'Saving...' : 'Save Question'}
             </button>
             <button
               onClick={handleSaveAndNew}
-              className="px-6 py-3 rounded-md border border-gray-300 text-sm font-medium hover:bg-gray-50"
+              disabled={isSaving}
+              className={`px-6 py-3 rounded-md border border-gray-300 text-sm font-medium ${
+                isSaving 
+                  ? 'bg-gray-50 text-gray-400 cursor-not-allowed' 
+                  : 'hover:bg-gray-50'
+              }`}
             >
-              Save & New
+              {isSaving ? 'Saving...' : 'Save & New'}
             </button>
       </div>
         </div>
