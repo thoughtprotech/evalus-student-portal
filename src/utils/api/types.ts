@@ -121,6 +121,7 @@ export interface CreateQuestionRequest {
     tags: string;
     marks: number;
     negativeMarks: number;
+    graceMarks: number;
     difficultyLevelId: number;
     questionTypeId: number;
     subjectId: number;

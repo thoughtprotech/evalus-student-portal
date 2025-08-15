@@ -15,6 +15,7 @@ interface CreateQuestionOptionsRequest {
   questionOptionsJson: string;
   questionCorrectAnswerJson: string;
   language: string;
+  optionMarks: number;
 }
 
 export async function createQuestionOptionsAction(
@@ -33,6 +34,7 @@ export async function createQuestionOptionsAction(
       QuestionOptionsJSON: payload.questionOptionsJson,
       QuestionCorrectAnswerJSON: payload.questionCorrectAnswerJson,
       Language: payload.language,
+      OptionMarks: payload.optionMarks,
       IsActive: 1,
       CreatedBy: "system", // Add required CreatedBy field
     };

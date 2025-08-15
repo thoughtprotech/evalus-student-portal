@@ -25,6 +25,7 @@ import Accordion from "@/components/Accordion";
 import { useRouter } from "next/navigation";
 import { fetchWriteUpsAction } from "@/app/actions/dashboard/spotlight/fetchWriteUps";
 import { fetchDifficultyLevelsAction } from "@/app/actions/dashboard/questions/fetchDifficultyLevels";
+import ConfirmationModal from "@/components/ConfirmationModal";
 
 export default function Index() {
   const [question, setQuestion] = useState<string>("");
@@ -38,7 +39,7 @@ export default function Index() {
     topicId: number;
     languageId: string;
     writeUpId: number;
-  optionMarks: number;
+  graceMarks: number;
   freeSpace: number; // 1 = Yes, 0 = No
   }>({
     tags: "",
@@ -50,7 +51,7 @@ export default function Index() {
     topicId: 0,
     languageId: "",
     writeUpId: 0,
-  optionMarks: 0,
+  graceMarks: 0,
   freeSpace: 0,
   });
   const [explanation, setExplanation] = useState<string>("");
@@ -69,6 +70,7 @@ export default function Index() {
   const [writeUps, setWriteUps] = useState<GetWriteUpsResponse[]>([]);
   const [difficultyLevels, setDifficultyLevels] = useState<GetDifficultyLevelsResponse[]>([]);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
 
   const router = useRouter();
 
@@ -306,6 +308,7 @@ export default function Index() {
           tags: questionsMeta.tags,
           marks: questionsMeta.marks,
           negativeMarks: questionsMeta.negativeMarks,
+          graceMarks: questionsMeta.graceMarks,
           difficultyLevelId: questionsMeta.difficulty,
           questionTypeId: questionsMeta.questionType,
           subjectId: questionsMeta.subjectId,
@@ -323,9 +326,8 @@ export default function Index() {
 
       console.log({ payload });
 
-      // Create the question (API creates both question and options in one call)
+      // Step 1: Create the question
       const res = await createQuestionAction(payload);
-
       const { data, status, error, errorMessage, message } = res;
 
       console.log("Question creation response:", { data, status, error, errorMessage, message });
@@ -335,12 +337,9 @@ export default function Index() {
 
       if (isQuestionCreated) {
         // Success! The API creates both question and options in one call
-        toast.success("Question Created Successfully");
-        if (goBack) {
-          setTimeout(() => {
-            router.push("/admin/questions");
-          }, 2000);
-        }
+        setIsSaving(false);
+        setShowSuccessModal(true);
+        console.log("Question and options created successfully!");
       } else {
         console.error("CreateQuestionAction failed", {
           status,
@@ -369,11 +368,11 @@ export default function Index() {
         
         toast.error(detailedError);
         console.error("CreateQuestionAction error", { status, error, errorMessage, data });
+        setIsSaving(false);
       }
     } catch (error) {
       console.error("Error in handleSubmit:", error);
       toast.error("An unexpected error occurred while saving the question");
-    } finally {
       setIsSaving(false);
     }
   };
@@ -633,15 +632,15 @@ export default function Index() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Option Marks</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Grace Marks</label>
                     <input
                       type="number"
                       min={0}
                       placeholder="0"
                       className="w-full border rounded-md px-4 py-3"
-                      value={questionsMeta.optionMarks || ''}
+                      value={questionsMeta.graceMarks || ''}
                       onChange={(e) => {
-                        setQuestionsMeta((prev) => ({ ...prev, optionMarks: Number(e.target.value) }));
+                        setQuestionsMeta((prev) => ({ ...prev, graceMarks: Number(e.target.value) }));
                       }}
                     />
                   </div>
@@ -712,6 +711,43 @@ export default function Index() {
       </div>
         </div>
       </div>
+
+      {/* Success Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showSuccessModal}
+        onConfirm={() => {
+          setShowSuccessModal(false);
+          router.push("/admin/questions");
+        }}
+        onCancel={() => {
+          setShowSuccessModal(false);
+          // Reset form for creating another question
+          setQuestion("");
+          setExplanation("");
+          setQuestionHeader("");
+          setVideoSolURL("");
+          setQuestionOptions(undefined);
+          setQuestionsMeta({
+            tags: "",
+            marks: 0,
+            negativeMarks: 0,
+            difficulty: 0,
+            questionType: 0,
+            subjectId: 0,
+            topicId: 0,
+            languageId: "",
+            writeUpId: 0,
+            graceMarks: 0,
+            freeSpace: 0,
+          });
+        }}
+        title="Question Created Successfully! 🎉"
+        message="Your question has been successfully created and saved to the database. Would you like to go back to the questions list or create another question?"
+        confirmText="Go to Questions"
+        cancelText="Create Another"
+        variant="success"
+        className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200"
+      />
     </div>
   );
 }
