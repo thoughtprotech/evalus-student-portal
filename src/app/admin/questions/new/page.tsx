@@ -596,7 +596,7 @@ export default function Index() {
                     required
                     value={questionsMeta?.topicId || ''}
                     onChange={(e) => {
-                      setQuestionsMeta((prev) => ({ ...prev, topicId: Number(e.target.value) }));
+                      setQuestionsMeta((prev) => ({ ...prev, topicId: Number(e.target.value), questionType: 0 }));
                     }}
                     disabled={!questionsMeta.chapterId}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
@@ -624,7 +624,8 @@ export default function Index() {
                     onChange={(e) => {
                       setQuestionsMeta((prev) => ({ ...prev, questionType: Number(e.target.value) }));
                     }}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white"
+                    disabled={!questionsMeta.topicId}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
                   >
                     <option value="">Select type</option>
                     {questionTypes?.map((questionType, idx) => (
@@ -638,6 +639,9 @@ export default function Index() {
                   </select>
                   {questionTypes.length === 0 && (
                     <p className="text-xs text-amber-600">Loading question types...</p>
+                  )}
+                  {!questionsMeta.topicId && (
+                    <p className="text-xs text-gray-500">Select a topic to enable question type selection</p>
                   )}
                 </div>
 
