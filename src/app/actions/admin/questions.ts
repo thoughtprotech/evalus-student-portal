@@ -62,19 +62,13 @@ function buildQuery(params: FetchQuestionsParams): string {
 }
 
 function mapToRows(items: ApiQuestionItem[]): QuestionRow[] {
-  console.log(`🔄 Starting to map ${items.length} items`);
-  
   return items.map((item, index) => {
-    console.log(`📝 Mapping item ${index + 1}/${items.length}:`, item);
-    
     // Validate item structure
     if (!item) {
-      console.log(`⚠️  Item ${index} is null or undefined`);
       return null;
     }
     
     if (typeof item !== 'object') {
-      console.log(`⚠️  Item ${index} is not an object:`, typeof item);
       return null;
     }
     
@@ -91,14 +85,11 @@ function mapToRows(items: ApiQuestionItem[]): QuestionRow[] {
       createdBy: "System", // Not provided in API response
     };
     
-    console.log(`✅ Mapped item ${index + 1}:`, mapped);
     return mapped;
   }).filter(item => item !== null) as QuestionRow[]; // Remove any null items
 }
 
 function getMockData(params: FetchQuestionsParams): ApiResponse<{ rows: QuestionRow[]; total: number }> {
-  console.log("Returning mock data with params:", params);
-  
   const mockData: QuestionRow[] = [
     {
       id: 1,
@@ -302,26 +293,15 @@ export async function fetchQuestionsAction(
     const useMockData = false;
     
     if (useMockData) {
-      console.log("USING MOCK DATA FOR TESTING");
       return getMockData(params);
     }
 
     // For OData function calls, we need to handle pagination differently
     // First, get all data without pagination parameters since function calls don't support $top/$skip
-    console.log("🔧 Making API call to OData function (pagination will be handled client-side)");
     
     const response = await apiHandler(endpoints.getAdminQuestions, { query: "" });
-    
-    console.log("API Response:", response);
 
     if (response.error || response.status !== 200) {
-      console.error("API Error Response:", {
-        status: response.status,
-        error: response.error,
-        message: response.message,
-        errorMessage: response.errorMessage
-      });
-      
       return {
         status: response.status,
         error: true,
@@ -330,10 +310,6 @@ export async function fetchQuestionsAction(
       };
     }
 
-    console.log("Raw API response data:", response.data);
-    console.log("Response data type:", typeof response.data);
-    console.log("Is response.data an array?", Array.isArray(response.data));
-    
     // Your API returns a direct array, so handle it with client-side pagination
     let allItems: ApiQuestionItem[] = [];
     let total = 0;
@@ -341,7 +317,6 @@ export async function fetchQuestionsAction(
     if (Array.isArray(response.data)) {
       allItems = response.data;
       total = allItems.length;
-      console.log("✅ Direct array response with", allItems.length, "total items");
       
       // Apply client-side pagination
       const requestedTop = params.top || 15;
@@ -377,8 +352,6 @@ export async function fetchQuestionsAction(
       
       // Apply filtering if specified
       if (params.filter) {
-        console.log('Applying filter:', params.filter);
-        
         // Parse OData-style filters
         const filterParts = params.filter.split(' and ');
         
@@ -444,8 +417,6 @@ export async function fetchQuestionsAction(
       
       // Apply pagination
       const paginatedItems = allItems.slice(currentSkip, currentSkip + requestedTop);
-      console.log(`📄 Paginated: showing ${paginatedItems.length} items (${currentSkip + 1}-${currentSkip + paginatedItems.length} of ${total})`);
-      
       const mappedRows = mapToRows(paginatedItems);
       return {
         status: 200,
@@ -453,15 +424,12 @@ export async function fetchQuestionsAction(
         data: { rows: mappedRows, total }
       };
     } else {
-      console.log("❌ Expected array response but got:", typeof response.data);
       // Fallback: try to find array data anywhere in the response
       if (response.data && typeof response.data === 'object') {
         const dataKeys = Object.keys(response.data);
-        console.log("Available keys in response:", dataKeys);
         for (const key of dataKeys) {
           const dataAny = response.data as any;
           if (Array.isArray(dataAny[key])) {
-            console.log(`Found array at key '${key}' with ${dataAny[key].length} items`);
             allItems = dataAny[key];
             total = allItems.length;
             break;
@@ -470,7 +438,6 @@ export async function fetchQuestionsAction(
       }
       
       if (allItems.length === 0) {
-        console.log("❌ Could not find any array data in response");
         return {
           status: 200,
           message: "No questions found",
