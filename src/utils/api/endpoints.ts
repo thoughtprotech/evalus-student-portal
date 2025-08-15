@@ -127,6 +127,13 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<null, GetWriteUpsResponse[]>,
 
+  // OData - Writeups list for dropdowns
+  getWriteUpsOData: {
+    method: "GET",
+    path: () => `/odata/Writeups?$select=WriteUpId,WriteUpName,Language,IsActive`,
+    type: "OPEN",
+  } as Endpoint<null, import('./types').ODataList<GetWriteUpsResponse>>, 
+
   getLanguages: {
     method: "GET",
     path: () => `/api/Languages`,

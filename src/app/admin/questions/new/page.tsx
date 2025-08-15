@@ -38,6 +38,8 @@ export default function Index() {
     topicId: number;
     languageId: string;
     writeUpId: number;
+  optionMarks: number;
+  freeSpace: number; // 1 = Yes, 0 = No
   }>({
     tags: "",
     marks: 0,
@@ -48,6 +50,8 @@ export default function Index() {
     topicId: 0,
     languageId: "",
     writeUpId: 0,
+  optionMarks: 0,
+  freeSpace: 0,
   });
   const [explanation, setExplanation] = useState<string>("");
   const [questionHeader, setQuestionHeader] = useState<string>("");
@@ -202,6 +206,7 @@ export default function Index() {
     // Load only languages and question types initially
     fetchQuestionTypes();
     fetchLanguages();
+  fetchWriteUps();
     // Subjects and topics are loaded on dropdown selection
   }, []);
 
@@ -538,18 +543,25 @@ export default function Index() {
                       min={0}
                       placeholder="0"
                       className="w-full border rounded-md px-4 py-3"
-                      disabled
+                      value={questionsMeta.optionMarks || ''}
+                      onChange={(e) => {
+                        setQuestionsMeta((prev) => ({ ...prev, optionMarks: Number(e.target.value) }));
+                      }}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Free Space</label>
-                    <input
-                      type="number"
-                      min={0}
-                      placeholder="0"
+                    <select
                       className="w-full border rounded-md px-4 py-3"
-                      disabled
-                    />
+                      value={questionsMeta.freeSpace}
+                      onChange={(e) => {
+                        const val = Number(e.target.value) as 0 | 1;
+                        setQuestionsMeta((prev) => ({ ...prev, freeSpace: val }));
+                      }}
+                    >
+                      <option value={0}>No</option>
+                      <option value={1}>Yes</option>
+                    </select>
                   </div>
                 </div>
 
