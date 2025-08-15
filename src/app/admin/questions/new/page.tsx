@@ -790,26 +790,6 @@ export default function Index() {
                     </div>
                   </div>
                 </div>
-
-                {/* Progress Indicator */}
-                <div className="pt-4 border-t border-gray-200">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-600">Configuration Progress</span>
-                      <span className="text-gray-900 font-medium">
-                        {[questionsMeta.languageId, questionsMeta.subjectId, questionsMeta.chapterId, questionsMeta.topicId, questionsMeta.questionType, questionsMeta.difficulty].filter(Boolean).length}/6
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
-                        style={{
-                          width: `${([questionsMeta.languageId, questionsMeta.subjectId, questionsMeta.chapterId, questionsMeta.topicId, questionsMeta.questionType, questionsMeta.difficulty].filter(Boolean).length / 6) * 100}%`
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -817,20 +797,94 @@ export default function Index() {
           {/* Right Column - Main Content */}
           <div className="col-span-12 lg:col-span-8 xl:col-span-9">
             <div className="space-y-6">
+              {/* Configuration Progress Section */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-blue-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-indigo-100 rounded-md flex items-center justify-center">
+                        <span className="text-indigo-600 text-sm font-bold">📊</span>
+                      </div>
+                      <span className="text-sm font-semibold text-gray-900">Configuration Progress</span>
+                    </div>
+                    <span className="text-sm text-gray-600 font-medium">
+                      {[questionsMeta.languageId, questionsMeta.subjectId, questionsMeta.chapterId, questionsMeta.topicId, questionsMeta.questionType, questionsMeta.difficulty].filter(Boolean).length}/6 Complete
+                    </span>
+                  </div>
+                </div>
+                <div className="p-4">
+                  <div className="space-y-3">
+                    {/* Progress Bar */}
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-gradient-to-r from-indigo-500 to-blue-600 h-2 rounded-full transition-all duration-500 ease-out"
+                        style={{
+                          width: `${([questionsMeta.languageId, questionsMeta.subjectId, questionsMeta.chapterId, questionsMeta.topicId, questionsMeta.questionType, questionsMeta.difficulty].filter(Boolean).length / 6) * 100}%`
+                        }}
+                      />
+                    </div>
+
+                    {/* Configuration Checklist */}
+                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                      <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.languageId ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
+                        <div className={`w-3 h-3 rounded-full ${questionsMeta.languageId ? 'bg-green-500' : 'bg-gray-300'}`}>
+                          {questionsMeta.languageId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+                        </div>
+                        <span className="font-medium">Language</span>
+                      </div>
+                      
+                      <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.subjectId ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
+                        <div className={`w-3 h-3 rounded-full ${questionsMeta.subjectId ? 'bg-green-500' : 'bg-gray-300'}`}>
+                          {questionsMeta.subjectId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+                        </div>
+                        <span className="font-medium">Subject</span>
+                      </div>
+                      
+                      <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.chapterId ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
+                        <div className={`w-3 h-3 rounded-full ${questionsMeta.chapterId ? 'bg-green-500' : 'bg-gray-300'}`}>
+                          {questionsMeta.chapterId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+                        </div>
+                        <span className="font-medium">Chapter</span>
+                      </div>
+                      
+                      <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.topicId ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
+                        <div className={`w-3 h-3 rounded-full ${questionsMeta.topicId ? 'bg-green-500' : 'bg-gray-300'}`}>
+                          {questionsMeta.topicId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+                        </div>
+                        <span className="font-medium">Topic</span>
+                      </div>
+                      
+                      <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.questionType ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
+                        <div className={`w-3 h-3 rounded-full ${questionsMeta.questionType ? 'bg-green-500' : 'bg-gray-300'}`}>
+                          {questionsMeta.questionType && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+                        </div>
+                        <span className="font-medium">Type</span>
+                      </div>
+                      
+                      <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.difficulty ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
+                        <div className={`w-3 h-3 rounded-full ${questionsMeta.difficulty ? 'bg-green-500' : 'bg-gray-300'}`}>
+                          {questionsMeta.difficulty && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+                        </div>
+                        <span className="font-medium">Difficulty</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Question Content Section */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 transition-shadow hover:shadow-md">
-                <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
-                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center ring-2 ring-green-200">
-                      <HelpCircle className="w-4 h-4 text-green-600" />
+                <div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-green-100 rounded-md flex items-center justify-center">
+                        <HelpCircle className="w-4 h-4 text-green-600" />
+                      </div>
+                      <span className="text-sm font-semibold text-gray-900">Question Content</span>
                     </div>
-                    <div>
-                      <span className="text-gray-900">Question Content</span>
-                      <p className="text-sm text-gray-600 font-normal mt-1">Add your question and header information</p>
-                    </div>
-                  </h2>
+                  </div>
                 </div>
-                <div className="p-6">
+                <div className="p-4">
                   <div className="space-y-6">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-3">Question Header (Optional)</label>
@@ -861,18 +915,17 @@ export default function Index() {
 
               {/* Question Options Section */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 transition-shadow hover:shadow-md">
-                <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center ring-2 ring-blue-200">
-                      <span className="text-blue-600 text-lg font-bold">◯</span>
+                <div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-blue-100 rounded-md flex items-center justify-center">
+                        <span className="text-blue-600 text-sm font-bold">◯</span>
+                      </div>
+                      <span className="text-sm font-semibold text-gray-900">Answer Options</span>
                     </div>
-                    <div>
-                      <span className="text-gray-900">Answer Options</span>
-                      <p className="text-sm text-gray-600 font-normal mt-1">Configure answer choices based on question type</p>
-                    </div>
-                  </h2>
+                  </div>
                 </div>
-                <div className="p-6">
+                <div className="p-4">
                   {questionsMeta?.questionType ? (
                     <QuestionOptionsInput
                       questionTypeId={questionsMeta?.questionType}
@@ -892,18 +945,17 @@ export default function Index() {
 
               {/* Explanation Section */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 transition-shadow hover:shadow-md">
-                <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-amber-50">
-                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-3">
-                    <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center ring-2 ring-yellow-200">
-                      <span className="text-yellow-600 text-lg font-bold">💡</span>
+                <div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-amber-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-yellow-100 rounded-md flex items-center justify-center">
+                        <span className="text-yellow-600 text-sm font-bold">💡</span>
+                      </div>
+                      <span className="text-sm font-semibold text-gray-900">Explanation & Solution</span>
                     </div>
-                    <div>
-                      <span className="text-gray-900">Explanation & Solution</span>
-                      <p className="text-sm text-gray-600 font-normal mt-1">Provide detailed explanation and video solution</p>
-                    </div>
-                  </h2>
+                  </div>
                 </div>
-                <div className="p-6">
+                <div className="p-4">
                   <div className="space-y-6">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-3">Explanation</label>
