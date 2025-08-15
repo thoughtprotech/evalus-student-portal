@@ -14,7 +14,7 @@ const QuestionOptionsInput = ({
   onDataChange: (data: any) => void;
 }) => {
   const [type, setType] = useState<string>();
-  const [options, setOptions] = useState<string[]>(["", ""]);
+  const [options, setOptions] = useState<string[]>(["Option 1", "Option 2"]);
   const [correctOptions, setCorrectOptions] = useState<string[]>([]);
 
   const [matchCols, setMatchCols] = useState<string[][]>([[""], [""]]);
@@ -28,6 +28,12 @@ const QuestionOptionsInput = ({
   useEffect(() => {
     const qt = questionTypes.find((q) => q.questionTypeId === questionTypeId);
     setType(qt?.questionType);
+    
+    // Reset states when question type changes
+    if (qt?.questionType === QUESTION_TYPES.SINGLE_MCQ || qt?.questionType === QUESTION_TYPES.MULTIPLE_MCQ) {
+      setOptions(["Option 1", "Option 2"]);
+      setCorrectOptions([]);
+    }
   }, [questionTypeId]);
 
   useEffect(() => {
@@ -73,51 +79,73 @@ const QuestionOptionsInput = ({
   ) {
     return (
       <div className="flex flex-col gap-3">
-        {options.map((opt, idx) => (
-          <label key={idx} className="flex items-center gap-2">
-            <input
-              type={type === QUESTION_TYPES.SINGLE_MCQ ? "radio" : "checkbox"}
-              name="correctOption"
-              checked={
-                type === QUESTION_TYPES.SINGLE_MCQ
-                  ? correctOptions[0] === opt
-                  : correctOptions.includes(opt)
-              }
-              onChange={() => {
-                if (type === QUESTION_TYPES.SINGLE_MCQ) {
-                  setCorrectOptions([opt]);
-                } else {
-                  const updated = [...correctOptions];
-                  const i = updated.indexOf(opt);
-                  if (i >= 0) updated.splice(i, 1);
-                  else updated.push(opt);
-                  setCorrectOptions(updated);
-                }
-              }}
-            />
-            <input
-              value={opt}
-              onChange={(e) => {
-                const newOpts = [...options];
-                newOpts[idx] = e.target.value;
+        {options.map((opt, idx) => {
+          const optionId = `option-${idx}-${opt}`;
+          const isChecked = type === QUESTION_TYPES.SINGLE_MCQ
+            ? correctOptions[0] === opt
+            : correctOptions.includes(opt);
+            
+          return (
+            <div key={optionId} className="flex items-center gap-2">
+              <input
+                id={optionId}
+                type={type === QUESTION_TYPES.SINGLE_MCQ ? "radio" : "checkbox"}
+                name={type === QUESTION_TYPES.SINGLE_MCQ ? "correctOption" : undefined}
+                checked={isChecked}
+                onChange={(e) => {
+                  e.stopPropagation();
+                  console.log(`Checkbox clicked for option ${idx}: "${opt}", checked: ${e.target.checked}, type: ${type}`);
+                  
+                  if (type === QUESTION_TYPES.SINGLE_MCQ) {
+                    setCorrectOptions([opt]);
+                  } else if (type === QUESTION_TYPES.MULTIPLE_MCQ) {
+                    // Multiple MCQ logic
+                    setCorrectOptions(prev => {
+                      const updated = [...prev];
+                      const i = updated.indexOf(opt);
+                      if (i >= 0) {
+                        // Remove if already selected
+                        updated.splice(i, 1);
+                        console.log(`Removed option: "${opt}"`);
+                      } else {
+                        // Add if not selected
+                        updated.push(opt);
+                        console.log(`Added option: "${opt}"`);
+                      }
+                      console.log('Updated correct options:', updated);
+                      return updated;
+                    });
+                  }
+                }}
+              />
+              <input
+                value={opt}
+                onChange={(e) => {
+                  const newOpts = [...options];
+                  const oldOpt = newOpts[idx];
+                  newOpts[idx] = e.target.value;
 
-                const newCorrect = [...correctOptions];
-                if (correctOptions.includes(opt)) {
-                  const i = newCorrect.indexOf(opt);
-                  newCorrect[i] = e.target.value;
-                  setCorrectOptions(newCorrect);
-                }
+                  // Update correctOptions if this option was selected
+                  const newCorrect = [...correctOptions];
+                  if (correctOptions.includes(oldOpt)) {
+                    const i = newCorrect.indexOf(oldOpt);
+                    if (i >= 0) {
+                      newCorrect[i] = e.target.value;
+                    }
+                    setCorrectOptions(newCorrect);
+                  }
 
-                setOptions(newOpts);
-              }}
-              className="px-3 py-2 border border-gray-300 rounded-xl flex-1"
-              placeholder={`Option ${idx + 1}`}
-            />
-          </label>
-        ))}
+                  setOptions(newOpts);
+                }}
+                className="px-3 py-2 border border-gray-300 rounded-xl flex-1"
+                placeholder={`Option ${idx + 1}`}
+              />
+            </div>
+          );
+        })}
         <div className="flex gap-2">
           <button
-            onClick={() => setOptions([...options, ""])}
+            onClick={() => setOptions([...options, `Option ${options.length + 1}`])}
             className="px-6 py-3 rounded-md bg-indigo-600 text-white text-sm font-medium shadow hover:bg-indigo-700"
           >
             Add Option

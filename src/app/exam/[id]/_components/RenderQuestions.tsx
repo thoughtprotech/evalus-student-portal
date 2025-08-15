@@ -2,7 +2,7 @@ import { TextOrHtml } from "@/components/TextOrHtml";
 import { GetQuestionByIdResponse } from "@/utils/api/types";
 import { QUESTION_TYPES } from "@/utils/constants";
 import clsx from "clsx";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useCallback } from "react";
 
 export default function renderQuestion(
   question: GetQuestionByIdResponse,
@@ -14,97 +14,138 @@ export default function renderQuestion(
         <div className="flex flex-col gap-2">
           {JSON.parse(question!.questionOptionsJson).map(
             (option: string, index: number) => {
+              // Parse current answers safely
+              let currentAnswers: string[] = [];
+              try {
+                const parsed = JSON.parse(question!.userAnswer || "[]");
+                currentAnswers = Array.isArray(parsed) ? parsed : [];
+              } catch {
+                currentAnswers = [];
+              }
+              
+              const isSelected = currentAnswers.includes(option);
+              
               return (
-                <label
+                <div
                   key={index}
                   className={clsx(
                     "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base",
-                    JSON?.parse(question!.userAnswer)?.includes(option)
+                    isSelected
                       ? "border-indigo-600 bg-indigo-100 text-indigo-900"
                       : "border-gray-300 hover:bg-gray-100"
                   )}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    setQuestion((prev) => {
+                      if (!prev) {
+                        return prev; // still undefined
+                      }
+                      return {
+                        ...prev,
+                        userAnswer: JSON.stringify([option]),
+                      };
+                    });
+
+                    console.log('Selected option:', option);
+                  }}
                 >
                   <input
-                    type="checkbox"
+                    type="radio"
                     className="hidden"
-                    // checked={currentQuestion.selectedOption.includes(index)}
-                    // onChange={() => handleToggleMultiple(index)}
-                    onChange={() => {
-                      setQuestion((prev) => {
-                        if (!prev) {
-                          return prev; // still undefined
-                        }
-                        return {
-                          ...prev,
-                          userAnswer: JSON.stringify([option]),
-                        };
-                      });
-
-                      console.log(option);
-                    }}
+                    checked={isSelected}
+                    readOnly
                   />
                   <TextOrHtml content={option} />
-                </label>
+                </div>
               );
             }
           )}
         </div>
       );
     case QUESTION_TYPES.MULTIPLE_MCQ:
+      const handleMultipleChoice = useCallback((optionToToggle: string) => {
+        console.log(`handleMultipleChoice called for: "${optionToToggle}"`);
+        
+        setQuestion((prev) => {
+          if (!prev) return prev;
+
+          // Parse existing answers
+          let answers: string[];
+          try {
+            answers = JSON.parse(prev.userAnswer || "[]");
+            if (!Array.isArray(answers)) answers = [];
+          } catch {
+            answers = [];
+          }
+
+          console.log('Current answers before toggle:', answers);
+
+          // Create new array to avoid mutation
+          const newAnswers = [...answers];
+          const idx = newAnswers.indexOf(optionToToggle);
+          
+          if (idx >= 0) {
+            // Remove if already selected
+            newAnswers.splice(idx, 1);
+            console.log('Removed option:', optionToToggle);
+          } else {
+            // Add if not selected
+            newAnswers.push(optionToToggle);
+            console.log('Added option:', optionToToggle);
+          }
+
+          console.log('New answers after toggle:', newAnswers);
+
+          return {
+            ...prev,
+            userAnswer: JSON.stringify(newAnswers),
+          };
+        });
+      }, [setQuestion]);
+
       return (
         <div className="flex flex-col gap-2">
           {JSON.parse(question!.questionOptionsJson).map(
             (option: string, index: number) => {
+              // Parse current answers safely
+              let currentAnswers: string[] = [];
+              try {
+                const parsed = JSON.parse(question!.userAnswer || "[]");
+                currentAnswers = Array.isArray(parsed) ? parsed : [];
+              } catch {
+                currentAnswers = [];
+              }
+              
+              const isSelected = currentAnswers.includes(option);
+              
+              console.log(`Rendering option ${index}: "${option}", isSelected: ${isSelected}`);
+              
               return (
-                <label
-                  key={index}
+                <div
+                  key={`multiple-mcq-${index}-${option}`}
                   className={clsx(
-                    "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base",
-                    JSON?.parse(question!.userAnswer)?.includes(option)
+                    "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base select-none",
+                    isSelected
                       ? "border-indigo-600 bg-indigo-100 text-indigo-900"
                       : "border-gray-300 hover:bg-gray-100"
                   )}
+                  onClick={() => handleMultipleChoice(option)}
+                  onMouseDown={(e) => e.preventDefault()}
                 >
-                  <input
-                    type="checkbox"
-                    className="hidden"
-                    // checked={currentQuestion.selectedOption.includes(index)}
-                    // onChange={() => handleToggleMultiple(index)}
-                    onChange={() => {
-                      setQuestion((prev) => {
-                        if (!prev) return prev;
-
-                        // 1. Parse existing answers
-                        let answers: string[];
-                        try {
-                          answers = JSON.parse(prev.userAnswer);
-                          if (!Array.isArray(answers)) throw new Error();
-                        } catch {
-                          answers = [];
-                        }
-
-                        // 2. Toggle the current option
-                        const idx = answers.indexOf(option);
-                        if (idx >= 0) {
-                          // already selected → remove
-                          answers.splice(idx, 1);
-                        } else {
-                          // not selected → add
-                          answers.push(option);
-                        }
-
-                        // 3. Return updated question
-                        return {
-                          ...prev,
-                          userAnswer: JSON.stringify(answers),
-                        };
-                      });
-
-                      console.log(option);
-                    }}
-                  />
-                  <TextOrHtml content={option} />
-                </label>
+                  <div className="flex items-center gap-2 pointer-events-none">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      readOnly
+                      className="pointer-events-none"
+                    />
+                    <div className="flex-1">
+                      <TextOrHtml content={option} />
+                    </div>
+                  </div>
+                </div>
               );
             }
           )}
