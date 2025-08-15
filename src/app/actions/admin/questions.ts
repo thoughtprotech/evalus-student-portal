@@ -21,6 +21,7 @@ export interface QuestionRow {
   language?: string;
   isActive?: number;
   createdBy?: string;
+  questionoptionId?: number;
 }
 
 // API response structure based on your provided example
@@ -34,6 +35,7 @@ interface ApiQuestionItem {
   modifiedDate: string;
   isActive: number;
   language: string;
+  questionOptionId: number;
 }
 
 interface ODataResponse<T> {
@@ -83,6 +85,7 @@ function mapToRows(items: ApiQuestionItem[]): QuestionRow[] {
       language: item.language || "English",
       isActive: item.isActive || 0,
       createdBy: "System", // Not provided in API response
+      questionoptionId: item.questionOptionId || undefined, // Map questionOptionId from API response
     };
     
     return mapped;
@@ -102,6 +105,7 @@ function getMockData(params: FetchQuestionsParams): ApiResponse<{ rows: Question
       language: "English",
       createdBy: "Admin",
       isActive: 1,
+      questionoptionId: 101,
     },
     {
       id: 2,
@@ -114,6 +118,7 @@ function getMockData(params: FetchQuestionsParams): ApiResponse<{ rows: Question
       language: "English",
       createdBy: "System",
       isActive: 1,
+      questionoptionId: 102,
     },
     {
       id: 3,
@@ -126,6 +131,7 @@ function getMockData(params: FetchQuestionsParams): ApiResponse<{ rows: Question
       language: "English",
       createdBy: "Teacher1",
       isActive: 1,
+      questionoptionId: 103,
     },
     {
       id: 4,
@@ -138,6 +144,7 @@ function getMockData(params: FetchQuestionsParams): ApiResponse<{ rows: Question
       language: "English",
       createdBy: "Admin",
       isActive: 1,
+      questionoptionId: 104,
     },
     {
       id: 5,
@@ -150,6 +157,7 @@ function getMockData(params: FetchQuestionsParams): ApiResponse<{ rows: Question
       language: "English",
       createdBy: "Teacher2",
       isActive: 1,
+      questionoptionId: 105,
     },
     {
       id: 6,
@@ -162,6 +170,7 @@ function getMockData(params: FetchQuestionsParams): ApiResponse<{ rows: Question
       language: "English",
       createdBy: "System",
       isActive: 1,
+      questionoptionId: 106,
     },
     {
       id: 7,
@@ -174,6 +183,7 @@ function getMockData(params: FetchQuestionsParams): ApiResponse<{ rows: Question
       language: "English",
       createdBy: "Teacher3",
       isActive: 1,
+      questionoptionId: 107,
     },
     {
       id: 8,
@@ -186,6 +196,7 @@ function getMockData(params: FetchQuestionsParams): ApiResponse<{ rows: Question
       language: "English",
       createdBy: "Admin",
       isActive: 1,
+      questionoptionId: 108,
     },
     {
       id: 9,
@@ -198,6 +209,7 @@ function getMockData(params: FetchQuestionsParams): ApiResponse<{ rows: Question
       language: "English",
       createdBy: "Teacher1",
       isActive: 1,
+      questionoptionId: 109,
     },
     {
       id: 10,
@@ -210,6 +222,7 @@ function getMockData(params: FetchQuestionsParams): ApiResponse<{ rows: Question
       language: "English",
       createdBy: "System",
       isActive: 1,
+      questionoptionId: 110,
     },
     {
       id: 11,
@@ -222,6 +235,7 @@ function getMockData(params: FetchQuestionsParams): ApiResponse<{ rows: Question
       language: "English",
       createdBy: "Teacher2",
       isActive: 1,
+      questionoptionId: 111,
     },
     {
       id: 12,
@@ -234,6 +248,7 @@ function getMockData(params: FetchQuestionsParams): ApiResponse<{ rows: Question
       language: "English",
       createdBy: "Admin",
       isActive: 1,
+      questionoptionId: 112,
     },
     {
       id: 13,
@@ -246,6 +261,7 @@ function getMockData(params: FetchQuestionsParams): ApiResponse<{ rows: Question
       language: "English",
       createdBy: "Teacher3",
       isActive: 1,
+      questionoptionId: 113,
     },
     {
       id: 14,
@@ -258,6 +274,7 @@ function getMockData(params: FetchQuestionsParams): ApiResponse<{ rows: Question
       language: "English",
       createdBy: "System",
       isActive: 1,
+      questionoptionId: 114,
     },
     {
       id: 15,
@@ -270,6 +287,7 @@ function getMockData(params: FetchQuestionsParams): ApiResponse<{ rows: Question
       language: "English",
       createdBy: "Teacher1",
       isActive: 1,
+      questionoptionId: 115,
     }
   ];
   
@@ -458,7 +476,6 @@ export async function fetchQuestionsAction(
       };
     }
   } catch (error: any) {
-    console.error("Error Fetching Questions:", error);
     return {
       status: 500,
       error: true,
@@ -473,7 +490,6 @@ export async function deleteQuestionAction(id: number): Promise<ApiResponse<null
     // Note: You may need to add this endpoint to endpoints.ts if it doesn't exist
     // const res = await apiHandler(endpoints.deleteAdminQuestion, { id } as any);
     // For now, return a placeholder implementation
-    console.log("Delete question with id:", id);
     return { 
       status: 200, 
       message: "Question deletion not implemented yet. Please add endpoint to endpoints.ts" 

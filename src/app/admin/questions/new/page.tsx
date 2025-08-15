@@ -82,8 +82,6 @@ export default function Index() {
     const { data, status, error, errorMessage } = res;
     if (status === 200) {
       setQuestionTypes(data ?? []);
-    } else {
-      console.log({ status, error, errorMessage });
     }
   };
 
@@ -115,8 +113,6 @@ export default function Index() {
       setChapters([]);
       setTopics([]);
       setQuestionsMeta((prev) => ({ ...prev, subjectId: 0, chapterId: 0, topicId: 0 }));
-    } else {
-      console.log({ status, error, errorMessage });
     }
   };
 
@@ -157,8 +153,6 @@ export default function Index() {
       setTopics(list);
       // Do not auto-select; keep topicId empty until user chooses
       setQuestionsMeta((prev) => ({ ...prev, topicId: 0 }));
-    } else {
-      console.log({ status, error, errorMessage });
     }
   };
 
@@ -187,8 +181,6 @@ export default function Index() {
     if (status === 200) {
       setLanguages(data ?? []);
       // Keep language unselected initially
-    } else {
-      console.log({ status, error, errorMessage });
     }
   };
 
@@ -197,8 +189,6 @@ export default function Index() {
     const { data, status, error, errorMessage } = res;
     if (status === 200) {
       setWriteUps(data!);
-    } else {
-      console.log({ status, error, errorMessage });
     }
   };
 
@@ -208,7 +198,7 @@ export default function Index() {
     if (status === 200) {
       setDifficultyLevels(data ?? []);
     } else {
-      console.log({ status, error, errorMessage });
+      // Error handled silently or show user notification
     }
   };
 
@@ -240,10 +230,6 @@ export default function Index() {
           return false;
         }
       };
-
-      console.log("Form validation - Subject ID:", questionsMeta.subjectId);
-      console.log("Form validation - Chapter ID:", questionsMeta.chapterId);
-      console.log("Form validation - Topic ID:", questionsMeta.topicId);
 
       if (questionsMeta.subjectId === 0) {
         toast.error("Subject Is Required");
@@ -344,17 +330,9 @@ export default function Index() {
         },
       };
 
-      console.log("Payload being sent to API:");
-      console.log("- subjectId (from Subject dropdown):", questionsMeta.subjectId);
-      console.log("- chapterId (from Chapter dropdown):", questionsMeta.chapterId);
-      console.log("- topicId (from Topic dropdown):", questionsMeta.topicId);
-      console.log("Full payload:", payload);
-
       // Step 1: Create the question
       const res = await createQuestionAction(payload);
       const { data, status, error, errorMessage, message } = res;
-
-      console.log("Question creation response:", { data, status, error, errorMessage, message });
 
       // Check for success more broadly
       const isQuestionCreated = (status >= 200 && status < 300) || (!error && status !== 0);
@@ -364,17 +342,8 @@ export default function Index() {
         if (showModal) {
           setShowSuccessModal(true);
         }
-        console.log("Question and options created successfully!");
         return {success: true};
       } else {
-        console.error("CreateQuestionAction failed", {
-          status,
-          error,
-          errorMessage,
-          message,
-          data,
-          payload,
-        });
         // Extract detailed error message from API response if available
         let detailedError = errorMessage || "Failed to create question";
         
@@ -393,11 +362,9 @@ export default function Index() {
         }
         
         toast.error(detailedError);
-        console.error("CreateQuestionAction error", { status, error, errorMessage, data });
         return {success: false};
       }
     } catch (error) {
-      console.error("Error in submitQuestion:", error);
       toast.error("An unexpected error occurred while saving the question");
       return {success: false};
     }
@@ -459,10 +426,6 @@ export default function Index() {
     setIsSaving(false);
   };
 
-  useEffect(() => {
-    console.log({ questionsMeta });
-  }, [questionsMeta]);
-
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-6xl mx-auto">
@@ -513,7 +476,6 @@ export default function Index() {
                  value={questionsMeta?.subjectId || ''}
                 onChange={(e) => {
                   const newSubjectId = Number(e.target.value);
-                  console.log("Subject dropdown changed - Selected Subject ID:", newSubjectId);
                   
                   // reset chapters and topics immediately for better UX while loading
                   setChapters([]);
@@ -543,7 +505,6 @@ export default function Index() {
                  value={questionsMeta?.chapterId || ''}
                 onChange={(e) => {
                   const newChapterId = Number(e.target.value);
-                  console.log("Chapter dropdown changed - Selected Chapter ID:", newChapterId);
                   
                   // reset topics immediately for better UX while loading
                   setTopics([]);

@@ -51,20 +51,19 @@ export default function ProfilePage() {
       formdata
     );
     if (status) {
-      console.log({ data, message });
+      // Profile image updated successfully
     }
   };
 
   const handleUserUpdate = async (text: string, field: string) => {
     const formData = new FormData();
     formData.append(field, text);
-    console.log({ formData });
     const { status, data, message } = await updateCandidateAction(
       candidate!.CandidateID,
       formData
     );
     if (status) {
-      console.log({ data, message });
+      // Profile field updated successfully
     }
   };
 

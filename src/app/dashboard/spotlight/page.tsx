@@ -52,7 +52,6 @@ export default function AnnouncementsPage() {
             placeholder="Search Spotlight"
             onSearch={(value) => {
               setQuery(value);
-              console.log("Value:", value);
             }}
           />
         </div>

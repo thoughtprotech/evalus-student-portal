@@ -26,7 +26,6 @@ export default function Index() {
     const { data, status } = res;
     setLoaded(false);
     if (status === 200) {
-      console.log({ data });
       setTestList(data!);
       setLoaded(true);
     } else {
@@ -107,7 +106,6 @@ export default function Index() {
             placeholder="Search Tests"
             onSearch={(value) => {
               setSearchQuery(value);
-              console.log("Searching in tab:", currentTab, "Value:", value);
             }}
           />
         </div>

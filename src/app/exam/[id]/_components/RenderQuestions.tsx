@@ -47,8 +47,6 @@ export default function renderQuestion(
                         userAnswer: JSON.stringify([option]),
                       };
                     });
-
-                    console.log('Selected option:', option);
                   }}
                 >
                   <input
@@ -66,8 +64,6 @@ export default function renderQuestion(
       );
     case QUESTION_TYPES.MULTIPLE_MCQ:
       const handleMultipleChoice = useCallback((optionToToggle: string) => {
-        console.log(`handleMultipleChoice called for: "${optionToToggle}"`);
-        
         setQuestion((prev) => {
           if (!prev) return prev;
 
@@ -80,23 +76,17 @@ export default function renderQuestion(
             answers = [];
           }
 
-          console.log('Current answers before toggle:', answers);
-
           // Create new array to avoid mutation
           const newAnswers = [...answers];
           const idx = newAnswers.indexOf(optionToToggle);
           
-          if (idx >= 0) {
+          if (idx !== -1) {
             // Remove if already selected
             newAnswers.splice(idx, 1);
-            console.log('Removed option:', optionToToggle);
           } else {
             // Add if not selected
             newAnswers.push(optionToToggle);
-            console.log('Added option:', optionToToggle);
           }
-
-          console.log('New answers after toggle:', newAnswers);
 
           return {
             ...prev,
@@ -119,8 +109,6 @@ export default function renderQuestion(
               }
               
               const isSelected = currentAnswers.includes(option);
-              
-              console.log(`Rendering option ${index}: "${option}", isSelected: ${isSelected}`);
               
               return (
                 <div
@@ -319,7 +307,6 @@ export default function renderQuestion(
                   userAnswer: e.target.value,
                 };
               });
-              console.log(e.target.value);
             }}
             value={question?.userAnswer}
           />

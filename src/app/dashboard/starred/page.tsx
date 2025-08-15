@@ -53,7 +53,6 @@ export default function Index() {
             placeholder="Search Starred"
             onSearch={(value) => {
               setSearchQuery(value);
-              console.log("Value:", value);
             }}
           />
         </div>

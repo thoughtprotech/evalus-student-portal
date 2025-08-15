@@ -94,7 +94,6 @@ const QuestionOptionsInput = ({
                 checked={isChecked}
                 onChange={(e) => {
                   e.stopPropagation();
-                  console.log(`Checkbox clicked for option ${idx}: "${opt}", checked: ${e.target.checked}, type: ${type}`);
                   
                   if (type === QUESTION_TYPES.SINGLE_MCQ) {
                     setCorrectOptions([opt]);
@@ -106,13 +105,10 @@ const QuestionOptionsInput = ({
                       if (i >= 0) {
                         // Remove if already selected
                         updated.splice(i, 1);
-                        console.log(`Removed option: "${opt}"`);
                       } else {
                         // Add if not selected
                         updated.push(opt);
-                        console.log(`Added option: "${opt}"`);
                       }
-                      console.log('Updated correct options:', updated);
                       return updated;
                     });
                   }

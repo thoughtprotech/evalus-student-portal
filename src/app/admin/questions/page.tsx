@@ -268,6 +268,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         pinned: 'right'
       },
       { field: "id", headerName: "ID", hide: true },
+      { field: "questionoptionId", headerName: "Question Option ID", hide: true },
     ],
     [page, pageSize] // Dependencies for S.No. calculation
   );
@@ -310,11 +311,9 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
     
     // Add column filters from AG Grid
     const filterModel = filterModelRef.current || {};
-    console.log('Filter model:', filterModel);
     Object.entries(filterModel).forEach(([field, filterConfig]: [string, any]) => {
       if (!filterConfig) return;
       
-      console.log(`Processing filter for field: ${field}`, filterConfig);
       const serverField = fieldMap[field] || field;
       
       // Handle text filters
@@ -370,23 +369,14 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
     
     const filter = filters.length ? Array.from(new Set(filters)).join(" and ") : undefined;
 
-    console.log('API call params:', { top: pageSize, skip: (page - 1) * pageSize, orderBy, filter });
     const res = await fetchQuestionsAction({ top: pageSize, skip: (page - 1) * pageSize, orderBy, filter });
-    
-    console.log('API response:', res);
-    console.log('API status:', res.status);
-    console.log('API error:', res.error);
-    console.log('API message:', res.message);
     
     // Only apply if this is the latest request
     if (reqId === lastReqIdRef.current) {
       if (res.status === 200 && res.data) {
-        console.log('Setting rows:', res.data.rows.length);
-        console.log('Setting total:', res.data.total);
         setRows(res.data.rows.slice());
         setTotal(res.data.total);
       } else {
-        console.error('API call failed with response:', res);
         setToast({ message: res.message || "Failed to fetch questions", type: "error" });
       }
       setLoading(false);
