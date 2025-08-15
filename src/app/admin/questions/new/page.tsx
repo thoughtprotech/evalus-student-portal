@@ -330,7 +330,8 @@ export default function Index() {
           graceMarks: questionsMeta.graceMarks,
           difficultyLevelId: questionsMeta.difficulty,
           questionTypeId: questionsMeta.questionType,
-          subjectId: questionsMeta.subjectId, // Use actual subjectId from Subject dropdown
+          // Backend expects SubjectID column; pass the most specific choice.
+          subjectId: questionsMeta.topicId || questionsMeta.subjectId,
           topicId: questionsMeta.topicId,
           language: questionsMeta.languageId,
           writeUpId: questionsMeta.writeUpId,
