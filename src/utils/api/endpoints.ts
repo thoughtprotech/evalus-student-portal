@@ -189,6 +189,18 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<import('./types').DeleteTestRequest, null>,
 
+  deleteQuestionOption: {
+    method: "DELETE",
+    path: ({ questionOptionId }) => `/api/Questionoptions/${questionOptionId}`,
+    type: "CLOSE",
+  } as Endpoint<import('./types').DeleteQuestionOptionRequest, null>,
+
+  deleteQuestion: {
+    method: "DELETE",
+    path: ({ questionId }) => `/api/Questions/${questionId}`,
+    type: "CLOSE",
+  } as Endpoint<import('./types').DeleteQuestionRequest, null>,
+
   // OData lists for Admin Test creation
   getTestTypes: {
     method: "GET",

@@ -304,6 +304,14 @@ export interface DeleteTestRequest {
   id: number;
 }
 
+export interface DeleteQuestionOptionRequest {
+  questionOptionId: number;
+}
+
+export interface DeleteQuestionRequest {
+  questionId: number;
+}
+
 // Admin Questions (OData)
 export interface GetQuestionsODataRequest {
   // Prebuilt OData query string: "$top=...&$skip=...&..."

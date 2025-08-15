@@ -65,22 +65,31 @@ function createApiClient() {
       const elapsed = `${Date.now() - startTime}ms`;
 
       let json: Partial<ApiResponse<Res>> = {};
-      try {
-        json = await res.json();
-      } catch (error) {
-        logger("request:error", {
-          endpoint,
-          status: res.status,
-          errorMessage: error || "Invalid JSON response",
-          elapsed,
-        });
-        return {
-          status: res.status,
-          error: true,
-          message: "Invalid JSON response",
-          errorMessage: "The server returned an invalid JSON",
-          data: undefined,
-        };
+      
+      // Handle empty responses (204 No Content, etc.)
+      if (res.status === 204 || res.headers.get('content-length') === '0') {
+        json = {};
+      } else {
+        try {
+          const text = await res.text();
+          if (text.trim()) {
+            json = JSON.parse(text);
+          }
+        } catch (error) {
+          logger("request:error", {
+            endpoint,
+            status: res.status,
+            errorMessage: error || "Invalid JSON response",
+            elapsed,
+          });
+          return {
+            status: res.status,
+            error: true,
+            message: "Invalid JSON response",
+            errorMessage: "The server returned an invalid JSON",
+            data: undefined,
+          };
+        }
       }
 
       const finalResponse: ApiResponse<Res> = {

@@ -485,20 +485,19 @@ export async function fetchQuestionsAction(
   }
 }
 
-export async function deleteQuestionAction(id: number): Promise<ApiResponse<null>> {
+export async function deleteQuestionAction(question: any): Promise<ApiResponse<null>> {
   try {
-    // Note: You may need to add this endpoint to endpoints.ts if it doesn't exist
-    // const res = await apiHandler(endpoints.deleteAdminQuestion, { id } as any);
-    // For now, return a placeholder implementation
-    return { 
-      status: 200, 
-      message: "Question deletion not implemented yet. Please add endpoint to endpoints.ts" 
-    };
+    // First delete the question option
+    await apiHandler(endpoints.deleteQuestionOption, { questionOptionId: question.questionoptionId });
+    
+    // Then immediately delete the question itself
+    const res = await apiHandler(endpoints.deleteQuestion, { questionId: question.id });
+    return res;
   } catch (error: any) {
     return {
       status: 500,
       error: true,
-      message: "Network error",
+      message: "Failed to delete question",
       errorMessage: error?.message,
     };
   }

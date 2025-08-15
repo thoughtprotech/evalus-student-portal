@@ -669,8 +669,10 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           setDeleting(true);
           
           try {
-            // Delete all selected questions
-            const deletePromises = pendingDelete.map(question => deleteQuestionAction(question.id));
+            // Delete all selected questions using the entire question object
+            const deletePromises = pendingDelete.map(question => 
+              deleteQuestionAction(question)
+            );
             const results = await Promise.all(deletePromises);
             
             const failedDeletes = results.filter(res => res.status !== 200);
