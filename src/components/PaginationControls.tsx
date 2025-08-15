@@ -9,17 +9,21 @@ interface PaginationProps {
   pageSizeOptions?: number[];
   onPageChange: (newPage: number) => void;
   onPageSizeChange: (newSize: number) => void;
+  showTotalCount?: boolean;
 }
 
 export default function PaginationControls({
   page,
   pageSize,
   total,
-  pageSizeOptions = [5, 10, 20],
+  pageSizeOptions = [15, 25, 50, 100],
   onPageChange,
   onPageSizeChange,
+  showTotalCount,
 }: PaginationProps) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const start = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const end = Math.min(total, page * pageSize);
 
   return (
     <div className="flex items-center justify-between">
@@ -58,6 +62,11 @@ export default function PaginationControls({
             {totalPages}
           </span>
         </span>
+  {Boolean(showTotalCount) && (
+          <span className="text-sm text-gray-600 ml-2 whitespace-nowrap">
+            Total: <span className="font-semibold">{total}</span>
+          </span>
+        )}
         <button
           onClick={() => onPageChange(Math.min(totalPages, page + 1))}
           disabled={page === totalPages}

@@ -456,6 +456,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           onPageChange={setPage}
           onPageSizeChange={(s: number) => { setPageSize(s); setPage(1); }}
           pageSizeOptions={[15, 25, 50]}
+          showTotalCount
         />
         <div className="flex items-center gap-2">
           {/* Show/Hide filters toggle button */}
