@@ -691,7 +691,12 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
               });
             }
             
-            // Refresh the data
+            // Clear selection and refresh the data
+            const api = gridApiRef.current;
+            if (api) {
+              api.deselectAll?.();
+              setSelectedCount(0); // Reset selection count immediately
+            }
             fetchPage();
           } catch (error) {
             setToast({ message: "Delete operation failed", type: "error" });
