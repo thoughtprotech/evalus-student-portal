@@ -14,7 +14,7 @@ const QuestionOptionsInput = ({
   onDataChange: (data: any) => void;
 }) => {
   const [type, setType] = useState<string>();
-  const [options, setOptions] = useState<string[]>(["Option 1", "Option 2"]);
+  const [options, setOptions] = useState<string[]>(["", ""]);
   const [correctOptions, setCorrectOptions] = useState<string[]>([]);
 
   const [matchCols, setMatchCols] = useState<string[][]>([[""], [""]]);
@@ -22,7 +22,7 @@ const QuestionOptionsInput = ({
     type === QUESTION_TYPES.MATCH_PAIRS_MULTIPLE ? [[]] : [""]
   );
 
-  const [trueFalseAnswer, setTrueFalseAnswer] = useState<string>("True");
+  const [trueFalseAnswer, setTrueFalseAnswer] = useState<string>("");
   const [textAnswer, setTextAnswer] = useState<string>("");
 
   useEffect(() => {
@@ -31,7 +31,8 @@ const QuestionOptionsInput = ({
     
     // Reset states when question type changes
     if (qt?.questionType === QUESTION_TYPES.SINGLE_MCQ || qt?.questionType === QUESTION_TYPES.MULTIPLE_MCQ) {
-      setOptions(["Option 1", "Option 2"]);
+      // Start with two empty options for MCQ questions
+      setOptions(["", ""]);
       setCorrectOptions([]);
     }
   }, [questionTypeId]);
@@ -141,7 +142,7 @@ const QuestionOptionsInput = ({
         })}
         <div className="flex gap-2">
           <button
-            onClick={() => setOptions([...options, `Option ${options.length + 1}`])}
+            onClick={() => setOptions([...options, ""])}
             className="px-6 py-3 rounded-md bg-indigo-600 text-white text-sm font-medium shadow hover:bg-indigo-700"
           >
             Add Option
