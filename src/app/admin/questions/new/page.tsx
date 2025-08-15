@@ -282,24 +282,19 @@ export default function Index() {
         return {success: false};
       }
 
-      // Function to strip HTML tags and get plain text
-      const stripHtmlTags = (html: string): string => {
-        if (!html) return '';
+      // Validate that we have content for both question and explanation
+      // For HTML content, we check if there's actual text content
+      const hasQuestionContent = (content: string): boolean => {
+        if (!content) return false;
         
-        // Create a temporary div element
+        // Create a temporary div to check if there's actual text content
         const div = document.createElement('div');
-        div.innerHTML = html;
-        
-        // Get text content and clean up extra whitespace
+        div.innerHTML = content;
         const textContent = div.textContent || div.innerText || '';
-        return textContent.trim();
+        return textContent.trim().length > 0;
       };
 
-      // Ensure we have plain text for both question and explanation
-      const cleanQuestion = stripHtmlTags(question.trim());
-      const cleanExplanation = stripHtmlTags(explanation.trim());
-
-      if (cleanQuestion.trim().length === 0) {
+      if (!hasQuestionContent(question.trim())) {
         toast.error("Question Is Required");
         return {success: false};
       }
@@ -307,7 +302,7 @@ export default function Index() {
       const cleanVideoUrl = videoSolURL.trim();
       
       const payload: CreateQuestionRequest = {
-        explanation: cleanExplanation,
+        explanation: explanation.trim(), // Save HTML as-is
         ...(cleanVideoUrl && { videoSolURL: cleanVideoUrl }), // Only include if not empty
         questionsMeta: {
           tags: questionsMeta.tags,
@@ -323,7 +318,7 @@ export default function Index() {
           writeUpId: questionsMeta.writeUpId,
           headerText: questionHeader,
         },
-        question: cleanQuestion,
+        question: question.trim(), // Save HTML as-is
         options: {
           options: stringifiedOptions!,
           answer: stringifiedAnswer!,
@@ -584,7 +579,6 @@ export default function Index() {
                     onChange={(content) => setQuestion(content)}
                     initialContent={question}
                     placeholder="Type your question here..."
-                    returnPlainText={true}
                   />
                 </div>
               </div>
@@ -608,7 +602,6 @@ export default function Index() {
                   onChange={(content) => setExplanation(content)}
                   initialContent={explanation}
                   placeholder="Add explanation for the correct answer..."
-                  returnPlainText={true}
                 />
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Video Solution URL</label>
