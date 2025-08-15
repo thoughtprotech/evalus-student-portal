@@ -19,8 +19,6 @@ export async function fetchQuestionsMetaAction(
       }
     );
 
-    console.log({ status, error, data, errorMessage, message });
-
     return {
       status: 200,
       error: false,
@@ -28,7 +26,6 @@ export async function fetchQuestionsMetaAction(
       message: "Questions Meta Retrieved",
     };
   } catch (error) {
-    console.log("Error Fetching Questions Meta", error);
     return {
       status: 500,
       error: true,

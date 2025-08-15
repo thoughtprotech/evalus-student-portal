@@ -59,14 +59,13 @@ export default function ExamPage() {
   }, [id]);
 
   const fetchQuestionById = async (questionId: number) => {
-    console.log({ questionId });
     const res = await fetchQuestionByIdAction(questionId);
     const { data, status, error, errorMessage, message } = res;
     if (status === 200) {
       setQuestion(data!);
       // setTestList(data);
     } else {
-      console.log({ status, error, errorMessage });
+      // Error fetching question
     }
   };
 
@@ -79,7 +78,7 @@ export default function ExamPage() {
       setCurrentQuestion({ questionId: data[0].questionId });
       setLoaded(true);
     } else {
-      console.log({ status, error, errorMessage });
+      // Error fetching questions
     }
   };
 
@@ -99,7 +98,7 @@ export default function ExamPage() {
   const cancelSubmit = () => setShowModal(false);
 
   useEffect(() => {
-    console.log({ question });
+    // Question loaded effect
   }, [question]);
 
   const handleNextQuestion = async () => {
@@ -134,7 +133,6 @@ export default function ExamPage() {
         });
         break;
       case "Match Pairs Single":
-        console.log("SINGLE MATCH");
         setQuestion((prev) => {
           if (!prev) {
             return prev;
@@ -147,7 +145,6 @@ export default function ExamPage() {
         });
         break;
       case "Match Pairs Multiple":
-        console.log("MULTIPLE MATCH");
         setQuestion((prev) => {
           if (!prev) {
             return prev;
@@ -158,9 +155,6 @@ export default function ExamPage() {
           JSON.parse(question!.questionOptionsJson)[0].map(() => {
             emptyArr.push([]);
           });
-
-          console.log({ emptyArr });
-          console.log(JSON.stringify(emptyArr));
 
           return {
             ...prev,
@@ -225,7 +219,6 @@ export default function ExamPage() {
   };
 
   const handleTimeout = () => {
-    console.log("TIMEOUT");
     // TODO: Handle timeout
   };
 

@@ -116,11 +116,12 @@ export interface GetQuestionByIdResponse {
 
 export interface CreateQuestionRequest {
   explanation: string;
-  videoSolURL: string;
+  videoSolURL?: string;
   questionsMeta: {
     tags: string;
     marks: number;
     negativeMarks: number;
+    graceMarks: number;
     difficultyLevelId: number;
     questionTypeId: number;
     subjectId: number;
@@ -301,6 +302,14 @@ export interface GetTestsODataRequest {
 
 export interface DeleteTestRequest {
   id: number;
+}
+
+export interface DeleteQuestionOptionRequest {
+  questionOptionId: number;
+}
+
+export interface DeleteQuestionRequest {
+  questionId: number;
 }
 
 // Admin Questions (OData)

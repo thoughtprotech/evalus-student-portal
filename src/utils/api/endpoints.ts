@@ -65,6 +65,12 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<CreateQuestionRequest, null>,
 
+  createQuestionOptions: {
+    method: "POST",
+    path: () => `/api/questionoptions`,
+    type: "CLOSE",
+  } as Endpoint<any, null>,
+
   getQuestionTypes: {
     method: "GET",
     path: () => `/api/QuestionTypes`,
@@ -127,6 +133,13 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<null, GetWriteUpsResponse[]>,
 
+  // OData - Writeups list for dropdowns
+  getWriteUpsOData: {
+    method: "GET",
+    path: () => `/odata/Writeups?$select=WriteUpId,WriteUpName,Language,IsActive`,
+    type: "OPEN",
+  } as Endpoint<null, import('./types').ODataList<GetWriteUpsResponse>>, 
+
   getLanguages: {
     method: "GET",
     path: () => `/api/Languages`,
@@ -138,6 +151,19 @@ export const endpoints = {
     path: () => `/api/QuestionDifficultyLevels`,
     type: "CLOSE",
   } as Endpoint<null, GetDifficultyLevelsResponse[]>,
+
+  // OData - Question Difficulty Levels filtered by language
+  getQuestionDifficultyLevelsOData: {
+    method: "GET",
+    path: ({ language }) => {
+      // Escape single quotes per OData rules by doubling them
+      const lang = (language ?? "").replace(/'/g, "''");
+      const base = `/odata/QuestionDifficultyLevels?$select=QuestionDifficultylevelId,QuestionDifficultylevel1,Language,IsActive`;
+      const filter = lang ? `&$filter=Language eq '${lang}' and IsActive eq 1` : `&$filter=IsActive eq 1`;
+      return `${base}${filter}`;
+    },
+    type: "OPEN",
+  } as Endpoint<{ language?: string }, import('./types').ODataList<GetDifficultyLevelsResponse>>, 
 
 
   getQuestionOptions: {
@@ -162,6 +188,18 @@ export const endpoints = {
     path: ({ id }) => `/api/tests/${id}`,
     type: "CLOSE",
   } as Endpoint<import('./types').DeleteTestRequest, null>,
+
+  deleteQuestionOption: {
+    method: "DELETE",
+    path: ({ questionOptionId }) => `/api/Questionoptions/${questionOptionId}`,
+    type: "CLOSE",
+  } as Endpoint<import('./types').DeleteQuestionOptionRequest, null>,
+
+  deleteQuestion: {
+    method: "DELETE",
+    path: ({ questionId }) => `/api/Questions/${questionId}`,
+    type: "CLOSE",
+  } as Endpoint<import('./types').DeleteQuestionRequest, null>,
 
   // OData lists for Admin Test creation
   getTestTypes: {

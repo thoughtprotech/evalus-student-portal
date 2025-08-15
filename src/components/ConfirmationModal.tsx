@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Info } from "lucide-react";
+import { AlertTriangle, Info, CheckCircle } from "lucide-react";
 
 interface ConfirmationModalProps {
   title: string;
@@ -10,7 +10,7 @@ interface ConfirmationModalProps {
   onCancel: () => void;
   className?: string;
   children?: React.ReactNode;
-  variant?: "default" | "danger";
+  variant?: "default" | "danger" | "success";
   confirmText?: string;
   cancelText?: string;
 }
@@ -40,10 +40,20 @@ export default function ConfirmationModal({
         <div className="flex items-start gap-4">
           <div
             className={`flex-shrink-0 rounded-full p-2 ${
-              variant === "danger" ? "bg-red-100 text-red-600" : "bg-blue-100 text-blue-600"
+              variant === "danger" 
+                ? "bg-red-100 text-red-600" 
+                : variant === "success"
+                ? "bg-green-100 text-green-600"
+                : "bg-blue-100 text-blue-600"
             }`}
           >
-            {variant === "danger" ? <AlertTriangle className="w-6 h-6" /> : <Info className="w-6 h-6" />}
+            {variant === "danger" ? (
+              <AlertTriangle className="w-6 h-6" />
+            ) : variant === "success" ? (
+              <CheckCircle className="w-6 h-6" />
+            ) : (
+              <Info className="w-6 h-6" />
+            )}
           </div>
           <div className="flex-1">
             <h2 id="confirm-modal-title" className="text-xl font-semibold text-gray-900">
@@ -54,17 +64,21 @@ export default function ConfirmationModal({
           </div>
         </div>
         <div className="mt-6 flex items-center justify-end gap-3">
-          <button
-            onClick={onCancel}
-            className="min-w-28 px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer"
-          >
-            {cancelText}
-          </button>
+          {cancelText && (
+            <button
+              onClick={onCancel}
+              className="min-w-28 px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer"
+            >
+              {cancelText}
+            </button>
+          )}
           <button
             onClick={onConfirm}
             className={`min-w-28 px-4 py-2 rounded-md text-white cursor-pointer ${
               variant === "danger"
                 ? "bg-red-600 hover:bg-red-700"
+                : variant === "success"
+                ? "bg-green-600 hover:bg-green-700"
                 : "bg-indigo-600 hover:bg-indigo-700"
             }`}
           >

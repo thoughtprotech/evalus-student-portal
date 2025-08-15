@@ -37,7 +37,7 @@ export default function Home() {
         toast.error(res.errorMessage!);
       }
     } catch (error) {
-      console.error("Login failed", error);
+      toast.error("Login failed");
     }
   };
 

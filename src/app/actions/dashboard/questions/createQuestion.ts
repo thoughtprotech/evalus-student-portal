@@ -22,18 +22,30 @@ export async function createQuestionAction(
       message,
     });
 
-    if (status === 201) {
+    // Consider success for 2xx status codes and when error is explicitly false
+    const isSuccess = (status >= 200 && status < 300) || (status === 201 || status === 200) || (!error && status !== 0);
+    
+    if (isSuccess) {
       return {
         status,
-        error,
+        error: false, // Explicitly set to false for success
         data,
-        message: message || "Question Created",
+        message: message || "Question Created Successfully",
       };
     }
+    
+    // Log validation errors if they exist
+    if (data && typeof data === 'object') {
+      const errorData = data as any;
+      if ('errors' in errorData) {
+        console.error("Validation errors:", errorData.errors);
+      }
+    }
+    
     return {
-      status: 500,
-      error,
-      errorMessage: errorMessage || "Error Creating Question",
+      status: status || 500,
+      error: true,
+      errorMessage: errorMessage || message || "Error Creating Question",
     };
   } catch (error) {
     console.log("Error Creating Question", error);

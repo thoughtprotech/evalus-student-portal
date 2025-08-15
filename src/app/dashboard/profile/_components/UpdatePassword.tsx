@@ -28,7 +28,6 @@ export default function UpdatePassword({
 
   const onSubmit: SubmitHandler<PasswordUpdateForm> = async (data) => {
     // Here you'd make the API call to update the password
-    console.log("Updated password:", data);
     handleUserUpdate(data.newPassword, "password");
     setIsModalOpen(false); // Close the modal after submit
     reset(); // Reset form fields

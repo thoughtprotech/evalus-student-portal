@@ -133,7 +133,6 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         filter: 'agTextColumnFilter', 
         filterParams: { 
           buttons: ['apply','reset','clear'],
-          debounceMs: 200,
           suppressAndOrCondition: false
         }, 
         width: 300, 
@@ -149,8 +148,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         sortable: true, 
         filter: 'agTextColumnFilter', 
         filterParams: { 
-          buttons: ['apply','reset','clear'],
-          debounceMs: 200
+          buttons: ['apply','reset','clear']
         }, 
         width: 150 
       },
@@ -161,8 +159,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         sortable: true, 
         filter: 'agTextColumnFilter', 
         filterParams: { 
-          buttons: ['apply','reset','clear'],
-          debounceMs: 200
+          buttons: ['apply','reset','clear']
         }, 
         width: 150 
       },
@@ -173,8 +170,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         sortable: true, 
         filter: 'agTextColumnFilter', 
         filterParams: { 
-          buttons: ['apply','reset','clear'],
-          debounceMs: 200
+          buttons: ['apply','reset','clear']
         }, 
         cellRenderer: LevelCellRenderer, 
         width: 130 
@@ -186,8 +182,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         sortable: true, 
         filter: 'agTextColumnFilter', 
         filterParams: { 
-          buttons: ['apply','reset','clear'],
-          debounceMs: 200
+          buttons: ['apply','reset','clear']
         }, 
         cellRenderer: LanguageCellRenderer, 
         width: 120 
@@ -218,8 +213,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         filter: 'agDateColumnFilter', 
         filterParams: { 
           buttons: ['apply','reset','clear'], 
-          browserDatePicker: true,
-          debounceMs: 200
+          browserDatePicker: true
         }, 
         valueFormatter: ({ value }) => formatDate(value), 
         width: 180 
@@ -232,8 +226,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         filter: 'agDateColumnFilter', 
         filterParams: { 
           buttons: ['apply','reset','clear'], 
-          browserDatePicker: true,
-          debounceMs: 200
+          browserDatePicker: true
         }, 
         valueFormatter: ({ value }) => formatDate(value), 
         width: 180 
@@ -245,8 +238,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         sortable: true, 
         filter: 'agTextColumnFilter', 
         filterParams: { 
-          buttons: ['apply','reset','clear'],
-          debounceMs: 200
+          buttons: ['apply','reset','clear']
         }, 
         minWidth: 150, 
         flex: 1 
@@ -276,6 +268,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         pinned: 'right'
       },
       { field: "id", headerName: "ID", hide: true },
+      { field: "questionoptionId", headerName: "Question Option ID", hide: true },
     ],
     [page, pageSize] // Dependencies for S.No. calculation
   );
@@ -318,11 +311,9 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
     
     // Add column filters from AG Grid
     const filterModel = filterModelRef.current || {};
-    console.log('Filter model:', filterModel);
     Object.entries(filterModel).forEach(([field, filterConfig]: [string, any]) => {
       if (!filterConfig) return;
       
-      console.log(`Processing filter for field: ${field}`, filterConfig);
       const serverField = fieldMap[field] || field;
       
       // Handle text filters
@@ -378,23 +369,14 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
     
     const filter = filters.length ? Array.from(new Set(filters)).join(" and ") : undefined;
 
-    console.log('API call params:', { top: pageSize, skip: (page - 1) * pageSize, orderBy, filter });
     const res = await fetchQuestionsAction({ top: pageSize, skip: (page - 1) * pageSize, orderBy, filter });
-    
-    console.log('API response:', res);
-    console.log('API status:', res.status);
-    console.log('API error:', res.error);
-    console.log('API message:', res.message);
     
     // Only apply if this is the latest request
     if (reqId === lastReqIdRef.current) {
       if (res.status === 200 && res.data) {
-        console.log('Setting rows:', res.data.rows.length);
-        console.log('Setting total:', res.data.total);
         setRows(res.data.rows.slice());
         setTotal(res.data.total);
       } else {
-        console.error('API call failed with response:', res);
         setToast({ message: res.message || "Failed to fetch questions", type: "error" });
       }
       setLoading(false);
@@ -636,7 +618,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           // Disable client-side pagination since we're doing server-side
           pagination={false}
           // Client-side operations
-          rowSelection={{ mode: 'multiRow', checkboxes: true }}
+          rowSelection={{ mode: 'multiRow', checkboxes: true, enableClickSelection: true }}
           selectionColumnDef={{ pinned: 'left', width: 44, headerName: '', resizable: false, cellClass: 'no-right-border', headerClass: 'no-right-border', suppressMovable: true }}
           animateRows
           
@@ -644,7 +626,6 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           rowHeight={32}
           tooltipShowDelay={300}
           suppressMenuHide={false}
-          suppressRowDeselection={true}
           stopEditingWhenCellsLoseFocus={true}
           theme="legacy"
         />
@@ -688,8 +669,10 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           setDeleting(true);
           
           try {
-            // Delete all selected questions
-            const deletePromises = pendingDelete.map(question => deleteQuestionAction(question.id));
+            // Delete all selected questions using the entire question object
+            const deletePromises = pendingDelete.map(question => 
+              deleteQuestionAction(question)
+            );
             const results = await Promise.all(deletePromises);
             
             const failedDeletes = results.filter(res => res.status !== 200);
@@ -708,7 +691,12 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
               });
             }
             
-            // Refresh the data
+            // Clear selection and refresh the data
+            const api = gridApiRef.current;
+            if (api) {
+              api.deselectAll?.();
+              setSelectedCount(0); // Reset selection count immediately
+            }
             fetchPage();
           } catch (error) {
             setToast({ message: "Delete operation failed", type: "error" });

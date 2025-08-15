@@ -119,7 +119,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   const handleLogout = async () => {
     const res = await logoutAction();
-    console.log({ res });
     if (res.status === 200) {
       router.push("/");
     } else {
