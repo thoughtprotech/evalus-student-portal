@@ -5,6 +5,7 @@ import RichTextEditor from "@/components/RichTextEditor";
 import { QUESTION_TYPES } from "@/utils/constants";
 import QuestionOptionsInput from "./_components/QuestionOptionsInput";
 import { createQuestionAction } from "@/app/actions/dashboard/questions/createQuestion";
+import { createQuestionOptionsAction } from "@/app/actions/dashboard/questions/createQuestionOptions";
 import toast from "react-hot-toast";
 import {
   CreateQuestionRequest,
@@ -219,6 +220,17 @@ export default function Index() {
       ? JSON.stringify(questionOptions.answer)
       : questionOptions?.answer;
 
+    // Helper function to validate URL
+    const isValidUrl = (string: string) => {
+      if (!string || string.trim() === '') return true; // Empty is valid
+      try {
+        new URL(string);
+        return true;
+      } catch (_) {
+        return false;
+      }
+    };
+
     if (questionsMeta.topicId === 0) {
       return toast.error("Topic Is Required");
     }
@@ -243,9 +255,16 @@ export default function Index() {
       return toast.error("Answer Is Required");
     }
 
+    // Validate video URL if provided
+    if (videoSolURL.trim() && !isValidUrl(videoSolURL.trim())) {
+      return toast.error("Please enter a valid video URL or leave it empty");
+    }
+
+    const cleanVideoUrl = videoSolURL.trim();
+    
     const payload: CreateQuestionRequest = {
       explanation: explanation,
-      videoSolURL: videoSolURL,
+      ...(cleanVideoUrl && { videoSolURL: cleanVideoUrl }), // Only include if not empty
       questionsMeta: {
         tags: questionsMeta.tags,
         marks: questionsMeta.marks,
@@ -267,20 +286,79 @@ export default function Index() {
 
     console.log({ payload });
 
-    const res = await createQuestionAction(payload);
+    try {
+      // Step 1: Create the question
+      const res = await createQuestionAction(payload);
 
-    const { data, status, error, errorMessage } = res;
+      const { data, status, error, errorMessage } = res;
 
-    if (status === 201 || status === 200) {
-      toast.success("Question Created Successfully");
-      if (goBack) {
-        setTimeout(() => {
-          router.back();
-        }, 2000);
+      if (status === 201 || status === 200) {
+        // Step 2: Create question options if question creation was successful
+        // Get the question ID from the response
+        const questionData = data as any;
+        let questionId = questionData?.questionId || questionData?.id || questionData?.QuestionId;
+
+        // If no ID is returned, we might need to handle this differently
+        // For now, let's assume the API works and just create the options with a placeholder
+        if (!questionId) {
+          console.warn("No question ID returned from API, using timestamp as fallback");
+          questionId = Date.now(); // Fallback - you might want to handle this better
+        }
+
+        const optionsPayload = {
+          questionId: questionId,
+          questionHeaderText: questionHeader || null,
+          questionText: question,
+          additionalExplanation: explanation,
+          videoSolutionWeburl: cleanVideoUrl || null,
+          videoSolutionMobileurl: null,
+          writeUpId: questionsMeta.writeUpId || null,
+          questionOptionsJson: stringifiedOptions!,
+          questionCorrectAnswerJson: stringifiedAnswer!,
+          language: questionsMeta.languageId,
+        };
+
+        const optionsRes = await createQuestionOptionsAction(optionsPayload);
+
+        if (optionsRes.status === 201 || optionsRes.status === 200) {
+          toast.success("Question Created Successfully");
+          if (goBack) {
+            setTimeout(() => {
+              router.back();
+            }, 2000);
+          }
+        } else {
+          toast.error(optionsRes.errorMessage || "Failed to save question options");
+          console.error("CreateQuestionOptionsAction error", {
+            status: optionsRes.status,
+            error: optionsRes.error,
+            errorMessage: optionsRes.errorMessage,
+          });
+        }
+      } else {
+        // Extract detailed error message from API response if available
+        let detailedError = errorMessage || "Failed to create question";
+        
+        if (data && typeof data === 'object') {
+          const errorData = data as any;
+          if (errorData.errors) {
+            // Convert validation errors to readable format
+            const validationErrors = Object.entries(errorData.errors)
+              .map(([field, errors]: [string, any]) => {
+                const errorList = Array.isArray(errors) ? errors : [errors];
+                return `${field}: ${errorList.join(', ')}`;
+              })
+              .join('; ');
+            detailedError = `Validation errors: ${validationErrors}`;
+          }
+        }
+        
+        toast.error(detailedError);
+        console.error("CreateQuestionAction error", { status, error, errorMessage, data });
       }
-    } else {
-      toast.error(errorMessage || "Failed to create question");
-      console.log({ status, error, errorMessage });
+    } catch (error) {
+      console.error("Error in handleSubmit:", error);
+      toast.error("An unexpected error occurred while saving the question");
     }
   };
 

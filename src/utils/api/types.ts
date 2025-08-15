@@ -116,7 +116,7 @@ export interface GetQuestionByIdResponse {
 
 export interface CreateQuestionRequest {
   explanation: string;
-  videoSolURL: string;
+  videoSolURL?: string;
   questionsMeta: {
     tags: string;
     marks: number;

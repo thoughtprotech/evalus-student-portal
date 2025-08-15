@@ -22,7 +22,7 @@ export async function createQuestionAction(
       message,
     });
 
-    if (status === 201) {
+    if (status === 201 || status === 200) {
       return {
         status,
         error,
@@ -30,10 +30,19 @@ export async function createQuestionAction(
         message: message || "Question Created",
       };
     }
+    
+    // Log validation errors if they exist
+    if (data && typeof data === 'object') {
+      const errorData = data as any;
+      if ('errors' in errorData) {
+        console.error("Validation errors:", errorData.errors);
+      }
+    }
+    
     return {
-      status: 500,
-      error,
-      errorMessage: errorMessage || "Error Creating Question",
+      status: status || 500,
+      error: true,
+      errorMessage: errorMessage || message || "Error Creating Question",
     };
   } catch (error) {
     console.log("Error Creating Question", error);

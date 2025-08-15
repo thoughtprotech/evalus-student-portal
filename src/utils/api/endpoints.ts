@@ -65,6 +65,12 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<CreateQuestionRequest, null>,
 
+  createQuestionOptions: {
+    method: "POST",
+    path: () => `/api/questionoptions`,
+    type: "CLOSE",
+  } as Endpoint<any, null>,
+
   getQuestionTypes: {
     method: "GET",
     path: () => `/api/QuestionTypes`,
