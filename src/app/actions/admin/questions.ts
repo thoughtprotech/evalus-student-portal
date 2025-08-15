@@ -3,6 +3,7 @@
 import { ApiResponse } from "@/utils/api/types";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
+import { stripHtmlTags } from "@/utils/stripHtmlTags";
 
 // Row model consumed by the grid UI
 export interface QuestionRow {
@@ -76,7 +77,7 @@ function mapToRows(items: ApiQuestionItem[]): QuestionRow[] {
     
     const mapped = {
       id: item.questionId || 0,
-      title: item.questionText || "No Title",
+      title: stripHtmlTags(item.questionText) || "No Title",
       subject: item.subject || "N/A",
       topic: item.topic || "N/A", 
       level: item.questionDifficultyLevel || "N/A",
