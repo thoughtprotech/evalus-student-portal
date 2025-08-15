@@ -15,7 +15,7 @@ import {
   GetTopicsResponse,
   GetWriteUpsResponse,
 } from "@/utils/api/types";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, HelpCircle, Filter } from "lucide-react";
 import Link from "next/link";
 import { fetchSubjectsAction } from "@/app/actions/dashboard/questions/fetchSubjects";
 import { fetchQuestionTypesAction } from "@/app/actions/dashboard/questions/fetchQuestionTypes";
@@ -422,357 +422,540 @@ export default function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-lg shadow-sm border p-8 space-y-6">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header Section */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Link href="/admin/questions" className="text-gray-600 hover:text-gray-900">
+            <div className="flex items-center gap-3">
+              <Link href="/admin/questions" className="text-gray-500 hover:text-gray-700 transition-colors">
                 <ArrowLeft className="w-5 h-5" />
               </Link>
-              <h1 className="text-xl font-semibold">Create Question</h1>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                  <HelpCircle className="w-4 h-4 text-indigo-600" />
+                </div>
+                <h1 className="text-2xl font-semibold text-gray-900">Create New Question</h1>
+              </div>
             </div>
-            <Link href="/admin/questions" className="text-sm text-blue-600 hover:underline">Back to Questions</Link>
-          </div>
-
-          {/* Question Configuration */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Language <span className="text-red-600">*</span></label>
-              <select
-                required
-                value={questionsMeta?.languageId}
-                onChange={(e) => {
-                  const lang = e.target.value.trim();
-                  // Update language and reset dependent selections
-                  setQuestionsMeta((prev) => ({ ...prev, languageId: lang, subjectId: 0, chapterId: 0, topicId: 0, difficulty: 0 }));
-                  setSubjects([]);
-                  setTopics([]);
-                  setDifficultyLevels([]);
-                  if (lang) {
-                    fetchSubjects(lang);
-                    fetchDifficultyLevels(lang);
-                  }
-                }}
-                className="w-full border rounded-md px-4 py-3"
-              >
-                <option value="">Select language</option>
-                {languages?.map((language, idx) => (
-                  <option key={`${language.language}-${idx}`} value={language.language}>
-                    {language.language}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Subject <span className="text-red-600">*</span></label>
-               <select
-                required
-                 value={questionsMeta?.subjectId || ''}
-                onChange={(e) => {
-                  const newSubjectId = Number(e.target.value);
-                  
-                  // reset chapters and topics immediately for better UX while loading
-                  setChapters([]);
-                  setTopics([]);
-                  setQuestionsMeta((prev) => ({ ...prev, subjectId: newSubjectId, chapterId: 0, topicId: 0 }));
-                  
-                  // Fetch chapters for the selected subject
-                  if (newSubjectId) {
-                    fetchChapters(newSubjectId);
-                  }
-                }}
-                disabled={!questionsMeta.languageId}
-                className="w-full border rounded-md px-4 py-3"
-              >
-                <option value="">Select subject</option>
-                {subjects?.map((subject, idx) => (
-                  <option key={`${subject.subjectId}-${idx}`} value={subject.subjectId}>
-                    {subject.subjectName}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Chapter <span className="text-red-600">*</span></label>
-               <select
-                required
-                 value={questionsMeta?.chapterId || ''}
-                onChange={(e) => {
-                  const newChapterId = Number(e.target.value);
-                  
-                  // reset topics immediately for better UX while loading
-                  setTopics([]);
-                  setQuestionsMeta((prev) => ({ ...prev, chapterId: newChapterId, topicId: 0 }));
-                  
-                  // Prefer deriving topics+subtopics from chapter hierarchy
-                  if (newChapterId) {
-                    const derived = buildTopicsForChapter(newChapterId);
-                    if (derived.length > 0) {
-                      setTopics(derived);
-                    } else {
-                      // Fallback to API if nothing derived
-                      fetchTopics(newChapterId);
-                    }
-                  }
-                }}
-                disabled={!questionsMeta.subjectId}
-                className="w-full border rounded-md px-4 py-3"
-              >
-                <option value="">Select chapter</option>
-                {chapters?.map((chapter, idx) => (
-                  <option key={`${chapter.subjectId}-${idx}`} value={chapter.subjectId}>
-                    {chapter.subjectName}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Topic <span className="text-red-600">*</span></label>
-               <select
-                required
-                 value={questionsMeta?.topicId || ''}
-                onChange={(e) => {
-                  setQuestionsMeta((prev) => ({ ...prev, topicId: Number(e.target.value) }));
-                }}
-                disabled={!questionsMeta.chapterId}
-                className="w-full border rounded-md px-4 py-3"
-              >
-                <option value="">Select topic</option>
-                {topics?.map((topic, idx) => (
-                  <option key={`${topic.topicId}-${idx}`} value={topic.topicId}>
-                    {topic.topicName}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Question Type <span className="text-red-600">*</span></label>
-              <select
-                required
-                value={questionsMeta?.questionType}
-                onChange={(e) => {
-                  setQuestionsMeta((prev) => ({ ...prev, questionType: Number(e.target.value) }));
-                }}
-                className="w-full border rounded-md px-4 py-3"
-              >
-                <option value="">Select type</option>
-                {questionTypes?.map((questionType, idx) => (
-                  <option
-                    key={`${questionType.questionTypeId}-${idx}`}
-                    value={questionType.questionTypeId}
-                  >
-                    {questionType.questionType}
-                  </option>
-                ))}
-              </select>
+            <div className="flex items-center gap-4">
+              <Link href="/admin/questions" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                Back to Questions
+              </Link>
+              {/* Action Buttons in Header */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleSaveAndNew}
+                  disabled={isSaving}
+                  className={`px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium transition-colors ${
+                    isSaving 
+                      ? 'bg-gray-50 text-gray-400 cursor-not-allowed' 
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {isSaving ? 'Saving...' : 'Save & New'}
+                </button>
+                <button
+                  onClick={() => handleSubmit()}
+                  disabled={isSaving}
+                  className={`px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-colors ${
+                    isSaving 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-indigo-600 hover:bg-indigo-700'
+                  }`}
+                >
+                  {isSaving ? 'Saving...' : 'Save Question'}
+                </button>
+              </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Main Content Area with Accordions */}
-          <div className="space-y-6">
-            {/* Question Content Section */}
-            <Accordion title="Type Your Question" open={true}>
-              <div className="space-y-6 p-4">
-                <div>
-                  <RichTextEditor
-                    onChange={(content) => setQuestion(content)}
-                    initialContent={question}
-                    placeholder="Type your question here..."
-                  />
+      {/* Two Column Layout */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-12 gap-8">
+          {/* Left Sidebar - Filters & Configuration */}
+          <div className="col-span-12 lg:col-span-4 xl:col-span-3">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-6 h-6 bg-blue-100 rounded-md flex items-center justify-center">
+                  <Filter className="w-3 h-3 text-blue-600" />
                 </div>
+                <h2 className="text-lg font-semibold text-gray-900">Question Configuration</h2>
               </div>
-            </Accordion>
-
-            {/* Question Options Section */}
-            <Accordion title="Question Options" open={true}>
-              <div className="space-y-6 p-4">
-                <QuestionOptionsInput
-                  questionTypeId={questionsMeta?.questionType}
-                  questionTypes={questionTypes}
-                  onDataChange={(data) => setQuestionOptions(data)}
-                />
-              </div>
-            </Accordion>
-
-            {/* Add Explanation Section */}
-            <Accordion title="Add Explanation">
-              <div className="space-y-6 p-4">
-                <RichTextEditor
-                  onChange={(content) => setExplanation(content)}
-                  initialContent={explanation}
-                  placeholder="Add explanation for the correct answer..."
-                />
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Video Solution URL</label>
-                  <input
-                    placeholder="Enter video URL"
-                    className="w-full border rounded-md px-4 py-3"
-                    onChange={(e) => setVideoSolURL(e.target.value)}
-                    value={videoSolURL}
-                  />
-                </div>
-              </div>
-            </Accordion>
-
-            {/* Advanced Options Section */}
-            <Accordion title="Advanced Options">
-              <div className="space-y-6 p-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
-                  <input
-                    placeholder="Add a tag"
-                    className="w-full border rounded-md px-4 py-3"
-                    onChange={(e) => {
-                      setQuestionsMeta(() => {
-                        let updated = { ...questionsMeta };
-                        updated.tags = e.target.value;
-                        return updated;
-                      });
-                    }}
-                    value={questionsMeta.tags}
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Right Marks <span className="text-red-600">*</span></label>
-                    <input
-                      required
-                      type="number"
-                      min={0}
-                      placeholder="Enter marks"
-                      className="w-full border rounded-md px-4 py-3"
-                      onChange={(e) => {
-                        setQuestionsMeta(() => {
-                          let updated = { ...questionsMeta };
-                          updated.marks = Number(e.target.value);
-                          return updated;
-                        });
-                      }}
-                      value={questionsMeta.marks || ''}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Negative Marks</label>
-                    <input
-                      type="number"
-                      min={0}
-                      placeholder="Enter negative marks"
-                      className="w-full border rounded-md px-4 py-3"
-                      onChange={(e) => {
-                        setQuestionsMeta(() => {
-                          let updated = { ...questionsMeta };
-                          updated.negativeMarks = Number(e.target.value);
-                          return updated;
-                        });
-                      }}
-                      value={questionsMeta.negativeMarks || ''}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty Level <span className="text-red-600">*</span></label>
-                    <select
-                      required
-                      className="w-full border rounded-md px-4 py-3"
-                      disabled={!questionsMeta.languageId}
-                      value={questionsMeta?.difficulty}
-                      onChange={(e) => {
-                        setQuestionsMeta((prev) => ({ ...prev, difficulty: Number(e.target.value) }));
-                      }}
-                    >
-                      <option value="">Select Difficulty</option>
-                      {difficultyLevels?.map((level, idx) => (
-                        <option
-                          key={`${level.questionDifficultylevelId}-${idx}`}
-                          value={level.questionDifficultylevelId}
-                        >
-                          {level.questionDifficultylevel1}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Grace Marks</label>
-                    <input
-                      type="number"
-                      min={0}
-                      placeholder="0"
-                      className="w-full border rounded-md px-4 py-3"
-                      value={questionsMeta.graceMarks || ''}
-                      onChange={(e) => {
-                        setQuestionsMeta((prev) => ({ ...prev, graceMarks: Number(e.target.value) }));
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Free Space</label>
-                    <select
-                      className="w-full border rounded-md px-4 py-3"
-                      value={questionsMeta.freeSpace}
-                      onChange={(e) => {
-                        const val = Number(e.target.value) as 0 | 1;
-                        setQuestionsMeta((prev) => ({ ...prev, freeSpace: val }));
-                      }}
-                    >
-                      <option value={0}>No</option>
-                      <option value={1}>Yes</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Write Up</label>
+              
+              <div className="space-y-6">
+                {/* Language Selection */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Language <span className="text-red-500">*</span>
+                  </label>
                   <select
-                    value={questionsMeta?.writeUpId}
+                    required
+                    value={questionsMeta?.languageId}
                     onChange={(e) => {
-                      setQuestionsMeta((prev) => ({ ...prev, writeUpId: Number(e.target.value) }));
+                      const lang = e.target.value.trim();
+                      setQuestionsMeta((prev) => ({ ...prev, languageId: lang, subjectId: 0, chapterId: 0, topicId: 0, difficulty: 0 }));
+                      setSubjects([]);
+                      setTopics([]);
+                      setDifficultyLevels([]);
+                      if (lang) {
+                        fetchSubjects(lang);
+                        fetchDifficultyLevels(lang);
+                      }
                     }}
-                    className="w-full border rounded-md px-4 py-3"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white"
                   >
-                    <option value="">None</option>
-                    {writeUps?.map((writeUp, idx) => (
-                      <option
-                        key={`${writeUp.writeUpId}-${idx}`}
-                        value={writeUp.writeUpId}
-                      >
-                        {writeUp.writeUpName}
+                    <option value="">Select language</option>
+                    {languages?.map((language, idx) => (
+                      <option key={`${language.language}-${idx}`} value={language.language}>
+                        {language.language}
                       </option>
                     ))}
                   </select>
+                  {!questionsMeta.languageId && (
+                    <p className="text-xs text-gray-500">Select a language to enable other options</p>
+                  )}
+                </div>
+
+                {/* Subject Selection */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Subject <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    required
+                    value={questionsMeta?.subjectId || ''}
+                    onChange={(e) => {
+                      const newSubjectId = Number(e.target.value);
+                      setChapters([]);
+                      setTopics([]);
+                      setQuestionsMeta((prev) => ({ ...prev, subjectId: newSubjectId, chapterId: 0, topicId: 0 }));
+                      if (newSubjectId) {
+                        fetchChapters(newSubjectId);
+                      }
+                    }}
+                    disabled={!questionsMeta.languageId}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
+                  >
+                    <option value="">Select subject</option>
+                    {subjects?.map((subject, idx) => (
+                      <option key={`${subject.subjectId}-${idx}`} value={subject.subjectId}>
+                        {subject.subjectName}
+                      </option>
+                    ))}
+                  </select>
+                  {subjects.length === 0 && questionsMeta.languageId && (
+                    <p className="text-xs text-amber-600">No subjects available for selected language</p>
+                  )}
+                </div>
+
+                {/* Chapter Selection */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Chapter <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    required
+                    value={questionsMeta?.chapterId || ''}
+                    onChange={(e) => {
+                      const newChapterId = Number(e.target.value);
+                      setTopics([]);
+                      setQuestionsMeta((prev) => ({ ...prev, chapterId: newChapterId, topicId: 0 }));
+                      if (newChapterId) {
+                        const derived = buildTopicsForChapter(newChapterId);
+                        if (derived.length > 0) {
+                          setTopics(derived);
+                        } else {
+                          fetchTopics(newChapterId);
+                        }
+                      }
+                    }}
+                    disabled={!questionsMeta.subjectId}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
+                  >
+                    <option value="">Select chapter</option>
+                    {chapters?.map((chapter, idx) => (
+                      <option key={`${chapter.subjectId}-${idx}`} value={chapter.subjectId}>
+                        {chapter.subjectName}
+                      </option>
+                    ))}
+                  </select>
+                  {chapters.length === 0 && questionsMeta.subjectId && (
+                    <p className="text-xs text-amber-600">No chapters available for selected subject</p>
+                  )}
+                </div>
+
+                {/* Topic Selection */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Topic <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    required
+                    value={questionsMeta?.topicId || ''}
+                    onChange={(e) => {
+                      setQuestionsMeta((prev) => ({ ...prev, topicId: Number(e.target.value) }));
+                    }}
+                    disabled={!questionsMeta.chapterId}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
+                  >
+                    <option value="">Select topic</option>
+                    {topics?.map((topic, idx) => (
+                      <option key={`${topic.topicId}-${idx}`} value={topic.topicId}>
+                        {topic.topicName}
+                      </option>
+                    ))}
+                  </select>
+                  {topics.length === 0 && questionsMeta.chapterId && (
+                    <p className="text-xs text-amber-600">No topics available for selected chapter</p>
+                  )}
+                </div>
+
+                {/* Question Type */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Question Type <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    required
+                    value={questionsMeta?.questionType}
+                    onChange={(e) => {
+                      setQuestionsMeta((prev) => ({ ...prev, questionType: Number(e.target.value) }));
+                    }}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white"
+                  >
+                    <option value="">Select type</option>
+                    {questionTypes?.map((questionType, idx) => (
+                      <option
+                        key={`${questionType.questionTypeId}-${idx}`}
+                        value={questionType.questionTypeId}
+                      >
+                        {questionType.questionType}
+                      </option>
+                    ))}
+                  </select>
+                  {questionTypes.length === 0 && (
+                    <p className="text-xs text-amber-600">Loading question types...</p>
+                  )}
+                </div>
+
+                {/* Difficulty Level */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Difficulty Level <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    required
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
+                    disabled={!questionsMeta.languageId}
+                    value={questionsMeta?.difficulty}
+                    onChange={(e) => {
+                      setQuestionsMeta((prev) => ({ ...prev, difficulty: Number(e.target.value) }));
+                    }}
+                  >
+                    <option value="">Select Difficulty</option>
+                    {difficultyLevels?.map((level, idx) => (
+                      <option
+                        key={`${level.questionDifficultylevelId}-${idx}`}
+                        value={level.questionDifficultylevelId}
+                      >
+                        {level.questionDifficultylevel1}
+                      </option>
+                    ))}
+                  </select>
+                  {difficultyLevels.length === 0 && questionsMeta.languageId && (
+                    <p className="text-xs text-amber-600">No difficulty levels available for selected language</p>
+                  )}
+                </div>
+
+                {/* Marks Configuration */}
+                <div className="space-y-4 pt-4 border-t border-gray-200">
+                  <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                    <div className="w-4 h-4 bg-emerald-100 rounded flex items-center justify-center">
+                      <span className="text-emerald-600 text-xs font-bold">%</span>
+                    </div>
+                    Marks Configuration
+                  </h3>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-medium text-gray-600">
+                        Right Marks <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        required
+                        type="number"
+                        min={0}
+                        placeholder="0"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        onChange={(e) => {
+                          setQuestionsMeta((prev) => ({ ...prev, marks: Number(e.target.value) }));
+                        }}
+                        value={questionsMeta.marks || ''}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-xs font-medium text-gray-600">Negative Marks</label>
+                      <input
+                        type="number"
+                        min={0}
+                        placeholder="0"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        onChange={(e) => {
+                          setQuestionsMeta((prev) => ({ ...prev, negativeMarks: Number(e.target.value) }));
+                        }}
+                        value={questionsMeta.negativeMarks || ''}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-medium text-gray-600">Grace Marks</label>
+                      <input
+                        type="number"
+                        min={0}
+                        placeholder="0"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        value={questionsMeta.graceMarks || ''}
+                        onChange={(e) => {
+                          setQuestionsMeta((prev) => ({ ...prev, graceMarks: Number(e.target.value) }));
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-xs font-medium text-gray-600">Free Space</label>
+                      <select
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        value={questionsMeta.freeSpace}
+                        onChange={(e) => {
+                          const val = Number(e.target.value) as 0 | 1;
+                          setQuestionsMeta((prev) => ({ ...prev, freeSpace: val }));
+                        }}
+                      >
+                        <option value={0}>No</option>
+                        <option value={1}>Yes</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Options */}
+                <div className="space-y-4 pt-4 border-t border-gray-200">
+                  <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                    <div className="w-4 h-4 bg-purple-100 rounded flex items-center justify-center">
+                      <span className="text-purple-600 text-xs font-bold">+</span>
+                    </div>
+                    Additional Options
+                  </h3>
+                  
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-medium text-gray-600">Tags</label>
+                      <input
+                        placeholder="Add tags (comma separated)"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        onChange={(e) => {
+                          setQuestionsMeta((prev) => ({ ...prev, tags: e.target.value }));
+                        }}
+                        value={questionsMeta.tags}
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-xs font-medium text-gray-600">Write Up</label>
+                      <select
+                        value={questionsMeta?.writeUpId}
+                        onChange={(e) => {
+                          setQuestionsMeta((prev) => ({ ...prev, writeUpId: Number(e.target.value) }));
+                        }}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                      >
+                        <option value="">None</option>
+                        {writeUps?.map((writeUp, idx) => (
+                          <option
+                            key={`${writeUp.writeUpId}-${idx}`}
+                            value={writeUp.writeUpId}
+                          >
+                            {writeUp.writeUpName}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Progress Indicator */}
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-600">Configuration Progress</span>
+                      <span className="text-gray-900 font-medium">
+                        {[questionsMeta.languageId, questionsMeta.subjectId, questionsMeta.chapterId, questionsMeta.topicId, questionsMeta.questionType, questionsMeta.difficulty].filter(Boolean).length}/6
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                        style={{
+                          width: `${([questionsMeta.languageId, questionsMeta.subjectId, questionsMeta.chapterId, questionsMeta.topicId, questionsMeta.questionType, questionsMeta.difficulty].filter(Boolean).length / 6) * 100}%`
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
-            </Accordion>
+            </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-4 pt-8 border-t border-gray-200">
-            <button
-              onClick={() => handleSubmit()}
-              disabled={isSaving}
-              className={`px-6 py-3 rounded-md text-white text-sm font-medium shadow ${
-                isSaving 
-                  ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-indigo-600 hover:bg-indigo-700'
-              }`}
-            >
-              {isSaving ? 'Saving...' : 'Save Question'}
-            </button>
-            <button
-              onClick={handleSaveAndNew}
-              disabled={isSaving}
-              className={`px-6 py-3 rounded-md border border-gray-300 text-sm font-medium ${
-                isSaving 
-                  ? 'bg-gray-50 text-gray-400 cursor-not-allowed' 
-                  : 'hover:bg-gray-50'
-              }`}
-            >
-              {isSaving ? 'Saving...' : 'Save & New'}
-            </button>
-      </div>
+          {/* Right Column - Main Content */}
+          <div className="col-span-12 lg:col-span-8 xl:col-span-9">
+            <div className="space-y-6">
+              {/* Question Content Section */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 transition-shadow hover:shadow-md">
+                <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
+                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-3">
+                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center ring-2 ring-green-200">
+                      <HelpCircle className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div>
+                      <span className="text-gray-900">Question Content</span>
+                      <p className="text-sm text-gray-600 font-normal mt-1">Add your question and header information</p>
+                    </div>
+                  </h2>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">Question Header (Optional)</label>
+                      <input
+                        placeholder="Enter question header or instructions..."
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                        onChange={(e) => setQuestionHeader(e.target.value)}
+                        value={questionHeader}
+                      />
+                      <p className="text-xs text-gray-500 mt-2">Optional: Add instructions or context for the question</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                        Question Content <span className="text-red-500">*</span>
+                      </label>
+                      <div className="border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 transition-all duration-200">
+                        <RichTextEditor
+                          onChange={(content) => setQuestion(content)}
+                          initialContent={question}
+                          placeholder="Type your question here..."
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">Use the rich text editor to format your question with equations, images, and more</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Question Options Section */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 transition-shadow hover:shadow-md">
+                <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center ring-2 ring-blue-200">
+                      <span className="text-blue-600 text-lg font-bold">◯</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-900">Answer Options</span>
+                      <p className="text-sm text-gray-600 font-normal mt-1">Configure answer choices based on question type</p>
+                    </div>
+                  </h2>
+                </div>
+                <div className="p-6">
+                  {questionsMeta?.questionType ? (
+                    <QuestionOptionsInput
+                      questionTypeId={questionsMeta?.questionType}
+                      questionTypes={questionTypes}
+                      onDataChange={(data) => setQuestionOptions(data)}
+                    />
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-gray-400 text-2xl">◯</span>
+                      </div>
+                      <p className="text-gray-500 text-sm">Select a question type from the configuration panel to add answer options</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Explanation Section */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 transition-shadow hover:shadow-md">
+                <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-amber-50">
+                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-3">
+                    <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center ring-2 ring-yellow-200">
+                      <span className="text-yellow-600 text-lg font-bold">💡</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-900">Explanation & Solution</span>
+                      <p className="text-sm text-gray-600 font-normal mt-1">Provide detailed explanation and video solution</p>
+                    </div>
+                  </h2>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">Explanation</label>
+                      <div className="border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-yellow-500 focus-within:border-yellow-500 transition-all duration-200">
+                        <RichTextEditor
+                          onChange={(content) => setExplanation(content)}
+                          initialContent={explanation}
+                          placeholder="Add explanation for the correct answer..."
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">Provide a clear explanation of why the answer is correct</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">Video Solution URL</label>
+                      <input
+                        placeholder="Enter video URL for solution explanation"
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                        onChange={(e) => setVideoSolURL(e.target.value)}
+                        value={videoSolURL}
+                      />
+                      <p className="text-xs text-gray-500 mt-2">Optional: Link to a video explanation of the solution</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions Card for Mobile */}
+              <div className="lg:hidden bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleSaveAndNew}
+                    disabled={isSaving}
+                    className={`flex-1 px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium transition-colors ${
+                      isSaving 
+                        ? 'bg-gray-50 text-gray-400 cursor-not-allowed' 
+                        : 'bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {isSaving ? 'Saving...' : 'Save & New'}
+                  </button>
+                  <button
+                    onClick={() => handleSubmit()}
+                    disabled={isSaving}
+                    className={`flex-1 px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-colors ${
+                      isSaving 
+                        ? 'bg-gray-400 cursor-not-allowed' 
+                        : 'bg-indigo-600 hover:bg-indigo-700'
+                    }`}
+                  >
+                    {isSaving ? 'Saving...' : 'Save Question'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
