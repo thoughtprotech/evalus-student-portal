@@ -15,10 +15,17 @@ export default function Index() {
   );
 
   const fetchStarredList = async () => {
-    const res = await fetchCandidateStarredTestList();
-    const { data, status } = res;
-    if (status === 200) {
-      setTestList(data!);
+    try {
+      const res = await fetchCandidateStarredTestList();
+      const { data, status } = res || {} as any;
+      if (status === 200 && Array.isArray(data)) {
+        setTestList(data);
+      } else {
+        setTestList([]);
+      }
+    } catch (e) {
+      setTestList([]);
+    } finally {
       setLoaded(true);
     }
   };
@@ -29,9 +36,10 @@ export default function Index() {
   }, []);
 
   // Derive the filtered test list based on the current tab and search query
-  const filteredTestList = testList.filter((test) =>
-    test.testName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredTestList = (testList || []).filter((test) => {
+    const name = (test as any)?.testName ?? "";
+    return String(name).toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   if (!loaded) {
     return <Loader />;
@@ -53,11 +61,11 @@ export default function Index() {
       <div>
         {filteredTestList.length > 0 ? (
           <div className="w-full grid grid-cols-1 lg:grid lg:grid-cols-4 gap-4">
-            {filteredTestList.map((test) => (
-              <div key={test.testName}>
+            {filteredTestList.map((test, idx) => (
+              <div key={(test as any)?.testId ?? (test as any)?.testName ?? idx}>
                 <TestCards
-                  id={test.testId.toString()}
-                  name={test.testName}
+                  id={String((test as any)?.testId ?? "")}
+                  name={String((test as any)?.testName ?? "Untitled Test")}
                   // startDateTimeString={test.startDateTimeString}
                   // endDateTimeString={test.endDateTimeString}
                   // status={
