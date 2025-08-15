@@ -22,12 +22,15 @@ export async function createQuestionAction(
       message,
     });
 
-    if (status === 201 || status === 200) {
+    // Consider success for 2xx status codes and when error is explicitly false
+    const isSuccess = (status >= 200 && status < 300) || (status === 201 || status === 200) || (!error && status !== 0);
+    
+    if (isSuccess) {
       return {
         status,
-        error,
+        error: false, // Explicitly set to false for success
         data,
-        message: message || "Question Created",
+        message: message || "Question Created Successfully",
       };
     }
     

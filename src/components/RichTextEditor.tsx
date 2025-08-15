@@ -29,12 +29,14 @@ export interface RichTextEditorProps {
   initialContent?: string;
   onChange?: (content: string) => void;
   placeholder?: string;
+  returnPlainText?: boolean; // New prop to control output format
 }
 
 export default function RichTextEditor({
   initialContent = "",
   onChange,
   placeholder = "Start typing...",
+  returnPlainText = false, // Default to HTML for backward compatibility
 }: RichTextEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -61,15 +63,21 @@ export default function RichTextEditor({
           "ProseMirror min-h-full p-4 focus:outline-none overflow-auto",
       },
     },
-    onUpdate: ({ editor }) => onChange?.(editor.getHTML()),
+    onUpdate: ({ editor }) => {
+      const content = returnPlainText ? editor.getText() : editor.getHTML();
+      onChange?.(content);
+    },
   });
 
   // Sync external content changes
   useEffect(() => {
-    if (editor && initialContent !== editor.getHTML()) {
-      editor.commands.setContent(initialContent);
+    if (editor) {
+      const currentContent = returnPlainText ? editor.getText() : editor.getHTML();
+      if (initialContent !== currentContent) {
+        editor.commands.setContent(initialContent);
+      }
     }
-  }, [initialContent, editor]);
+  }, [initialContent, editor, returnPlainText]);
 
   if (!editor) return null;
 

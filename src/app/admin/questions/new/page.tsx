@@ -239,7 +239,7 @@ export default function Index() {
       return toast.error("Language Is Required");
     }
 
-    if (question.length === 0) {
+    if (question.trim().length === 0) {
       return toast.error("Question Is Required");
     }
 
@@ -290,9 +290,14 @@ export default function Index() {
       // Step 1: Create the question
       const res = await createQuestionAction(payload);
 
-      const { data, status, error, errorMessage } = res;
+      const { data, status, error, errorMessage, message } = res;
 
-      if (status === 201 || status === 200) {
+      console.log("Question creation response:", { data, status, error, errorMessage, message });
+
+      // Check for success more broadly
+      const isQuestionCreated = (status >= 200 && status < 300) || (!error && status !== 0);
+
+      if (isQuestionCreated) {
         // Step 2: Create question options if question creation was successful
         // Get the question ID from the response
         const questionData = data as any;
@@ -320,7 +325,17 @@ export default function Index() {
 
         const optionsRes = await createQuestionOptionsAction(optionsPayload);
 
-        if (optionsRes.status === 201 || optionsRes.status === 200) {
+        console.log("Question options creation response:", { 
+          status: optionsRes.status, 
+          error: optionsRes.error, 
+          errorMessage: optionsRes.errorMessage,
+          message: optionsRes.message 
+        });
+
+        // Check for success more broadly
+        const isOptionsCreated = (optionsRes.status >= 200 && optionsRes.status < 300) || (!optionsRes.error && optionsRes.status !== 0);
+
+        if (isOptionsCreated) {
           toast.success("Question Created Successfully");
           if (goBack) {
             setTimeout(() => {
@@ -329,13 +344,24 @@ export default function Index() {
           }
         } else {
           toast.error(optionsRes.errorMessage || "Failed to save question options");
-          console.error("CreateQuestionOptionsAction error", {
+          console.error("CreateQuestionOptionsAction failed", {
             status: optionsRes.status,
             error: optionsRes.error,
             errorMessage: optionsRes.errorMessage,
+            message: optionsRes.message,
+            data: optionsRes.data,
+            payload: optionsPayload,
           });
         }
       } else {
+        console.error("CreateQuestionAction failed", {
+          status,
+          error,
+          errorMessage,
+          message,
+          data,
+          payload,
+        });
         // Extract detailed error message from API response if available
         let detailedError = errorMessage || "Failed to create question";
         
@@ -498,6 +524,7 @@ export default function Index() {
                     onChange={(content) => setQuestion(content)}
                     initialContent={question}
                     placeholder="Type your question here..."
+                    returnPlainText={true}
                   />
                 </div>
               </div>
@@ -521,6 +548,7 @@ export default function Index() {
                   onChange={(content) => setExplanation(content)}
                   initialContent={explanation}
                   placeholder="Add explanation for the correct answer..."
+                  returnPlainText={true}
                 />
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Video Solution URL</label>
