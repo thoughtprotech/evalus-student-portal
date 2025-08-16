@@ -29,11 +29,11 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "Dashboard", path: "/admin", Icon: LayoutDashboard },
-  { label: "Companies", path: "/admin/companies", Icon: BarcodeIcon },
   { label: "Questions", path: "/admin/questions", Icon: HelpCircle }, 
   { label: "Tests", path: "/admin/tests", Icon: ClipboardList },
   { label: "Products", path: "/admin/products", Icon: Box },
   { label: "Candidates", path: "/admin/candidates", Icon: User },
+  { label: "Companies", path: "/admin/companies", Icon: BarcodeIcon },
   { label: "Reports", path: "/admin/reports", Icon: BarChart2 },
   { label: "Settings", path: "/admin/settings", Icon: Settings },
 ];
