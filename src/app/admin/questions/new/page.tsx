@@ -317,6 +317,13 @@ export default function Index() {
         stringifiedAnswer = typeof questionOptions?.answer === 'string'
           ? questionOptions?.answer
           : JSON.stringify(questionOptions?.answer ?? "");
+      } else if (currentType === QUESTION_TYPES.TRUEFALSE) {
+        // Canonical structure for True/False type
+        const ansArray = Array.isArray(questionOptions?.answer)
+          ? (questionOptions!.answer as string[])
+          : (questionOptions?.answer ? [questionOptions?.answer] : []);
+        stringifiedOptions = JSON.stringify({ type: "truefalse", options: ["True", "False"] });
+        stringifiedAnswer = JSON.stringify(ansArray);
       } else {
         // Default behavior for other types
         stringifiedOptions = JSON.stringify(questionOptions?.options);
