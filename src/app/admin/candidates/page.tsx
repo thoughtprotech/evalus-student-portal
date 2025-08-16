@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { User } from "lucide-react";
 import { Filter, XCircle, Trash2, PlusCircle } from "lucide-react";
+import { fetchCandidatesAction, deleteCandidateAction, type CandidateRow } from "@/app/actions/admin/candidates";
 import PageHeader from "@/components/PageHeader";
 import Link from "next/link";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -19,28 +20,6 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 
 // AG Grid v31+ uses modules; register all community modules
 ModuleRegistry.registerModules([AllCommunityModule]);
-
-// CandidateRow type for grid
-export interface CandidateRow {
-  candidateId: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber: string;
-  cellPhone: string;
-  address: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  country: string;
-  candidateGroup: string;
-  notes: string;
-  isActive: number | boolean;
-  createdBy: string;
-  createdDate: string;
-  modifiedBy: string;
-  modifiedDate: string;
-}
 
 function NameCellRenderer(props: { value: string; data: CandidateRow }) {
   return (
@@ -341,132 +320,103 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
     gridApiRef.current = e.api;
   }, []);
 
-  // Mock data generator for demonstration
-  const generateMockCandidates = useCallback((count: number): CandidateRow[] => {
-    const firstNames = ['John', 'Jane', 'Michael', 'Sarah', 'David', 'Lisa', 'Robert', 'Maria', 'James', 'Jennifer'];
-    const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'];
-    const cities = ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego'];
-    const states = ['NY', 'CA', 'IL', 'TX', 'AZ', 'PA', 'TX', 'CA'];
-    const countries = ['USA', 'Canada', 'UK', 'Australia'];
-    const groups = ['Engineering', 'Marketing', 'Sales', 'Design', 'Operations'];
-    const users = ['admin', 'hr_manager', 'recruiter', 'system'];
-
-    return Array.from({ length: count }, (_, i) => {
-      const firstName = firstNames[i % firstNames.length];
-      const lastName = lastNames[i % lastNames.length];
-      const cityIndex = i % cities.length;
-      
-      return {
-        candidateId: i + 1001,
-        firstName,
-        lastName,
-        email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
-        phoneNumber: `+1-555-${String(i + 1000).slice(-4)}`,
-        cellPhone: `+1-555-${String(i + 2000).slice(-4)}`,
-        address: `${i + 100} Main Street`,
-        city: cities[cityIndex],
-        state: states[cityIndex],
-        postalCode: String(10000 + i).slice(-5),
-        country: countries[i % countries.length],
-        candidateGroup: groups[i % groups.length],
-        notes: i % 3 === 0 ? `Candidate notes for ${firstName} ${lastName}` : '',
-        isActive: i % 4 !== 0,
-        createdBy: users[i % users.length],
-        createdDate: new Date(Date.now() - i * 86400000).toISOString(),
-        modifiedBy: users[(i + 1) % users.length],
-        modifiedDate: new Date(Date.now() - (i * 43200000)).toISOString(),
-      };
-    });
-  }, []);
-
-  // Fetch data whenever dependencies change
+  // Fetch data from API
   const fetchPage = useCallback(async () => {
     const reqId = ++lastReqIdRef.current;
     setLoading(true);
     
-    // For demonstration, we'll use mock data filtered and sorted locally
-    let mockData = generateMockCandidates(100);
+    const sort = sortModelRef.current?.[0];
+    const fieldMap: Record<string, string> = {
+      candidateId: "candidateRegistrationId",
+      firstName: "firstName",
+      lastName: "lastName",
+      email: "email",
+      phoneNumber: "phoneNumber",
+      cellPhone: "cellPhone",
+      address: "address",
+      city: "city",
+      state: "state",
+      postalCode: "postalCode",
+      country: "country",
+      candidateGroup: "candidateGroupName",
+      notes: "notes",
+      isActive: "isActive",
+      createdDate: "createdDate",
+      modifiedDate: "modifiedDate",
+      createdBy: "createdBy",
+      modifiedBy: "modifiedBy",
+    };
+    const orderBy = sort ? `${fieldMap[sort.colId] ?? "candidateRegistrationId"} ${sort.sort}` : "candidateRegistrationId desc";
     
-    // Apply search filter
+    // Build filter from both global search and column filters
+    const filters: string[] = [];
     const search = (query ?? "").trim();
-    if (search) {
-      mockData = mockData.filter(candidate => 
-        candidate.firstName.toLowerCase().includes(search.toLowerCase()) ||
-        candidate.lastName.toLowerCase().includes(search.toLowerCase()) ||
-        candidate.email.toLowerCase().includes(search.toLowerCase()) ||
-        candidate.candidateGroup.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-
-    // Apply column filters
+    if (search) filters.push(`contains(firstName,'${search.replace(/'/g, "''")}')`);
+    
     const filterModel = filterModelRef.current || {};
     Object.entries(filterModel).forEach(([field, filterConfig]: [string, any]) => {
       if (!filterConfig) return;
+      
+      const serverField = fieldMap[field] || field;
+      
       if (filterConfig.filterType === 'text' && filterConfig.filter) {
-        const value = filterConfig.filter.toLowerCase();
+        const value = filterConfig.filter.replace(/'/g, "''");
+        
         if (field === 'isActive') {
           const lowerValue = value.toLowerCase();
           if (lowerValue === 'active' || lowerValue === '1' || lowerValue === 'true') {
-            mockData = mockData.filter(item => Boolean(item.isActive));
+            filters.push(`${serverField} eq 1`);
           } else if (lowerValue === 'inactive' || lowerValue === '0' || lowerValue === 'false') {
-            mockData = mockData.filter(item => !Boolean(item.isActive));
+            filters.push(`${serverField} eq 0`);
           }
           return;
         }
-        mockData = mockData.filter(item => {
-          const fieldValue = String((item as any)[field] || '').toLowerCase();
-          switch (filterConfig.type) {
-            case 'contains':
-            default:
-              return fieldValue.includes(value);
-            case 'startsWith':
-              return fieldValue.startsWith(value);
-            case 'endsWith':
-              return fieldValue.endsWith(value);
-            case 'equals':
-              return fieldValue === value;
-          }
-        });
+        
+        switch (filterConfig.type) {
+          case 'contains':
+            filters.push(`contains(${serverField},'${value}')`);
+            break;
+          case 'startsWith':
+            filters.push(`startswith(${serverField},'${value}')`);
+            break;
+          case 'endsWith':
+            filters.push(`endswith(${serverField},'${value}')`);
+            break;
+          case 'equals':
+            filters.push(`${serverField} eq '${value}'`);
+            break;
+        }
       } else if (filterConfig.filter !== undefined) {
-        const value = String(filterConfig.filter).toLowerCase();
+        const value = String(filterConfig.filter).replace(/'/g, "''");
+        
         if (field === 'isActive') {
-          if (value === 'active' || value === '1' || value === 'true') {
-            mockData = mockData.filter(item => Boolean(item.isActive));
-          } else if (value === 'inactive' || value === '0' || value === 'false') {
-            mockData = mockData.filter(item => !Boolean(item.isActive));
+          const lowerValue = value.toLowerCase();
+          if (lowerValue === 'active' || lowerValue === '1' || lowerValue === 'true') {
+            filters.push(`${serverField} eq 1`);
+          } else if (lowerValue === 'inactive' || lowerValue === '0' || lowerValue === 'false') {
+            filters.push(`${serverField} eq 0`);
           }
           return;
         }
-        mockData = mockData.filter(item => {
-          const fieldValue = String((item as any)[field] || '').toLowerCase();
-          return fieldValue.includes(value);
-        });
+        
+        filters.push(`contains(${serverField},'${value}')`);
       }
     });
+    
+    const filter = filters.length ? Array.from(new Set(filters)).join(" and ") : undefined;
 
-    // Apply sorting
-    const sort = sortModelRef.current?.[0];
-    if (sort) {
-      mockData.sort((a, b) => {
-        const aVal = (a as any)[sort.colId];
-        const bVal = (b as any)[sort.colId];
-        if (aVal < bVal) return sort.sort === 'asc' ? -1 : 1;
-        if (aVal > bVal) return sort.sort === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-
-    const total = mockData.length;
-    const startIdx = (page - 1) * pageSize;
-    const endIdx = startIdx + pageSize;
-    const paginatedData = mockData.slice(startIdx, endIdx);
-
+    const res = await fetchCandidatesAction({ top: pageSize, skip: (page - 1) * pageSize, orderBy, filter });
+    
     if (reqId === lastReqIdRef.current) {
-      setRows(paginatedData);
-      setTotal(total);
+      if (res.status === 200 && res.data) {
+        setRows(res.data.rows.slice());
+        setTotal(res.data.total);
+      } else {
+        setToast({ message: res.message || "Failed to fetch candidates", type: "error" });
+      }
       setLoading(false);
     }
-  }, [page, pageSize, query, generateMockCandidates]);
+  }, [page, pageSize, query]);
 
   useEffect(() => { fetchPage(); }, [fetchPage]);
 
@@ -635,7 +585,8 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
               if (hasSearch && onClearQuery) {
                 onClearQuery();
               }
-            }}
+            }
+            }
             className="text-xs inline-flex items-center gap-2 rounded-full border border-gray-300 text-gray-700 px-3 py-1 hover:bg-gray-50"
             title="Clear all filters"
           >
@@ -738,18 +689,37 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
         onConfirm={async () => {
           if (pendingDelete.length === 0) return;
           setDeleting(true);
-          setToast({ 
-            message: pendingDelete.length === 1 
-              ? "Candidate deleted successfully." 
-              : `${pendingDelete.length} candidates deleted successfully.`, 
-            type: "success" 
-          });
-          const api = gridApiRef.current;
-          if (api) {
-            api.deselectAll?.();
-            setSelectedCount(0);
+          
+          try {
+            const deletePromises = pendingDelete.map(candidate => deleteCandidateAction(candidate.candidateId));
+            const results = await Promise.all(deletePromises);
+            
+            const failedDeletes = results.filter(res => res.status !== 200);
+            
+            if (failedDeletes.length === 0) {
+              setToast({ 
+                message: pendingDelete.length === 1 
+                  ? "Candidate deleted successfully." 
+                  : `${pendingDelete.length} candidates deleted successfully.`, 
+                type: "success" 
+              });
+            } else {
+              setToast({ 
+                message: `${failedDeletes.length} candidates failed to delete.`, 
+                type: "error" 
+              });
+            }
+            
+            const api = gridApiRef.current;
+            if (api) {
+              api.deselectAll?.();
+              setSelectedCount(0);
+            }
+            fetchPage();
+          } catch (error) {
+            setToast({ message: "Delete operation failed", type: "error" });
           }
-          fetchPage();
+          
           setDeleting(false);
           setConfirmOpen(false);
           setPendingDelete([]);
