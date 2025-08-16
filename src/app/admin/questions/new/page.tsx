@@ -300,16 +300,23 @@ export default function Index() {
 
         stringifiedOptions = JSON.stringify({ type: "match-pair-multiple", left, right });
         stringifiedAnswer = JSON.stringify(answer2D);
-      } else if (currentType === QUESTION_TYPES.SINGLE_MCQ) {
+  } else if (currentType === QUESTION_TYPES.SINGLE_MCQ) {
         const optsArr = (questionOptions?.options || []) as string[];
         const ansArr = Array.isArray(questionOptions?.answer) ? (questionOptions!.answer as string[]) : [];
         stringifiedOptions = JSON.stringify({ type: "mcq-single", options: optsArr });
         stringifiedAnswer = JSON.stringify(ansArr);
-      } else if (currentType === QUESTION_TYPES.MULTIPLE_MCQ) {
+  } else if (currentType === QUESTION_TYPES.MULTIPLE_MCQ) {
         const optsArr = (questionOptions?.options || []) as string[];
         const ansArr = Array.isArray(questionOptions?.answer) ? (questionOptions!.answer as string[]) : [];
         stringifiedOptions = JSON.stringify({ type: "mcq-multiple", options: optsArr });
         stringifiedAnswer = JSON.stringify(ansArr);
+      } else if (currentType === QUESTION_TYPES.NUMERIC) {
+        // Numeric doesn't have options list; just the type marker
+        stringifiedOptions = JSON.stringify({ type: "numeric" });
+        // Answer is a plain string (already handled below)
+        stringifiedAnswer = typeof questionOptions?.answer === 'string'
+          ? questionOptions?.answer
+          : JSON.stringify(questionOptions?.answer ?? "");
       } else {
         // Default behavior for other types
         stringifiedOptions = JSON.stringify(questionOptions?.options);
