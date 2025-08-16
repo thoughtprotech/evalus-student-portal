@@ -259,13 +259,40 @@ export default function Index() {
 
   const submitQuestion = async (showModal: boolean = true): Promise<{success: boolean}> => {
     try {
-      // Safely stringify options (always an array)
-      const stringifiedOptions = JSON.stringify(questionOptions?.options);
+      // Safely build options/answers JSON; handle special shapes per type
+      // Detect current question type label
+      const currentType = questionTypes.find(
+        (q) => q.questionTypeId === questionsMeta.questionType
+      )?.questionType;
 
-      // Conditionally stringify answers only if it's an array
-      const stringifiedAnswer = Array.isArray(questionOptions?.answer)
-        ? JSON.stringify(questionOptions.answer)
-        : questionOptions?.answer;
+      let stringifiedOptions = "";
+      let stringifiedAnswer: string | undefined = undefined;
+
+      if (currentType === QUESTION_TYPES.MATCH_PAIRS_SINGLE) {
+        // Expect options as [left[], right[]] and answer as array mapping by index to a single right
+        const cols = (questionOptions?.options || []) as any[];
+        const left: string[] = Array.isArray(cols?.[0]) ? cols[0] : [];
+        const right: string[] = Array.isArray(cols?.[1]) ? cols[1] : [];
+
+        // Normalize answer to array of strings aligned with left indices
+        const ansArr: any = questionOptions?.answer;
+        const ansList: string[] = Array.isArray(ansArr) ? ansArr : [];
+
+        // Build pairs [leftValue, rightValue] only for populated selections
+        const pairs: [string, string][] = left
+          .map((l, i) => [l, ansList[i]] as [string, string])
+          .filter(([l, r]) => !!(l && r));
+
+        // Serialize without any `type` property as requested
+        stringifiedOptions = JSON.stringify({ left, right });
+        stringifiedAnswer = JSON.stringify(pairs);
+      } else {
+        // Default behavior for other types
+        stringifiedOptions = JSON.stringify(questionOptions?.options);
+        stringifiedAnswer = Array.isArray(questionOptions?.answer)
+          ? JSON.stringify(questionOptions.answer)
+          : questionOptions?.answer;
+      }
 
       // Helper function to validate URL
       const isValidUrl = (string: string) => {
