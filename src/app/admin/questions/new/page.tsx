@@ -15,7 +15,7 @@ import {
   GetTopicsResponse,
   GetWriteUpsResponse,
 } from "@/utils/api/types";
-import { ArrowLeft, HelpCircle, Filter } from "lucide-react";
+import { ArrowLeft, HelpCircle, Filter, Smartphone, Monitor } from "lucide-react";
 import Link from "next/link";
 import { fetchSubjectsAction } from "@/app/actions/dashboard/questions/fetchSubjects";
 import { fetchQuestionTypesAction } from "@/app/actions/dashboard/questions/fetchQuestionTypes";
@@ -39,9 +39,9 @@ export default function Index() {
     chapterId: number;
     topicId: number;
     languageId: string;
-    writeUpId: number;
-  graceMarks: number;
-  freeSpace: number; // 1 = Yes, 0 = No
+    writeUpId: number | null;
+    graceMarks: number;
+    freeSpace: number; // 1 = Yes, 0 = No
   }>({
     tags: "",
     marks: 0,
@@ -52,13 +52,14 @@ export default function Index() {
     chapterId: 0,
     topicId: 0,
     languageId: "",
-    writeUpId: 0,
-  graceMarks: 0,
-  freeSpace: 0,
+    writeUpId: null,
+    graceMarks: 0,
+    freeSpace: 0,
   });
-  const [explanation, setExplanation] = useState<string>("");
   const [questionHeader, setQuestionHeader] = useState<string>("");
-  const [videoSolURL, setVideoSolURL] = useState<string>("");
+  // Video Solution URLs (separate for Web and Mobile)
+  const [videoSolWebURL, setVideoSolWebURL] = useState<string>("");
+  const [videoSolMobileURL, setVideoSolMobileURL] = useState<string>("");
   const [questionOptions, setQuestionOptions] = useState<{
     options: any;
     answer: any;
@@ -70,6 +71,15 @@ export default function Index() {
   const [allLanguageSubjects, setAllLanguageSubjects] = useState<GetSubjectsResponse[]>([]);
   const [topics, setTopics] = useState<GetTopicsResponse[]>([]);
   const [languages, setLanguages] = useState<GetLanguagesResponse[]>([]);
+  const [explanation, setExplanation] = useState<string>("");
+  // Loading flags to prevent flicker while fetching dependent data
+  const [isSubjectsLoading, setIsSubjectsLoading] = useState<boolean>(false);
+  const [isTopicsLoading, setIsTopicsLoading] = useState<boolean>(false);
+  const [isDifficultyLoading, setIsDifficultyLoading] = useState<boolean>(false);
+  // Delayed show flags to avoid brief flashes for very fast requests
+  const [showSubjectsStatus, setShowSubjectsStatus] = useState<boolean>(false);
+  const [showTopicsStatus, setShowTopicsStatus] = useState<boolean>(false);
+  const [showDifficultyStatus, setShowDifficultyStatus] = useState<boolean>(false);
   const [writeUps, setWriteUps] = useState<GetWriteUpsResponse[]>([]);
   const [difficultyLevels, setDifficultyLevels] = useState<GetDifficultyLevelsResponse[]>([]);
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -86,6 +96,7 @@ export default function Index() {
   };
 
   const fetchSubjects = async (language?: string) => {
+    setIsSubjectsLoading(true);
     const res = await fetchSubjectsAction();
     const { data, status, error, errorMessage } = res;
     if (status === 200) {
@@ -114,6 +125,7 @@ export default function Index() {
       setTopics([]);
       setQuestionsMeta((prev) => ({ ...prev, subjectId: 0, chapterId: 0, topicId: 0 }));
     }
+    setIsSubjectsLoading(false);
   };
 
   // Build Topic and Sub Topic list for a given Chapter (subject) from the language-specific subjects
@@ -146,6 +158,7 @@ export default function Index() {
   };
 
   const fetchTopics = async (subjectId: number) => {
+    setIsTopicsLoading(true);
     const res = await fetchTopicsAction(subjectId);
     const { data, status, error, errorMessage } = res;
     if (status === 200) {
@@ -154,6 +167,7 @@ export default function Index() {
       // Do not auto-select; keep topicId empty until user chooses
       setQuestionsMeta((prev) => ({ ...prev, topicId: 0 }));
     }
+    setIsTopicsLoading(false);
   };
 
   const fetchChapters = (subjectId: number) => {
@@ -193,6 +207,7 @@ export default function Index() {
   };
 
   const fetchDifficultyLevels = async (language?: string) => {
+    setIsDifficultyLoading(true);
     const res = await fetchDifficultyLevelsAction(language);
     const { data, status, error, errorMessage } = res;
     if (status === 200) {
@@ -200,6 +215,7 @@ export default function Index() {
     } else {
       // Error handled silently or show user notification
     }
+    setIsDifficultyLoading(false);
   };
 
   useEffect(() => {
@@ -210,15 +226,227 @@ export default function Index() {
     // Subjects and topics are loaded on dropdown selection
   }, []);
 
+  // Delay helper/status text to avoid immediate flashes
+  useEffect(() => {
+    let t: any;
+    if (isSubjectsLoading) {
+      t = setTimeout(() => setShowSubjectsStatus(true), 200);
+    } else {
+      setShowSubjectsStatus(false);
+    }
+    return () => t && clearTimeout(t);
+  }, [isSubjectsLoading]);
+
+  useEffect(() => {
+    let t: any;
+    if (isTopicsLoading) {
+      t = setTimeout(() => setShowTopicsStatus(true), 200);
+    } else {
+      setShowTopicsStatus(false);
+    }
+    return () => t && clearTimeout(t);
+  }, [isTopicsLoading]);
+
+  useEffect(() => {
+    let t: any;
+    if (isDifficultyLoading) {
+      t = setTimeout(() => setShowDifficultyStatus(true), 200);
+    } else {
+      setShowDifficultyStatus(false);
+    }
+    return () => t && clearTimeout(t);
+  }, [isDifficultyLoading]);
+
   const submitQuestion = async (showModal: boolean = true): Promise<{success: boolean}> => {
     try {
-      // Safely stringify options (always an array)
-      const stringifiedOptions = JSON.stringify(questionOptions?.options);
+      // Detect current question type label
+      const currentType = questionTypes.find(
+        (q) => q.questionTypeId === questionsMeta.questionType
+      )?.questionType;
 
-      // Conditionally stringify answers only if it's an array
-      const stringifiedAnswer = Array.isArray(questionOptions?.answer)
-        ? JSON.stringify(questionOptions.answer)
-        : questionOptions?.answer;
+      // Validate options/answer based on type BEFORE serializing
+      const validateByType = (): { ok: boolean; msg?: string } => {
+        const opts = questionOptions?.options;
+        const ans = questionOptions?.answer;
+        const nonEmpty = (s?: string) => (s ?? "").trim().length > 0;
+
+        switch (currentType) {
+          case QUESTION_TYPES.SINGLE_MCQ: {
+            const list: string[] = Array.isArray(opts) ? (opts as string[]) : [];
+            const clean = list.map((x) => (x ?? "").trim());
+            const validOpts = clean.filter((x) => x.length > 0);
+            if (validOpts.length < 2) return { ok: false, msg: "Add at least two non-empty options" };
+            const answerList: string[] = Array.isArray(ans) ? (ans as string[]) : [];
+            if (answerList.length !== 1) return { ok: false, msg: "Select exactly one correct option" };
+            if (!validOpts.includes((answerList[0] ?? "").trim())) return { ok: false, msg: "Correct option must match one of the options" };
+            return { ok: true };
+          }
+          case QUESTION_TYPES.MULTIPLE_MCQ: {
+            const list: string[] = Array.isArray(opts) ? (opts as string[]) : [];
+            const clean = list.map((x) => (x ?? "").trim());
+            const validOpts = clean.filter((x) => x.length > 0);
+            if (validOpts.length < 2) return { ok: false, msg: "Add at least two non-empty options" };
+            const answerList: string[] = Array.isArray(ans) ? (ans as string[]) : [];
+            if (answerList.length < 1) return { ok: false, msg: "Select at least one correct option" };
+            const missing = answerList.some((a) => !validOpts.includes((a ?? "").trim()));
+            if (missing) return { ok: false, msg: "All correct options must exist in the options list" };
+            return { ok: true };
+          }
+          case QUESTION_TYPES.MATCH_PAIRS_SINGLE: {
+            const cols: any[] = Array.isArray(opts) ? (opts as any[]) : [];
+            const left: string[] = Array.isArray(cols?.[0]) ? cols[0] : [];
+            const right: string[] = Array.isArray(cols?.[1]) ? cols[1] : [];
+            const leftVals = left.map((x) => (x ?? "").trim()).filter((x) => x);
+            const rightVals = right.map((x) => (x ?? "").trim()).filter((x) => x);
+            if (leftVals.length === 0 || rightVals.length === 0) return { ok: false, msg: "Add at least one value in each column" };
+            const ansList: any[] = Array.isArray(ans) ? (ans as any[]) : [];
+            // For each non-empty left, ensure a single selected right that exists
+            for (let i = 0; i < left.length; i++) {
+              if (!nonEmpty(left[i])) continue; // allow blank rows to be ignored
+              const chosen = ansList[i];
+              if (!nonEmpty(chosen)) return { ok: false, msg: `Select one match for row ${i + 1}` };
+              if (!rightVals.includes((chosen ?? "").trim())) return { ok: false, msg: `Row ${i + 1} match must exist in Column 2` };
+            }
+            return { ok: true };
+          }
+          case QUESTION_TYPES.MATCH_PAIRS_MULTIPLE: {
+            const cols: any[] = Array.isArray(opts) ? (opts as any[]) : [];
+            const left: string[] = Array.isArray(cols?.[0]) ? cols[0] : [];
+            const right: string[] = Array.isArray(cols?.[1]) ? cols[1] : [];
+            const leftVals = left.map((x) => (x ?? "").trim()).filter((x) => x);
+            const rightVals = right.map((x) => (x ?? "").trim()).filter((x) => x);
+            if (leftVals.length === 0 || rightVals.length === 0) return { ok: false, msg: "Add at least one value in each column" };
+            const ans2D: any[] = Array.isArray(ans) ? (ans as any[]) : [];
+            for (let i = 0; i < left.length; i++) {
+              if (!nonEmpty(left[i])) continue;
+              const chosen: string[] = Array.isArray(ans2D[i]) ? ans2D[i] : [];
+              if (chosen.length === 0) return { ok: false, msg: `Select at least one match for row ${i + 1}` };
+              const bad = chosen.some((c) => !rightVals.includes((c ?? "").trim()));
+              if (bad) return { ok: false, msg: `Row ${i + 1} contains a match not present in Column 2` };
+            }
+            return { ok: true };
+          }
+          case QUESTION_TYPES.TRUEFALSE: {
+            const arr: string[] = Array.isArray(ans) ? (ans as string[]) : [];
+            if (arr.length !== 1) return { ok: false, msg: "Select True or False" };
+            const v = (arr[0] ?? "").trim();
+            if (!["True", "False"].includes(v)) return { ok: false, msg: "Answer must be True or False" };
+            return { ok: true };
+          }
+          case QUESTION_TYPES.NUMERIC: {
+            const v = typeof ans === "string" ? ans.trim() : (ans ?? "").toString().trim();
+            if (!v) return { ok: false, msg: "Enter a numeric answer" };
+            if (!/^\d+(\.\d+)?$/.test(v)) return { ok: false, msg: "Enter a valid number (e.g., 42 or 3.14)" };
+            return { ok: true };
+          }
+          case QUESTION_TYPES.FILL_ANSWER: {
+            const v = typeof ans === "string" ? ans.trim() : (ans ?? "").toString().trim();
+            if (!v) return { ok: false, msg: "Answer cannot be empty" };
+            return { ok: true };
+          }
+          case QUESTION_TYPES.WRITE_UP: {
+            // No answer required for Write Up type
+            return { ok: true };
+          }
+          default: {
+            // Generic: require some answer
+            if (ans === undefined || ans === null) return { ok: false, msg: "Answer is required" };
+            const text = Array.isArray(ans) ? ans.join("") : String(ans ?? "");
+            if (!text.trim()) return { ok: false, msg: "Answer is required" };
+            return { ok: true };
+          }
+        }
+      };
+
+      const validation = validateByType();
+      if (!validation.ok) {
+        toast.error(validation.msg || "Please complete the answer options");
+        return { success: false };
+      }
+
+      // Safely build options/answers JSON; handle special shapes per type
+      let stringifiedOptions = "";
+      let stringifiedAnswer: string | undefined = undefined;
+
+  if (currentType === QUESTION_TYPES.MATCH_PAIRS_SINGLE) {
+        // Expect options as [left[], right[]] and answer as array mapping by index to a single right
+        const cols = (questionOptions?.options || []) as any[];
+        const left: string[] = Array.isArray(cols?.[0]) ? cols[0] : [];
+        const right: string[] = Array.isArray(cols?.[1]) ? cols[1] : [];
+
+        // Normalize answer to array of strings aligned with left indices
+        const ansArr: any = questionOptions?.answer;
+        const ansList: string[] = Array.isArray(ansArr) ? ansArr : [];
+
+        // Build pairs [leftValue, rightValue] only for populated selections
+        const pairs: [string, string][] = left
+          .map((l, i) => [l, ansList[i]] as [string, string])
+          .filter(([l, r]) => !!(l && r));
+
+  // Serialize with a `type` property for clarity/compat
+  stringifiedOptions = JSON.stringify({ type: "match-pair-single", left, right });
+        stringifiedAnswer = JSON.stringify(pairs);
+      } else if (currentType === QUESTION_TYPES.MATCH_PAIRS_MULTIPLE) {
+        // Expect options as [left[], right[]] and answer as string[][] (multiple right per left)
+        const cols = (questionOptions?.options || []) as any[];
+        const left: string[] = Array.isArray(cols?.[0]) ? cols[0] : [];
+        const right: string[] = Array.isArray(cols?.[1]) ? cols[1] : [];
+
+        const ans: any = questionOptions?.answer;
+        // Ensure answer is a 2D array of strings, align length with left
+        const answer2D: string[][] = Array.isArray(ans)
+          ? ans.map((x: any) => (Array.isArray(x) ? x : [])).slice(0, left.length)
+          : [];
+
+        stringifiedOptions = JSON.stringify({ type: "match-pair-multiple", left, right });
+        stringifiedAnswer = JSON.stringify(answer2D);
+  } else if (currentType === QUESTION_TYPES.SINGLE_MCQ) {
+        const optsArr = (questionOptions?.options || []) as string[];
+        const ansArr = Array.isArray(questionOptions?.answer) ? (questionOptions!.answer as string[]) : [];
+        stringifiedOptions = JSON.stringify({ type: "mcq-single", options: optsArr });
+        stringifiedAnswer = JSON.stringify(ansArr);
+  } else if (currentType === QUESTION_TYPES.MULTIPLE_MCQ) {
+        const optsArr = (questionOptions?.options || []) as string[];
+        const ansArr = Array.isArray(questionOptions?.answer) ? (questionOptions!.answer as string[]) : [];
+        stringifiedOptions = JSON.stringify({ type: "mcq-multiple", options: optsArr });
+        stringifiedAnswer = JSON.stringify(ansArr);
+      } else if (currentType === QUESTION_TYPES.NUMERIC) {
+        // Numeric doesn't have options list; just the type marker
+        stringifiedOptions = JSON.stringify({ type: "numeric" });
+        // Answer must be JSON string (e.g., "42"), not raw 42
+        stringifiedAnswer = JSON.stringify(
+          typeof questionOptions?.answer === 'string'
+            ? questionOptions?.answer
+            : (questionOptions?.answer ?? "")
+        );
+      } else if (currentType === QUESTION_TYPES.TRUEFALSE) {
+        // Canonical structure for True/False type
+        const ansArray = Array.isArray(questionOptions?.answer)
+          ? (questionOptions!.answer as string[])
+          : (questionOptions?.answer ? [questionOptions?.answer] : []);
+        stringifiedOptions = JSON.stringify({ type: "truefalse", options: ["True", "False"] });
+        stringifiedAnswer = JSON.stringify(ansArray);
+      } else if (currentType === QUESTION_TYPES.FILL_ANSWER) {
+        // Fill Answer: no options list, just the type marker; answer is a plain string
+        stringifiedOptions = JSON.stringify({ type: "fill-answer" });
+        // Ensure valid JSON (quoted string)
+        stringifiedAnswer = JSON.stringify(
+          typeof questionOptions?.answer === 'string'
+            ? questionOptions?.answer
+            : (questionOptions?.answer ?? "")
+        );
+      } else if (currentType === QUESTION_TYPES.WRITE_UP) {
+        // Write Up: no options/answers – just mark type
+        stringifiedOptions = JSON.stringify({ type: "write-up" });
+        stringifiedAnswer = JSON.stringify("");
+      } else {
+        // Default behavior for other types
+        stringifiedOptions = JSON.stringify(questionOptions?.options);
+        // Always send valid JSON for answer
+        stringifiedAnswer = Array.isArray(questionOptions?.answer)
+          ? JSON.stringify(questionOptions.answer)
+          : JSON.stringify(questionOptions?.answer ?? "");
+      }
 
       // Helper function to validate URL
       const isValidUrl = (string: string) => {
@@ -266,20 +494,29 @@ export default function Index() {
         return {success: false};
       }
 
-      if (stringifiedOptions?.length === 0 || stringifiedOptions === "[]") {
-        toast.error("Options Are Required");
-        return {success: false};
+      // Base presence checks (skip for WRITE_UP because it's optional)
+      if (currentType !== QUESTION_TYPES.WRITE_UP) {
+        if (stringifiedOptions?.length === 0 || stringifiedOptions === "[]") {
+          toast.error("Options Are Required");
+          return {success: false};
+        }
+        if (stringifiedAnswer?.length === 0 || stringifiedAnswer === "[]") {
+          toast.error("Answer Is Required");
+          return {success: false};
+        }
       }
 
-      if (stringifiedAnswer?.length === 0 || stringifiedAnswer === "[]") {
-        toast.error("Answer Is Required");
-        return {success: false};
-      }
+      // Validate video URLs if provided
+      const webUrl = videoSolWebURL.trim();
+      const mobileUrl = videoSolMobileURL.trim();
 
-      // Validate video URL if provided
-      if (videoSolURL.trim() && !isValidUrl(videoSolURL.trim())) {
-        toast.error("Please enter a valid video URL or leave it empty");
-        return {success: false};
+      if (webUrl && !isValidUrl(webUrl)) {
+        toast.error("Please enter a valid Web video URL or leave it empty");
+        return { success: false };
+      }
+      if (mobileUrl && !isValidUrl(mobileUrl)) {
+        toast.error("Please enter a valid Mobile video URL or leave it empty");
+        return { success: false };
       }
 
       // Validate that we have content for both question and explanation
@@ -299,11 +536,15 @@ export default function Index() {
         return {success: false};
       }
 
-      const cleanVideoUrl = videoSolURL.trim();
+  const cleanVideoUrlWeb = webUrl;
+  const cleanVideoUrlMobile = mobileUrl;
+  // For now, backend createQuestion supports a single field. Prefer Web URL; fallback to Mobile.
+  const selectedSingleVideoUrl = cleanVideoUrlWeb || cleanVideoUrlMobile;
       
       const payload: CreateQuestionRequest = {
-        explanation: explanation.trim(), // Save HTML as-is
-        ...(cleanVideoUrl && { videoSolURL: cleanVideoUrl }), // Only include if not empty
+  explanation: explanation.trim(), // Save HTML as-is
+  ...(selectedSingleVideoUrl && { videoSolURL: selectedSingleVideoUrl }), // Only include if not empty
+  ...(cleanVideoUrlMobile && { videoSolMobileURL: cleanVideoUrlMobile }), // Only include if not empty
         questionsMeta: {
           tags: questionsMeta.tags,
           marks: questionsMeta.marks,
@@ -315,10 +556,11 @@ export default function Index() {
           subjectId: questionsMeta.topicId || questionsMeta.subjectId,
           topicId: questionsMeta.topicId,
           language: questionsMeta.languageId,
-          writeUpId: questionsMeta.writeUpId,
+          writeUpId: questionsMeta.writeUpId ?? null,
           headerText: questionHeader,
         },
         question: question.trim(), // Save HTML as-is
+        headerText: questionHeader,
         options: {
           options: stringifiedOptions!,
           answer: stringifiedAnswer!,
@@ -396,7 +638,8 @@ export default function Index() {
       setQuestion("");
       setExplanation("");
       setQuestionHeader("");
-      setVideoSolURL("");
+  setVideoSolWebURL("");
+  setVideoSolMobileURL("");
       setQuestionOptions(undefined);
       setQuestionsMeta({
         tags: "",
@@ -408,7 +651,7 @@ export default function Index() {
         chapterId: 0,
         topicId: 0,
         languageId: "",
-        writeUpId: 0,
+  writeUpId: null,
         graceMarks: 0,
         freeSpace: 0,
       });
@@ -501,6 +744,11 @@ export default function Index() {
                       setTopics([]);
                       setDifficultyLevels([]);
                       if (lang) {
+                        // Pre-mark loading to avoid flashing of empty-state messages
+                        setIsSubjectsLoading(true);
+                        setIsDifficultyLoading(true);
+                      }
+                      if (lang) {
                         fetchSubjects(lang);
                         fetchDifficultyLevels(lang);
                       }
@@ -524,31 +772,52 @@ export default function Index() {
                   <label className="block text-sm font-medium text-gray-700">
                     Subject <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    required
-                    value={questionsMeta?.subjectId || ''}
-                    onChange={(e) => {
-                      const newSubjectId = Number(e.target.value);
-                      setChapters([]);
-                      setTopics([]);
-                      setQuestionsMeta((prev) => ({ ...prev, subjectId: newSubjectId, chapterId: 0, topicId: 0 }));
-                      if (newSubjectId) {
-                        fetchChapters(newSubjectId);
-                      }
-                    }}
-                    disabled={!questionsMeta.languageId}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
-                  >
-                    <option value="">Select subject</option>
-                    {subjects?.map((subject, idx) => (
-                      <option key={`${subject.subjectId}-${idx}`} value={subject.subjectId}>
-                        {subject.subjectName}
-                      </option>
-                    ))}
-                  </select>
-                  {subjects.length === 0 && questionsMeta.languageId && (
-                    <p className="text-xs text-amber-600">No subjects available for selected language</p>
-                  )}
+                  <div>
+                    <select
+                      required
+                      value={questionsMeta?.subjectId || ''}
+                      onChange={(e) => {
+                        const newSubjectId = Number(e.target.value);
+                        setChapters([]);
+                        setTopics([]);
+                        setQuestionsMeta((prev) => ({ ...prev, subjectId: newSubjectId, chapterId: 0, topicId: 0 }));
+                        if (newSubjectId) {
+                          fetchChapters(newSubjectId);
+                        }
+                      }}
+                      disabled={!questionsMeta.languageId}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
+                    >
+                      <option value="">Select subject</option>
+                      {subjects?.map((subject, idx) => (
+                        <option key={`${subject.subjectId}-${idx}`} value={subject.subjectId}>
+                          {subject.subjectName}
+                        </option>
+                      ))}
+                    </select>
+                    <div
+                      className="overflow-hidden"
+                      style={{
+                        height:
+                          (showSubjectsStatus && isSubjectsLoading && questionsMeta.languageId) ||
+                          (!isSubjectsLoading && subjects.length === 0 && questionsMeta.languageId)
+                            ? '1rem'
+                            : 0,
+                        transition: 'height 200ms ease',
+                        marginTop:
+                          (showSubjectsStatus && isSubjectsLoading && questionsMeta.languageId) ||
+                          (!isSubjectsLoading && subjects.length === 0 && questionsMeta.languageId)
+                            ? '0.25rem'
+                            : 0,
+                      }}
+                    >
+                      {showSubjectsStatus && isSubjectsLoading && questionsMeta.languageId ? (
+                        <p className="text-xs text-gray-500">Loading subjects...</p>
+                      ) : !isSubjectsLoading && subjects.length === 0 && questionsMeta.languageId ? (
+                        <p className="text-xs text-amber-600">No subjects available for selected language</p>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Chapter Selection */}
@@ -592,25 +861,46 @@ export default function Index() {
                   <label className="block text-sm font-medium text-gray-700">
                     Topic <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    required
-                    value={questionsMeta?.topicId || ''}
-                    onChange={(e) => {
-                      setQuestionsMeta((prev) => ({ ...prev, topicId: Number(e.target.value), questionType: 0 }));
-                    }}
-                    disabled={!questionsMeta.chapterId}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
-                  >
-                    <option value="">Select topic</option>
-                    {topics?.map((topic, idx) => (
-                      <option key={`${topic.topicId}-${idx}`} value={topic.topicId}>
-                        {topic.topicName}
-                      </option>
-                    ))}
-                  </select>
-                  {topics.length === 0 && questionsMeta.chapterId > 0 && (
-                    <p className="text-xs text-amber-600">No topics available for selected chapter</p>
-                  )}
+                  <div>
+                    <select
+                      required
+                      value={questionsMeta?.topicId || ''}
+                      onChange={(e) => {
+                        setQuestionsMeta((prev) => ({ ...prev, topicId: Number(e.target.value), questionType: 0 }));
+                      }}
+                      disabled={!questionsMeta.chapterId}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
+                    >
+                      <option value="">Select topic</option>
+                      {topics?.map((topic, idx) => (
+                        <option key={`${topic.topicId}-${idx}`} value={topic.topicId}>
+                          {topic.topicName}
+                        </option>
+                      ))}
+                    </select>
+                    <div
+                      className="overflow-hidden"
+                      style={{
+                        height:
+                          (showTopicsStatus && isTopicsLoading && questionsMeta.chapterId > 0) ||
+                          (!isTopicsLoading && topics.length === 0 && questionsMeta.chapterId > 0)
+                            ? '1rem'
+                            : 0,
+                        transition: 'height 200ms ease',
+                        marginTop:
+                          (showTopicsStatus && isTopicsLoading && questionsMeta.chapterId > 0) ||
+                          (!isTopicsLoading && topics.length === 0 && questionsMeta.chapterId > 0)
+                            ? '0.25rem'
+                            : 0,
+                      }}
+                    >
+                      {showTopicsStatus && isTopicsLoading && questionsMeta.chapterId > 0 ? (
+                        <p className="text-xs text-gray-500">Loading topics...</p>
+                      ) : !isTopicsLoading && topics.length === 0 && questionsMeta.chapterId > 0 ? (
+                        <p className="text-xs text-amber-600">No topics available for selected chapter</p>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Question Type */}
@@ -650,28 +940,49 @@ export default function Index() {
                   <label className="block text-sm font-medium text-gray-700">
                     Difficulty Level <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    required
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
-                    disabled={!questionsMeta.languageId}
-                    value={questionsMeta?.difficulty || ''}
-                    onChange={(e) => {
-                      setQuestionsMeta((prev) => ({ ...prev, difficulty: Number(e.target.value) }));
-                    }}
-                  >
-                    <option value="">Select Difficulty</option>
-                    {difficultyLevels?.map((level, idx) => (
-                      <option
-                        key={`${level.questionDifficultylevelId}-${idx}`}
-                        value={level.questionDifficultylevelId}
-                      >
-                        {level.questionDifficultylevel1}
-                      </option>
-                    ))}
-                  </select>
-                  {difficultyLevels.length === 0 && questionsMeta.languageId && (
-                    <p className="text-xs text-amber-600">No difficulty levels available for selected language</p>
-                  )}
+                  <div>
+                    <select
+                      required
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
+                      disabled={!questionsMeta.languageId}
+                      value={questionsMeta?.difficulty || ''}
+                      onChange={(e) => {
+                        setQuestionsMeta((prev) => ({ ...prev, difficulty: Number(e.target.value) }));
+                      }}
+                    >
+                      <option value="">Select Difficulty</option>
+                      {difficultyLevels?.map((level, idx) => (
+                        <option
+                          key={`${level.questionDifficultylevelId}-${idx}`}
+                          value={level.questionDifficultylevelId}
+                        >
+                          {level.questionDifficultylevel1}
+                        </option>
+                      ))}
+                    </select>
+                    <div
+                      className="overflow-hidden"
+                      style={{
+                        height:
+                          (showDifficultyStatus && isDifficultyLoading && questionsMeta.languageId) ||
+                          (!isDifficultyLoading && difficultyLevels.length === 0 && questionsMeta.languageId)
+                            ? '1rem'
+                            : 0,
+                        transition: 'height 200ms ease',
+                        marginTop:
+                          (showDifficultyStatus && isDifficultyLoading && questionsMeta.languageId) ||
+                          (!isDifficultyLoading && difficultyLevels.length === 0 && questionsMeta.languageId)
+                            ? '0.25rem'
+                            : 0,
+                      }}
+                    >
+                      {showDifficultyStatus && isDifficultyLoading && questionsMeta.languageId ? (
+                        <p className="text-xs text-gray-500">Loading difficulty levels...</p>
+                      ) : !isDifficultyLoading && difficultyLevels.length === 0 && questionsMeta.languageId ? (
+                        <p className="text-xs text-amber-600">No difficulty levels available for selected language</p>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Marks Configuration */}
@@ -771,9 +1082,10 @@ export default function Index() {
                     <div className="space-y-1">
                       <label className="block text-xs font-medium text-gray-600">Write Up</label>
                       <select
-                        value={questionsMeta?.writeUpId || ''}
+                        value={questionsMeta?.writeUpId ?? ''}
                         onChange={(e) => {
-                          setQuestionsMeta((prev) => ({ ...prev, writeUpId: Number(e.target.value) }));
+                          const v = e.target.value;
+                          setQuestionsMeta((prev) => ({ ...prev, writeUpId: v ? Number(v) : null }));
                         }}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                       >
@@ -827,43 +1139,43 @@ export default function Index() {
                     {/* Configuration Checklist */}
                     <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
                       <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.languageId ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
-                        <div className={`w-3 h-3 rounded-full ${questionsMeta.languageId ? 'bg-green-500' : 'bg-gray-300'}`}>
-                          {questionsMeta.languageId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+              <div className={`w-3 h-3 rounded-full ${questionsMeta.languageId ? 'bg-green-500' : 'bg-gray-300'}`}>
+                {!!questionsMeta.languageId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
                         </div>
                         <span className="font-medium">Language</span>
                       </div>
                       
                       <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.subjectId ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
-                        <div className={`w-3 h-3 rounded-full ${questionsMeta.subjectId ? 'bg-green-500' : 'bg-gray-300'}`}>
-                          {questionsMeta.subjectId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+              <div className={`w-3 h-3 rounded-full ${questionsMeta.subjectId ? 'bg-green-500' : 'bg-gray-300'}`}>
+                {!!questionsMeta.subjectId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
                         </div>
                         <span className="font-medium">Subject</span>
                       </div>
                       
                       <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.chapterId ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
-                        <div className={`w-3 h-3 rounded-full ${questionsMeta.chapterId ? 'bg-green-500' : 'bg-gray-300'}`}>
-                          {questionsMeta.chapterId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+              <div className={`w-3 h-3 rounded-full ${questionsMeta.chapterId ? 'bg-green-500' : 'bg-gray-300'}`}>
+                {!!questionsMeta.chapterId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
                         </div>
                         <span className="font-medium">Chapter</span>
                       </div>
                       
                       <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.topicId ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
-                        <div className={`w-3 h-3 rounded-full ${questionsMeta.topicId ? 'bg-green-500' : 'bg-gray-300'}`}>
-                          {questionsMeta.topicId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+              <div className={`w-3 h-3 rounded-full ${questionsMeta.topicId ? 'bg-green-500' : 'bg-gray-300'}`}>
+                {!!questionsMeta.topicId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
                         </div>
                         <span className="font-medium">Topic</span>
                       </div>
                       
                       <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.questionType ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
-                        <div className={`w-3 h-3 rounded-full ${questionsMeta.questionType ? 'bg-green-500' : 'bg-gray-300'}`}>
-                          {questionsMeta.questionType && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+              <div className={`w-3 h-3 rounded-full ${questionsMeta.questionType ? 'bg-green-500' : 'bg-gray-300'}`}>
+                {!!questionsMeta.questionType && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
                         </div>
                         <span className="font-medium">Type</span>
                       </div>
                       
                       <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.difficulty ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
-                        <div className={`w-3 h-3 rounded-full ${questionsMeta.difficulty ? 'bg-green-500' : 'bg-gray-300'}`}>
-                          {questionsMeta.difficulty && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+              <div className={`w-3 h-3 rounded-full ${questionsMeta.difficulty ? 'bg-green-500' : 'bg-gray-300'}`}>
+                {!!questionsMeta.difficulty && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
                         </div>
                         <span className="font-medium">Difficulty</span>
                       </div>
@@ -969,14 +1281,43 @@ export default function Index() {
                       <p className="text-xs text-gray-500 mt-2">Provide a clear explanation of why the answer is correct</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-3">Video Solution URL</label>
-                      <input
-                        placeholder="Enter video URL for solution explanation"
-                        className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 bg-gray-50 focus:bg-white"
-                        onChange={(e) => setVideoSolURL(e.target.value)}
-                        value={videoSolURL}
-                      />
-                      <p className="text-xs text-gray-500 mt-2">Optional: Link to a video explanation of the solution</p>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">Video Solution URLs</label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {/* Web URL */}
+                        <div>
+                          <div className="relative">
+                            <div className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center">
+                              <Monitor className="h-4 w-4 text-gray-400" />
+                            </div>
+                            <input
+                              type="url"
+                              placeholder="Web URL (e.g., https://youtu.be/...)"
+                              className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-3 text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                              onChange={(e) => setVideoSolWebURL(e.target.value)}
+                              value={videoSolWebURL}
+                            />
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">Shown on desktop and tablets</p>
+                        </div>
+
+                        {/* Mobile URL */}
+                        <div>
+                          <div className="relative">
+                            <div className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center">
+                              <Smartphone className="h-4 w-4 text-gray-400" />
+                            </div>
+                            <input
+                              type="url"
+                              placeholder="Mobile URL (e.g., https://m.example.com/video)"
+                              className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-3 text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                              onChange={(e) => setVideoSolMobileURL(e.target.value)}
+                              value={videoSolMobileURL}
+                            />
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">Optimized link for smartphones</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">Optional: Provide one or both URLs as applicable</p>
                     </div>
                   </div>
                 </div>

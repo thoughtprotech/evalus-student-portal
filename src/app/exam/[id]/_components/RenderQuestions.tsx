@@ -89,7 +89,7 @@ export default function renderQuestion(
     setSelectedOptions(new Set());
   }, []);
   switch (question?.questionType.questionType) {
-    case QUESTION_TYPES.SINGLE_MCQ:
+  case QUESTION_TYPES.SINGLE_MCQ:
       return (
         <div className="flex flex-col gap-3">
           {/* Selection Controls */}
@@ -122,7 +122,11 @@ export default function renderQuestion(
 
           {/* Question Options */}
           <div className="flex flex-col gap-2">
-            {JSON.parse(question!.questionOptionsJson).map(
+            {(function(){
+              const raw = JSON.parse(question!.questionOptionsJson);
+              const list: string[] = Array.isArray(raw) ? raw : (raw?.options ?? []);
+              return list;
+            })().map(
               (option: string, index: number) => {
                 // Parse current answers safely
                 let currentAnswers: string[] = [];
@@ -218,7 +222,7 @@ export default function renderQuestion(
           />
         </div>
       );
-    case QUESTION_TYPES.MULTIPLE_MCQ:
+  case QUESTION_TYPES.MULTIPLE_MCQ:
       const handleMultipleChoice = useCallback((optionToToggle: string) => {
         setQuestion((prev) => {
           if (!prev) return prev;
@@ -283,7 +287,11 @@ export default function renderQuestion(
 
           {/* Question Options */}
           <div className="flex flex-col gap-2">
-            {JSON.parse(question!.questionOptionsJson).map(
+            {(function(){
+              const raw = JSON.parse(question!.questionOptionsJson);
+              const list: string[] = Array.isArray(raw) ? raw : (raw?.options ?? []);
+              return list;
+            })().map(
               (option: string, index: number) => {
                 // Parse current answers safely
                 let currentAnswers: string[] = [];
@@ -371,156 +379,145 @@ export default function renderQuestion(
           />
         </div>
       );
-    case QUESTION_TYPES.MATCH_PAIRS_SINGLE:
+    case QUESTION_TYPES.MATCH_PAIRS_SINGLE: {
+      // Support both legacy array [[left...],[right...]] and new object {type,left,right}
+      const raw = JSON.parse(question!.questionOptionsJson);
+      const opts = Array.isArray(raw)
+        ? { left: raw[0] ?? [], right: raw[1] ?? [] }
+        : { left: raw.left ?? [], right: raw.right ?? [] };
+
       return (
         <div className="w-full flex flex-col gap-5">
           <div className="w-full max-w-1/4 flex justify-between gap-2">
-            {JSON.parse(question!.questionOptionsJson).map(
-              (option: string[], index: number) => {
-                return (
-                  <div className="flex flex-col gap-5" key={index}>
-                    {option.map((col: string, index: number) => {
-                      return (
-                        <div key={index}>
-                          <TextOrHtml content={col} />
-                        </div>
-                      );
-                    })}
+            {[opts.left, opts.right].map((option: string[], index: number) => (
+              <div className="flex flex-col gap-5" key={index}>
+                {option.map((col: string, idx: number) => (
+                  <div key={idx}>
+                    <TextOrHtml content={col} />
                   </div>
-                );
-              }
-            )}
+                ))}
+              </div>
+            ))}
           </div>
           <div>
-            {JSON.parse(question!.questionOptionsJson)[0].map(
-              (col: string, index: number) => {
-                return (
-                  <div key={index}>
-                    <h1>{col}</h1>
-                    <div className="flex gap-2">
-                      {JSON.parse(question!.questionOptionsJson)[1].map(
-                        (row: string, idx: number) => {
-                          return (
-                            <div
-                              className={`rounded-md border p-2 border-gray-300 cursor-pointer ${
-                                JSON.parse(question!.userAnswer)[index] === row
-                                  ? "border-indigo-600 bg-indigo-100 text-indigo-900"
-                                  : "border-gray-300 hover:bg-gray-100"
-                              }`}
-                              key={idx}
-                              onClick={() => {
-                                let updatedAnswer: string[] = JSON.parse(
-                                  question!.userAnswer
-                                );
-                                if (updatedAnswer.includes(row)) {
-                                  const rplIdx = updatedAnswer.indexOf(row);
-                                  updatedAnswer[rplIdx] = "";
-                                }
-                                updatedAnswer[index] = row;
-                                setQuestion((prev) => {
-                                  if (!prev) {
-                                    return prev;
-                                  }
-                                  return {
-                                    ...prev,
-                                    userAnswer: JSON.stringify(updatedAnswer),
-                                  };
-                                });
-                              }}
-                            >
-                              <TextOrHtml content={row} />
-                            </div>
-                          );
+            {opts.left.map((col: string, index: number) => (
+              <div key={index}>
+                <h1>{col}</h1>
+                <div className="flex gap-2">
+                  {opts.right.map((row: string, idx: number) => (
+                    <div
+                      className={`rounded-md border p-2 border-gray-300 cursor-pointer ${
+                        JSON.parse(question!.userAnswer)[index] === row
+                          ? "border-indigo-600 bg-indigo-100 text-indigo-900"
+                          : "border-gray-300 hover:bg-gray-100"
+                      }`}
+                      key={idx}
+                      onClick={() => {
+                        let updatedAnswer: string[] = JSON.parse(
+                          question!.userAnswer
+                        );
+                        if (updatedAnswer.includes(row)) {
+                          const rplIdx = updatedAnswer.indexOf(row);
+                          updatedAnswer[rplIdx] = "";
                         }
-                      )}
+                        updatedAnswer[index] = row;
+                        setQuestion((prev) => {
+                          if (!prev) {
+                            return prev;
+                          }
+                          return {
+                            ...prev,
+                            userAnswer: JSON.stringify(updatedAnswer),
+                          };
+                        });
+                      }}
+                    >
+                      <TextOrHtml content={row} />
                     </div>
-                  </div>
-                );
-              }
-            )}
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       );
+    }
     case QUESTION_TYPES.MATCH_PAIRS_MULTIPLE:
       return (
         <div className="w-full flex flex-col gap-5">
           <div className="w-full max-w-1/4 flex justify-between gap-2">
-            {JSON.parse(question!.questionOptionsJson).map(
-              (option: string[], index: number) => {
-                return (
-                  <div className="flex flex-col gap-5" key={index}>
-                    {option.map((col: string, index: number) => {
-                      return (
-                        <div key={index}>
-                          <h1>{col}</h1>
-                        </div>
-                      );
-                    })}
+            {(function(){
+              const raw = JSON.parse(question!.questionOptionsJson);
+              const left: string[] = Array.isArray(raw) ? (raw[0] ?? []) : (raw?.left ?? []);
+              const right: string[] = Array.isArray(raw) ? (raw[1] ?? []) : (raw?.right ?? []);
+              return [left, right];
+            })().map((option: string[], index: number) => (
+              <div className="flex flex-col gap-5" key={index}>
+                {option.map((col: string, idx: number) => (
+                  <div key={idx}>
+                    <h1>{col}</h1>
                   </div>
-                );
-              }
-            )}
+                ))}
+              </div>
+            ))}
           </div>
           <div>
-            {JSON.parse(question!.questionOptionsJson)[0].map(
-              (col: string, index: number) => {
-                return (
-                  <div key={index}>
-                    <h1>{col}</h1>
-                    <div className="flex gap-2">
-                      {JSON.parse(question!.questionOptionsJson)[1].map(
-                        (row: string, idx: number) => {
-                          return (
-                            <div
-                              className={`rounded-md border p-2 border-gray-300 cursor-pointer ${
-                                JSON.parse(question!.userAnswer)[
-                                  index
-                                ].includes(row)
-                                  ? "border-indigo-600 bg-indigo-100 text-indigo-900"
-                                  : "border-gray-300 hover:bg-gray-100"
-                              }`}
-                              key={idx}
-                              onClick={() => {
-                                setQuestion((prev) => {
-                                  if (!prev) return prev;
+            {(() => {
+              const raw = JSON.parse(question!.questionOptionsJson);
+              const left: string[] = Array.isArray(raw) ? (raw[0] ?? []) : (raw?.left ?? []);
+              const rightList: string[] = Array.isArray(raw) ? (raw[1] ?? []) : (raw?.right ?? []);
+              return left.map((col: string, index: number) => (
+                <div key={index}>
+                  <h1>{col}</h1>
+                  <div className="flex gap-2">
+                    {rightList.map((row: string, idx: number) => (
+                      <div
+                        className={`rounded-md border p-2 border-gray-300 cursor-pointer ${
+                          JSON.parse(question!.userAnswer)[
+                            index
+                          ].includes(row)
+                            ? "border-indigo-600 bg-indigo-100 text-indigo-900"
+                            : "border-gray-300 hover:bg-gray-100"
+                        }`}
+                        key={idx}
+                        onClick={() => {
+                          setQuestion((prev) => {
+                            if (!prev) return prev;
 
-                                  // 1. Parse the existing 2D userAnswer array
-                                  const answers: string[][] = JSON.parse(
-                                    prev.userAnswer
-                                  );
+                            // 1. Parse the existing 2D userAnswer array
+                            const answers: string[][] = JSON.parse(
+                              prev.userAnswer
+                            );
 
-                                  // 2. Work on a fresh copy of the sub-array at [index]
-                                  const selection = [...answers[index]];
+                            // 2. Work on a fresh copy of the sub-array at [index]
+                            const selection = [...answers[index]];
 
-                                  // 3. Toggle this `row` in that sub-array
-                                  const pos = selection.indexOf(row);
-                                  if (pos >= 0) {
-                                    selection.splice(pos, 1); // remove if already selected
-                                  } else {
-                                    selection.push(row); // add if not
-                                  }
+                            // 3. Toggle this `row` in that sub-array
+                            const pos = selection.indexOf(row);
+                            if (pos >= 0) {
+                              selection.splice(pos, 1); // remove if already selected
+                            } else {
+                              selection.push(row); // add if not
+                            }
 
-                                  // 4. Replace the sub-array back into `answers`
-                                  answers[index] = selection;
+                            // 4. Replace the sub-array back into `answers`
+                            answers[index] = selection;
 
-                                  // 5. Write back the updated 2D array as a JSON string
-                                  return {
-                                    ...prev,
-                                    userAnswer: JSON.stringify(answers),
-                                  };
-                                });
-                              }}
-                            >
-                              <TextOrHtml content={row} />
-                            </div>
-                          );
-                        }
-                      )}
-                    </div>
+                            // 5. Write back the updated 2D array as a JSON string
+                            return {
+                              ...prev,
+                              userAnswer: JSON.stringify(answers),
+                            };
+                          });
+                        }}
+                      >
+                        <TextOrHtml content={row} />
+                      </div>
+                    ))}
                   </div>
-                );
-              }
-            )}
+                </div>
+              ));
+            })()}
           </div>
         </div>
       );

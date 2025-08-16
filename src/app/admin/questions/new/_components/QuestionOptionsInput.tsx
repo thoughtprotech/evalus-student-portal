@@ -37,6 +37,14 @@ const QuestionOptionsInput = ({
     }
   }, [questionTypeId]);
 
+  // When switching to True/False, emit default options immediately with empty answer array
+  useEffect(() => {
+    if (type === QUESTION_TYPES.TRUEFALSE) {
+      onDataChange({ options: ["True", "False"], answer: [] });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type]);
+
   useEffect(() => {
     if (
       type === QUESTION_TYPES.SINGLE_MCQ ||
@@ -65,7 +73,8 @@ const QuestionOptionsInput = ({
 
   useEffect(() => {
     if (type === QUESTION_TYPES.TRUEFALSE) {
-      onDataChange({ options: ["True", "False"], answer: trueFalseAnswer });
+      const ansArr = trueFalseAnswer ? [trueFalseAnswer] : [];
+      onDataChange({ options: ["True", "False"], answer: ansArr });
     }
   }, [trueFalseAnswer]);
 

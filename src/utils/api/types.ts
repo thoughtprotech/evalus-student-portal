@@ -117,6 +117,7 @@ export interface GetQuestionByIdResponse {
 export interface CreateQuestionRequest {
   explanation: string;
   videoSolURL?: string;
+  videoSolMobileURL?: string;
   questionsMeta: {
     tags: string;
     marks: number;
@@ -131,6 +132,7 @@ export interface CreateQuestionRequest {
     headerText?: string | null;
   };
   question: string;
+  headerText:string;
   options: {
     options: string;
     answer: string;

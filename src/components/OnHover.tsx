@@ -22,13 +22,13 @@ export default function OnHover({
       </div>
 
       {/* dropdown */}
-      <div
+  <div
         className={
           `opacity-0 invisible group-hover:opacity-100 group-hover:visible
            transition-opacity duration-200
-           absolute z-10 mt-2 w-max
+       absolute z-50 mt-2
            bg-white border border-gray-200 rounded shadow-lg
-           p-2 ${dropdownClassName}`
+           p-2 max-w-xs whitespace-normal break-words ${dropdownClassName}`
         }
       >
         {children}

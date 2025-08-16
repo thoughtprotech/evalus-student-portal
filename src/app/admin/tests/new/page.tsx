@@ -1,4 +1,3 @@
-import { env } from "@/utils/env";
 import type {
   ODataList,
   TestCategoryOData,
@@ -6,44 +5,31 @@ import type {
   TestInstructionOData,
   TestTypeOData,
 } from "@/utils/api/types";
-import Step1CreateTestDetails from "./Step1CreateTestDetails";
+import { apiHandler } from "@/utils/api/client";
+import { endpoints } from "@/utils/api/endpoints";
+import TestSteps from "./test-steps";
 
 export default async function NewTestPage() {
-  // Fetch OData lists on the server to avoid CORS and pass to client
-  const [typesRes, catRes, instRes, lvlRes] = await Promise.all([
-    fetch(`${env.API_BASE_URL}/odata/TestTypes?$select=TestTypeId,TestType1`, {
-      cache: "no-store",
-    })
-      .then((r) => r.json())
-      .catch(() => ({ value: [] })),
-    fetch(
-      `${env.API_BASE_URL}/odata/TestCategories?$select=TestCategoryId,TestCategoryName`,
-      { cache: "no-store" }
-    )
-      .then((r) => r.json())
-      .catch(() => ({ value: [] })),
-    fetch(
-      `${env.API_BASE_URL}/odata/TestInstructions?$select=TestInstructionId,TestInstructionName`,
-      { cache: "no-store" }
-    )
-      .then((r) => r.json())
-      .catch(() => ({ value: [] })),
-    fetch(
-      `${env.API_BASE_URL}/odata/TestDifficultyLevels?$select=TestDifficultyLevelId,TestDifficultyLevel1`,
-      { cache: "no-store" }
-    )
-      .then((r) => r.json())
-      .catch(() => ({ value: [] })),
+  // Fetch OData on the server using existing endpoints
+  const [typesRes, catsRes, instRes, lvlsRes] = await Promise.all([
+    apiHandler(endpoints.getTestTypes, null),
+    apiHandler(endpoints.getTestCategories, null),
+    apiHandler(endpoints.getTestInstructions, null),
+    apiHandler(endpoints.getTestDifficultyLevelsOData, null),
   ]);
 
-  const testTypes = (typesRes as ODataList<TestTypeOData>).value ?? [];
-  const categories = (catRes as ODataList<TestCategoryOData>).value ?? [];
-  const instructions = (instRes as ODataList<TestInstructionOData>).value ?? [];
-  const difficultyLevels =
-    (lvlRes as ODataList<TestDifficultyLevelOData>).value ?? [];
+  const testTypes: TestTypeOData[] =
+    (typesRes.data as ODataList<TestTypeOData> | undefined)?.value ?? [];
+  const categories: TestCategoryOData[] =
+    (catsRes.data as ODataList<TestCategoryOData> | undefined)?.value ?? [];
+  const instructions: TestInstructionOData[] =
+    (instRes.data as ODataList<TestInstructionOData> | undefined)?.value ?? [];
+  const difficultyLevels: TestDifficultyLevelOData[] =
+    (lvlsRes.data as ODataList<TestDifficultyLevelOData> | undefined)?.value ??
+    [];
 
   return (
-    <Step1CreateTestDetails
+    <TestSteps
       testTypes={testTypes}
       categories={categories}
       instructions={instructions}
