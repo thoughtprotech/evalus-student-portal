@@ -39,9 +39,9 @@ export default function Index() {
     chapterId: number;
     topicId: number;
     languageId: string;
-    writeUpId: number;
-  graceMarks: number;
-  freeSpace: number; // 1 = Yes, 0 = No
+    writeUpId: number | null;
+    graceMarks: number;
+    freeSpace: number; // 1 = Yes, 0 = No
   }>({
     tags: "",
     marks: 0,
@@ -52,11 +52,10 @@ export default function Index() {
     chapterId: 0,
     topicId: 0,
     languageId: "",
-    writeUpId: 0,
-  graceMarks: 0,
-  freeSpace: 0,
+    writeUpId: null,
+    graceMarks: 0,
+    freeSpace: 0,
   });
-  const [explanation, setExplanation] = useState<string>("");
   const [questionHeader, setQuestionHeader] = useState<string>("");
   // Video Solution URLs (separate for Web and Mobile)
   const [videoSolWebURL, setVideoSolWebURL] = useState<string>("");
@@ -72,6 +71,7 @@ export default function Index() {
   const [allLanguageSubjects, setAllLanguageSubjects] = useState<GetSubjectsResponse[]>([]);
   const [topics, setTopics] = useState<GetTopicsResponse[]>([]);
   const [languages, setLanguages] = useState<GetLanguagesResponse[]>([]);
+  const [explanation, setExplanation] = useState<string>("");
   // Loading flags to prevent flicker while fetching dependent data
   const [isSubjectsLoading, setIsSubjectsLoading] = useState<boolean>(false);
   const [isTopicsLoading, setIsTopicsLoading] = useState<boolean>(false);
@@ -450,7 +450,7 @@ export default function Index() {
           subjectId: questionsMeta.topicId || questionsMeta.subjectId,
           topicId: questionsMeta.topicId,
           language: questionsMeta.languageId,
-          writeUpId: questionsMeta.writeUpId,
+          writeUpId: questionsMeta.writeUpId ?? null,
           headerText: questionHeader,
         },
         question: question.trim(), // Save HTML as-is
@@ -546,7 +546,7 @@ export default function Index() {
         chapterId: 0,
         topicId: 0,
         languageId: "",
-        writeUpId: 0,
+  writeUpId: null,
         graceMarks: 0,
         freeSpace: 0,
       });
@@ -977,9 +977,10 @@ export default function Index() {
                     <div className="space-y-1">
                       <label className="block text-xs font-medium text-gray-600">Write Up</label>
                       <select
-                        value={questionsMeta?.writeUpId || ''}
+                        value={questionsMeta?.writeUpId ?? ''}
                         onChange={(e) => {
-                          setQuestionsMeta((prev) => ({ ...prev, writeUpId: Number(e.target.value) }));
+                          const v = e.target.value;
+                          setQuestionsMeta((prev) => ({ ...prev, writeUpId: v ? Number(v) : null }));
                         }}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                       >
