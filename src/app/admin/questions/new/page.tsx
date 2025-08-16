@@ -425,7 +425,7 @@ export default function Index() {
     <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="w-[85%] mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Link href="/admin/questions" className="text-gray-500 hover:text-gray-700 transition-colors">
@@ -473,7 +473,7 @@ export default function Index() {
       </div>
 
       {/* Two Column Layout */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="w-[85%] mx-auto px-6 py-8">
         <div className="grid grid-cols-12 gap-8">
           {/* Left Sidebar - Filters & Configuration */}
           <div className="col-span-12 lg:col-span-4 xl:col-span-3">
