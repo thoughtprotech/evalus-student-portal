@@ -259,12 +259,112 @@ export default function Index() {
 
   const submitQuestion = async (showModal: boolean = true): Promise<{success: boolean}> => {
     try {
-      // Safely build options/answers JSON; handle special shapes per type
       // Detect current question type label
       const currentType = questionTypes.find(
         (q) => q.questionTypeId === questionsMeta.questionType
       )?.questionType;
 
+      // Validate options/answer based on type BEFORE serializing
+      const validateByType = (): { ok: boolean; msg?: string } => {
+        const opts = questionOptions?.options;
+        const ans = questionOptions?.answer;
+        const nonEmpty = (s?: string) => (s ?? "").trim().length > 0;
+
+        switch (currentType) {
+          case QUESTION_TYPES.SINGLE_MCQ: {
+            const list: string[] = Array.isArray(opts) ? (opts as string[]) : [];
+            const clean = list.map((x) => (x ?? "").trim());
+            const validOpts = clean.filter((x) => x.length > 0);
+            if (validOpts.length < 2) return { ok: false, msg: "Add at least two non-empty options" };
+            const answerList: string[] = Array.isArray(ans) ? (ans as string[]) : [];
+            if (answerList.length !== 1) return { ok: false, msg: "Select exactly one correct option" };
+            if (!validOpts.includes((answerList[0] ?? "").trim())) return { ok: false, msg: "Correct option must match one of the options" };
+            return { ok: true };
+          }
+          case QUESTION_TYPES.MULTIPLE_MCQ: {
+            const list: string[] = Array.isArray(opts) ? (opts as string[]) : [];
+            const clean = list.map((x) => (x ?? "").trim());
+            const validOpts = clean.filter((x) => x.length > 0);
+            if (validOpts.length < 2) return { ok: false, msg: "Add at least two non-empty options" };
+            const answerList: string[] = Array.isArray(ans) ? (ans as string[]) : [];
+            if (answerList.length < 1) return { ok: false, msg: "Select at least one correct option" };
+            const missing = answerList.some((a) => !validOpts.includes((a ?? "").trim()));
+            if (missing) return { ok: false, msg: "All correct options must exist in the options list" };
+            return { ok: true };
+          }
+          case QUESTION_TYPES.MATCH_PAIRS_SINGLE: {
+            const cols: any[] = Array.isArray(opts) ? (opts as any[]) : [];
+            const left: string[] = Array.isArray(cols?.[0]) ? cols[0] : [];
+            const right: string[] = Array.isArray(cols?.[1]) ? cols[1] : [];
+            const leftVals = left.map((x) => (x ?? "").trim()).filter((x) => x);
+            const rightVals = right.map((x) => (x ?? "").trim()).filter((x) => x);
+            if (leftVals.length === 0 || rightVals.length === 0) return { ok: false, msg: "Add at least one value in each column" };
+            const ansList: any[] = Array.isArray(ans) ? (ans as any[]) : [];
+            // For each non-empty left, ensure a single selected right that exists
+            for (let i = 0; i < left.length; i++) {
+              if (!nonEmpty(left[i])) continue; // allow blank rows to be ignored
+              const chosen = ansList[i];
+              if (!nonEmpty(chosen)) return { ok: false, msg: `Select one match for row ${i + 1}` };
+              if (!rightVals.includes((chosen ?? "").trim())) return { ok: false, msg: `Row ${i + 1} match must exist in Column 2` };
+            }
+            return { ok: true };
+          }
+          case QUESTION_TYPES.MATCH_PAIRS_MULTIPLE: {
+            const cols: any[] = Array.isArray(opts) ? (opts as any[]) : [];
+            const left: string[] = Array.isArray(cols?.[0]) ? cols[0] : [];
+            const right: string[] = Array.isArray(cols?.[1]) ? cols[1] : [];
+            const leftVals = left.map((x) => (x ?? "").trim()).filter((x) => x);
+            const rightVals = right.map((x) => (x ?? "").trim()).filter((x) => x);
+            if (leftVals.length === 0 || rightVals.length === 0) return { ok: false, msg: "Add at least one value in each column" };
+            const ans2D: any[] = Array.isArray(ans) ? (ans as any[]) : [];
+            for (let i = 0; i < left.length; i++) {
+              if (!nonEmpty(left[i])) continue;
+              const chosen: string[] = Array.isArray(ans2D[i]) ? ans2D[i] : [];
+              if (chosen.length === 0) return { ok: false, msg: `Select at least one match for row ${i + 1}` };
+              const bad = chosen.some((c) => !rightVals.includes((c ?? "").trim()));
+              if (bad) return { ok: false, msg: `Row ${i + 1} contains a match not present in Column 2` };
+            }
+            return { ok: true };
+          }
+          case QUESTION_TYPES.TRUEFALSE: {
+            const arr: string[] = Array.isArray(ans) ? (ans as string[]) : [];
+            if (arr.length !== 1) return { ok: false, msg: "Select True or False" };
+            const v = (arr[0] ?? "").trim();
+            if (!["True", "False"].includes(v)) return { ok: false, msg: "Answer must be True or False" };
+            return { ok: true };
+          }
+          case QUESTION_TYPES.NUMERIC: {
+            const v = typeof ans === "string" ? ans.trim() : (ans ?? "").toString().trim();
+            if (!v) return { ok: false, msg: "Enter a numeric answer" };
+            if (!/^\d+(\.\d+)?$/.test(v)) return { ok: false, msg: "Enter a valid number (e.g., 42 or 3.14)" };
+            return { ok: true };
+          }
+          case QUESTION_TYPES.FILL_ANSWER: {
+            const v = typeof ans === "string" ? ans.trim() : (ans ?? "").toString().trim();
+            if (!v) return { ok: false, msg: "Answer cannot be empty" };
+            return { ok: true };
+          }
+          case QUESTION_TYPES.WRITE_UP: {
+            // No answer required for Write Up type
+            return { ok: true };
+          }
+          default: {
+            // Generic: require some answer
+            if (ans === undefined || ans === null) return { ok: false, msg: "Answer is required" };
+            const text = Array.isArray(ans) ? ans.join("") : String(ans ?? "");
+            if (!text.trim()) return { ok: false, msg: "Answer is required" };
+            return { ok: true };
+          }
+        }
+      };
+
+      const validation = validateByType();
+      if (!validation.ok) {
+        toast.error(validation.msg || "Please complete the answer options");
+        return { success: false };
+      }
+
+      // Safely build options/answers JSON; handle special shapes per type
       let stringifiedOptions = "";
       let stringifiedAnswer: string | undefined = undefined;
 
@@ -335,6 +435,10 @@ export default function Index() {
             ? questionOptions?.answer
             : (questionOptions?.answer ?? "")
         );
+      } else if (currentType === QUESTION_TYPES.WRITE_UP) {
+        // Write Up: no options/answers – just mark type
+        stringifiedOptions = JSON.stringify({ type: "write-up" });
+        stringifiedAnswer = JSON.stringify("");
       } else {
         // Default behavior for other types
         stringifiedOptions = JSON.stringify(questionOptions?.options);
@@ -390,14 +494,16 @@ export default function Index() {
         return {success: false};
       }
 
-      if (stringifiedOptions?.length === 0 || stringifiedOptions === "[]") {
-        toast.error("Options Are Required");
-        return {success: false};
-      }
-
-      if (stringifiedAnswer?.length === 0 || stringifiedAnswer === "[]") {
-        toast.error("Answer Is Required");
-        return {success: false};
+      // Base presence checks (skip for WRITE_UP because it's optional)
+      if (currentType !== QUESTION_TYPES.WRITE_UP) {
+        if (stringifiedOptions?.length === 0 || stringifiedOptions === "[]") {
+          toast.error("Options Are Required");
+          return {success: false};
+        }
+        if (stringifiedAnswer?.length === 0 || stringifiedAnswer === "[]") {
+          toast.error("Answer Is Required");
+          return {success: false};
+        }
       }
 
       // Validate video URLs if provided
@@ -461,7 +567,6 @@ export default function Index() {
         },
       };
 
-      console.log("Submitting question payload:", payload);
       // Step 1: Create the question
       const res = await createQuestionAction(payload);
       const { data, status, error, errorMessage, message } = res;
