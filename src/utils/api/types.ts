@@ -345,3 +345,8 @@ export interface TestDifficultyLevelOData {
   TestDifficultyLevel1: string;
 
 }
+
+export interface GetCompaniesRequest {
+    // Prebuilt OData query string: "$top=...&$skip=...&..."
+    query: string;
+}

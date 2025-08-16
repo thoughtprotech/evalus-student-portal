@@ -132,7 +132,7 @@ export async function fetchCompaniesAction(
     console.log("🔧 Making API call to OData function");
     
     const query = buildQuery(params);
-    const response = await apiHandler(companiesEndpoint, { query });
+    const response = await apiHandler(endpoints.getCompanies, { query });
     
     console.log("API Response:", response);
 

@@ -232,5 +232,14 @@ export const endpoints = {
     // Use your specific API endpoint for getting questions by language
     path: ({ query }) => `/odata/Questions/GetAllQuestionsByLanguage(language=English)${query ? (query.startsWith('?') ? query : `?${query}`) : ''}`,
     type: "OPEN",
-  } as Endpoint<import('./types').GetQuestionsODataRequest, any[]>,
+    } as Endpoint<import('./types').GetQuestionsODataRequest, any[]>,
+
+    // Admin Questions (server actions moved here)
+    getCompanies: {
+        method: "GET",
+        // Use your specific API endpoint for getting questions by language
+        path: ({ query }) => `/api/Company?IncludeInactive=true&Language=English'${query ? (query.startsWith('?') ? query : `?${query}`) : ''}`,
+        type: "OPEN",
+    } as Endpoint<import('./types').GetCompaniesRequest, any[]>,
+
 };
