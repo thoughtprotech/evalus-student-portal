@@ -313,10 +313,12 @@ export default function Index() {
       } else if (currentType === QUESTION_TYPES.NUMERIC) {
         // Numeric doesn't have options list; just the type marker
         stringifiedOptions = JSON.stringify({ type: "numeric" });
-        // Answer is a plain string (already handled below)
-        stringifiedAnswer = typeof questionOptions?.answer === 'string'
-          ? questionOptions?.answer
-          : JSON.stringify(questionOptions?.answer ?? "");
+        // Answer must be JSON string (e.g., "42"), not raw 42
+        stringifiedAnswer = JSON.stringify(
+          typeof questionOptions?.answer === 'string'
+            ? questionOptions?.answer
+            : (questionOptions?.answer ?? "")
+        );
       } else if (currentType === QUESTION_TYPES.TRUEFALSE) {
         // Canonical structure for True/False type
         const ansArray = Array.isArray(questionOptions?.answer)
@@ -324,12 +326,22 @@ export default function Index() {
           : (questionOptions?.answer ? [questionOptions?.answer] : []);
         stringifiedOptions = JSON.stringify({ type: "truefalse", options: ["True", "False"] });
         stringifiedAnswer = JSON.stringify(ansArray);
+      } else if (currentType === QUESTION_TYPES.FILL_ANSWER) {
+        // Fill Answer: no options list, just the type marker; answer is a plain string
+        stringifiedOptions = JSON.stringify({ type: "fill-answer" });
+        // Ensure valid JSON (quoted string)
+        stringifiedAnswer = JSON.stringify(
+          typeof questionOptions?.answer === 'string'
+            ? questionOptions?.answer
+            : (questionOptions?.answer ?? "")
+        );
       } else {
         // Default behavior for other types
         stringifiedOptions = JSON.stringify(questionOptions?.options);
+        // Always send valid JSON for answer
         stringifiedAnswer = Array.isArray(questionOptions?.answer)
           ? JSON.stringify(questionOptions.answer)
-          : questionOptions?.answer;
+          : JSON.stringify(questionOptions?.answer ?? "");
       }
 
       // Helper function to validate URL
