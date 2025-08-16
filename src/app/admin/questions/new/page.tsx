@@ -316,6 +316,7 @@ export default function Index() {
       const payload: CreateQuestionRequest = {
   explanation: explanation.trim(), // Save HTML as-is
   ...(selectedSingleVideoUrl && { videoSolURL: selectedSingleVideoUrl }), // Only include if not empty
+  ...(cleanVideoUrlMobile && { videoSolMobileURL: cleanVideoUrlMobile }), // Only include if not empty
         questionsMeta: {
           tags: questionsMeta.tags,
           marks: questionsMeta.marks,
@@ -331,12 +332,14 @@ export default function Index() {
           headerText: questionHeader,
         },
         question: question.trim(), // Save HTML as-is
+        headerText: questionHeader,
         options: {
           options: stringifiedOptions!,
           answer: stringifiedAnswer!,
         },
       };
 
+      console.log("Submitting question payload:", payload);
       // Step 1: Create the question
       const res = await createQuestionAction(payload);
       const { data, status, error, errorMessage, message } = res;
