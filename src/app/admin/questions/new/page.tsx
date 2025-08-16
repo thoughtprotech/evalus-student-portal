@@ -268,7 +268,7 @@ export default function Index() {
       let stringifiedOptions = "";
       let stringifiedAnswer: string | undefined = undefined;
 
-      if (currentType === QUESTION_TYPES.MATCH_PAIRS_SINGLE) {
+  if (currentType === QUESTION_TYPES.MATCH_PAIRS_SINGLE) {
         // Expect options as [left[], right[]] and answer as array mapping by index to a single right
         const cols = (questionOptions?.options || []) as any[];
         const left: string[] = Array.isArray(cols?.[0]) ? cols[0] : [];
@@ -283,9 +283,33 @@ export default function Index() {
           .map((l, i) => [l, ansList[i]] as [string, string])
           .filter(([l, r]) => !!(l && r));
 
-        // Serialize without any `type` property as requested
-        stringifiedOptions = JSON.stringify({ left, right });
+  // Serialize with a `type` property for clarity/compat
+  stringifiedOptions = JSON.stringify({ type: "match-pair-single", left, right });
         stringifiedAnswer = JSON.stringify(pairs);
+      } else if (currentType === QUESTION_TYPES.MATCH_PAIRS_MULTIPLE) {
+        // Expect options as [left[], right[]] and answer as string[][] (multiple right per left)
+        const cols = (questionOptions?.options || []) as any[];
+        const left: string[] = Array.isArray(cols?.[0]) ? cols[0] : [];
+        const right: string[] = Array.isArray(cols?.[1]) ? cols[1] : [];
+
+        const ans: any = questionOptions?.answer;
+        // Ensure answer is a 2D array of strings, align length with left
+        const answer2D: string[][] = Array.isArray(ans)
+          ? ans.map((x: any) => (Array.isArray(x) ? x : [])).slice(0, left.length)
+          : [];
+
+        stringifiedOptions = JSON.stringify({ type: "match-pair-multiple", left, right });
+        stringifiedAnswer = JSON.stringify(answer2D);
+      } else if (currentType === QUESTION_TYPES.SINGLE_MCQ) {
+        const optsArr = (questionOptions?.options || []) as string[];
+        const ansArr = Array.isArray(questionOptions?.answer) ? (questionOptions!.answer as string[]) : [];
+        stringifiedOptions = JSON.stringify({ type: "mcq-single", options: optsArr });
+        stringifiedAnswer = JSON.stringify(ansArr);
+      } else if (currentType === QUESTION_TYPES.MULTIPLE_MCQ) {
+        const optsArr = (questionOptions?.options || []) as string[];
+        const ansArr = Array.isArray(questionOptions?.answer) ? (questionOptions!.answer as string[]) : [];
+        stringifiedOptions = JSON.stringify({ type: "mcq-multiple", options: optsArr });
+        stringifiedAnswer = JSON.stringify(ansArr);
       } else {
         // Default behavior for other types
         stringifiedOptions = JSON.stringify(questionOptions?.options);
