@@ -840,43 +840,43 @@ export default function Index() {
                     {/* Configuration Checklist */}
                     <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
                       <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.languageId ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
-                        <div className={`w-3 h-3 rounded-full ${questionsMeta.languageId ? 'bg-green-500' : 'bg-gray-300'}`}>
-                          {questionsMeta.languageId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+              <div className={`w-3 h-3 rounded-full ${questionsMeta.languageId ? 'bg-green-500' : 'bg-gray-300'}`}>
+                {!!questionsMeta.languageId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
                         </div>
                         <span className="font-medium">Language</span>
                       </div>
                       
                       <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.subjectId ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
-                        <div className={`w-3 h-3 rounded-full ${questionsMeta.subjectId ? 'bg-green-500' : 'bg-gray-300'}`}>
-                          {questionsMeta.subjectId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+              <div className={`w-3 h-3 rounded-full ${questionsMeta.subjectId ? 'bg-green-500' : 'bg-gray-300'}`}>
+                {!!questionsMeta.subjectId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
                         </div>
                         <span className="font-medium">Subject</span>
                       </div>
                       
                       <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.chapterId ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
-                        <div className={`w-3 h-3 rounded-full ${questionsMeta.chapterId ? 'bg-green-500' : 'bg-gray-300'}`}>
-                          {questionsMeta.chapterId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+              <div className={`w-3 h-3 rounded-full ${questionsMeta.chapterId ? 'bg-green-500' : 'bg-gray-300'}`}>
+                {!!questionsMeta.chapterId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
                         </div>
                         <span className="font-medium">Chapter</span>
                       </div>
                       
                       <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.topicId ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
-                        <div className={`w-3 h-3 rounded-full ${questionsMeta.topicId ? 'bg-green-500' : 'bg-gray-300'}`}>
-                          {questionsMeta.topicId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+              <div className={`w-3 h-3 rounded-full ${questionsMeta.topicId ? 'bg-green-500' : 'bg-gray-300'}`}>
+                {!!questionsMeta.topicId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
                         </div>
                         <span className="font-medium">Topic</span>
                       </div>
                       
                       <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.questionType ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
-                        <div className={`w-3 h-3 rounded-full ${questionsMeta.questionType ? 'bg-green-500' : 'bg-gray-300'}`}>
-                          {questionsMeta.questionType && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+              <div className={`w-3 h-3 rounded-full ${questionsMeta.questionType ? 'bg-green-500' : 'bg-gray-300'}`}>
+                {!!questionsMeta.questionType && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
                         </div>
                         <span className="font-medium">Type</span>
                       </div>
                       
                       <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.difficulty ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
-                        <div className={`w-3 h-3 rounded-full ${questionsMeta.difficulty ? 'bg-green-500' : 'bg-gray-300'}`}>
-                          {questionsMeta.difficulty && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+              <div className={`w-3 h-3 rounded-full ${questionsMeta.difficulty ? 'bg-green-500' : 'bg-gray-300'}`}>
+                {!!questionsMeta.difficulty && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
                         </div>
                         <span className="font-medium">Difficulty</span>
                       </div>
