@@ -15,7 +15,7 @@ import {
   GetTopicsResponse,
   GetWriteUpsResponse,
 } from "@/utils/api/types";
-import { ArrowLeft, HelpCircle, Filter } from "lucide-react";
+import { ArrowLeft, HelpCircle, Filter, Smartphone, Monitor } from "lucide-react";
 import Link from "next/link";
 import { fetchSubjectsAction } from "@/app/actions/dashboard/questions/fetchSubjects";
 import { fetchQuestionTypesAction } from "@/app/actions/dashboard/questions/fetchQuestionTypes";
@@ -58,7 +58,9 @@ export default function Index() {
   });
   const [explanation, setExplanation] = useState<string>("");
   const [questionHeader, setQuestionHeader] = useState<string>("");
-  const [videoSolURL, setVideoSolURL] = useState<string>("");
+  // Video Solution URLs (separate for Web and Mobile)
+  const [videoSolWebURL, setVideoSolWebURL] = useState<string>("");
+  const [videoSolMobileURL, setVideoSolMobileURL] = useState<string>("");
   const [questionOptions, setQuestionOptions] = useState<{
     options: any;
     answer: any;
@@ -276,10 +278,17 @@ export default function Index() {
         return {success: false};
       }
 
-      // Validate video URL if provided
-      if (videoSolURL.trim() && !isValidUrl(videoSolURL.trim())) {
-        toast.error("Please enter a valid video URL or leave it empty");
-        return {success: false};
+      // Validate video URLs if provided
+      const webUrl = videoSolWebURL.trim();
+      const mobileUrl = videoSolMobileURL.trim();
+
+      if (webUrl && !isValidUrl(webUrl)) {
+        toast.error("Please enter a valid Web video URL or leave it empty");
+        return { success: false };
+      }
+      if (mobileUrl && !isValidUrl(mobileUrl)) {
+        toast.error("Please enter a valid Mobile video URL or leave it empty");
+        return { success: false };
       }
 
       // Validate that we have content for both question and explanation
@@ -299,11 +308,14 @@ export default function Index() {
         return {success: false};
       }
 
-      const cleanVideoUrl = videoSolURL.trim();
+  const cleanVideoUrlWeb = webUrl;
+  const cleanVideoUrlMobile = mobileUrl;
+  // For now, backend createQuestion supports a single field. Prefer Web URL; fallback to Mobile.
+  const selectedSingleVideoUrl = cleanVideoUrlWeb || cleanVideoUrlMobile;
       
       const payload: CreateQuestionRequest = {
-        explanation: explanation.trim(), // Save HTML as-is
-        ...(cleanVideoUrl && { videoSolURL: cleanVideoUrl }), // Only include if not empty
+  explanation: explanation.trim(), // Save HTML as-is
+  ...(selectedSingleVideoUrl && { videoSolURL: selectedSingleVideoUrl }), // Only include if not empty
         questionsMeta: {
           tags: questionsMeta.tags,
           marks: questionsMeta.marks,
@@ -396,7 +408,8 @@ export default function Index() {
       setQuestion("");
       setExplanation("");
       setQuestionHeader("");
-      setVideoSolURL("");
+  setVideoSolWebURL("");
+  setVideoSolMobileURL("");
       setQuestionOptions(undefined);
       setQuestionsMeta({
         tags: "",
@@ -969,14 +982,43 @@ export default function Index() {
                       <p className="text-xs text-gray-500 mt-2">Provide a clear explanation of why the answer is correct</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-3">Video Solution URL</label>
-                      <input
-                        placeholder="Enter video URL for solution explanation"
-                        className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 bg-gray-50 focus:bg-white"
-                        onChange={(e) => setVideoSolURL(e.target.value)}
-                        value={videoSolURL}
-                      />
-                      <p className="text-xs text-gray-500 mt-2">Optional: Link to a video explanation of the solution</p>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">Video Solution URLs</label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {/* Web URL */}
+                        <div>
+                          <div className="relative">
+                            <div className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center">
+                              <Monitor className="h-4 w-4 text-gray-400" />
+                            </div>
+                            <input
+                              type="url"
+                              placeholder="Web URL (e.g., https://youtu.be/...)"
+                              className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-3 text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                              onChange={(e) => setVideoSolWebURL(e.target.value)}
+                              value={videoSolWebURL}
+                            />
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">Shown on desktop and tablets</p>
+                        </div>
+
+                        {/* Mobile URL */}
+                        <div>
+                          <div className="relative">
+                            <div className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center">
+                              <Smartphone className="h-4 w-4 text-gray-400" />
+                            </div>
+                            <input
+                              type="url"
+                              placeholder="Mobile URL (e.g., https://m.example.com/video)"
+                              className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-3 text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                              onChange={(e) => setVideoSolMobileURL(e.target.value)}
+                              value={videoSolMobileURL}
+                            />
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">Optimized link for smartphones</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">Optional: Provide one or both URLs as applicable</p>
                     </div>
                   </div>
                 </div>
