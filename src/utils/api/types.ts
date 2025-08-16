@@ -352,3 +352,15 @@ export interface GetCompaniesRequest {
     // Prebuilt OData query string: "$top=...&$skip=...&..."
     query: string;
 }
+
+export interface DeleteCompanyRequest {
+    companyId: number;
+}
+export interface GetCandidatesRequest {
+    query: string;
+}
+
+export interface DeleteCandidateRequest {
+    candidateId: number;
+}
+

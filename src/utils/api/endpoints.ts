@@ -63,7 +63,19 @@ export const endpoints = {
     method: "POST",
     path: () => `/api/Questions`,
     type: "CLOSE",
-  } as Endpoint<CreateQuestionRequest, null>,
+    } as Endpoint<CreateQuestionRequest, null>,
+
+   createCompany: {
+        method: "POST",
+        path: () => `/api/Company`,
+        type: "CLOSE",
+    } as Endpoint<CreateQuestionRequest, null>,
+
+  createCandidate: {
+        method: "POST",
+        path: () => `/api/CandidateRegistration`,
+        type: "CLOSE",
+    } as Endpoint<CreateQuestionRequest, null>,
 
   createQuestionOptions: {
     method: "POST",
@@ -201,6 +213,18 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<import('./types').DeleteQuestionRequest, null>,
 
+    deleteCompany: {
+        method: "DELETE",
+        path: ({ companyId }) => `/api/Company/${companyId}`,
+        type: "CLOSE",
+    } as Endpoint<import('./types').DeleteCompanyRequest, null>,
+
+    deleteCandidate: {
+        method: "DELETE",
+        path: ({ candidateId }) => `/api/CandidateRegistration/${candidateId}`,
+        type: "CLOSE",
+    } as Endpoint<import('./types').DeleteCandidateRequest, null>,
+
   // OData lists for Admin Test creation
   getTestTypes: {
     method: "GET",
@@ -241,5 +265,12 @@ export const endpoints = {
         path: ({ query }) => `/api/Company?IncludeInactive=true&Language=English'${query ? (query.startsWith('?') ? query : `?${query}`) : ''}`,
         type: "OPEN",
     } as Endpoint<import('./types').GetCompaniesRequest, any[]>,
+
+    getCandidates: {
+        method: "GET",
+        // Use your specific API endpoint for getting questions by language
+        path: ({ query }) => `/api/CandidateRegistration?includeInactive=true'${query ? (query.startsWith('?') ? query : `?${query}`) : ''}`,
+        type: "OPEN",
+    } as Endpoint<import('./types').GetCandidatesRequest, any[]>,
 
 };

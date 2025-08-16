@@ -192,22 +192,21 @@ export async function fetchCompaniesAction(
   }
 }
 
-export async function deleteCompanyAction(id: number): Promise<ApiResponse<null>> {
-  try {
-    // Note: You may need to add this endpoint to endpoints.ts if it doesn't exist
-    // const res = await apiHandler(endpoints.deleteAdminCompany, { id } as any);
-    // For now, return a placeholder implementation
-    console.log("Delete company with id:", id);
-    return { 
-      status: 200, 
-      message: "Company deletion not implemented yet. Please add endpoint to endpoints.ts" 
-    };
-  } catch (error: any) {
-    return {
-      status: 500,
-      error: true,
-      message: "Network error",
-      errorMessage: error?.message,
-    };
-  }
+export async function deleteCompanyAction(company: any): Promise<ApiResponse<null>> {
+    try {
+        const res = await apiHandler(endpoints.deleteCompany, { companyId: company.id } as any);
+        console.log("Delete company with id:", company.id);
+        return res;
+        return {
+            status: 200,
+            message: "Company deletion not implemented yet. Please add endpoint to endpoints.ts"
+        };
+    } catch (error: any) {
+        return {
+            status: 500,
+            error: true,
+            message: "Network error",
+            errorMessage: error?.message,
+        };
+    }
 }
