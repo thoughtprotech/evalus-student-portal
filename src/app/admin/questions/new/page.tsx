@@ -72,6 +72,14 @@ export default function Index() {
   const [allLanguageSubjects, setAllLanguageSubjects] = useState<GetSubjectsResponse[]>([]);
   const [topics, setTopics] = useState<GetTopicsResponse[]>([]);
   const [languages, setLanguages] = useState<GetLanguagesResponse[]>([]);
+  // Loading flags to prevent flicker while fetching dependent data
+  const [isSubjectsLoading, setIsSubjectsLoading] = useState<boolean>(false);
+  const [isTopicsLoading, setIsTopicsLoading] = useState<boolean>(false);
+  const [isDifficultyLoading, setIsDifficultyLoading] = useState<boolean>(false);
+  // Delayed show flags to avoid brief flashes for very fast requests
+  const [showSubjectsStatus, setShowSubjectsStatus] = useState<boolean>(false);
+  const [showTopicsStatus, setShowTopicsStatus] = useState<boolean>(false);
+  const [showDifficultyStatus, setShowDifficultyStatus] = useState<boolean>(false);
   const [writeUps, setWriteUps] = useState<GetWriteUpsResponse[]>([]);
   const [difficultyLevels, setDifficultyLevels] = useState<GetDifficultyLevelsResponse[]>([]);
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -88,6 +96,7 @@ export default function Index() {
   };
 
   const fetchSubjects = async (language?: string) => {
+    setIsSubjectsLoading(true);
     const res = await fetchSubjectsAction();
     const { data, status, error, errorMessage } = res;
     if (status === 200) {
@@ -116,6 +125,7 @@ export default function Index() {
       setTopics([]);
       setQuestionsMeta((prev) => ({ ...prev, subjectId: 0, chapterId: 0, topicId: 0 }));
     }
+    setIsSubjectsLoading(false);
   };
 
   // Build Topic and Sub Topic list for a given Chapter (subject) from the language-specific subjects
@@ -148,6 +158,7 @@ export default function Index() {
   };
 
   const fetchTopics = async (subjectId: number) => {
+    setIsTopicsLoading(true);
     const res = await fetchTopicsAction(subjectId);
     const { data, status, error, errorMessage } = res;
     if (status === 200) {
@@ -156,6 +167,7 @@ export default function Index() {
       // Do not auto-select; keep topicId empty until user chooses
       setQuestionsMeta((prev) => ({ ...prev, topicId: 0 }));
     }
+    setIsTopicsLoading(false);
   };
 
   const fetchChapters = (subjectId: number) => {
@@ -195,6 +207,7 @@ export default function Index() {
   };
 
   const fetchDifficultyLevels = async (language?: string) => {
+    setIsDifficultyLoading(true);
     const res = await fetchDifficultyLevelsAction(language);
     const { data, status, error, errorMessage } = res;
     if (status === 200) {
@@ -202,6 +215,7 @@ export default function Index() {
     } else {
       // Error handled silently or show user notification
     }
+    setIsDifficultyLoading(false);
   };
 
   useEffect(() => {
@@ -211,6 +225,37 @@ export default function Index() {
   fetchWriteUps();
     // Subjects and topics are loaded on dropdown selection
   }, []);
+
+  // Delay helper/status text to avoid immediate flashes
+  useEffect(() => {
+    let t: any;
+    if (isSubjectsLoading) {
+      t = setTimeout(() => setShowSubjectsStatus(true), 200);
+    } else {
+      setShowSubjectsStatus(false);
+    }
+    return () => t && clearTimeout(t);
+  }, [isSubjectsLoading]);
+
+  useEffect(() => {
+    let t: any;
+    if (isTopicsLoading) {
+      t = setTimeout(() => setShowTopicsStatus(true), 200);
+    } else {
+      setShowTopicsStatus(false);
+    }
+    return () => t && clearTimeout(t);
+  }, [isTopicsLoading]);
+
+  useEffect(() => {
+    let t: any;
+    if (isDifficultyLoading) {
+      t = setTimeout(() => setShowDifficultyStatus(true), 200);
+    } else {
+      setShowDifficultyStatus(false);
+    }
+    return () => t && clearTimeout(t);
+  }, [isDifficultyLoading]);
 
   const submitQuestion = async (showModal: boolean = true): Promise<{success: boolean}> => {
     try {
@@ -517,6 +562,11 @@ export default function Index() {
                       setTopics([]);
                       setDifficultyLevels([]);
                       if (lang) {
+                        // Pre-mark loading to avoid flashing of empty-state messages
+                        setIsSubjectsLoading(true);
+                        setIsDifficultyLoading(true);
+                      }
+                      if (lang) {
                         fetchSubjects(lang);
                         fetchDifficultyLevels(lang);
                       }
@@ -540,31 +590,52 @@ export default function Index() {
                   <label className="block text-sm font-medium text-gray-700">
                     Subject <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    required
-                    value={questionsMeta?.subjectId || ''}
-                    onChange={(e) => {
-                      const newSubjectId = Number(e.target.value);
-                      setChapters([]);
-                      setTopics([]);
-                      setQuestionsMeta((prev) => ({ ...prev, subjectId: newSubjectId, chapterId: 0, topicId: 0 }));
-                      if (newSubjectId) {
-                        fetchChapters(newSubjectId);
-                      }
-                    }}
-                    disabled={!questionsMeta.languageId}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
-                  >
-                    <option value="">Select subject</option>
-                    {subjects?.map((subject, idx) => (
-                      <option key={`${subject.subjectId}-${idx}`} value={subject.subjectId}>
-                        {subject.subjectName}
-                      </option>
-                    ))}
-                  </select>
-                  {subjects.length === 0 && questionsMeta.languageId && (
-                    <p className="text-xs text-amber-600">No subjects available for selected language</p>
-                  )}
+                  <div>
+                    <select
+                      required
+                      value={questionsMeta?.subjectId || ''}
+                      onChange={(e) => {
+                        const newSubjectId = Number(e.target.value);
+                        setChapters([]);
+                        setTopics([]);
+                        setQuestionsMeta((prev) => ({ ...prev, subjectId: newSubjectId, chapterId: 0, topicId: 0 }));
+                        if (newSubjectId) {
+                          fetchChapters(newSubjectId);
+                        }
+                      }}
+                      disabled={!questionsMeta.languageId}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
+                    >
+                      <option value="">Select subject</option>
+                      {subjects?.map((subject, idx) => (
+                        <option key={`${subject.subjectId}-${idx}`} value={subject.subjectId}>
+                          {subject.subjectName}
+                        </option>
+                      ))}
+                    </select>
+                    <div
+                      className="overflow-hidden"
+                      style={{
+                        height:
+                          (showSubjectsStatus && isSubjectsLoading && questionsMeta.languageId) ||
+                          (!isSubjectsLoading && subjects.length === 0 && questionsMeta.languageId)
+                            ? '1rem'
+                            : 0,
+                        transition: 'height 200ms ease',
+                        marginTop:
+                          (showSubjectsStatus && isSubjectsLoading && questionsMeta.languageId) ||
+                          (!isSubjectsLoading && subjects.length === 0 && questionsMeta.languageId)
+                            ? '0.25rem'
+                            : 0,
+                      }}
+                    >
+                      {showSubjectsStatus && isSubjectsLoading && questionsMeta.languageId ? (
+                        <p className="text-xs text-gray-500">Loading subjects...</p>
+                      ) : !isSubjectsLoading && subjects.length === 0 && questionsMeta.languageId ? (
+                        <p className="text-xs text-amber-600">No subjects available for selected language</p>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Chapter Selection */}
@@ -608,25 +679,46 @@ export default function Index() {
                   <label className="block text-sm font-medium text-gray-700">
                     Topic <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    required
-                    value={questionsMeta?.topicId || ''}
-                    onChange={(e) => {
-                      setQuestionsMeta((prev) => ({ ...prev, topicId: Number(e.target.value), questionType: 0 }));
-                    }}
-                    disabled={!questionsMeta.chapterId}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
-                  >
-                    <option value="">Select topic</option>
-                    {topics?.map((topic, idx) => (
-                      <option key={`${topic.topicId}-${idx}`} value={topic.topicId}>
-                        {topic.topicName}
-                      </option>
-                    ))}
-                  </select>
-                  {topics.length === 0 && questionsMeta.chapterId > 0 && (
-                    <p className="text-xs text-amber-600">No topics available for selected chapter</p>
-                  )}
+                  <div>
+                    <select
+                      required
+                      value={questionsMeta?.topicId || ''}
+                      onChange={(e) => {
+                        setQuestionsMeta((prev) => ({ ...prev, topicId: Number(e.target.value), questionType: 0 }));
+                      }}
+                      disabled={!questionsMeta.chapterId}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
+                    >
+                      <option value="">Select topic</option>
+                      {topics?.map((topic, idx) => (
+                        <option key={`${topic.topicId}-${idx}`} value={topic.topicId}>
+                          {topic.topicName}
+                        </option>
+                      ))}
+                    </select>
+                    <div
+                      className="overflow-hidden"
+                      style={{
+                        height:
+                          (showTopicsStatus && isTopicsLoading && questionsMeta.chapterId > 0) ||
+                          (!isTopicsLoading && topics.length === 0 && questionsMeta.chapterId > 0)
+                            ? '1rem'
+                            : 0,
+                        transition: 'height 200ms ease',
+                        marginTop:
+                          (showTopicsStatus && isTopicsLoading && questionsMeta.chapterId > 0) ||
+                          (!isTopicsLoading && topics.length === 0 && questionsMeta.chapterId > 0)
+                            ? '0.25rem'
+                            : 0,
+                      }}
+                    >
+                      {showTopicsStatus && isTopicsLoading && questionsMeta.chapterId > 0 ? (
+                        <p className="text-xs text-gray-500">Loading topics...</p>
+                      ) : !isTopicsLoading && topics.length === 0 && questionsMeta.chapterId > 0 ? (
+                        <p className="text-xs text-amber-600">No topics available for selected chapter</p>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Question Type */}
@@ -666,28 +758,49 @@ export default function Index() {
                   <label className="block text-sm font-medium text-gray-700">
                     Difficulty Level <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    required
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
-                    disabled={!questionsMeta.languageId}
-                    value={questionsMeta?.difficulty || ''}
-                    onChange={(e) => {
-                      setQuestionsMeta((prev) => ({ ...prev, difficulty: Number(e.target.value) }));
-                    }}
-                  >
-                    <option value="">Select Difficulty</option>
-                    {difficultyLevels?.map((level, idx) => (
-                      <option
-                        key={`${level.questionDifficultylevelId}-${idx}`}
-                        value={level.questionDifficultylevelId}
-                      >
-                        {level.questionDifficultylevel1}
-                      </option>
-                    ))}
-                  </select>
-                  {difficultyLevels.length === 0 && questionsMeta.languageId && (
-                    <p className="text-xs text-amber-600">No difficulty levels available for selected language</p>
-                  )}
+                  <div>
+                    <select
+                      required
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
+                      disabled={!questionsMeta.languageId}
+                      value={questionsMeta?.difficulty || ''}
+                      onChange={(e) => {
+                        setQuestionsMeta((prev) => ({ ...prev, difficulty: Number(e.target.value) }));
+                      }}
+                    >
+                      <option value="">Select Difficulty</option>
+                      {difficultyLevels?.map((level, idx) => (
+                        <option
+                          key={`${level.questionDifficultylevelId}-${idx}`}
+                          value={level.questionDifficultylevelId}
+                        >
+                          {level.questionDifficultylevel1}
+                        </option>
+                      ))}
+                    </select>
+                    <div
+                      className="overflow-hidden"
+                      style={{
+                        height:
+                          (showDifficultyStatus && isDifficultyLoading && questionsMeta.languageId) ||
+                          (!isDifficultyLoading && difficultyLevels.length === 0 && questionsMeta.languageId)
+                            ? '1rem'
+                            : 0,
+                        transition: 'height 200ms ease',
+                        marginTop:
+                          (showDifficultyStatus && isDifficultyLoading && questionsMeta.languageId) ||
+                          (!isDifficultyLoading && difficultyLevels.length === 0 && questionsMeta.languageId)
+                            ? '0.25rem'
+                            : 0,
+                      }}
+                    >
+                      {showDifficultyStatus && isDifficultyLoading && questionsMeta.languageId ? (
+                        <p className="text-xs text-gray-500">Loading difficulty levels...</p>
+                      ) : !isDifficultyLoading && difficultyLevels.length === 0 && questionsMeta.languageId ? (
+                        <p className="text-xs text-amber-600">No difficulty levels available for selected language</p>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Marks Configuration */}
