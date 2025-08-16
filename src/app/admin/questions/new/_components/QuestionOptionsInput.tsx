@@ -15,7 +15,7 @@ const QuestionOptionsInput = ({
 }) => {
   const [type, setType] = useState<string>();
   const [options, setOptions] = useState<string[]>(["", ""]);
-  const [correctOptions, setCorrectOptions] = useState<string[]>([]);
+  const [correctOptionIndices, setCorrectOptionIndices] = useState<number[]>([]);
 
   const [matchCols, setMatchCols] = useState<string[][]>([[""], [""]]);
   const [matchAnswer, setMatchAnswer] = useState<any>(
@@ -33,7 +33,7 @@ const QuestionOptionsInput = ({
     if (qt?.questionType === QUESTION_TYPES.SINGLE_MCQ || qt?.questionType === QUESTION_TYPES.MULTIPLE_MCQ) {
       // Start with two empty options for MCQ questions
       setOptions(["", ""]);
-      setCorrectOptions([]);
+      setCorrectOptionIndices([]);
     }
   }, [questionTypeId]);
 
@@ -42,9 +42,17 @@ const QuestionOptionsInput = ({
       type === QUESTION_TYPES.SINGLE_MCQ ||
       type === QUESTION_TYPES.MULTIPLE_MCQ
     ) {
-      onDataChange({ options, answer: correctOptions });
+      // Clean up invalid indices (in case options were removed)
+      const validIndices = correctOptionIndices.filter(idx => idx < options.length);
+      if (validIndices.length !== correctOptionIndices.length) {
+        setCorrectOptionIndices(validIndices);
+      }
+      
+      // Convert indices back to actual option values
+      const correctOptionsTexts = validIndices.map(idx => options[idx]).filter(Boolean);
+      onDataChange({ options, answer: correctOptionsTexts });
     }
-  }, [options, correctOptions]);
+  }, [options, correctOptionIndices]);
 
   useEffect(() => {
     if (
@@ -81,10 +89,10 @@ const QuestionOptionsInput = ({
     return (
       <div className="flex flex-col gap-3">
         {options.map((opt, idx) => {
-          const optionId = `option-${idx}-${opt}`;
+          const optionId = `option-${idx}`;
           const isChecked = type === QUESTION_TYPES.SINGLE_MCQ
-            ? correctOptions[0] === opt
-            : correctOptions.includes(opt);
+            ? correctOptionIndices[0] === idx
+            : correctOptionIndices.includes(idx);
             
           return (
             <div key={optionId} className="flex items-center gap-2">
@@ -97,18 +105,18 @@ const QuestionOptionsInput = ({
                   e.stopPropagation();
                   
                   if (type === QUESTION_TYPES.SINGLE_MCQ) {
-                    setCorrectOptions([opt]);
+                    setCorrectOptionIndices([idx]);
                   } else if (type === QUESTION_TYPES.MULTIPLE_MCQ) {
                     // Multiple MCQ logic
-                    setCorrectOptions(prev => {
+                    setCorrectOptionIndices(prev => {
                       const updated = [...prev];
-                      const i = updated.indexOf(opt);
+                      const i = updated.indexOf(idx);
                       if (i >= 0) {
                         // Remove if already selected
                         updated.splice(i, 1);
                       } else {
                         // Add if not selected
-                        updated.push(opt);
+                        updated.push(idx);
                       }
                       return updated;
                     });
@@ -119,20 +127,10 @@ const QuestionOptionsInput = ({
                 value={opt}
                 onChange={(e) => {
                   const newOpts = [...options];
-                  const oldOpt = newOpts[idx];
                   newOpts[idx] = e.target.value;
-
-                  // Update correctOptions if this option was selected
-                  const newCorrect = [...correctOptions];
-                  if (correctOptions.includes(oldOpt)) {
-                    const i = newCorrect.indexOf(oldOpt);
-                    if (i >= 0) {
-                      newCorrect[i] = e.target.value;
-                    }
-                    setCorrectOptions(newCorrect);
-                  }
-
                   setOptions(newOpts);
+                  
+                  // No need to update correctOptionIndices since we're using indices, not text values
                 }}
                 className="px-3 py-2 border border-gray-300 rounded-xl flex-1"
                 placeholder={`Option ${idx + 1}`}
