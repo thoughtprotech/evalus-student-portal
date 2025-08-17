@@ -108,6 +108,12 @@ export default function EditQuestionPage() {
 				setVideoSolMobileURL(videoMobile || "");
 				setQuestionsMeta(m => ({
 					...m,
+					// Bind tags (supports possible API field name variations or array form)
+					tags: (() => {
+						const raw = (q as any).tags ?? (q as any).questionsMeta?.tags ?? (q as any).questionTags ?? '';
+						if (Array.isArray(raw)) return raw.join(', ');
+						return typeof raw === 'string' ? raw : '';
+					})(),
 					marks: (q as any).marks ?? (q as any).questionsMeta?.marks ?? 0,
 					negativeMarks: (q as any).negativeMarks ?? (q as any).questionsMeta?.negativeMarks ?? 0,
 					graceMarks: (q as any).graceMarks ?? (q as any).questionsMeta?.graceMarks ?? 0,
