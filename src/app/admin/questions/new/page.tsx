@@ -558,7 +558,7 @@ export default function Index() {
           language: questionsMeta.languageId,
           writeUpId: questionsMeta.writeUpId ?? null,
           headerText: questionHeader,
-          allowCandidateComments: questionsMeta.allowComments ? 1 : 0,
+          allowCandidateComments: questionsMeta.allowComments,
         },
         question: question.trim(), // Save HTML as-is
         headerText: questionHeader,

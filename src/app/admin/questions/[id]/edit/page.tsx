@@ -217,7 +217,7 @@ export default function EditQuestionPage() {
 				language: questionsMeta.languageId,
 				writeUpId: questionsMeta.writeUpId,
 				headerText: questionHeader,
-				allowCandidateComments: questionsMeta.allowComments ? 1 : 0,
+				allowCandidateComments: questionsMeta.allowComments,
 			},
 			options: { options: optionsStr, answer: answerStr },
 		};
