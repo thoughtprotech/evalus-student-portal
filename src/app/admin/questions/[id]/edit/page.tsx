@@ -96,6 +96,15 @@ export default function EditQuestionPage() {
 				if (!(qRes.status === 200 && qRes.data)) { toast.error("Failed to load question"); setLoading(false); return; }
 				const q = qRes.data;
 				console.log("Loaded question:", q);
+				// Normalized primitive IDs (support both root-level & nested questionsMeta structure)
+				const normalized = {
+					questionTypeId: (q as any).questionTypeId ?? (q as any).questionsMeta?.questionTypeId ?? 0,
+					difficultyLevelId: (q as any).questionDifficultyLevelId ?? (q as any).questionsMeta?.difficultyLevelId ?? 0,
+					language: (q as any).language ?? (q as any).questionsMeta?.language ?? "",
+					subjectId: (q as any).subjectId ?? (q as any).questionsMeta?.subjectId ?? 0,
+					chapterId: (q as any).chapterId ?? (q as any).questionsMeta?.chapterId ?? 0,
+					topicId: (q as any).topicId ?? (q as any).questionsMeta?.topicId ?? 0,
+				};
 				// Support both legacy API field names and new unified create/update payload field names
 				const questionText = (q as any).questionText ?? (q as any).question ?? "";
 				const explanationText = (q as any).additionalExplanation ?? (q as any).explanation ?? "";
@@ -118,8 +127,8 @@ export default function EditQuestionPage() {
 					negativeMarks: (q as any).negativeMarks ?? (q as any).questionsMeta?.negativeMarks ?? 0,
 					graceMarks: (q as any).graceMarks ?? (q as any).questionsMeta?.graceMarks ?? 0,
 					difficulty: (q as any).questionDifficultyLevelId ?? (q as any).questionsMeta?.difficultyLevelId ?? 0,
-					questionType: (q as any).questionTypeId ?? (q as any).questionsMeta?.questionTypeId ?? 0,
-					languageId: (q as any).language ?? (q as any).questionsMeta?.language ?? "",
+					questionType: normalized.questionTypeId,
+					languageId: normalized.language,
 					writeUpId: (q as any).writeUpId ?? (q as any).questionsMeta?.writeUpId ?? null,
 					allowComments: (q as any).allowCandidateComments === 1 || (q as any).allowComments === 1 || (q as any).questionsMeta?.allowCandidateComments === 1 ? 1 : 0,
 				}));
@@ -130,7 +139,8 @@ export default function EditQuestionPage() {
 					let answerJsonString = (q as any).questionCorrectAnswerJson ?? (q as any).options?.answer ?? "null";
 					const optsObj = typeof optionsJsonString === 'string' ? JSON.parse(optionsJsonString || "{}") : optionsJsonString;
 					let answer: any = null; try { answer = typeof answerJsonString === 'string' ? JSON.parse(answerJsonString || "null") : answerJsonString; } catch { answer = answerJsonString; }
-					const typeLabel = (qtRes.data || []).find(t => t.questionTypeId === q.questionTypeId)?.questionType;
+					const qTypeId = normalized.questionTypeId;
+					const typeLabel = (qtRes.data || []).find(t => t.questionTypeId === qTypeId)?.questionType;
 					if (typeLabel === QUESTION_TYPES.SINGLE_MCQ || typeLabel === QUESTION_TYPES.MULTIPLE_MCQ) {
 						let opts: any[] = optsObj.options || [];
 						if (!Array.isArray(opts)) opts = [];
@@ -157,33 +167,30 @@ export default function EditQuestionPage() {
 					const list = subRes.data || [];
 					const normalize = (v?: string) => (v ?? '').trim().toLowerCase();
 					const clean = (v?: string) => normalize(v).replace(/[^a-z]/g, '');
-					const sel = clean(q.language);
+					const sel = clean(normalized.language);
 					const languageRows = list.filter(s => { const subjLang = clean(s.language); if (!sel) return true; if (!subjLang) return true; return subjLang === sel || subjLang.includes(sel) || sel.includes(subjLang); });
 					setAllLanguageSubjects(languageRows);
 					const isType = (s: any, t: string) => (s?.subjectType ?? '').toString().trim().toLowerCase() === t;
 					const subjectRows = languageRows.filter(s => isType(s, 'subject'));
 					setSubjects(subjectRows);
-					const byId: Record<number, GetSubjectsResponse> = Object.fromEntries(languageRows.map(s => [s.subjectId, s]));
-					let current = byId[q.subjectId];
-					if (current) {
-						const chain: GetSubjectsResponse[] = [current];
-						while (current?.parentId) { const next = byId[current.parentId]; if (!next) break; chain.push(next); current = next; }
-						const typeFind = (t: string) => chain.find(s => (s.subjectType || '').toLowerCase() === t)?.subjectId || 0;
-						const subjectId = typeFind('subject');
-						const chapterId = typeFind('chapter');
-						const topicId = typeFind('topic') || typeFind('sub topic') || (chain[0]?.subjectType?.toLowerCase() === 'topic' ? chain[0].subjectId : 0);
-						if (subjectId) setChapters(languageRows.filter(s => isType(s, 'chapter') && s.parentId === subjectId));
-						if (chapterId) {
-							const topicsDirect = languageRows.filter(s => isType(s, 'topic') && s.parentId === chapterId);
-							const subTopics = languageRows.filter(s => isType(s, 'sub topic') && (() => { const p = s.parentId ? byId[s.parentId] : undefined; return p && isType(p, 'topic') && p.parentId === chapterId; })());
-							const mapped: GetTopicsResponse[] = [...topicsDirect, ...subTopics].map(s => ({ topicId: s.subjectId, topicName: s.subjectName, subjectId: s.parentId }));
-							setTopics(mapped);
-						}
-						setQuestionsMeta(m => ({ ...m, subjectId, chapterId, topicId }));
+					// Direct binding using provided subject/chapter/topic IDs (if any)
+					const subjectId = normalized.subjectId;
+					const chapterId = normalized.chapterId;
+					const topicId = normalized.topicId;
+					if (subjectId) {
+						setChapters(languageRows.filter(s => isType(s, 'chapter') && s.parentId === subjectId));
 					}
+					if (chapterId) {
+						const byId: Record<number, GetSubjectsResponse> = Object.fromEntries(languageRows.map(s => [s.subjectId, s]));
+						const topicsDirect = languageRows.filter(s => isType(s, 'topic') && s.parentId === chapterId);
+						const subTopics = languageRows.filter(s => isType(s, 'sub topic') && (() => { const p = s.parentId ? byId[s.parentId] : undefined; return p && isType(p, 'topic') && p.parentId === chapterId; })());
+						const mapped: GetTopicsResponse[] = [...topicsDirect, ...subTopics].map(s => ({ topicId: s.subjectId, topicName: s.subjectName, subjectId: s.parentId }));
+						setTopics(mapped);
+					}
+					setQuestionsMeta(m => ({ ...m, subjectId, chapterId, topicId }));
 				}
 
-				const diffRes = await fetchDifficultyLevelsAction(q.language);
+				const diffRes = await fetchDifficultyLevelsAction(normalized.language);
 				if (diffRes.status === 200) setDifficultyLevels(diffRes.data || []);
 			} catch (e) {
 				console.error(e);
