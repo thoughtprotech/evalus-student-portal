@@ -247,7 +247,11 @@ export default function EditQuestionPage() {
 	};
 
 	const handleUpdate = async () => {
-		if (saving) return; const payload = buildPayload(); if (!payload) return; setSaving(true); const res = await updateQuestionAction(id, payload); setSaving(false); if (res.error) { toast.error(res.errorMessage || "Update failed"); } else { toast.success("Question updated"); setShowSuccessModal(true); }
+		if (saving) return;
+		const payload = buildPayload();
+		if (!payload) return; setSaving(true); const res = await updateQuestionAction(id, payload); setSaving(false);
+		if (res.error) { toast.error(res.errorMessage || "Update failed"); }
+		else { toast.success("Question updated"); setShowSuccessModal(true); }
 	};
 
 	// Keep page mounted; show an overlay loader to match test page style.
@@ -404,7 +408,7 @@ export default function EditQuestionPage() {
 				</div>
 			</div>
 			<ConfirmationModal isOpen={showSuccessModal} onConfirm={() => { setShowSuccessModal(false); router.push('/admin/questions'); }} onCancel={() => setShowSuccessModal(false)} title="Question Updated Successfully!" message="Your changes have been saved." confirmText="Go to Questions" cancelText="" variant="success" />
-		{loading && <QuestionEditSkeleton />}
+			{loading && <QuestionEditSkeleton />}
 		</div>
 	);
 }
