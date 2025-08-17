@@ -55,7 +55,7 @@ export default function EditQuestionPage() {
 		languageId: "",
 		writeUpId: null as number | null,
 		graceMarks: 0,
-		freeSpace: 0, // renamed in UI as Allow Candidate Comments
+		allowComments: 0, // 0 = No, 1 = Yes (Allow Candidate Comments)
 	});
 
 	const buildChapters = useCallback((subjectId: number) => {
@@ -100,7 +100,17 @@ export default function EditQuestionPage() {
 				setExplanation(q.additionalExplanation || "");
 				setVideoSolWebURL(q.videoSolutionWeburl || "");
 				setVideoSolMobileURL(q.videoSolutionMobileurl || "");
-				setQuestionsMeta(m => ({ ...m, marks: q.marks, negativeMarks: q.negativeMarks, graceMarks: q.graceMarks, difficulty: q.questionDifficultyLevelId, questionType: q.questionTypeId, languageId: q.language, writeUpId: q.writeUpId }));
+				setQuestionsMeta(m => ({
+					...m,
+					marks: q.marks,
+					negativeMarks: q.negativeMarks,
+					graceMarks: q.graceMarks,
+					difficulty: q.questionDifficultyLevelId,
+					questionType: q.questionTypeId,
+					languageId: q.language,
+					writeUpId: q.writeUpId,
+					allowComments: (q as any).allowCandidateComments === 1 || (q as any).allowComments === 1 ? 1 : 0,
+				}));
 
 				try {
 					const optsObj = JSON.parse(q.questionOptionsJson || "{}");
@@ -207,7 +217,7 @@ export default function EditQuestionPage() {
 				language: questionsMeta.languageId,
 				writeUpId: questionsMeta.writeUpId,
 				headerText: questionHeader,
-				allowCandidateComments: questionsMeta.freeSpace,
+				allowCandidateComments: questionsMeta.allowComments ? 1 : 0,
 			},
 			options: { options: optionsStr, answer: answerStr },
 		};
@@ -219,7 +229,7 @@ export default function EditQuestionPage() {
 
 	if (loading) return <div className="p-8">Loading...</div>;
 
-	const completedCount = [questionsMeta.languageId, questionsMeta.subjectId, questionsMeta.chapterId, questionsMeta.topicId, questionsMeta.questionType, questionsMeta.difficulty].filter(Boolean).length;
+				const completedCount = [questionsMeta.languageId, questionsMeta.subjectId, questionsMeta.chapterId, questionsMeta.topicId, questionsMeta.questionType, questionsMeta.difficulty].filter(Boolean).length;
 
 	return (
 		<div className="min-h-screen bg-gray-50">
@@ -306,13 +316,13 @@ export default function EditQuestionPage() {
 									</div>
 									<div className="grid grid-cols-2 gap-3">
 										<div className="space-y-1"><label className="block text-xs font-medium text-gray-600">Grace Marks</label><input type="number" min={0} value={questionsMeta.graceMarks || ''} onChange={(e) => setQuestionsMeta(p => ({ ...p, graceMarks: Number(e.target.value) }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" /></div>
-										<div className="space-y-1">
-											<label className="block text-xs font-medium text-gray-600">Allow Candidate Comments</label>
-											<div className="flex items-center gap-4 px-2 py-2 border border-gray-300 rounded-lg">
-												<label className="inline-flex items-center gap-1 text-xs"><input type="radio" name="allowComments" value="0" checked={questionsMeta.freeSpace === 0} onChange={() => setQuestionsMeta(p => ({ ...p, freeSpace: 0 }))} /> No</label>
-												<label className="inline-flex items-center gap-1 text-xs"><input type="radio" name="allowComments" value="1" checked={questionsMeta.freeSpace === 1} onChange={() => setQuestionsMeta(p => ({ ...p, freeSpace: 1 }))} /> Yes</label>
+											<div className="space-y-1">
+												<label className="block text-xs font-medium text-gray-600">Allow Comments</label>
+												<div className="flex items-center gap-4 px-3 py-2 rounded-lg w-full">
+													<label className="inline-flex items-center gap-1 text-xs"><input type="radio" className="h-5 w-5 accent-indigo-600 focus:ring-indigo-500" name="allowComments" value="0" checked={questionsMeta.allowComments === 0} onChange={() => setQuestionsMeta(p => ({ ...p, allowComments: 0 }))} /> No</label>
+													<label className="inline-flex items-center gap-1 text-xs"><input type="radio" className="h-5 w-5 accent-indigo-600 focus:ring-indigo-500" name="allowComments" value="1" checked={questionsMeta.allowComments === 1} onChange={() => setQuestionsMeta(p => ({ ...p, allowComments: 1 }))} /> Yes</label>
+												</div>
 											</div>
-										</div>
 									</div>
 								</div>
 								<div className="space-y-4 pt-4 border-t border-gray-200">
