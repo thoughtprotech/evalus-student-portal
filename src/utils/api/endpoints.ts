@@ -77,6 +77,13 @@ export const endpoints = {
         type: "CLOSE",
     } as Endpoint<CreateQuestionRequest, null>,
 
+  // Update existing question
+  updateQuestion: {
+    method: "PUT",
+    path: ({ questionId }: { questionId: number }) => `/api/Questions/${questionId}`,
+    type: "CLOSE",
+  } as Endpoint<{ questionId: number } & Partial<CreateQuestionRequest>, null>,
+
   createQuestionOptions: {
     method: "POST",
     path: () => `/api/questionoptions`,
