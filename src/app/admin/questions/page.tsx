@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, LoaderPinwheel } from "lucide-react";
 import { Filter, XCircle } from "lucide-react";
 import { fetchQuestionsAction, deleteQuestionAction, type QuestionRow } from "@/app/actions/admin/questions";
 import PageHeader from "@/components/PageHeader";
@@ -529,10 +529,8 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         </div>
       )}
       
-      <div className="flex-1 min-h-0">
-      {loading ? (
-        <Loader />
-      ) : rows.length === 0 ? (
+  <div className="flex-1 min-h-0 relative">
+  {(!loading && rows.length === 0) ? (
         <div className="bg-white shadow rounded-md border border-gray-300 p-8 h-full overflow-auto">
           <div className="text-center">
             <HelpCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -548,7 +546,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           </div>
         </div>
       ) : (
-        <div className="h-full min-h-0">
+        <div className="h-full min-h-0 relative">
         <AgGridReact<QuestionRow>
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
@@ -596,6 +594,15 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           stopEditingWhenCellsLoseFocus={true}
           theme="legacy"
         />
+        {loading && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white backdrop-blur-sm transition-opacity duration-150">
+            <div className="relative mb-3">
+              <div className="absolute -inset-3 bg-gradient-to-r from-indigo-200 via-blue-200 to-indigo-200 opacity-30 blur-xl animate-pulse rounded-full" />
+              <LoaderPinwheel className="relative w-10 h-10 text-indigo-600 animate-spin" />
+            </div>
+            <p className="text-sm font-medium text-gray-600 tracking-wide">Loading questions...</p>
+          </div>
+        )}
         </div>
       )}
       </div>

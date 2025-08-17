@@ -17,6 +17,7 @@ import { updateQuestionAction } from "@/app/actions/dashboard/questions/updateQu
 import type { GetQuestionTypesResponse, GetSubjectsResponse, GetTopicsResponse, GetLanguagesResponse, GetWriteUpsResponse, GetDifficultyLevelsResponse, CreateQuestionRequest } from "@/utils/api/types";
 import { ArrowLeft, HelpCircle, Smartphone, Monitor } from "lucide-react";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import QuestionEditSkeleton from "./QuestionEditSkeleton";
 
 export default function EditQuestionPage() {
 	const params = useParams();
@@ -249,12 +250,12 @@ export default function EditQuestionPage() {
 		if (saving) return; const payload = buildPayload(); if (!payload) return; setSaving(true); const res = await updateQuestionAction(id, payload); setSaving(false); if (res.error) { toast.error(res.errorMessage || "Update failed"); } else { toast.success("Question updated"); setShowSuccessModal(true); }
 	};
 
-	if (loading) return <div className="p-8">Loading...</div>;
+	// Keep page mounted; show an overlay loader to match test page style.
 
 	const completedCount = [questionsMeta.languageId, questionsMeta.subjectId, questionsMeta.chapterId, questionsMeta.topicId, questionsMeta.questionType, questionsMeta.difficulty].filter(Boolean).length;
 
 	return (
-		<div className="min-h-screen bg-gray-50">
+		<div className="min-h-screen bg-gray-50 relative">
 			<div className="bg-white border-b border-gray-200 sticky top-0 z-10">
 				<div className="w-[85%] mx-auto px-6 py-4">
 					<div className="flex items-center justify-between">
@@ -403,7 +404,14 @@ export default function EditQuestionPage() {
 				</div>
 			</div>
 			<ConfirmationModal isOpen={showSuccessModal} onConfirm={() => { setShowSuccessModal(false); router.push('/admin/questions'); }} onCancel={() => setShowSuccessModal(false)} title="Question Updated Successfully!" message="Your changes have been saved." confirmText="Go to Questions" cancelText="" variant="success" />
+		{loading && <QuestionEditSkeleton />}
 		</div>
 	);
 }
+
+// Global fade-in for loaded content
+// (Using inline style tag here keeps scope local to this route)
+// Could alternatively move to a shared CSS.
+// eslint-disable-next-line @next/next/no-sync-scripts
+// (Optional) Fade-in helper retained if needed for future transitions.
 
