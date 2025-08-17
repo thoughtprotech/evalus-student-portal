@@ -55,7 +55,7 @@ export default function EditQuestionPage() {
 		languageId: "",
 		writeUpId: null as number | null,
 		graceMarks: 0,
-		freeSpace: 0,
+		freeSpace: 0, // renamed in UI as Allow Candidate Comments
 	});
 
 	const buildChapters = useCallback((subjectId: number) => {
@@ -107,7 +107,11 @@ export default function EditQuestionPage() {
 					let answer: any = null; try { answer = JSON.parse(q.questionCorrectAnswerJson || "null"); } catch { answer = null; }
 					const typeLabel = (qtRes.data || []).find(t => t.questionTypeId === q.questionTypeId)?.questionType;
 					if (typeLabel === QUESTION_TYPES.SINGLE_MCQ || typeLabel === QUESTION_TYPES.MULTIPLE_MCQ) {
-						setQuestionOptions({ options: optsObj.options || [], answer: Array.isArray(answer) ? answer : [] });
+						let opts: any[] = optsObj.options || [];
+						if (!Array.isArray(opts)) opts = [];
+						// Ensure at least 4 option boxes
+						if (opts.length < 4) opts = [...opts, ...Array(4 - opts.length).fill("")];
+						setQuestionOptions({ options: opts, answer: Array.isArray(answer) ? answer : [] });
 					} else if (typeLabel === QUESTION_TYPES.MATCH_PAIRS_SINGLE) {
 						setQuestionOptions({ options: [optsObj.left || [], optsObj.right || []], answer: answer?.map?.(([, r]: any) => r) || [] });
 					} else if (typeLabel === QUESTION_TYPES.MATCH_PAIRS_MULTIPLE) {
@@ -203,6 +207,7 @@ export default function EditQuestionPage() {
 				language: questionsMeta.languageId,
 				writeUpId: questionsMeta.writeUpId,
 				headerText: questionHeader,
+				allowCandidateComments: questionsMeta.freeSpace,
 			},
 			options: { options: optionsStr, answer: answerStr },
 		};
@@ -301,7 +306,13 @@ export default function EditQuestionPage() {
 									</div>
 									<div className="grid grid-cols-2 gap-3">
 										<div className="space-y-1"><label className="block text-xs font-medium text-gray-600">Grace Marks</label><input type="number" min={0} value={questionsMeta.graceMarks || ''} onChange={(e) => setQuestionsMeta(p => ({ ...p, graceMarks: Number(e.target.value) }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" /></div>
-										<div className="space-y-1"><label className="block text-xs font-medium text-gray-600">Free Space</label><select value={questionsMeta.freeSpace} onChange={(e) => setQuestionsMeta(p => ({ ...p, freeSpace: Number(e.target.value) as 0 | 1 }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"><option value={0}>No</option><option value={1}>Yes</option></select></div>
+										<div className="space-y-1">
+											<label className="block text-xs font-medium text-gray-600">Allow Candidate Comments</label>
+											<div className="flex items-center gap-4 px-2 py-2 border border-gray-300 rounded-lg">
+												<label className="inline-flex items-center gap-1 text-xs"><input type="radio" name="allowComments" value="0" checked={questionsMeta.freeSpace === 0} onChange={() => setQuestionsMeta(p => ({ ...p, freeSpace: 0 }))} /> No</label>
+												<label className="inline-flex items-center gap-1 text-xs"><input type="radio" name="allowComments" value="1" checked={questionsMeta.freeSpace === 1} onChange={() => setQuestionsMeta(p => ({ ...p, freeSpace: 1 }))} /> Yes</label>
+											</div>
+										</div>
 									</div>
 								</div>
 								<div className="space-y-4 pt-4 border-t border-gray-200">

@@ -16,7 +16,8 @@ const QuestionOptionsInput = ({
   initialData?: { options: any; answer: any };
 }) => {
   const [type, setType] = useState<string>();
-  const [options, setOptions] = useState<string[]>(["", ""]);
+  // For MCQ types we want to show 4 default blank options
+  const [options, setOptions] = useState<string[]>(["", "", "", ""]);
   const [correctOptionIndices, setCorrectOptionIndices] = useState<number[]>([]);
 
   const [matchCols, setMatchCols] = useState<string[][]>([[""], [""]]);
@@ -38,7 +39,7 @@ const QuestionOptionsInput = ({
     // Reset defaults when changing type (new question or user switched type)
     if (!appliedInitial) {
       if (newType === QUESTION_TYPES.SINGLE_MCQ || newType === QUESTION_TYPES.MULTIPLE_MCQ) {
-        setOptions(["", ""]);
+        setOptions(["", "", "", ""]); // default 4 choices
         setCorrectOptionIndices([]);
       } else if (newType === QUESTION_TYPES.MATCH_PAIRS_SINGLE || newType === QUESTION_TYPES.MATCH_PAIRS_MULTIPLE) {
         setMatchCols([[""], [""]]);
@@ -54,7 +55,11 @@ const QuestionOptionsInput = ({
     if (initialData && newType && !appliedInitial) {
       try {
         if (newType === QUESTION_TYPES.SINGLE_MCQ || newType === QUESTION_TYPES.MULTIPLE_MCQ) {
-          const opts: string[] = Array.isArray(initialData.options?.options) ? initialData.options.options : Array.isArray(initialData.options) ? initialData.options : [];
+          let opts: string[] = Array.isArray(initialData.options?.options) ? initialData.options.options : Array.isArray(initialData.options) ? initialData.options : [];
+          // Ensure at least 4 option inputs are visible
+          if (opts.length < 4) {
+            opts = [...opts, ...Array(4 - opts.length).fill("")];
+          }
           const ans: string[] = Array.isArray(initialData.answer) ? initialData.answer : [];
             if (opts.length) setOptions(opts.slice());
             // Derive indices

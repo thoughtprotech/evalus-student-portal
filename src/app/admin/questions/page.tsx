@@ -26,7 +26,7 @@ function NameCellRenderer(props: { value: string; data: QuestionRow }) {
   return (
     <Link
       className="text-blue-600 hover:underline"
-      href={`/admin/questions/${props.data.id}`}
+      href={`/admin/questions/${props.data.id}/edit`}
       title={props.value}
     >
       {props.value}
@@ -94,7 +94,8 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
-  const [showFilters, setShowFilters] = useState(true);
+  // Start with filters hidden by default
+  const [showFilters, setShowFilters] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<QuestionRow[]>([]);
@@ -110,21 +111,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
   const columnDefs = useMemo<ColDef<QuestionRow>[]>(
     () => [
       // Checkbox selection column will be injected automatically and shown first when rowSelection.checkboxes = true
-      { 
-        headerName: "S.No.", 
-        valueGetter: (p: any) => {
-          // Calculate serial number based on current page and row index
-          const idx = (p?.node?.rowIndex ?? 0) as number;
-          return idx + 1 + (page - 1) * pageSize;
-        }, 
-        width: 90, 
-        pinned: 'left', 
-        sortable: false, 
-        filter: false, 
-        resizable: false, 
-        cellClass: 'no-right-border', 
-        headerClass: 'no-right-border' 
-      },
+  // Removed S.No. column as per requirements
       { 
         field: "title", 
         headerName: "Question Title", 
@@ -135,7 +122,9 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           buttons: ['apply','reset','clear'],
           suppressAndOrCondition: false
         }, 
-        width: 300, 
+        width: 450,
+        minWidth: 380,
+        flex: 2, 
         cellRenderer: NameCellRenderer, 
         tooltipField: "title", 
         cellClass: 'no-left-border', 
@@ -150,7 +139,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         filterParams: { 
           buttons: ['apply','reset','clear']
         }, 
-        width: 150 
+        width: 160 
       },
       { 
         field: "topic", 
@@ -161,7 +150,8 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         filterParams: { 
           buttons: ['apply','reset','clear']
         }, 
-        width: 150 
+        width: 220,
+        minWidth: 200
       },
       { 
         field: "level", 
@@ -243,30 +233,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         minWidth: 150, 
         flex: 1 
       },
-      {
-        headerName: "Actions",
-        cellRenderer: (props: { data: QuestionRow }) => (
-          <div className="flex items-center gap-2 h-full">
-            <Link href={`/admin/questions/${props.data.id}/edit`}>
-              <button
-                type="button"
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                title="Edit question"
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                Edit
-              </button>
-            </Link>
-          </div>
-        ),
-        width: 80,
-        sortable: false,
-        filter: false,
-        resizable: false,
-        pinned: 'right'
-      },
+  // Removed Actions column; edit link now on title
       { field: "id", headerName: "ID", hide: true },
       { field: "questionoptionId", headerName: "Question Option ID", hide: true },
     ],
