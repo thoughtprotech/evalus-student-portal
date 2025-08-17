@@ -317,7 +317,16 @@ export default function EditQuestionPage() {
 								</div>
 								<div className="space-y-2">
 									<label className="block text-sm font-medium text-gray-700">Question Type <span className="text-red-500">*</span></label>
-									<select value={questionsMeta.questionType || ''} onChange={(e) => setQuestionsMeta(p => ({ ...p, questionType: Number(e.target.value) }))} disabled={!questionsMeta.topicId} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-50 disabled:text-gray-500"><option value="">Select type</option>{questionTypes.map(q => <option key={q.questionTypeId} value={q.questionTypeId}>{q.questionType}</option>)}</select>
+									<select
+										value={questionsMeta.questionType || ''}
+										onChange={(e) => { /* Disabled permanently in edit mode */ }}
+										disabled
+										title="Question Type cannot be changed after creation"
+										className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-gray-100 text-gray-600 cursor-not-allowed">
+										<option value="">Select type</option>
+										{questionTypes.map(q => <option key={q.questionTypeId} value={q.questionTypeId}>{q.questionType}</option>)}
+									</select>
+									<p className="text-xs text-gray-500">Locked: cannot modify question type in edit mode.</p>
 								</div>
 								<div className="space-y-2">
 									<label className="block text-sm font-medium text-gray-700">Difficulty Level <span className="text-red-500">*</span></label>
