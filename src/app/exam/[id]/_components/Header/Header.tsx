@@ -1,34 +1,118 @@
-import { Info, ShieldQuestion } from "lucide-react";
+"use client";
 
+import { act, useEffect, useMemo, useState } from "react";
+import {
+  Info,
+  ShieldQuestion,
+  Timer,
+  ListChecks,
+  UserRound,
+} from "lucide-react";
+import {
+  GetTestMetaDataResponse,
+  SectionsMetaDataInterface,
+} from "@/utils/api/types";
+import Modal from "@/components/Modal";
+import OnHover from "@/components/OnHover";
+import QuestionCountPreview from "../QuestionCountPreview";
+import { TextOrHtml } from "@/components/TextOrHtml";
+import QuestionsPreviewList from "./_components/QuestionsPreviewList";
+import HeaderContainer from "./_components/HeaderContainer";
+import TitleWithTimer from "./_components/TitleWithTimer";
+import SectionTabs from "./_components/SectionTabs";
+import ActionsBar from "./_components/ActionBar";
+import InstructionsModal from "./_components/InstructionsModal";
+import QuestionsPreviewModal from "./_components/QuestionPreviewModal";
+import { formatDuration } from "@/utils/formatIsoTime";
+import TimerChip from "./_components/TimerChip";
+
+// Types
+type HeaderProps = {
+  data: GetTestMetaDataResponse;
+  onTimeUp: () => void;
+  durationMs?: number;
+  onSelectSection?: (section: SectionsMetaDataInterface) => void;
+  currentSectionId: SectionsMetaDataInterface;
+  userName?: string;
+};
+
+// Root Component
 export default function Header({
-  setShowQuestionsModal,
-  setShowInstructionsModal,
-}: {
-  setShowQuestionsModal: any;
-  setShowInstructionsModal: any;
-}) {
+  data,
+  onTimeUp,
+  onSelectSection,
+  currentSectionId,
+  userName = "User",
+}: HeaderProps) {
+  const { testMeta, sections } = data;
+  const { testName, instruction } = testMeta;
+
+  // Modals
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [showQuestions, setShowQuestions] = useState(false);
+
+  // Tabs state
+  const [activeSectionId, setActiveSectionId] =
+    useState<SectionsMetaDataInterface | null>();
+
+  useEffect(() => {
+    setActiveSectionId(currentSectionId);
+  }, [currentSectionId]);
+
+
+  const handleSelectSection = (section: SectionsMetaDataInterface) => {
+    setActiveSectionId(section);
+    onSelectSection?.(section);
+  };
+
   return (
-    <div className="bg-gray-100 px-2 py-1 shadow-md border border-gray-300 space-y-4 flex justify-end">
-      <div className="w-fit flex items-center gap-3 text-sm">
-        <div
-          className="flex items-center gap-2 cursor-pointer"
-          onClick={() => setShowQuestionsModal(true)}
-        >
-          <ShieldQuestion className="text-gray-600 w-4 h-4 cursor-pointer" />
-          <div className="text-gray-600">
-            <h1 className="text-xs">Question Paper</h1>
+    <HeaderContainer>
+      <div className="flex flex-col gap-2 sm:gap-3 h-full">
+        <div className="flex items-start justify-between gap-3 h-full">
+          {/* Left column */}
+          <div className="flex flex-col justify-between w-full h-full">
+            <TitleWithTimer
+              testName={testName}
+              formattedTimeTest={Number(data.testMeta.testDuration)}
+              formattedTimeSection={Number(activeSectionId?.maxDuration)}
+            />
+            <div className="w-full flex item-center gap-2">
+              <SectionTabs
+                sections={sections}
+                activeSectionId={activeSectionId?.sectionId!}
+                onSelectSection={handleSelectSection}
+              />
+            </div>
           </div>
-        </div>
-        <div
-          className="flex items-center gap-2 cursor-pointer"
-          onClick={() => setShowInstructionsModal(true)}
-        >
-          <Info className="text-gray-600 w-4 h-4 cursor-pointer" />
-          <div className="text-gray-600">
-            <h1 className="text-xs">Instructions</h1>
-          </div>
+
+          {/* Right column */}
+          <ActionsBar
+            instructionsTitle={
+              instruction?.primaryInstruction || "Instructions"
+            }
+            onOpenInstructions={() => setShowInstructions(true)}
+            onOpenQuestions={() => setShowQuestions(true)}
+            userName={userName}
+          />
         </div>
       </div>
-    </div>
+
+      {/* Modals */}
+      <InstructionsModal
+        title={"Instructions"}
+        isOpen={showInstructions}
+        onClose={() => setShowInstructions(false)}
+        content={instruction?.primaryInstruction || "No instructions provided."}
+      />
+
+      <QuestionsPreviewModal
+        isOpen={showQuestions}
+        onClose={() => setShowQuestions(false)}
+        sections={sections}
+        currentSectionId={
+          activeSectionId?.sectionId ?? currentSectionId.sectionId
+        }
+      />
+    </HeaderContainer>
   );
 }

@@ -53,16 +53,6 @@ export default function Sidebar({
                 {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
               </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-7 h-7 md:w-12 md:h-12 bg-indigo-200 text-indigo-800 rounded-full flex items-center justify-center font-bold text-xl shadow-inner">
-                U
-              </div>
-              <div>
-                <h1 className="text-sm font-bold text-gray-800">
-                  Welcome John Doe
-                </h1>
-              </div>
-            </div>
           </div>
           {/* Legend */}
           <Legend questionsMeta={questionsMeta} />

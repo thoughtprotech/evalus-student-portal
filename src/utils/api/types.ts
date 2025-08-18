@@ -114,6 +114,46 @@ export interface GetQuestionByIdResponse {
   questionTags: any[];
 }
 
+export interface GetTestMetaDataRequest {
+  testId: number;
+  userId: number;
+}
+
+export interface TestMetaDataInterface {
+  testId: number;
+  testName: string;
+  testDuration: number;
+  testStartTime: string;
+  testEndTime: string;
+  instruction: {
+    primaryInstruction: string;
+    secondaryInstruction: string;
+  };
+}
+
+export interface QuestionsMetaDataInterface {
+  questionId: number;
+  questionText: string;
+  questionType: string;
+  status: string;
+  options: {
+    optionText: string;
+  }[];
+}
+
+export interface SectionsMetaDataInterface {
+  sectionId: number;
+  sectionName: string;
+  minDuration: number;
+  maxDuration: number;
+  questions: QuestionsMetaDataInterface[];
+}
+
+export interface GetTestMetaDataResponse {
+  testMeta: TestMetaDataInterface;
+  sections: SectionsMetaDataInterface[];
+}
+
 export interface CreateQuestionRequest {
   explanation: string;
   videoSolURL?: string;
@@ -130,10 +170,10 @@ export interface CreateQuestionRequest {
     language: string;
     writeUpId?: number | null;
     headerText?: string | null;
-  allowCandidateComments?: number; // 0 | 1
+    allowCandidateComments?: number; // 0 | 1
   };
   question: string;
-  headerText:string;
+  headerText: string;
   options: {
     options: string;
     answer: string;
@@ -274,7 +314,6 @@ export interface GetDifficultyLevelsResponse {
   modifiedDate: string;
 }
 
-
 // Question Options API Types
 export interface GetQuestionOptionsRequest {
   // No request parameters needed for getting all questions
@@ -296,7 +335,7 @@ export interface GetQuestionOptionsResponse {
   createdDate: string;
   modifiedDate: string;
 }
-  
+
 // Admin Tests (OData)
 export interface GetTestsODataRequest {
   // Prebuilt OData query string: "$top=...&$skip=...&..."
@@ -346,22 +385,20 @@ export interface TestInstructionOData {
 export interface TestDifficultyLevelOData {
   TestDifficultyLevelId: number;
   TestDifficultyLevel1: string;
-
 }
 
 export interface GetCompaniesRequest {
-    // Prebuilt OData query string: "$top=...&$skip=...&..."
-    query: string;
+  // Prebuilt OData query string: "$top=...&$skip=...&..."
+  query: string;
 }
 
 export interface DeleteCompanyRequest {
-    companyId: number;
+  companyId: number;
 }
 export interface GetCandidatesRequest {
-    query: string;
+  query: string;
 }
 
 export interface DeleteCandidateRequest {
-    candidateId: number;
+  candidateId: number;
 }
-

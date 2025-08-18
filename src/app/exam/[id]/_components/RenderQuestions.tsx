@@ -12,9 +12,12 @@ interface RenderQuestionProps {
   setQuestion: Dispatch<SetStateAction<GetQuestionByIdResponse | undefined>>;
 }
 
-export default function renderQuestion(
-  question: GetQuestionByIdResponse,
+export default function RenderQuestion(
+{  question,
+  setQuestion}: {
+      question: GetQuestionByIdResponse,
   setQuestion: Dispatch<SetStateAction<GetQuestionByIdResponse | undefined>>
+  }
 ) {
   const [selectedOptions, setSelectedOptions] = useState<Set<number>>(new Set());
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -88,7 +91,7 @@ export default function renderQuestion(
   const clearSelection = useCallback(() => {
     setSelectedOptions(new Set());
   }, []);
-  switch (question?.questionType.questionType) {
+  switch (question?.questionType?.questionType) {
   case QUESTION_TYPES.SINGLE_MCQ:
       return (
         <div className="flex flex-col gap-3">

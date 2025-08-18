@@ -8,7 +8,7 @@ export default function Legend({
   questionsMeta: QuestionsMetaResponse[];
 }) {
   return (
-    <div className="flex flex-col gap-2 border-t border-t-gray-300 border-b border-b-gray-300 py-4">
+    <div className="flex flex-col gap-2 border-b border-b-gray-300 pb-4">
       <div className="space-y-2 text-sm">
         <div className="w-full grid grid-cols-2 gap-2">
           <div className="flex items-center gap-2">
