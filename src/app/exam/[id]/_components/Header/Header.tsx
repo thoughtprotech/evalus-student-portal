@@ -25,45 +25,44 @@ import InstructionsModal from "./_components/InstructionsModal";
 import QuestionsPreviewModal from "./_components/QuestionPreviewModal";
 import { formatDuration } from "@/utils/formatIsoTime";
 import TimerChip from "./_components/TimerChip";
+import { getUserAction } from "@/app/actions/getUser";
 
 // Types
 type HeaderProps = {
   data: GetTestMetaDataResponse;
-  onTimeUp: () => void;
+  onTestTimeUp: () => void;
+  onSectionTimeUp: () => void;
   durationMs?: number;
   onSelectSection?: (section: SectionsMetaDataInterface) => void;
   currentSectionId: SectionsMetaDataInterface;
-  userName?: string;
+  setCurrentSection: any;
 };
 
 // Root Component
 export default function Header({
   data,
-  onTimeUp,
+  onTestTimeUp,
+  onSectionTimeUp,
   onSelectSection,
   currentSectionId,
-  userName = "User",
+  setCurrentSection,
 }: HeaderProps) {
   const { testMeta, sections } = data;
   const { testName, instruction } = testMeta;
+  const [userName, setUserName] = useState<string>("");
+
+  const fetchUserName = async () => {
+    const user = await getUserAction();
+    setUserName(user || "");
+  };
+
+  useEffect(() => {
+    fetchUserName();
+  }, []);
 
   // Modals
   const [showInstructions, setShowInstructions] = useState(false);
   const [showQuestions, setShowQuestions] = useState(false);
-
-  // Tabs state
-  const [activeSectionId, setActiveSectionId] =
-    useState<SectionsMetaDataInterface | null>();
-
-  useEffect(() => {
-    setActiveSectionId(currentSectionId);
-  }, [currentSectionId]);
-
-
-  const handleSelectSection = (section: SectionsMetaDataInterface) => {
-    setActiveSectionId(section);
-    onSelectSection?.(section);
-  };
 
   return (
     <HeaderContainer>
@@ -74,13 +73,15 @@ export default function Header({
             <TitleWithTimer
               testName={testName}
               formattedTimeTest={Number(data.testMeta.testDuration)}
-              formattedTimeSection={Number(activeSectionId?.maxDuration)}
+              formattedTimeSection={Number(currentSectionId?.maxDuration)}
+              onSectionTimeUp={onSectionTimeUp}
+              onTestTimeUp={onTestTimeUp}
             />
             <div className="w-full flex item-center gap-2">
               <SectionTabs
                 sections={sections}
-                activeSectionId={activeSectionId?.sectionId!}
-                onSelectSection={handleSelectSection}
+                activeSectionId={currentSectionId?.sectionId!}
+                onSelectSection={onSelectSection}
               />
             </div>
           </div>
@@ -110,7 +111,7 @@ export default function Header({
         onClose={() => setShowQuestions(false)}
         sections={sections}
         currentSectionId={
-          activeSectionId?.sectionId ?? currentSectionId.sectionId
+          currentSectionId?.sectionId ?? currentSectionId.sectionId
         }
       />
     </HeaderContainer>

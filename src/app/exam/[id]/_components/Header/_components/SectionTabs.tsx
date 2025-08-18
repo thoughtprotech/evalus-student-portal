@@ -10,7 +10,7 @@ export default function SectionTabs({
 }: {
   sections: SectionsMetaDataInterface[];
   activeSectionId: number | null;
-  onSelectSection: (section: SectionsMetaDataInterface) => void;
+  onSelectSection?: (section: SectionsMetaDataInterface) => void;
 }) {
   if (!sections.length) return null;
 
@@ -23,7 +23,11 @@ export default function SectionTabs({
             <button
               key={s.sectionId}
               type="button"
-              onClick={() => onSelectSection(s)}
+              onClick={() => {
+                if (onSelectSection) {
+                  onSelectSection(s);
+                }
+              }}
               className={[
                 "px-4 py-1 text-sm font-bold whitespace-nowrap border-b-2 flex items-center gap-2 rounded-t transition-colors",
                 isActive

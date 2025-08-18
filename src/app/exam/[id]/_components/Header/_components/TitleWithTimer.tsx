@@ -5,7 +5,11 @@ export default function TitleWithTimer({
   testName,
   formattedTimeTest,
   formattedTimeSection,
+  onTestTimeUp,
+  onSectionTimeUp,
 }: {
+  onTestTimeUp: any;
+  onSectionTimeUp: any;
   testName: string;
   formattedTimeTest: number;
   formattedTimeSection: number;
@@ -20,10 +24,12 @@ export default function TitleWithTimer({
       <TimerChip
         title="Time Left"
         durationMs={Math.max(0, formattedTimeTest * 60_000)}
+        onComplete={onTestTimeUp}
       />
       <TimerChip
         title="Section Time Left"
         durationMs={Math.max(0, formattedTimeSection * 60_000)}
+        onComplete={onSectionTimeUp}
       />
     </div>
   );

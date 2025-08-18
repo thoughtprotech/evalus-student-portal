@@ -226,10 +226,6 @@ export default function ExamPage() {
     setCurrentIndex(index);
   };
 
-  const handleTimeout = () => {
-    // TODO: Handle timeout
-  };
-
   const toggleMarkForReview = async () => {
     // TODO: Implement API here to update question status
   };
@@ -279,6 +275,47 @@ export default function ExamPage() {
     }
   };
 
+  const handleTimeout = () => {
+    // TODO: Handle timeout
+  };
+
+  function getCurrentSectionIndex(
+    sections: SectionsMetaDataInterface[],
+    current: SectionsMetaDataInterface
+  ) {
+    return sections.findIndex((s) => s.sectionId === current.sectionId);
+  }
+  const handleSectionTimeout = async () => {
+    // Guard: needed data must exist
+    if (!testMetaData || !testMetaData.sections?.length || !currentSection) {
+      return;
+    }
+
+    const { sections } = testMetaData;
+
+    const curIdx = getCurrentSectionIndex(sections, currentSection);
+    if (curIdx === -1) {
+      // Current section not found in latest metadata; optionally refetch or no-op
+      return;
+    }
+
+    const isLast = curIdx === sections.length - 1;
+
+    if (isLast) {
+      // Last section -> submit
+      await submitTest();
+      return;
+    }
+
+    // Otherwise move to next section
+    const nextSection = sections[curIdx + 1];
+    if (nextSection) {
+      setCurrentSection(nextSection);
+    }
+  };
+
+  const submitTest = async () => {};
+
   useEffect(() => {
     fetchTestMetaData();
   }, []);
@@ -293,15 +330,14 @@ export default function ExamPage() {
       {testMetaData && (
         <Header
           data={testMetaData!}
-          onTimeUp={handleTimeout}
+          onTestTimeUp={handleTimeout}
+          onSectionTimeUp={handleSectionTimeout}
           durationMs={Math.max(
             0,
             Math.floor(Number(testMetaData?.testMeta.testDuration)) * 60_000
           )}
-          onSelectSection={(sectionId) => {
-            console.log("SECTION CHANGED", sectionId);
-          }}
           currentSectionId={currentSection!}
+          setCurrentSection={setCurrentSection}
         />
       )}
 
