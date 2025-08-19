@@ -138,7 +138,7 @@ export default function Step1CreateTestDetails({
             className="grid grid-cols-1 md:grid-cols-2 gap-4"
           >
             <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-gray-800 mb-1">
+              <label className="block text-sm font-medium text-gray-800 mb-1">
                 Test Name <span className="text-red-600">*</span>
               </label>
               <input
@@ -153,11 +153,11 @@ export default function Step1CreateTestDetails({
               {/* Test Type and Test Code row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-800 mb-1">
+                  <label className="block text-sm font-medium text-gray-800 mb-1">
                     Test Type <span className="text-red-600">*</span>
                   </label>
                   <select
-                    className="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm font-normal focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white"
                     value={typeId}
                     onChange={(e) => { const v = e.target.value; setTypeId(v); setDraft((d: any) => ({ ...d, TestTypeId: v ? Number(v) : null })); }}
                     required
@@ -171,7 +171,7 @@ export default function Step1CreateTestDetails({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-800 mb-1">
+                  <label className="block text-sm font-medium text-gray-800 mb-1">
                     Test Code <span className="text-red-600">*</span>
                   </label>
                   <div className="flex gap-2 items-center">
@@ -195,11 +195,11 @@ export default function Step1CreateTestDetails({
               </div>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-1">
+              <label className="block text-sm font-medium text-gray-800 mb-1">
                 Category <span className="text-red-600">*</span>
               </label>
               <select
-                className="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm font-normal focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white"
                 value={categoryId}
                 onChange={(e) => { const v = e.target.value; setCategoryId(v); setDraft((d: any) => ({ ...d, TestCategoryId: v ? Number(v) : null })); }}
                 required
@@ -216,11 +216,11 @@ export default function Step1CreateTestDetails({
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-1">
+              <label className="block text-sm font-medium text-gray-800 mb-1">
                 Instruction <span className="text-red-600">*</span>
               </label>
               <select
-                className="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm font-normal focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white"
                 value={instructionId}
                 onChange={(e) => { const v = e.target.value; setInstructionId(v); setDraft((d: any) => ({ ...d, TestInstructionId: v ? Number(v) : null })); }}
                 required
@@ -240,7 +240,7 @@ export default function Step1CreateTestDetails({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Duration Section */}
                 <div className="border rounded-lg p-4 bg-white flex flex-col gap-2">
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  <label className="block text-sm font-medium text-gray-800 mb-2">
                     Duration (mins)
                   </label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -273,7 +273,7 @@ export default function Step1CreateTestDetails({
                 </div>
                 {/* Marks Section */}
                 <div className="border rounded-lg p-4 bg-white flex flex-col gap-2">
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  <label className="block text-sm font-medium text-gray-800 mb-2">
                     Marks
                   </label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -308,11 +308,11 @@ export default function Step1CreateTestDetails({
               </div>
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-gray-800 mb-1">
+              <label className="block text-sm font-medium text-gray-800 mb-1">
                 Difficulty Level <span className="text-red-600">*</span>
               </label>
               <select
-                className="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm font-normal focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white"
                 value={difficultyLevelId}
                 onChange={(e) => { const v = e.target.value; setDifficultyLevelId(v); setDraft((d: any) => ({ ...d, TestDifficultyLevelId: v ? Number(v) : null })); }}
                 required

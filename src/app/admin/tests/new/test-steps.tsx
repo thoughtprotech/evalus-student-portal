@@ -165,16 +165,25 @@ export default function TestSteps({
   };
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow border border-gray-200 font-sans text-gray-900">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Create Test</h1>
-        <Link
-          href="/admin/tests"
-          className="text-base font-semibold text-blue-600 hover:text-blue-700 underline transition-colors rounded-lg px-4 py-2"
-        >
-          Back to Tests
-        </Link>
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="w-[85%] mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-semibold text-gray-900">Create Test</h1>
+            </div>
+            <div>
+              <Link
+                href="/admin/tests"
+                className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                Back to Tests
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
+      <div className="w-[85%] mx-auto px-6 py-8">
       <TestDraftProvider initial={draftInitial ?? {}}>
         <StepWizard
           steps={steps}
@@ -268,6 +277,7 @@ export default function TestSteps({
         </div>
         </StepWizard>
       </TestDraftProvider>
+    </div>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import type {
 } from "@/utils/api/types";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
+import React from "react";
 import TestSteps from "./test-steps";
 
 export default async function NewTestPage() {
@@ -29,11 +30,13 @@ export default async function NewTestPage() {
     [];
 
   return (
-    <TestSteps
-      testTypes={testTypes}
-      categories={categories}
-      instructions={instructions}
-      difficultyLevels={difficultyLevels}
-    />
+    <React.Suspense fallback={<div className="w-[85%] mx-auto px-6 py-8">Loading test editor...</div>}>
+      <TestSteps
+        testTypes={testTypes}
+        categories={categories}
+        instructions={instructions}
+        difficultyLevels={difficultyLevels}
+      />
+    </React.Suspense>
   );
 }

@@ -261,6 +261,43 @@ export const endpoints = {
     type: "OPEN",
   } as Endpoint<null, import('./types').ODataList<import('./types').TestTemplateOData>>,
 
+  // Select Questions page endpoints
+  getLanguagesOData: {
+    method: "GET",
+    path: () => `/odata/Languages?$select=Language1`,
+    type: "OPEN",
+  } as Endpoint<null, import('./types').ODataList<{ Language1: string }>>,
+
+  getSubjectsByLanguageOData: {
+    method: "GET",
+    path: ({ language }) => {
+      const lang = (language ?? "").replace(/'/g, "''");
+      return `/odata/Subjects?$filter=Language eq '${lang}' and ParentId eq 0&$select=SubjectId,SubjectName`;
+    },
+    type: "OPEN",
+  } as Endpoint<{ language?: string }, import('./types').ODataList<{ SubjectId: number; SubjectName: string }>>,
+
+  getQuestionTypesOData: {
+    method: "GET",
+    path: ({ language }) => {
+      const lang = (language ?? "").replace(/'/g, "''");
+      return `/odata/QuestionTypes?$filter=Language eq '${lang}'&$select=QuestionTypeId,QuestionType1`;
+    },
+    type: "OPEN",
+  } as Endpoint<{ language?: string }, import('./types').ODataList<{ QuestionTypeId: number; QuestionType1: string }>>,
+
+  getSubjectTree: {
+    method: "GET",
+    path: ({ parentId }) => `/odata/Subjects/GetSubjectTree(ParentId=${parentId})`,
+    type: "OPEN",
+  } as Endpoint<{ parentId: number }, any[]>,
+
+  getQuestionsByQuery: {
+    method: "GET",
+    path: ({ query }) => `/odata/Questions${query}`,
+    type: "OPEN",
+  } as Endpoint<{ query?: string }, { value: any[] }>,
+
   // Admin Questions (server actions moved here)
   getAdminQuestions: {
     method: "GET",
