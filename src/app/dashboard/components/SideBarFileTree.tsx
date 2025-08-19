@@ -20,6 +20,8 @@ interface SideBarFileTreeProps {
   rootIcon?: ReactNode;
   initiallyExpanded?: boolean;
   pathname: string;
+  /** Max height for the expandable list area (defaults to 50% viewport height) */
+  maxListHeight?: string;
 }
 
 // Build map from parentId to children (defensive against non-array)
@@ -41,6 +43,7 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
   regExp,
   initiallyExpanded = true,
   pathname,
+  maxListHeight = "50vh",
 }) => {
   const tree = buildTree(data);
   const [rootExpanded, setRootExpanded] = useState(initiallyExpanded);
@@ -111,7 +114,9 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
       </div>
 
       {rootExpanded && (
-        <div className="space-y-1">
+        <div
+          className={`space-y-1 overflow-y-auto pr-1 ${maxListHeight ? `max-h-[${maxListHeight}]` : 'max-h-[50vh]'}`}
+        >
           {roots.map((root) => {
             const children = tree[root.candidateGroupId] || [];
             // Consider children existing if any node lists this root as its parent
