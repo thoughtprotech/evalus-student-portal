@@ -128,21 +128,11 @@ export async function fetchCandidatesAction(
     params: FetchCandidatesParams = { top: 15, skip: 0 }
 ): Promise<ApiResponse<{ rows: CandidateRow[]; total: number }>> {
     try {
-        console.log("🔧 Making API call to get candidates");
-
-        const query = buildQuery(params);
-        const response = await apiHandler(endpoints.getCandidates, { query });
-
-        console.log("Candidates API Response:", response);
+        // Strategy aligned with questions grid: fetch everything once (endpoint seems to return full list)
+        // then apply client-side sorting, filtering, pagination.
+        const response = await apiHandler(endpoints.getCandidates, { query: "" });
 
         if (response.error || response.status !== 200) {
-            console.error("Candidates API Error Response:", {
-                status: response.status,
-                error: response.error,
-                message: response.message,
-                errorMessage: response.errorMessage
-            });
-
             return {
                 status: response.status,
                 error: true,
@@ -151,48 +141,85 @@ export async function fetchCandidatesAction(
             };
         }
 
-        console.log("Raw candidates API response data:", response.data);
-
-        // Handle OData response structure
         let allItems: ApiCandidateItem[] = [];
-        let total = 0;
-
         if (Array.isArray(response.data)) {
-            allItems = response.data;
-            total = allItems.length;
-            console.log("✅ Direct array response with", allItems.length, "total candidates");
-        } else if (response.data && typeof response.data === 'object' && (response.data as any).value && Array.isArray((response.data as any).value)) {
+            allItems = response.data as ApiCandidateItem[];
+        } else if (response.data && typeof response.data === 'object') {
             const dataObj = response.data as any;
-            allItems = dataObj.value;
-            total = dataObj["@odata.count"] || allItems.length;
-            console.log("✅ OData response with", allItems.length, "candidates, total:", total);
-        } else {
-            console.log("❌ Unexpected response format for candidates");
-            return {
-                status: 200,
-                message: "No candidates found",
-                data: { rows: [], total: 0 }
-            };
+            if (Array.isArray(dataObj.value)) allItems = dataObj.value;
+        }
+        if (!allItems || allItems.length === 0) {
+            return { status: 200, message: "No candidates found", data: { rows: [], total: 0 } };
         }
 
-        // Debug: show distinct candidateGroupName values coming from API
-        try {
-            const distinctGroups = Array.from(new Set(allItems.map((i:any) => i?.candidateGroupName).filter(Boolean)));
-            console.log("🔍 Distinct candidateGroupName values from API:", distinctGroups);
-        } catch(e) { /* ignore */ }
+        // Client-side sorting
+        if (params.orderBy) {
+            const [field, direction] = params.orderBy.split(' ');
+            const fieldMap: Record<string, string> = {
+                candidateId: 'candidateRegistrationId',
+                firstName: 'firstName',
+                lastName: 'lastName',
+                email: 'email',
+                phoneNumber: 'phoneNumber',
+                isActive: 'isActive',
+                createdDate: 'createdDate',
+                modifiedDate: 'modifiedDate'
+            };
+            const mapped = fieldMap[field] || field;
+            allItems.sort((a:any, b:any) => {
+                const av = a[mapped];
+                const bv = b[mapped];
+                if (av == null && bv != null) return -1;
+                if (av != null && bv == null) return 1;
+                if (av < bv) return direction === 'desc' ? 1 : -1;
+                if (av > bv) return direction === 'desc' ? -1 : 1;
+                return 0;
+            });
+        }
 
-        const mappedRows = mapToRows(allItems);
+        // Client-side filtering (basic OData patterns similar to questions grid)
+        if (params.filter) {
+            const filterParts = params.filter.split(' and ');
+            allItems = allItems.filter((item: any) => {
+                return filterParts.every(part => {
+                    const f = part.trim();
+                    const containsMatch = f.match(/contains\((\w+),'(.+?)'\)/);
+                    if (containsMatch) {
+                        const [, fld, val] = containsMatch; return String(item[fld] || '').toLowerCase().includes(val.toLowerCase());
+                    }
+                    const eqMatch = f.match(/(\w+)\s+eq\s+(\d+|true|false|'[^']*')/);
+                    if (eqMatch) {
+                        const [, fld, val] = eqMatch; const raw = item[fld];
+                        if (/^\d+$/.test(val)) return Number(raw) === Number(val);
+                        if (val === 'true' || val === 'false') return Boolean(raw) === (val === 'true');
+                        const sval = val.replace(/^'|'$/g,''); return String(raw).toLowerCase() === sval.toLowerCase();
+                    }
+                    const startsWithMatch = f.match(/startswith\((\w+),'(.+?)'\)/);
+                    if (startsWithMatch) { const [, fld, val] = startsWithMatch; return String(item[fld]||'').toLowerCase().startsWith(val.toLowerCase()); }
+                    const endsWithMatch = f.match(/endswith\((\w+),'(.+?)'\)/);
+                    if (endsWithMatch) { const [, fld, val] = endsWithMatch; return String(item[fld]||'').toLowerCase().endsWith(val.toLowerCase()); }
+                    const lower = f.toLowerCase();
+                    return Object.values(item).some(v => String(v).toLowerCase().includes(lower));
+                });
+            });
+        }
+
+        const total = allItems.length;
+        const top = params.top ?? 15;
+        const skip = params.skip ?? 0;
+        const pageSlice = allItems.slice(skip, skip + top);
+        const mappedRows = mapToRows(pageSlice);
+
         return {
             status: 200,
             message: `Successfully fetched ${mappedRows.length} candidates`,
             data: { rows: mappedRows, total }
         };
     } catch (error: any) {
-        console.error("Error Fetching Candidates:", error);
         return {
             status: 500,
             error: true,
-            message: "Failed to fetch candidates from API",
+            message: 'Failed to fetch candidates from API',
             errorMessage: error?.message,
         };
     }

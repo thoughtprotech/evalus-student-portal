@@ -252,9 +252,9 @@ export default function AddCandidatePage() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="w-[85%] mx-auto px-6 py-8">
-        <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+  {/* Main Content */}
+  <div className="w-[85%] mx-auto px-6 py-8">
+        <div className="w-full bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <form
             onSubmit={handleSubmit}
             className="space-y-6"
@@ -474,31 +474,7 @@ export default function AddCandidatePage() {
                 onChange={handleInputChange}
               />
             </div>
-            <div className="flex gap-3 pt-4">
-              <button
-                type="button"
-                onClick={handleSaveAndNew}
-                disabled={isSaving}
-                className={`flex-1 px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium transition-colors ${
-                  isSaving
-                    ? "bg-gray-50 text-gray-400 cursor-not-allowed"
-                    : "bg-white text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                {isSaving ? "Saving..." : "Save & New"}
-              </button>
-              <button
-                type="submit"
-                disabled={isSaving}
-                className={`flex-1 px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-colors ${
-                  isSaving
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-indigo-600 hover:bg-indigo-700"
-                }`}
-              >
-                {isSaving ? "Saving..." : "Save Candidate"}
-              </button>
-            </div>
+            {/* Bottom action buttons removed as per requirement (only header actions retained) */}
           </form>
         </div>
       </div>

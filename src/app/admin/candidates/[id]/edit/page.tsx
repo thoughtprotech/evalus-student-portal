@@ -153,9 +153,9 @@ export default function EditCandidatePage() {
             <button onClick={submit} disabled={saving} className={`px-4 py-2 text-sm rounded-lg text-white font-medium ${saving?"bg-gray-400":"bg-indigo-600 hover:bg-indigo-700"}`}>{saving?"Saving...":"Save Changes"}</button>
           </div>
         </div>
-      </div>
-      <div className="w-[85%] mx-auto px-6 py-8 max-w-2xl">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-6">
+  </div>
+  <div className="w-[85%] mx-auto px-6 py-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">First Name *</label>
