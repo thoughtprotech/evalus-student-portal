@@ -130,6 +130,7 @@ export interface CreateQuestionRequest {
     language: string;
     writeUpId?: number | null;
     headerText?: string | null;
+  allowCandidateComments?: number; // 0 | 1
   };
   question: string;
   headerText:string;

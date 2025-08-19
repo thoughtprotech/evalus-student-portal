@@ -41,7 +41,7 @@ export default function Index() {
     languageId: string;
     writeUpId: number | null;
     graceMarks: number;
-    freeSpace: number; // 1 = Yes, 0 = No
+  allowComments: number; // 1 = Yes, 0 = No
   }>({
     tags: "",
     marks: 0,
@@ -54,7 +54,7 @@ export default function Index() {
     languageId: "",
     writeUpId: null,
     graceMarks: 0,
-    freeSpace: 0,
+  allowComments: 0, // 0 = No, 1 = Yes (Allow Candidate Comments)
   });
   const [questionHeader, setQuestionHeader] = useState<string>("");
   // Video Solution URLs (separate for Web and Mobile)
@@ -558,6 +558,7 @@ export default function Index() {
           language: questionsMeta.languageId,
           writeUpId: questionsMeta.writeUpId ?? null,
           headerText: questionHeader,
+          allowCandidateComments: questionsMeta.allowComments,
         },
         question: question.trim(), // Save HTML as-is
         headerText: questionHeader,
@@ -653,7 +654,7 @@ export default function Index() {
         languageId: "",
   writeUpId: null,
         graceMarks: 0,
-        freeSpace: 0,
+  allowComments: 0,
       });
       
       // Reset dependent dropdowns
@@ -1041,18 +1042,31 @@ export default function Index() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="block text-xs font-medium text-gray-600">Free Space</label>
-                      <select
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                        value={questionsMeta.freeSpace}
-                        onChange={(e) => {
-                          const val = Number(e.target.value) as 0 | 1;
-                          setQuestionsMeta((prev) => ({ ...prev, freeSpace: val }));
-                        }}
-                      >
-                        <option value={0}>No</option>
-                        <option value={1}>Yes</option>
-                      </select>
+                      <label className="block text-xs font-medium text-gray-600">Allow Comments</label>
+                      <div className="flex items-center gap-4 px-3 py-2 rounded-lg w-full">
+                        <label className="inline-flex items-center gap-1 text-xs">
+                          <input
+                            type="radio"
+                            className="h-5 w-5 accent-indigo-600 focus:ring-indigo-500"
+                            name="allowCandidateComments"
+                            value="0"
+                            checked={questionsMeta.allowComments === 0}
+                            onChange={() => setQuestionsMeta(prev => ({ ...prev, allowComments: 0 }))}
+                          />
+                          No
+                        </label>
+                        <label className="inline-flex items-center gap-1 text-xs">
+                          <input
+                            type="radio"
+                            className="h-5 w-5 accent-indigo-600 focus:ring-indigo-500"
+                            name="allowCandidateComments"
+                            value="1"
+                            checked={questionsMeta.allowComments === 1}
+                            onChange={() => setQuestionsMeta(prev => ({ ...prev, allowComments: 1 }))}
+                          />
+                          Yes
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </div>

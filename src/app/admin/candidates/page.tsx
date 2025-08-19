@@ -22,11 +22,12 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 function NameCellRenderer(props: { value: string; data: CandidateRow }) {
+    // Clicking first name goes directly to edit page (Actions column removed)
     return (
         <Link
             className="text-blue-600 hover:underline"
-            href={`/admin/candidates/${props.data.candidateId}`}
-            title={props.value}
+            href={`/admin/candidates/${props.data.candidateId}/edit`}
+            title={`Edit ${props.value}`}
         >
             {props.value}
         </Link>
@@ -68,10 +69,11 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
     const gridApiRef = useRef<GridApi | null>(null);
     const [rows, setRows] = useState<CandidateRow[]>([]);
     const [total, setTotal] = useState(0);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(15);
-    const [showFilters, setShowFilters] = useState(true);
+    // Start with filters hidden to match Questions screen behavior
+    const [showFilters, setShowFilters] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [pendingDelete, setPendingDelete] = useState<CandidateRow[]>([]);
@@ -87,40 +89,18 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
     const columnDefs = useMemo<ColDef<CandidateRow>[]>(
         () => [
             {
-                headerName: "S.No.",
-                valueGetter: (p: any) => {
-                    const idx = (p?.node?.rowIndex ?? 0) as number;
-                    return idx + 1 + (page - 1) * pageSize;
-                },
-                width: 90,
-                pinned: 'left',
-                sortable: false,
-                filter: false,
-                resizable: false,
-                cellClass: 'no-right-border',
-                headerClass: 'no-right-border'
-            },
-            {
-                field: "candidateId",
-                headerName: "Candidate ID",
-                headerTooltip: "Candidate ID",
-                sortable: true,
-                filter: 'agNumberColumnFilter',
-                filterParams: { buttons: ['apply', 'reset', 'clear'] },
-                width: 130,
-                cellClass: 'no-left-border',
-                headerClass: 'no-left-border'
-            },
-            {
                 field: "firstName",
                 headerName: "First Name",
                 headerTooltip: "First Name",
                 sortable: true,
                 filter: 'agTextColumnFilter',
                 filterParams: { buttons: ['apply', 'reset', 'clear'] },
-                width: 150,
+                minWidth: 180,
+                flex: 1.6,
                 cellRenderer: NameCellRenderer,
-                tooltipField: "firstName"
+                tooltipField: "firstName",
+                cellClass: 'no-left-border',
+                headerClass: 'no-left-border'
             },
             {
                 field: "lastName",
@@ -138,7 +118,8 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
                 sortable: true,
                 filter: 'agTextColumnFilter',
                 filterParams: { buttons: ['apply', 'reset', 'clear'] },
-                width: 200
+                minWidth: 220,
+                flex: 1.5
             },
             {
                 field: "phoneNumber",
@@ -165,7 +146,8 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
                 sortable: true,
                 filter: 'agTextColumnFilter',
                 filterParams: { buttons: ['apply', 'reset', 'clear'] },
-                width: 180
+                minWidth: 200,
+                flex: 1.2
             },
             {
                 field: "city",
@@ -211,7 +193,7 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
                 filter: 'agTextColumnFilter',
                 filterParams: { buttons: ['apply', 'reset', 'clear'] },
                 cellRenderer: CandidateGroupCellRenderer,
-                width: 150
+                width: 140
             },
             {
                 field: "notes",
@@ -220,7 +202,8 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
                 sortable: true,
                 filter: 'agTextColumnFilter',
                 filterParams: { buttons: ['apply', 'reset', 'clear'] },
-                width: 200,
+                minWidth: 200,
+                flex: 1,
                 cellRenderer: (props: { value: string }) => (
                     <div title={props.value} className="truncate">
                         {props.value || '-'}
@@ -241,69 +224,6 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
                 cellRenderer: IsActiveCellRenderer,
                 width: 125
             },
-            {
-                field: "createdDate",
-                headerName: "Created Date",
-                headerTooltip: "Created Date",
-                sortable: true,
-                filter: 'agDateColumnFilter',
-                filterParams: { buttons: ['apply', 'reset', 'clear'], browserDatePicker: true },
-                valueFormatter: ({ value }) => formatDate(value),
-                width: 140
-            },
-            {
-                field: "modifiedDate",
-                headerName: "Modified Date",
-                headerTooltip: "Modified Date",
-                sortable: true,
-                filter: 'agDateColumnFilter',
-                filterParams: { buttons: ['apply', 'reset', 'clear'], browserDatePicker: true },
-                valueFormatter: ({ value }) => formatDate(value),
-                width: 140
-            },
-            {
-                field: "createdBy",
-                headerName: "Created By",
-                headerTooltip: "Created By",
-                sortable: true,
-                filter: 'agTextColumnFilter',
-                filterParams: { buttons: ['apply', 'reset', 'clear'] },
-                width: 130
-            },
-            {
-                field: "modifiedBy",
-                headerName: "Modified By",
-                headerTooltip: "Modified By",
-                sortable: true,
-                filter: 'agTextColumnFilter',
-                filterParams: { buttons: ['apply', 'reset', 'clear'] },
-                minWidth: 130,
-                flex: 1
-            },
-            {
-                headerName: "Actions",
-                cellRenderer: (props: { data: CandidateRow }) => (
-                    <div className="flex items-center gap-2 h-full">
-                        <Link href={`/admin/candidates/${props.data.candidateId}/edit`}>
-                            <button
-                                type="button"
-                                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                                title="Edit candidate"
-                            >
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                                Edit
-                            </button>
-                        </Link>
-                    </div>
-                ),
-                width: 80,
-                sortable: false,
-                filter: false,
-                resizable: false,
-                pinned: 'right'
-            },
         ],
         [page, pageSize]
     );
@@ -319,91 +239,73 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
         gridApiRef.current = e.api;
     }, []);
 
-    // Fetch data from API
+    // Fetch data (mirrors questions grid pattern)
     const fetchPage = useCallback(async () => {
         const reqId = ++lastReqIdRef.current;
         setLoading(true);
 
         const sort = sortModelRef.current?.[0];
         const fieldMap: Record<string, string> = {
-            candidateId: "candidateRegistrationId",
-            firstName: "firstName",
-            lastName: "lastName",
-            email: "email",
-            phoneNumber: "phoneNumber",
-            cellPhone: "cellPhone",
-            address: "address",
-            city: "city",
-            state: "state",
-            postalCode: "postalCode",
-            country: "country",
-            candidateGroup: "candidateGroupName",
-            notes: "notes",
-            isActive: "isActive",
-            createdDate: "createdDate",
-            modifiedDate: "modifiedDate",
-            createdBy: "createdBy",
-            modifiedBy: "modifiedBy",
+            candidateId: 'candidateRegistrationId',
+            firstName: 'firstName',
+            lastName: 'lastName',
+            email: 'email',
+            phoneNumber: 'phoneNumber',
+            cellPhone: 'cellPhone',
+            address: 'address',
+            city: 'city',
+            state: 'state',
+            postalCode: 'postalCode',
+            country: 'country',
+            candidateGroup: 'candidateGroupName',
+            notes: 'notes',
+            isActive: 'isActive'
         };
-        const orderBy = sort ? `${fieldMap[sort.colId] ?? "candidateRegistrationId"} ${sort.sort}` : "candidateRegistrationId desc";
+        const orderBy = sort ? `${fieldMap[sort.colId] ?? 'candidateRegistrationId'} ${sort.sort}` : 'candidateRegistrationId desc';
 
-        // Build filter from both global search and column filters
         const filters: string[] = [];
-        const search = (query ?? "").trim();
-        if (search) filters.push(`contains(firstName,'${search.replace(/'/g, "''")}')`);
+        const search = (query ?? '').trim();
+        if (search) {
+            const esc = search.replace(/'/g, "''");
+            filters.push(`(contains(firstName,'${esc}') or contains(lastName,'${esc}') or contains(email,'${esc}'))`);
+        }
 
         const filterModel = filterModelRef.current || {};
         Object.entries(filterModel).forEach(([field, filterConfig]: [string, any]) => {
             if (!filterConfig) return;
-
             const serverField = fieldMap[field] || field;
 
             if (filterConfig.filterType === 'text' && filterConfig.filter) {
                 const value = filterConfig.filter.replace(/'/g, "''");
-
                 if (field === 'isActive') {
                     const lowerValue = value.toLowerCase();
-                    if (lowerValue === 'active' || lowerValue === '1' || lowerValue === 'true') {
-                        filters.push(`${serverField} eq 1`);
-                    } else if (lowerValue === 'inactive' || lowerValue === '0' || lowerValue === 'false') {
-                        filters.push(`${serverField} eq 0`);
-                    }
+                    if (lowerValue === 'active' || lowerValue === '1' || lowerValue === 'true') filters.push(`${serverField} eq 1`);
+                    else if (lowerValue === 'inactive' || lowerValue === '0' || lowerValue === 'false') filters.push(`${serverField} eq 0`);
                     return;
                 }
-
                 switch (filterConfig.type) {
                     case 'contains':
-                        filters.push(`contains(${serverField},'${value}')`);
-                        break;
+                        filters.push(`contains(${serverField},'${value}')`); break;
                     case 'startsWith':
-                        filters.push(`startswith(${serverField},'${value}')`);
-                        break;
+                        filters.push(`startswith(${serverField},'${value}')`); break;
                     case 'endsWith':
-                        filters.push(`endswith(${serverField},'${value}')`);
-                        break;
+                        filters.push(`endswith(${serverField},'${value}')`); break;
                     case 'equals':
-                        filters.push(`${serverField} eq '${value}'`);
-                        break;
+                        filters.push(`${serverField} eq '${value}'`); break;
                 }
             } else if (filterConfig.filter !== undefined) {
                 const value = String(filterConfig.filter).replace(/'/g, "''");
-
                 if (field === 'isActive') {
                     const lowerValue = value.toLowerCase();
-                    if (lowerValue === 'active' || lowerValue === '1' || lowerValue === 'true') {
-                        filters.push(`${serverField} eq 1`);
-                    } else if (lowerValue === 'inactive' || lowerValue === '0' || lowerValue === 'false') {
-                        filters.push(`${serverField} eq 0`);
-                    }
+                    if (lowerValue === 'active' || lowerValue === '1' || lowerValue === 'true') filters.push(`${serverField} eq 1`);
+                    else if (lowerValue === 'inactive' || lowerValue === '0' || lowerValue === 'false') filters.push(`${serverField} eq 0`);
                     return;
                 }
-
                 filters.push(`contains(${serverField},'${value}')`);
             }
         });
 
-        const filter = filters.length ? Array.from(new Set(filters)).join(" and ") : undefined;
-
+        const filter = filters.length ? Array.from(new Set(filters)).join(' and ') : undefined;
         const res = await fetchCandidatesAction({ top: pageSize, skip: (page - 1) * pageSize, orderBy, filter });
 
         if (reqId === lastReqIdRef.current) {
@@ -411,7 +313,7 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
                 setRows(res.data.rows.slice());
                 setTotal(res.data.total);
             } else {
-                setToast({ message: res.message || "Failed to fetch candidates", type: "error" });
+                setToast({ message: res.message || 'Failed to fetch candidates', type: 'error' });
             }
             setLoading(false);
         }
@@ -426,7 +328,7 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
     }, []);
 
     return (
-        <div className="ag-theme-alpine ag-theme-evalus flex flex-col h-full min-h-0" style={{ width: "100%", height: "100%" }}>
+        <div className="ag-theme-alpine ag-theme-evalus flex flex-col h-full min-h-0 w-full h-full">
             <div className="mb-3 flex items-center justify-between gap-3 flex-none">
                 <div className="flex items-center gap-3 flex-wrap">
                     <Link href="/admin/candidates/new">
@@ -475,7 +377,6 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
                 <div className="flex items-center gap-2">
                     <button
                         type="button"
-                        aria-pressed={showFilters}
                         onClick={() => setShowFilters((v) => !v)}
                         className={
                             `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm transition-colors ` +
@@ -613,7 +514,7 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
                         </div>
                     </div>
                 ) : (
-                    <div className="h-full min-h-0">
+                    <div className="h-full min-h-0 relative">
                         <AgGridReact<CandidateRow>
                             columnDefs={columnDefs}
                             defaultColDef={defaultColDef}
@@ -653,6 +554,12 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
                             stopEditingWhenCellsLoseFocus={true}
                             theme="legacy"
                         />
+                        {loading && (
+                            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
+                                <Loader />
+                                <p className="mt-2 text-sm text-gray-600">Loading candidates...</p>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

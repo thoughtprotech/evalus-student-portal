@@ -1,12 +1,14 @@
 ﻿"use client";
 
-import { useState, ChangeEvent, FormEvent } from "react";
+import { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { ArrowLeft, UserPlus2 } from "lucide-react";
 import { createCandidateAction } from "@/app/actions/dashboard/candidates/createCandidate";
+import { fetchCompaniesAction } from "@/app/actions/admin/companies";
+import { fetchCandidatesAction } from "@/app/actions/admin/candidates";
 
 // Indian States (sample, add more as needed)
 const STATES = [
@@ -37,11 +39,15 @@ export default function AddCandidatePage() {
     state: "",
     postalCode: "",
     country: "",
-    candidateGroup: "",
     notes: "",
+    companyId: "", // store as string in form, convert later
+    candidateGroupIds: [] as string[], // multi-select values as strings
+    isActive: true,
   });
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [companies, setCompanies] = useState<{id:number; name:string}[]>([]);
+  const [groups, setGroups] = useState<{id:number; name:string}[]>([]);
   const router = useRouter();
 
   const handleInputChange = (
@@ -83,7 +89,6 @@ export default function AddCandidatePage() {
 
     // Prepare payload (adjust as per your API)
     const payload = {
-      ...form,
       firstName: form.firstName.trim(),
       lastName: form.lastName.trim(),
       email: form.email.trim(),
@@ -94,8 +99,10 @@ export default function AddCandidatePage() {
       state: form.state.trim(),
       postalCode: form.postalCode.trim(),
       country: form.country.trim(),
-      candidateGroup: form.candidateGroup.trim(),
       notes: form.notes.trim(),
+      companyId: form.companyId ? Number(form.companyId) : 0,
+      candidateGroupIds: form.candidateGroupIds.map((id) => Number(id)),
+      isActive: form.isActive ? 1 : 0,
     };
 
     const res = await createCandidateAction(payload);
@@ -117,7 +124,6 @@ export default function AddCandidatePage() {
     setIsSaving(true);
 
     const payload = {
-      ...form,
       firstName: form.firstName.trim(),
       lastName: form.lastName.trim(),
       email: form.email.trim(),
@@ -128,8 +134,10 @@ export default function AddCandidatePage() {
       state: form.state.trim(),
       postalCode: form.postalCode.trim(),
       country: form.country.trim(),
-      candidateGroup: form.candidateGroup.trim(),
       notes: form.notes.trim(),
+      companyId: form.companyId ? Number(form.companyId) : 0,
+      candidateGroupIds: form.candidateGroupIds.map((id) => Number(id)),
+      isActive: form.isActive ? 1 : 0,
     };
 
     const res = await createCandidateAction(payload);
@@ -149,14 +157,42 @@ export default function AddCandidatePage() {
         state: "",
         postalCode: "",
         country: "",
-        candidateGroup: "",
         notes: "",
+        companyId: "",
+        candidateGroupIds: [],
+        isActive: true,
       });
     } else {
       toast.error(errorMessage || "Failed to create candidate");
     }
     setIsSaving(false);
   };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [compRes, candRes] = await Promise.all([
+          fetchCompaniesAction({ top: 100, skip: 0 }),
+          fetchCandidatesAction({ top: 200, skip: 0 })
+        ]);
+        if (compRes.data?.rows) {
+          setCompanies(compRes.data.rows.map(r => ({ id: r.id, name: r.companyName })));
+        }
+        // Derive groups placeholder (unique candidateGroup values)
+        if (candRes.data?.rows) {
+          const map = new Map<string, number>();
+          candRes.data.rows.forEach((r:any) => {
+            if (r.candidateGroup && !map.has(r.candidateGroup)) {
+              map.set(r.candidateGroup, map.size + 1);
+            }
+          });
+          setGroups(Array.from(map.entries()).map(([name, id]) => ({ id, name })));
+        }
+      } catch (e) {
+        console.error('Init load failed', e);
+      }
+    })();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -216,9 +252,9 @@ export default function AddCandidatePage() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="w-[85%] mx-auto px-6 py-8">
-        <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+  {/* Main Content */}
+  <div className="w-[85%] mx-auto px-6 py-8">
+        <div className="w-full bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <form
             onSubmit={handleSubmit}
             className="space-y-6"
@@ -300,21 +336,48 @@ export default function AddCandidatePage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Candidate Group
+                  Company
                 </label>
                 <select
-                  name="candidateGroup"
+                  name="companyId"
+                  aria-label="Company"
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white"
-                  value={form.candidateGroup}
+                  value={form.companyId}
                   onChange={handleInputChange}
                 >
-                  <option value="">Select group</option>
-                  {CANDIDATE_GROUPS.map((group) => (
-                    <option key={group} value={group}>
-                      {group}
-                    </option>
-                  ))}
+                  <option value="">Select company</option>
+                  {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Candidate Groups (multi-select)
+                </label>
+                <select
+                  multiple
+                  name="candidateGroupIds"
+                  aria-label="Candidate Groups"
+                  className="w-full h-32 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white"
+                  value={form.candidateGroupIds}
+                  onChange={(e) => {
+                    const options = Array.from(e.target.selectedOptions).map(o => o.value);
+                    setForm(prev => ({ ...prev, candidateGroupIds: options }));
+                  }}
+                >
+                  {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                </select>
+              </div>
+              <div className="flex items-center gap-2 pt-6">
+                <input
+                  id="isActive"
+                  type="checkbox"
+                  checked={form.isActive}
+                  onChange={(e) => setForm(prev => ({ ...prev, isActive: e.target.checked }))}
+                  className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                />
+                <label htmlFor="isActive" className="text-sm text-gray-700">Active</label>
               </div>
             </div>
             <div>
@@ -349,6 +412,7 @@ export default function AddCandidatePage() {
                   State
                 </label>
                 <select
+                  aria-label="State"
                   name="state"
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white"
                   value={form.state}
@@ -382,6 +446,7 @@ export default function AddCandidatePage() {
                   Country
                 </label>
                 <select
+                  aria-label="Country"
                   name="country"
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white"
                   value={form.country}
@@ -409,31 +474,7 @@ export default function AddCandidatePage() {
                 onChange={handleInputChange}
               />
             </div>
-            <div className="flex gap-3 pt-4">
-              <button
-                type="button"
-                onClick={handleSaveAndNew}
-                disabled={isSaving}
-                className={`flex-1 px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium transition-colors ${
-                  isSaving
-                    ? "bg-gray-50 text-gray-400 cursor-not-allowed"
-                    : "bg-white text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                {isSaving ? "Saving..." : "Save & New"}
-              </button>
-              <button
-                type="submit"
-                disabled={isSaving}
-                className={`flex-1 px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-colors ${
-                  isSaving
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-indigo-600 hover:bg-indigo-700"
-                }`}
-              >
-                {isSaving ? "Saving..." : "Save Candidate"}
-              </button>
-            </div>
+            {/* Bottom action buttons removed as per requirement (only header actions retained) */}
           </form>
         </div>
       </div>

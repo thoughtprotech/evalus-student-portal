@@ -46,7 +46,8 @@ export default function RichTextEditor({
       StarterKit,
       Underline,
       Link.configure({ openOnClick: false }),
-      Image,
+      // Allow embedding & reloading of base64 (data URI) images for persisted questions
+      Image.configure({ allowBase64: true }),
       Placeholder.configure({ placeholder }),
       CharacterCount,
     ],
@@ -108,6 +109,10 @@ export default function RichTextEditor({
 
   return (
     <div className="flex flex-col h-full border border-gray-300 rounded-xl">
+      <style jsx>{`
+        /* Ensure embedded images (including large base64 data URIs) scale nicely */
+        .editor-content img { max-width: 100%; height: auto; display: inline-block; }
+      `}</style>
       {/* Toolbar */}
       <div className="flex flex-wrap gap-1 border-b border-b-gray-300 p-2 bg-white z-10 rounded-t-xl">
         <button

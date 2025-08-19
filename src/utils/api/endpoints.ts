@@ -65,6 +65,27 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<CreateQuestionRequest, null>,
 
+  // Get candidate by id (for edit prefill)
+  getCandidateById: {
+    method: "GET",
+    path: ({ candidateId }: { candidateId: number }) => `/api/CandidateRegistration/${candidateId}`,
+    type: "CLOSE",
+  } as Endpoint<{ candidateId: number }, any>,
+
+  // Update candidate
+  updateCandidate: {
+    method: "PUT",
+    path: ({ candidateId }: { candidateId: number }) => `/api/CandidateRegistration/${candidateId}`,
+    type: "CLOSE",
+  } as Endpoint<{ candidateId: number } & any, null>,
+
+  // Update existing question
+  updateQuestion: {
+    method: "PUT",
+    path: ({ questionId }: { questionId: number }) => `/api/Questions/${questionId}`,
+    type: "CLOSE",
+  } as Endpoint<{ questionId: number } & Partial<CreateQuestionRequest>, null>,
+
   createQuestionOptions: {
     method: "POST",
     path: () => `/api/questionoptions`,
@@ -251,9 +272,73 @@ export const endpoints = {
     // Admin Questions (server actions moved here)
     getCompanies: {
         method: "GET",
-        // Use your specific API endpoint for getting questions by language
-        path: ({ query }) => `/api/Company?IncludeInactive=true&Language=English'${query ? (query.startsWith('?') ? query : `?${query}`) : ''}`,
+    // Companies list
+    // Removed stray trailing quote which broke URL and caused empty dropdown.
+    path: ({ query }) => {
+      const base = `/api/Company?IncludeInactive=true&Language=English`;
+      if (query && query.trim().length > 0) {
+        return `${base}&${query}`;
+      }
+      return base;
+    },
         type: "OPEN",
     } as Endpoint<import('./types').GetCompaniesRequest, any[]>,
+
+  // Candidate groups hierarchy (placeholder – adjust path to actual API if different)
+  getCandidateGroups: {
+    method: "GET",
+    path: () => `/api/TestAdminDashboard/candidategroup/hierarchy`,
+    type: "CLOSE",
+  } as Endpoint<null, any[]>,
+
+    getCandidates: {
+        method: "GET",
+        // Use your specific API endpoint for getting questions by language
+    // Candidate list (supports OData style query string already pre-built in caller)
+    // NOTE: Removed stray trailing single quote which broke the URL and caused validation errors.
+    // If a query string (e.g. "$top=15&$skip=0") is supplied, append with an ampersand.
+    path: ({ query }) => {
+      const base = `/api/CandidateRegistration?includeInactive=true`;
+      if (query && query.trim().length > 0) {
+        return `${base}&${query}`;
+      }
+      return base;
+    },
+        type: "OPEN",
+    } as Endpoint<import('./types').GetCandidatesRequest, any[]>,
+
+  // Products CRUD
+  getProducts: {
+    method: "GET",
+    // For now mimic candidates pattern (include inactive, filterable by language if needed later)
+    path: ({ query }) => {
+      const base = `/api/TestProducts`;
+      if (query && query.trim().length > 0) {
+        return `${base}?${query}`;
+      }
+      return base;
+    },
+    type: "OPEN",
+  } as Endpoint<{ query?: string }, any[]>,
+  getProductById: {
+    method: "GET",
+    path: ({ productId }: { productId: number }) => `/api/TestProducts/${productId}`,
+    type: "OPEN",
+  } as Endpoint<{ productId: number }, any>,
+  createProduct: {
+    method: "POST",
+    path: () => `/api/TestProducts`,
+    type: "CLOSE",
+  } as Endpoint<any, any>,
+  updateProduct: {
+    method: "PUT",
+    path: ({ productId }: { productId: number }) => `/api/TestProducts/${productId}`,
+    type: "CLOSE",
+  } as Endpoint<{ productId: number } & any, any>,
+  deleteProduct: {
+    method: "DELETE",
+    path: ({ productId }: { productId: number }) => `/api/TestProducts/${productId}`,
+    type: "CLOSE",
+  } as Endpoint<{ productId: number }, null>,
 
 };

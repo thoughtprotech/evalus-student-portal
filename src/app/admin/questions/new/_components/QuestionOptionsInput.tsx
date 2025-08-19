@@ -8,13 +8,16 @@ const QuestionOptionsInput = ({
   questionTypeId,
   questionTypes,
   onDataChange,
+  initialData,
 }: {
   questionTypeId: number;
   questionTypes: GetQuestionTypesResponse[];
   onDataChange: (data: any) => void;
+  initialData?: { options: any; answer: any };
 }) => {
   const [type, setType] = useState<string>();
-  const [options, setOptions] = useState<string[]>(["", ""]);
+  // For MCQ types we want to show 4 default blank options
+  const [options, setOptions] = useState<string[]>(["", "", "", ""]);
   const [correctOptionIndices, setCorrectOptionIndices] = useState<number[]>([]);
 
   const [matchCols, setMatchCols] = useState<string[][]>([[""], [""]]);
@@ -25,17 +28,72 @@ const QuestionOptionsInput = ({
   const [trueFalseAnswer, setTrueFalseAnswer] = useState<string>("");
   const [textAnswer, setTextAnswer] = useState<string>("");
 
+  // Track whether we've applied initialData to avoid overriding user edits
+  const [appliedInitial, setAppliedInitial] = useState(false);
+
   useEffect(() => {
     const qt = questionTypes.find((q) => q.questionTypeId === questionTypeId);
-    setType(qt?.questionType);
-    
-    // Reset states when question type changes
-    if (qt?.questionType === QUESTION_TYPES.SINGLE_MCQ || qt?.questionType === QUESTION_TYPES.MULTIPLE_MCQ) {
-      // Start with two empty options for MCQ questions
-      setOptions(["", ""]);
-      setCorrectOptionIndices([]);
+    const newType = qt?.questionType;
+    setType(newType);
+
+    // Reset defaults when changing type (new question or user switched type)
+    if (!appliedInitial) {
+      if (newType === QUESTION_TYPES.SINGLE_MCQ || newType === QUESTION_TYPES.MULTIPLE_MCQ) {
+        setOptions(["", "", "", ""]); // default 4 choices
+        setCorrectOptionIndices([]);
+      } else if (newType === QUESTION_TYPES.MATCH_PAIRS_SINGLE || newType === QUESTION_TYPES.MATCH_PAIRS_MULTIPLE) {
+        setMatchCols([[""], [""]]);
+        setMatchAnswer(newType === QUESTION_TYPES.MATCH_PAIRS_MULTIPLE ? [[]] : [""]);
+      } else if (newType === QUESTION_TYPES.TRUEFALSE) {
+        setTrueFalseAnswer("");
+      } else {
+        setTextAnswer("");
+      }
     }
-  }, [questionTypeId]);
+
+    // Apply initial data once type is known
+    if (initialData && newType && !appliedInitial) {
+      try {
+        if (newType === QUESTION_TYPES.SINGLE_MCQ || newType === QUESTION_TYPES.MULTIPLE_MCQ) {
+          let opts: string[] = Array.isArray(initialData.options?.options) ? initialData.options.options : Array.isArray(initialData.options) ? initialData.options : [];
+          // Ensure at least 4 option inputs are visible
+          if (opts.length < 4) {
+            opts = [...opts, ...Array(4 - opts.length).fill("")];
+          }
+          const ans: string[] = Array.isArray(initialData.answer) ? initialData.answer : [];
+            if (opts.length) setOptions(opts.slice());
+            // Derive indices
+            const indices = ans.map(a => opts.findIndex(o => o === a)).filter(i => i >= 0);
+            setCorrectOptionIndices(newType === QUESTION_TYPES.SINGLE_MCQ ? indices.slice(0,1) : indices);
+        } else if (newType === QUESTION_TYPES.MATCH_PAIRS_SINGLE) {
+          const left: string[] = initialData.options?.left || initialData.options?.[0] || [];
+          const right: string[] = initialData.options?.right || initialData.options?.[1] || [];
+          setMatchCols([left.length? left: [""], right.length? right: [""]]);
+          // answer as pairs [[l,r]]
+          const pairs: [string,string][] = Array.isArray(initialData.answer)? initialData.answer: [];
+          const ansByIndex = left.map(l => pairs.find(p=> p[0]===l)?.[1] || "");
+          setMatchAnswer(ansByIndex);
+        } else if (newType === QUESTION_TYPES.MATCH_PAIRS_MULTIPLE) {
+          const left: string[] = initialData.options?.left || initialData.options?.[0] || [];
+          const right: string[] = initialData.options?.right || initialData.options?.[1] || [];
+          setMatchCols([left.length? left: [""], right.length? right: [""]]);
+          const ansMatrix: any[] = Array.isArray(initialData.answer)? initialData.answer: [];
+          setMatchAnswer(ansMatrix);
+        } else if (newType === QUESTION_TYPES.TRUEFALSE) {
+          const ans: string[] = Array.isArray(initialData.answer)? initialData.answer: [];
+          setTrueFalseAnswer(ans[0] || "");
+        } else if (newType === QUESTION_TYPES.NUMERIC || newType === QUESTION_TYPES.FILL_ANSWER || newType === QUESTION_TYPES.WRITE_UP) {
+          const ans = Array.isArray(initialData.answer)? initialData.answer[0]: initialData.answer;
+          setTextAnswer(ans ?? "");
+        } else {
+          // Generic
+          const ans = Array.isArray(initialData.answer)? initialData.answer[0]: initialData.answer;
+          setTextAnswer(ans ?? "");
+        }
+        setAppliedInitial(true);
+      } catch { /* ignore */ }
+    }
+  }, [questionTypeId, questionTypes, initialData, appliedInitial]);
 
   // When switching to True/False, emit default options immediately with empty answer array
   useEffect(() => {
