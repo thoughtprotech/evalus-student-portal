@@ -1,0 +1,91 @@
+@media only screen and (max-width:1024px){
+    
+
+.language {
+    display: inline-block;
+    float: left;
+    font-size: 14px;
+    font-weight: bold;
+    width: 21%;
+} 
+.testname {
+    float: left;
+    margin: 4px 0 4px 38px;
+    text-align: left;
+    width: 32%;
+}
+    .wrapper{display: inline-block;width: 100%;}
+
+}
+
+@media only screen and (max-width:800px){
+    
+    .header2{
+    height: 80px;
+    }
+    .lftinfo{top: 155px;right: 294px;left: 10px}
+    .rytinfo{top: 155px;   width: 270px;bottom: 3px;z-index: 9;
+    right: 10px;margin: 0px;padding: 0px}
+    .testinfo{top: 225px;left: 22px;right: 299px;}
+    header{border-bottom: 10px solid #d8d8d8}
+
+.language {
+    width: 33%;
+}
+    .timeleft {
+        float: left;
+    margin-left: 5%;
+    width: 29%;
+}
+    .infoimg{width: 66px;}
+    .quepalette {
+    right: 10px;
+    width: 234px;
+        top: 156px;
+        bottom: 3px
+}
+    .qpaltscroll{width: 250px;bottom: 79px;top: 191px}
+    .revw{right: 10px;width: 266px;bottom: 3px}
+    .studentabt{margin: 0px}
+
+    header{height: 50px;line-height: 50px;
+  border-bottom: 4px solid #d8d8d8}
+    .logo{width: 223px;}
+    
+.testname {
+    float: left;
+    margin: 0;
+    text-align: center;
+    width: 100%;
+    font-size: 14px;
+}
+    .language{font-size: 11px;}
+    .timeleft{font-size: 11px;}
+    .langug{height: 22px;}
+    .header2{height: 74px;}
+    .time {background: #606a74 none repeat scroll 0 0;color: #fff; display: inline; font-weight: bold; padding: 3px 15px;}
+    .lftinfo{top:136px;right: 10px;bottom: 55px;}
+    .rytinfo{display: none;top: 92px;right: 2px;box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);background: #d8d8d8}
+    .textsize{font-size: 12px;}
+    .fontsizebtn{height: 20px;line-height: 20px;width: 20px;font-size: 11px;}
+    .testinfo { left: 22px; right: 12px; top: 199px;bottom: 70px;}
+    .submit{height: 46px;}
+    .erasebtn {text-align: center;    width: 34%;}
+    .prevnxt .btn{width: 0px;padding: 0px;margin: 8px 10px}.testname {
+    float: left;
+    width: 100%;
+}
+    
+    .prevnxt{width: 17%;}
+    .nxt::before{height: 30px;width: 30px;background: #333;color: #fff}
+    .prev::before{height: 30px;width: 30px;background: #333;color: #fff}
+    .marksinfo{font-size: 12px;}
+    .onclick {display: inline-block;float: right; margin-right: 13px;width: 30px;cursor: pointer;
+}
+.line{height: 5px;width: 100%;display: inline-block;margin: 2px 0px;background: #333;float: left;border-radius: 3px;}
+    .rytimg{margin: 0}
+    .infoimg{margin: 2px}
+}
+@media only screen and (max-width:360px){
+.prvwin{display: none}
+}

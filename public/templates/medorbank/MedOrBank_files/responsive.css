@@ -1,0 +1,82 @@
+@media only screen and (max-width:1024px){
+    header{position: unset}
+    .leftoutr {margin-top: 0px;margin-right: 0px}
+    .questions{position: unset;width:100%;margin-right: 0px}
+    .owl-carousel .owl-wrapper-outer{height: auto}
+    footer{position: unset}
+    .buttons{position: unset;width:100%;margin-right: 0px}
+    article{position: unset}
+    .quenmbrpalt{position: unset}
+    .maindiv{height: auto}
+    .essayleft{position: unset}
+    .essayleft.essayright {position: unset}
+.btnpalt {
+    display: inline-block;
+    height: 266px;
+    margin: 0 auto;
+    width: 100%;
+}
+    .palettebottom{position: unset;width:100%}
+    
+.stdntimg img {
+    width: 100%;
+}
+}
+@media only screen and (max-width:800px){
+    article {
+    border-left: 2px solid #2f72b7; 
+    position: absolute;
+    display:none;
+        right:0px;
+    width: 250px;
+    z-index: 99999;
+}
+    .leftoutr{width:97%;}
+    .rightmenu{display: block;cursor: pointer}
+    
+    .rightmenuback{display: block}
+    .essayleft{width:47%}
+    .essayleft.essayright{width:47%}
+.examhdng {
+    font-size: 20px;
+    height: 49px;
+    margin: 5px 0;
+    text-align: center;
+    width: 75%
+}
+    .subjectcntnt{display:none !important}
+    .palettebottom{height:155px}
+    body{overflow-x: hidden;width:100%}
+}
+@media only screen and (max-width:640px){
+
+   
+    .questiondiv img{width: 100%}
+}
+@media only screen and (max-width:480px){
+.examhdng {
+    font-size: 15px;
+    height: 49px;
+    margin: 5px 0;
+    text-align: center;
+    width: 88%;
+}
+    
+    .essayleft{width: 46%}
+    
+.buttons {
+    height: 95px;
+    margin-right: 0;
+    position: unset;
+    width: 100%;
+}
+}
+@media only screen and (max-width:360px){
+
+    .savenext {margin-top: 17px;border: 1px solid #a9d0f5 }
+     .essayleft{width: 99%}
+     .essayleft.essayright{width: 99%}
+}
+@media only screen and (max-width:320px){
+
+}
