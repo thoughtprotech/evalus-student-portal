@@ -88,8 +88,18 @@ function mapToRows(items: ApiCandidateItem[]): CandidateRow[] {
             return null;
         }
 
+        // Resolve candidate id robustly (API field name inconsistencies safeguard)
+        const resolvedId = (item as any).candidateRegistrationId
+            ?? (item as any).CandidateRegistrationId
+            ?? (item as any).candidateId
+            ?? (item as any).CandidateId
+            ?? (item as any).id
+            ?? 0;
+        if (!resolvedId || resolvedId === 0) {
+            console.warn(`⚠️  Could not resolve candidate id for item index ${index}. Raw item keys:`, Object.keys(item));
+        }
         const mapped = {
-            candidateId: item.candidateRegistrationId || 0,
+            candidateId: resolvedId,
             firstName: item.firstName || "",
             lastName: item.lastName || "",
             email: item.email || "",
@@ -151,9 +161,10 @@ export async function fetchCandidatesAction(
             allItems = response.data;
             total = allItems.length;
             console.log("✅ Direct array response with", allItems.length, "total candidates");
-        } else if (response.data && response.data.value && Array.isArray(response.data.value)) {
-            allItems = response.data.value;
-            total = response.data["@odata.count"] || allItems.length;
+        } else if (response.data && typeof response.data === 'object' && (response.data as any).value && Array.isArray((response.data as any).value)) {
+            const dataObj = response.data as any;
+            allItems = dataObj.value;
+            total = dataObj["@odata.count"] || allItems.length;
             console.log("✅ OData response with", allItems.length, "candidates, total:", total);
         } else {
             console.log("❌ Unexpected response format for candidates");
@@ -163,6 +174,12 @@ export async function fetchCandidatesAction(
                 data: { rows: [], total: 0 }
             };
         }
+
+        // Debug: show distinct candidateGroupName values coming from API
+        try {
+            const distinctGroups = Array.from(new Set(allItems.map((i:any) => i?.candidateGroupName).filter(Boolean)));
+            console.log("🔍 Distinct candidateGroupName values from API:", distinctGroups);
+        } catch(e) { /* ignore */ }
 
         const mappedRows = mapToRows(allItems);
         return {

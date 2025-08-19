@@ -20,14 +20,46 @@ export async function createCandidateAction(
     state?: string;
     postalCode?: string;
     country?: string;
-    candidateGroup?: string;
+    candidateGroup?: string; // legacy single group name (deprecated)
     notes?: string;
+    companyId?: number;
+    candidateGroupIds?: number[]; // new multi group association
+    isActive?: number; // 0|1
+    createdBy?: string;
+    createdDate?: string;
+    modifiedBy?: string;
+    modifiedDate?: string;
   }
 ): Promise<ApiResponse<null>> {
   try {
+    // Normalize payload to backend expected schema
+    const apiPayload: any = {
+      candidateId: 0, // new creation
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+      email: payload.email,
+      phoneNumber: payload.phoneNumber,
+      cellPhone: payload.cellPhone || "",
+      address: payload.address || "",
+      city: payload.city || "",
+      state: payload.state || "",
+      postalCode: payload.postalCode || "",
+      country: payload.country || "",
+      notes: payload.notes || "",
+      isActive: typeof payload.isActive === 'number' ? payload.isActive : 1,
+      createdBy: payload.createdBy || 'system',
+      createdDate: payload.createdDate || new Date().toISOString(),
+      modifiedBy: payload.modifiedBy || 'system',
+      modifiedDate: payload.modifiedDate || new Date().toISOString(),
+      companyId: typeof payload.companyId === 'number' ? payload.companyId : 0,
+      candidateGroupIds: Array.isArray(payload.candidateGroupIds) && payload.candidateGroupIds.length > 0
+        ? payload.candidateGroupIds
+        : (payload.candidateGroup ? [0] : []) // fallback; replace logic if mapping candidateGroup name to id
+    };
+
     const { status, error, data, errorMessage, message } = await apiHandler(
       endpoints.createCandidate,
-      payload
+      apiPayload
     );
 
     console.log("CREATING CANDIDATE", {

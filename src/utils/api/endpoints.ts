@@ -77,6 +77,20 @@ export const endpoints = {
         type: "CLOSE",
     } as Endpoint<CreateQuestionRequest, null>,
 
+  // Get candidate by id (for edit prefill)
+  getCandidateById: {
+    method: "GET",
+    path: ({ candidateId }: { candidateId: number }) => `/api/CandidateRegistration/${candidateId}`,
+    type: "CLOSE",
+  } as Endpoint<{ candidateId: number }, any>,
+
+  // Update candidate
+  updateCandidate: {
+    method: "PUT",
+    path: ({ candidateId }: { candidateId: number }) => `/api/CandidateRegistration/${candidateId}`,
+    type: "CLOSE",
+  } as Endpoint<{ candidateId: number } & any, null>,
+
   // Update existing question
   updateQuestion: {
     method: "PUT",
@@ -268,10 +282,24 @@ export const endpoints = {
     // Admin Questions (server actions moved here)
     getCompanies: {
         method: "GET",
-        // Use your specific API endpoint for getting questions by language
-        path: ({ query }) => `/api/Company?IncludeInactive=true&Language=English'${query ? (query.startsWith('?') ? query : `?${query}`) : ''}`,
+    // Companies list
+    // Removed stray trailing quote which broke URL and caused empty dropdown.
+    path: ({ query }) => {
+      const base = `/api/Company?IncludeInactive=true&Language=English`;
+      if (query && query.trim().length > 0) {
+        return `${base}&${query}`;
+      }
+      return base;
+    },
         type: "OPEN",
     } as Endpoint<import('./types').GetCompaniesRequest, any[]>,
+
+  // Candidate groups hierarchy (placeholder – adjust path to actual API if different)
+  getCandidateGroups: {
+    method: "GET",
+    path: () => `/api/TestAdminDashboard/candidategroup/hierarchy`,
+    type: "CLOSE",
+  } as Endpoint<null, any[]>,
 
     getCandidates: {
         method: "GET",
