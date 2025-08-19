@@ -276,7 +276,16 @@ export const endpoints = {
     getCandidates: {
         method: "GET",
         // Use your specific API endpoint for getting questions by language
-        path: ({ query }) => `/api/CandidateRegistration?includeInactive=true'${query ? (query.startsWith('?') ? query : `?${query}`) : ''}`,
+    // Candidate list (supports OData style query string already pre-built in caller)
+    // NOTE: Removed stray trailing single quote which broke the URL and caused validation errors.
+    // If a query string (e.g. "$top=15&$skip=0") is supplied, append with an ampersand.
+    path: ({ query }) => {
+      const base = `/api/CandidateRegistration?includeInactive=true`;
+      if (query && query.trim().length > 0) {
+        return `${base}&${query}`;
+      }
+      return base;
+    },
         type: "OPEN",
     } as Endpoint<import('./types').GetCandidatesRequest, any[]>,
 
