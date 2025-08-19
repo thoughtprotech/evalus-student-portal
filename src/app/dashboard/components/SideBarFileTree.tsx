@@ -58,9 +58,13 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  // Render children of a parent. Original code filtered by relation === 'SELF',
+  // but current API response supplies empty relation strings, so nothing rendered.
+  // Fallback: treat any item whose parentId matches as a child unless it is also a top-level root.
   const renderChildren = (parentId: number) => {
-    return tree[parentId]
-      ?.filter((c) => c.relation === "SELF")
+    const children = tree[parentId] || [];
+    return children
+      .filter((c) => c.parentId === parentId) // defensive
       .map((child) => (
         <div
           key={child.candidateGroupId}
@@ -110,7 +114,8 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
         <div className="space-y-1">
           {roots.map((root) => {
             const children = tree[root.candidateGroupId] || [];
-            const hasChildren = children.some((c) => c.relation === "SELF");
+            // Consider children existing if any node lists this root as its parent
+            const hasChildren = children.length > 0;
             const isOpen = !!expanded[root.candidateGroupId];
             return (
               <div key={root.candidateGroupId}>
