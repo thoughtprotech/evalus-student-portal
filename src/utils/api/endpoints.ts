@@ -317,4 +317,38 @@ export const endpoints = {
         type: "OPEN",
     } as Endpoint<import('./types').GetCandidatesRequest, any[]>,
 
+  // Products CRUD
+  getProducts: {
+    method: "GET",
+    // For now mimic candidates pattern (include inactive, filterable by language if needed later)
+    path: ({ query }) => {
+      const base = `/api/TestProducts`;
+      if (query && query.trim().length > 0) {
+        return `${base}?${query}`;
+      }
+      return base;
+    },
+    type: "OPEN",
+  } as Endpoint<{ query?: string }, any[]>,
+  getProductById: {
+    method: "GET",
+    path: ({ productId }: { productId: number }) => `/api/TestProducts/${productId}`,
+    type: "OPEN",
+  } as Endpoint<{ productId: number }, any>,
+  createProduct: {
+    method: "POST",
+    path: () => `/api/TestProducts`,
+    type: "CLOSE",
+  } as Endpoint<any, any>,
+  updateProduct: {
+    method: "PUT",
+    path: ({ productId }: { productId: number }) => `/api/TestProducts/${productId}`,
+    type: "CLOSE",
+  } as Endpoint<{ productId: number } & any, any>,
+  deleteProduct: {
+    method: "DELETE",
+    path: ({ productId }: { productId: number }) => `/api/TestProducts/${productId}`,
+    type: "CLOSE",
+  } as Endpoint<{ productId: number }, null>,
+
 };
