@@ -83,7 +83,10 @@ export default function ExamPage() {
 
           return {
             ...prev,
-            userAnswer: JSON.stringify([]),
+            options: {
+              ...prev.options,
+              answer: JSON.stringify([]),
+            },
           };
         });
         break;
@@ -95,7 +98,10 @@ export default function ExamPage() {
 
           return {
             ...prev,
-            userAnswer: JSON.stringify([]),
+            options: {
+              ...prev.options,
+              answer: JSON.stringify([]),
+            },
           };
         });
         break;
@@ -107,7 +113,10 @@ export default function ExamPage() {
 
           return {
             ...prev,
-            userAnswer: JSON.stringify([]),
+            options: {
+              ...prev.options,
+              answer: JSON.stringify([]),
+            },
           };
         });
         break;
@@ -125,7 +134,10 @@ export default function ExamPage() {
 
           return {
             ...prev,
-            userAnswer: JSON.stringify(emptyArr),
+            options: {
+              ...prev.options,
+              answer: JSON.stringify(emptyArr),
+            },
           };
         });
         break;
@@ -137,7 +149,10 @@ export default function ExamPage() {
 
           return {
             ...prev,
-            userAnswer: "",
+            options: {
+              ...prev.options,
+              answer: "",
+            },
           };
         });
         break;
@@ -149,7 +164,10 @@ export default function ExamPage() {
 
           return {
             ...prev,
-            userAnswer: "",
+            options: {
+              ...prev.options,
+              answer: "",
+            },
           };
         });
         break;
@@ -161,7 +179,10 @@ export default function ExamPage() {
 
           return {
             ...prev,
-            userAnswer: "",
+            options: {
+              ...prev.options,
+              answer: "",
+            },
           };
         });
         break;
@@ -173,7 +194,10 @@ export default function ExamPage() {
 
           return {
             ...prev,
-            userAnswer: "",
+            options: {
+              ...prev.options,
+              answer: "",
+            },
           };
         });
         break;
@@ -288,6 +312,10 @@ export default function ExamPage() {
   useEffect(() => {
     fetchTestMetaData();
   }, []);
+
+  useEffect(() => {
+    console.log({ question });
+  }, [question]);
 
   if (!loaded) {
     return <Loader />;

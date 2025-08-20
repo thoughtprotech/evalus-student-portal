@@ -5,42 +5,47 @@ import clsx from "clsx";
 import { Dispatch, SetStateAction, useCallback, useState } from "react";
 import { Trash2, X } from "lucide-react";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { deleteQuestionOptionAction, deleteMultipleQuestionOptionsAction } from "@/app/actions/exam/questions/deleteQuestionOption";
+import {
+  deleteQuestionOptionAction,
+  deleteMultipleQuestionOptionsAction,
+} from "@/app/actions/exam/questions/deleteQuestionOption";
 
 interface RenderQuestionProps {
   question: GetQuestionByIdResponse;
   setQuestion: Dispatch<SetStateAction<GetQuestionByIdResponse | undefined>>;
 }
 
-export default function RenderQuestion(
-{  question,
-  setQuestion}: {
-      question: GetQuestionByIdResponse,
-  setQuestion: Dispatch<SetStateAction<GetQuestionByIdResponse | undefined>>
-  }
-) {
-  const [selectedOptions, setSelectedOptions] = useState<Set<number>>(new Set());
+export default function RenderQuestion({
+  question,
+  setQuestion,
+}: {
+  question: GetQuestionByIdResponse;
+  setQuestion: Dispatch<SetStateAction<GetQuestionByIdResponse | undefined>>;
+}) {
+  const [selectedOptions, setSelectedOptions] = useState<Set<number>>(
+    new Set()
+  );
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteMode, setDeleteMode] = useState<'single' | 'multiple'>('single');
+  const [deleteMode, setDeleteMode] = useState<"single" | "multiple">("single");
   const [optionToDelete, setOptionToDelete] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteSingle = useCallback((optionIndex: number) => {
     setOptionToDelete(optionIndex);
-    setDeleteMode('single');
+    setDeleteMode("single");
     setShowDeleteModal(true);
   }, []);
 
   const handleDeleteMultiple = useCallback(() => {
     if (selectedOptions.size === 0) return;
-    setDeleteMode('multiple');
+    setDeleteMode("multiple");
     setShowDeleteModal(true);
   }, [selectedOptions.size]);
 
   const confirmDelete = useCallback(async () => {
     setIsDeleting(true);
     try {
-      if (deleteMode === 'single' && optionToDelete !== null) {
+      if (deleteMode === "single" && optionToDelete !== null) {
         // For single delete, we'll use the option index as the questionOptionId
         // You may need to adjust this based on your actual data structure
         const result = await deleteQuestionOptionAction(optionToDelete);
@@ -48,28 +53,47 @@ export default function RenderQuestion(
           // Remove the option from the question
           const options = JSON.parse(question.options.options);
           options.splice(optionToDelete, 1);
-          setQuestion(prev => prev ? { ...prev, questionOptionsJson: JSON.stringify(options) } : prev);
+          setQuestion((prev) =>
+            prev
+              ? { ...prev, questionOptionsJson: JSON.stringify(options) }
+              : prev
+          );
         }
-      } else if (deleteMode === 'multiple') {
+      } else if (deleteMode === "multiple") {
         // Convert selected indices to questionOptionIds
         const optionIndices = Array.from(selectedOptions);
         const result = await deleteMultipleQuestionOptionsAction(optionIndices);
         if (result.success) {
           // Remove selected options from the question
           const options = JSON.parse(question.options.options);
-          const filteredOptions = options.filter((_: any, index: number) => !selectedOptions.has(index));
-          setQuestion(prev => prev ? { ...prev, questionOptionsJson: JSON.stringify(filteredOptions) } : prev);
+          const filteredOptions = options.filter(
+            (_: any, index: number) => !selectedOptions.has(index)
+          );
+          setQuestion((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  questionOptionsJson: JSON.stringify(filteredOptions),
+                }
+              : prev
+          );
           setSelectedOptions(new Set());
         }
       }
     } catch (error) {
-      console.error('Delete failed:', error);
+      console.error("Delete failed:", error);
     } finally {
       setIsDeleting(false);
       setShowDeleteModal(false);
       setOptionToDelete(null);
     }
-  }, [deleteMode, optionToDelete, selectedOptions, question.options.options, setQuestion]);
+  }, [
+    deleteMode,
+    optionToDelete,
+    selectedOptions,
+    question.options.options,
+    setQuestion,
+  ]);
 
   const cancelDelete = useCallback(() => {
     setShowDeleteModal(false);
@@ -77,7 +101,7 @@ export default function RenderQuestion(
   }, []);
 
   const toggleOptionSelection = useCallback((index: number) => {
-    setSelectedOptions(prev => {
+    setSelectedOptions((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(index)) {
         newSet.delete(index);
@@ -92,16 +116,11 @@ export default function RenderQuestion(
     setSelectedOptions(new Set());
   }, []);
   switch (question?.questionsMeta?.questionTypeName) {
-  case QUESTION_TYPES.SINGLE_MCQ:
+    case QUESTION_TYPES.SINGLE_MCQ:
       return (
         <div className="flex flex-col gap-3">
           {/* Selection Controls */}
           <div className="flex items-center justify-between border-b border-gray-200 pb-2">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">
-                {selectedOptions.size > 0 ? `${selectedOptions.size} selected` : 'Select options to delete'}
-              </span>
-            </div>
             <div className="flex items-center gap-2">
               {selectedOptions.size > 0 && (
                 <>
@@ -111,13 +130,6 @@ export default function RenderQuestion(
                   >
                     Clear
                   </button>
-                  <button
-                    onClick={handleDeleteMultiple}
-                    className="px-3 py-1 text-sm text-white bg-red-600 hover:bg-red-700 rounded-md flex items-center gap-1"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Delete Selected
-                  </button>
                 </>
               )}
             </div>
@@ -125,138 +137,106 @@ export default function RenderQuestion(
 
           {/* Question Options */}
           <div className="flex flex-col gap-2">
-            {(function(){
+            {(function () {
               const raw = JSON.parse(question!.options.options);
-              const list: string[] = Array.isArray(raw) ? raw : (raw?.options ?? []);
+              const list: string[] = Array.isArray(raw)
+                ? raw
+                : raw?.options ?? [];
               return list;
-            })().map(
-              (option: string, index: number) => {
-                // Parse current answers safely
-                let currentAnswers: string[] = [];
-                try {
-                  const parsed = JSON.parse(question!.options.answer || "[]");
-                  currentAnswers = Array.isArray(parsed) ? parsed : [];
-                } catch {
-                  currentAnswers = [];
-                }
-                
-                const isSelected = currentAnswers.includes(option);
-                const isSelectedForDeletion = selectedOptions.has(index);
-                
-                return (
-                  <div
-                    key={index}
-                    className={clsx(
-                      "border rounded-md px-4 py-2 transition-all text-sm sm:text-base relative group",
-                      isSelected
-                        ? "border-indigo-600 bg-indigo-100 text-indigo-900"
-                        : "border-gray-300 hover:bg-gray-100",
-                      isSelectedForDeletion && "ring-2 ring-red-500"
-                    )}
-                  >
-                    {/* Selection checkbox */}
-                    <div className="absolute top-2 left-2">
-                      <input
-                        type="checkbox"
-                        checked={isSelectedForDeletion}
-                        onChange={() => toggleOptionSelection(index)}
-                        className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
-                      />
-                    </div>
-
-                    {/* Option content */}
-                    <div
-                      className="pl-6 cursor-pointer"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        
-                        setQuestion((prev) => {
-                          if (!prev) {
-                            return prev; // still undefined
-                          }
-                          return {
-                            ...prev,
-                            userAnswer: JSON.stringify([option]),
-                          };
-                        });
-                      }}
-                    >
-                      <input
-                        type="radio"
-                        className="hidden"
-                        checked={isSelected}
-                        readOnly
-                      />
-                      <TextOrHtml content={option} />
-                    </div>
-
-                    {/* Delete button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteSingle(index);
-                      }}
-                      className="absolute top-2 right-2 p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Delete this option"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                );
+            })().map((option: string, index: number) => {
+              // Parse current answers safely
+              let currentAnswers: string[] = [];
+              try {
+                const parsed = JSON.parse(question!.options.answer || "[]");
+                currentAnswers = Array.isArray(parsed) ? parsed : [];
+              } catch {
+                currentAnswers = [];
               }
-            )}
-          </div>
 
-          {/* Confirmation Modal */}
-          <ConfirmationModal
-            isOpen={showDeleteModal}
-            title={deleteMode === 'single' ? 'Delete Question Option' : 'Delete Selected Options'}
-            message={
-              deleteMode === 'single'
-                ? 'Are you sure you want to delete this question option? This action cannot be undone.'
-                : `Are you sure you want to delete ${selectedOptions.size} selected option(s)? This action cannot be undone.`
-            }
-            onConfirm={confirmDelete}
-            onCancel={cancelDelete}
-            variant="danger"
-            confirmText={isDeleting ? 'Deleting...' : 'Delete'}
-            cancelText="Cancel"
-          />
+              const isSelected = currentAnswers.includes(option);
+              const isSelectedForDeletion = selectedOptions.has(index);
+
+              return (
+                <div
+                  key={index}
+                  className={clsx(
+                    "border rounded-md px-4 py-2 transition-all text-sm sm:text-base relative group",
+                    isSelected
+                      ? "border-indigo-600 bg-indigo-100 text-indigo-900"
+                      : "border-gray-300 hover:bg-gray-100",
+                    isSelectedForDeletion && "ring-2 ring-red-500"
+                  )}
+                >
+                  {/* Option content */}
+                  <div
+                    className="pl-6 cursor-pointer"
+                    onClick={(e) => {
+                      setQuestion((prev) => {
+                        if (!prev) {
+                          return prev; // still undefined
+                        }
+                        return {
+                          ...prev,
+                          options: {
+                            ...prev.options,
+                            answer: JSON.stringify([option]),
+                          },
+                        };
+                      });
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      className="hidden"
+                      checked={isSelected}
+                      readOnly
+                    />
+                    <TextOrHtml content={option} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       );
-  case QUESTION_TYPES.MULTIPLE_MCQ:
-      const handleMultipleChoice = useCallback((optionToToggle: string) => {
-        setQuestion((prev) => {
-          if (!prev) return prev;
+    case QUESTION_TYPES.MULTIPLE_MCQ:
+      const handleMultipleChoice = useCallback(
+        (optionToToggle: string) => {
+          setQuestion((prev) => {
+            if (!prev) return prev;
 
-          // Parse existing answers
-          let answers: string[];
-          try {
-            answers = JSON.parse(prev.options.answer || "[]");
-            if (!Array.isArray(answers)) answers = [];
-          } catch {
-            answers = [];
-          }
+            // Parse existing answers
+            let answers: string[];
+            try {
+              answers = JSON.parse(prev.options.answer || "[]");
+              if (!Array.isArray(answers)) answers = [];
+            } catch {
+              answers = [];
+            }
 
-          // Create new array to avoid mutation
-          const newAnswers = [...answers];
-          const idx = newAnswers.indexOf(optionToToggle);
-          
-          if (idx !== -1) {
-            // Remove if already selected
-            newAnswers.splice(idx, 1);
-          } else {
-            // Add if not selected
-            newAnswers.push(optionToToggle);
-          }
+            // Create new array to avoid mutation
+            const newAnswers = [...answers];
+            const idx = newAnswers.indexOf(optionToToggle);
 
-          return {
-            ...prev,
-            userAnswer: JSON.stringify(newAnswers),
-          };
-        });
-      }, [setQuestion]);
+            if (idx !== -1) {
+              // Remove if already selected
+              newAnswers.splice(idx, 1);
+            } else {
+              // Add if not selected
+              newAnswers.push(optionToToggle);
+            }
+
+            return {
+              ...prev,
+              options: {
+                ...prev.options,
+                answer: JSON.stringify(newAnswers),
+              },
+            };
+          });
+        },
+        [setQuestion]
+      );
 
       return (
         <div className="flex flex-col gap-3">
@@ -264,120 +244,95 @@ export default function RenderQuestion(
           <div className="flex items-center justify-between border-b border-gray-200 pb-2">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">
-                {selectedOptions.size > 0 ? `${selectedOptions.size} selected` : 'Select options to delete'}
+                {selectedOptions.size > 0
+                  ? `${selectedOptions.size} selected`
+                  : "Select options to delete"}
               </span>
-            </div>
-            <div className="flex items-center gap-2">
-              {selectedOptions.size > 0 && (
-                <>
-                  <button
-                    onClick={clearSelection}
-                    className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
-                  >
-                    Clear
-                  </button>
-                  <button
-                    onClick={handleDeleteMultiple}
-                    className="px-3 py-1 text-sm text-white bg-red-600 hover:bg-red-700 rounded-md flex items-center gap-1"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Delete Selected
-                  </button>
-                </>
-              )}
             </div>
           </div>
 
           {/* Question Options */}
           <div className="flex flex-col gap-2">
-            {(function(){
+            {(function () {
               const raw = JSON.parse(question!.options.options);
-              const list: string[] = Array.isArray(raw) ? raw : (raw?.options ?? []);
+              const list: string[] = Array.isArray(raw)
+                ? raw
+                : raw?.options ?? [];
               return list;
-            })().map(
-              (option: string, index: number) => {
-                // Parse current answers safely
-                let currentAnswers: string[] = [];
-                try {
-                  const parsed = JSON.parse(question!.options.answer || "[]");
-                  currentAnswers = Array.isArray(parsed) ? parsed : [];
-                } catch {
-                  currentAnswers = [];
-                }
-                
-                const isSelected = currentAnswers.includes(option);
-                const isSelectedForDeletion = selectedOptions.has(index);
-                
-                return (
+            })().map((option: string, index: number) => {
+              // Parse current answers safely
+              let currentAnswers: string[] = [];
+              try {
+                const parsed = JSON.parse(question!.options.answer || "[]");
+                currentAnswers = Array.isArray(parsed) ? parsed : [];
+              } catch {
+                currentAnswers = [];
+              }
+
+              const isSelected = currentAnswers.includes(option);
+              const isSelectedForDeletion = selectedOptions.has(index);
+
+              return (
+                <div
+                  key={`multiple-mcq-${index}-${option}`}
+                  className={clsx(
+                    "border rounded-md px-4 py-2 transition-all text-sm sm:text-base select-none relative group",
+                    isSelected
+                      ? "border-indigo-600 bg-indigo-100 text-indigo-900"
+                      : "border-gray-300 hover:bg-gray-100",
+                    isSelectedForDeletion && "ring-2 ring-red-500"
+                  )}
+                >
+                  {/* Selection checkbox */}
+                  <div className="absolute top-2 left-2">
+                    <input
+                      type="checkbox"
+                      checked={isSelectedForDeletion}
+                      onChange={() => toggleOptionSelection(index)}
+                      className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                    />
+                  </div>
+
+                  {/* Option content */}
                   <div
-                    key={`multiple-mcq-${index}-${option}`}
-                    className={clsx(
-                      "border rounded-md px-4 py-2 transition-all text-sm sm:text-base select-none relative group",
-                      isSelected
-                        ? "border-indigo-600 bg-indigo-100 text-indigo-900"
-                        : "border-gray-300 hover:bg-gray-100",
-                      isSelectedForDeletion && "ring-2 ring-red-500"
-                    )}
+                    className="pl-6 cursor-pointer"
+                    onClick={() => handleMultipleChoice(option)}
+                    onMouseDown={(e) => e.preventDefault()}
                   >
-                    {/* Selection checkbox */}
-                    <div className="absolute top-2 left-2">
+                    <div className="flex items-center gap-2 pointer-events-none">
                       <input
                         type="checkbox"
-                        checked={isSelectedForDeletion}
-                        onChange={() => toggleOptionSelection(index)}
-                        className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                        checked={isSelected}
+                        readOnly
+                        className="pointer-events-none"
                       />
-                    </div>
-
-                    {/* Option content */}
-                    <div
-                      className="pl-6 cursor-pointer"
-                      onClick={() => handleMultipleChoice(option)}
-                      onMouseDown={(e) => e.preventDefault()}
-                    >
-                      <div className="flex items-center gap-2 pointer-events-none">
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          readOnly
-                          className="pointer-events-none"
-                        />
-                        <div className="flex-1">
-                          <TextOrHtml content={option} />
-                        </div>
+                      <div className="flex-1">
+                        <TextOrHtml content={option} />
                       </div>
                     </div>
-
-                    {/* Delete button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteSingle(index);
-                      }}
-                      className="absolute top-2 right-2 p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Delete this option"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
                   </div>
-                );
-              }
-            )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Confirmation Modal */}
           <ConfirmationModal
             isOpen={showDeleteModal}
-            title={deleteMode === 'single' ? 'Delete Question Option' : 'Delete Selected Options'}
+            title={
+              deleteMode === "single"
+                ? "Delete Question Option"
+                : "Delete Selected Options"
+            }
             message={
-              deleteMode === 'single'
-                ? 'Are you sure you want to delete this question option? This action cannot be undone.'
+              deleteMode === "single"
+                ? "Are you sure you want to delete this question option? This action cannot be undone."
                 : `Are you sure you want to delete ${selectedOptions.size} selected option(s)? This action cannot be undone.`
             }
             onConfirm={confirmDelete}
             onCancel={cancelDelete}
             variant="danger"
-            confirmText={isDeleting ? 'Deleting...' : 'Delete'}
+            confirmText={isDeleting ? "Deleting..." : "Delete"}
             cancelText="Cancel"
           />
         </div>
@@ -430,7 +385,10 @@ export default function RenderQuestion(
                           }
                           return {
                             ...prev,
-                            userAnswer: JSON.stringify(updatedAnswer),
+                            options: {
+                              ...prev.options,
+                              answer: JSON.stringify(updatedAnswer),
+                            },
                           };
                         });
                       }}
@@ -449,10 +407,14 @@ export default function RenderQuestion(
       return (
         <div className="w-full flex flex-col gap-5">
           <div className="w-full max-w-1/4 flex justify-between gap-2">
-            {(function(){
+            {(function () {
               const raw = JSON.parse(question!.options.options);
-              const left: string[] = Array.isArray(raw) ? (raw[0] ?? []) : (raw?.left ?? []);
-              const right: string[] = Array.isArray(raw) ? (raw[1] ?? []) : (raw?.right ?? []);
+              const left: string[] = Array.isArray(raw)
+                ? raw[0] ?? []
+                : raw?.left ?? [];
+              const right: string[] = Array.isArray(raw)
+                ? raw[1] ?? []
+                : raw?.right ?? [];
               return [left, right];
             })().map((option: string[], index: number) => (
               <div className="flex flex-col gap-5" key={index}>
@@ -467,8 +429,12 @@ export default function RenderQuestion(
           <div>
             {(() => {
               const raw = JSON.parse(question!.options.options);
-              const left: string[] = Array.isArray(raw) ? (raw[0] ?? []) : (raw?.left ?? []);
-              const rightList: string[] = Array.isArray(raw) ? (raw[1] ?? []) : (raw?.right ?? []);
+              const left: string[] = Array.isArray(raw)
+                ? raw[0] ?? []
+                : raw?.left ?? [];
+              const rightList: string[] = Array.isArray(raw)
+                ? raw[1] ?? []
+                : raw?.right ?? [];
               return left.map((col: string, index: number) => (
                 <div key={index}>
                   <h1>{col}</h1>
@@ -476,9 +442,9 @@ export default function RenderQuestion(
                     {rightList.map((row: string, idx: number) => (
                       <div
                         className={`rounded-md border p-2 border-gray-300 cursor-pointer ${
-                          JSON.parse(question!.options.answer)[
-                            index
-                          ].includes(row)
+                          JSON.parse(question!.options.answer)[index].includes(
+                            row
+                          )
                             ? "border-indigo-600 bg-indigo-100 text-indigo-900"
                             : "border-gray-300 hover:bg-gray-100"
                         }`}
@@ -509,7 +475,10 @@ export default function RenderQuestion(
                             // 5. Write back the updated 2D array as a JSON string
                             return {
                               ...prev,
-                              userAnswer: JSON.stringify(answers),
+                              options: {
+                                ...prev.options,
+                                answer: JSON.stringify(answers),
+                              },
                             };
                           });
                         }}
@@ -536,7 +505,10 @@ export default function RenderQuestion(
                 }
                 return {
                   ...prev,
-                  userAnswer: e.target.value,
+                  options: {
+                    ...prev.options,
+                    answer: e.target.value,
+                  },
                 };
               });
             }}
@@ -559,7 +531,13 @@ export default function RenderQuestion(
               if (val === "" || /^\d*\.?\d*$/.test(val)) {
                 setQuestion((prev) => {
                   if (!prev) return prev;
-                  return { ...prev, userAnswer: val };
+                  return {
+                    ...prev,
+                    options: {
+                      ...prev.options,
+                      answer: val,
+                    },
+                  };
                 });
               }
             }}
@@ -589,7 +567,10 @@ export default function RenderQuestion(
                   }
                   return {
                     ...prev,
-                    userAnswer: "True",
+                    options: {
+                      ...prev.options,
+                      answer: "True",
+                    },
                   };
                 });
               }}
@@ -616,7 +597,10 @@ export default function RenderQuestion(
                   }
                   return {
                     ...prev,
-                    userAnswer: "False",
+                    options: {
+                      ...prev.options,
+                      answer: "False",
+                    },
                   };
                 });
               }}
@@ -636,7 +620,13 @@ export default function RenderQuestion(
               const val = e.target.value;
               setQuestion((prev) => {
                 if (!prev) return prev;
-                return { ...prev, userAnswer: val };
+                return {
+                  ...prev,
+                  options: {
+                    ...prev.options,
+                    answer: val,
+                  },
+                };
               });
             }}
           />
