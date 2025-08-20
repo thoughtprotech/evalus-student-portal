@@ -1,0 +1,48 @@
+@media only screen and (max-width: 1024px){
+    .studentprofile_nmat{width: 24%;}
+}
+
+@media only screen and (max-width: 800px){
+    .studentprofile_nmat{width: 30%;}
+}
+
+/* iphone 8 landscape */
+@media only screen and (max-width: 667px){
+    .studentprofile_nmat {width: 37%;}    
+}
+
+
+@media only screen and (max-width: 640px) {
+    .studentprofile_nmat {width: 38%;}
+}
+
+@media only screen and (max-width: 568px){
+    .rytessay{overflow: auto;}
+    .studentprofile_nmat{width: 43%}
+    .optninr.nmat_optninr .matrixoptn{width: 75%}
+}
+
+@media only screen and (max-width: 480px) {
+    .questionoutr{margin: 0;}
+    .studentprofile_nmat{width: 50%;}
+    .logo_sctnnmat{width: 30%;}
+}
+
+@media only screen and (max-width: 414px) {
+    .studentprofile_nmat{width: 59%;}
+    .essaytype.nmat_essaytype, .questionoutr.nmat_essaytype{max-height: initial}
+}
+@media only screen and (max-width: 375px){
+    .hdr_nmattst{height: 121px;}
+    .logo_sctnnmat{height: 55px; line-height: 55px;width: 100%;text-align: center;}
+    span.imginr_logonmat{height: 55px; line-height: 55px;}
+    .studentprofile_nmat{width: 100%;}
+    .qstn_sctnnmat{top: 175px;}
+    .nmatprofile_inr{height: 66px; line-height: 66px; padding: 0 30px; box-sizing: border-box}
+    .lftmatrix{width: 66%; padding-right: 15px;box-sizing: border-box}
+    .rytmatrix{width: 34%; padding-right: 0}
+    .optninr.nmat_optninr .matrixoptn{width: 90%;}
+    .matrixoptn .radiobtn + .option{width: 73% !important}
+    
+}
+

@@ -63,19 +63,21 @@ export const endpoints = {
     method: "POST",
     path: () => `/api/Questions`,
     type: "CLOSE",
-    } as Endpoint<CreateQuestionRequest, null>,
+  } as Endpoint<CreateQuestionRequest, null>,
 
-   createCompany: {
-        method: "POST",
-        path: () => `/api/Company`,
-        type: "CLOSE",
-    } as Endpoint<CreateQuestionRequest, null>,
+  // Get candidate by id (for edit prefill)
+  getCandidateById: {
+    method: "GET",
+    path: ({ candidateId }: { candidateId: number }) => `/api/CandidateRegistration/${candidateId}`,
+    type: "CLOSE",
+  } as Endpoint<{ candidateId: number }, any>,
 
-  createCandidate: {
-        method: "POST",
-        path: () => `/api/CandidateRegistration`,
-        type: "CLOSE",
-    } as Endpoint<CreateQuestionRequest, null>,
+  // Update candidate
+  updateCandidate: {
+    method: "PUT",
+    path: ({ candidateId }: { candidateId: number }) => `/api/CandidateRegistration/${candidateId}`,
+    type: "CLOSE",
+  } as Endpoint<{ candidateId: number } & any, null>,
 
   // Update existing question
   updateQuestion: {
@@ -220,17 +222,12 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<import('./types').DeleteQuestionRequest, null>,
 
-    deleteCompany: {
-        method: "DELETE",
-        path: ({ companyId }) => `/api/Company/${companyId}`,
-        type: "CLOSE",
-    } as Endpoint<import('./types').DeleteCompanyRequest, null>,
-
-    deleteCandidate: {
-        method: "DELETE",
-        path: ({ candidateId }) => `/api/CandidateRegistration/${candidateId}`,
-        type: "CLOSE",
-    } as Endpoint<import('./types').DeleteCandidateRequest, null>,
+  // Test model for binding (New/Edit shared model)
+  getNewTestModel: {
+    method: "GET",
+    path: () => `/api/Tests/New`,
+    type: "CLOSE",
+  } as Endpoint<null, any>,
 
   // OData lists for Admin Test creation
   getTestTypes: {
@@ -257,6 +254,50 @@ export const endpoints = {
     type: "OPEN",
   } as Endpoint<null, import('./types').ODataList<import('./types').TestDifficultyLevelOData>>,
 
+  // OData - Test Templates for Step 1 template picker
+  getTestTemplatesOData: {
+    method: "GET",
+    path: () => `/odata/TestTemplates?$select=TestTemplateId,TestTemplateName,TestHtmlpreview,TestTemplateThumbNail`,
+    type: "OPEN",
+  } as Endpoint<null, import('./types').ODataList<import('./types').TestTemplateOData>>,
+
+  // Select Questions page endpoints
+  getLanguagesOData: {
+    method: "GET",
+    path: () => `/odata/Languages?$select=Language1`,
+    type: "OPEN",
+  } as Endpoint<null, import('./types').ODataList<{ Language1: string }>>,
+
+  getSubjectsByLanguageOData: {
+    method: "GET",
+    path: ({ language }) => {
+      const lang = (language ?? "").replace(/'/g, "''");
+      return `/odata/Subjects?$filter=Language eq '${lang}' and ParentId eq 0&$select=SubjectId,SubjectName`;
+    },
+    type: "OPEN",
+  } as Endpoint<{ language?: string }, import('./types').ODataList<{ SubjectId: number; SubjectName: string }>>,
+
+  getQuestionTypesOData: {
+    method: "GET",
+    path: ({ language }) => {
+      const lang = (language ?? "").replace(/'/g, "''");
+      return `/odata/QuestionTypes?$filter=Language eq '${lang}'&$select=QuestionTypeId,QuestionType1`;
+    },
+    type: "OPEN",
+  } as Endpoint<{ language?: string }, import('./types').ODataList<{ QuestionTypeId: number; QuestionType1: string }>>,
+
+  getSubjectTree: {
+    method: "GET",
+    path: ({ parentId }) => `/odata/Subjects/GetSubjectTree(ParentId=${parentId})`,
+    type: "OPEN",
+  } as Endpoint<{ parentId: number }, any[]>,
+
+  getQuestionsByQuery: {
+    method: "GET",
+    path: ({ query }) => `/odata/Questions${query}`,
+    type: "OPEN",
+  } as Endpoint<{ query?: string }, { value: any[] }>,
+
   // Admin Questions (server actions moved here)
   getAdminQuestions: {
     method: "GET",
@@ -268,16 +309,73 @@ export const endpoints = {
     // Admin Questions (server actions moved here)
     getCompanies: {
         method: "GET",
-        // Use your specific API endpoint for getting questions by language
-        path: ({ query }) => `/api/Company?IncludeInactive=true&Language=English'${query ? (query.startsWith('?') ? query : `?${query}`) : ''}`,
+    // Companies list
+    // Removed stray trailing quote which broke URL and caused empty dropdown.
+    path: ({ query }) => {
+      const base = `/api/Company?IncludeInactive=true&Language=English`;
+      if (query && query.trim().length > 0) {
+        return `${base}&${query}`;
+      }
+      return base;
+    },
         type: "OPEN",
     } as Endpoint<import('./types').GetCompaniesRequest, any[]>,
+
+  // Candidate groups hierarchy (placeholder – adjust path to actual API if different)
+  getCandidateGroups: {
+    method: "GET",
+    path: () => `/api/TestAdminDashboard/candidategroup/hierarchy`,
+    type: "CLOSE",
+  } as Endpoint<null, any[]>,
 
     getCandidates: {
         method: "GET",
         // Use your specific API endpoint for getting questions by language
-        path: ({ query }) => `/api/CandidateRegistration?includeInactive=true'${query ? (query.startsWith('?') ? query : `?${query}`) : ''}`,
+    // Candidate list (supports OData style query string already pre-built in caller)
+    // NOTE: Removed stray trailing single quote which broke the URL and caused validation errors.
+    // If a query string (e.g. "$top=15&$skip=0") is supplied, append with an ampersand.
+    path: ({ query }) => {
+      const base = `/api/CandidateRegistration?includeInactive=true`;
+      if (query && query.trim().length > 0) {
+        return `${base}&${query}`;
+      }
+      return base;
+    },
         type: "OPEN",
     } as Endpoint<import('./types').GetCandidatesRequest, any[]>,
+
+  // Products CRUD
+  getProducts: {
+    method: "GET",
+    // For now mimic candidates pattern (include inactive, filterable by language if needed later)
+    path: ({ query }) => {
+      const base = `/api/TestProducts`;
+      if (query && query.trim().length > 0) {
+        return `${base}?${query}`;
+      }
+      return base;
+    },
+    type: "OPEN",
+  } as Endpoint<{ query?: string }, any[]>,
+  getProductById: {
+    method: "GET",
+    path: ({ productId }: { productId: number }) => `/api/TestProducts/${productId}`,
+    type: "OPEN",
+  } as Endpoint<{ productId: number }, any>,
+  createProduct: {
+    method: "POST",
+    path: () => `/api/TestProducts`,
+    type: "CLOSE",
+  } as Endpoint<any, any>,
+  updateProduct: {
+    method: "PUT",
+    path: ({ productId }: { productId: number }) => `/api/TestProducts/${productId}`,
+    type: "CLOSE",
+  } as Endpoint<{ productId: number } & any, any>,
+  deleteProduct: {
+    method: "DELETE",
+    path: ({ productId }: { productId: number }) => `/api/TestProducts/${productId}`,
+    type: "CLOSE",
+  } as Endpoint<{ productId: number }, null>,
 
 };

@@ -1,0 +1,119 @@
+@media only screen and (max-width: 1440px) {
+    .container{
+        width: 78%;
+    }
+    .full-width{
+        /*margin-bottom: 15px;*/
+    }
+}
+@media only screen and (max-width: 1366px) {
+    .container{
+        width: 85%;
+    }
+    .question-height {
+        width: 100%;
+        height: 46vh;
+    }
+}
+@media only screen and (max-width: 1280px) {
+    .profilestudent_box{
+        width: 36%;
+    }
+}
+@media only screen and (max-width: 1200px) {
+    .profilestudent_box{
+        width: 41%;
+    }
+    .slctlnguage_box{
+        float: left;
+    }
+}
+@media only screen and (max-width: 1024px) {
+    .container{
+        width: 95%;
+    }
+    .profilestudent_box {
+        width: 42%;
+    }
+}
+@media only screen and (max-width: 980px) {
+    .profilestudent_box{
+        width: 50%;
+    }
+    .navbar-brand.home {
+        width: 40%;
+        float: left;
+    }
+    .navbar-brand.home img {
+        width: 100%;
+    }
+}
+@media only screen and (max-width: 768px) {
+    .qstndtail-sctnqst img{
+        width: 70%;
+    }
+    .profilestudent_box {
+        width: 55%;
+        margin-bottom: 15px;
+    }
+    .dwnldbtn_sctn{
+        width: 45%;
+        margin-left: 0;
+    }
+    .slctlnguage_box {
+        float: left;
+        width: 100%;
+        
+    }
+    .lftsctn-qst, .rytsctn-qst{
+        width: 100%;
+        padding-left: 0;
+    }
+    .question-height{
+        height: auto;
+    }
+     .profilestudent_box {
+        border-top: 1px solid #000;
+        padding-top: 15px;
+        width: 100%;
+        margin-top: 15px;
+    }
+    
+}
+@media only screen and (max-width: 640px) {
+   .sbjctbtn-prt{
+        margin-bottom: 15px;
+    }
+    
+}
+@media only screen and (max-width: 640px) {
+    
+    .dwnldbtn_sctn{
+        width: 100%;
+    }
+    .slctlnguage_box{
+        margin: 0px 0 15px;
+    }
+}
+@media only screen and (max-width: 360px){
+    .profiledetail{
+        width: 72%;
+    }
+    .navbar-brand.home img {
+        width: 100%;
+    }
+}
+@media only screen and (max-width: 320px){
+    .profilebox_img{
+        float: none;
+        margin: auto;
+    }
+    .profiledetail{
+        margin-top: 10px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .slctlnguage_box{
+        width: 100%;
+    }
+}

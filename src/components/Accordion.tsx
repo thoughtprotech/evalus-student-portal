@@ -45,7 +45,7 @@ export default function Accordion({
             : "bg-gray-50 text-gray-800 border-b border-gray-200 hover:bg-gray-100"
         )}
       >
-        <span className="text-base md:text-lg font-semibold">{title}</span>
+  <span className="text-base font-semibold">{title}</span>
         {isOpen ? (
           <ChevronUp className="text-current" />
         ) : (

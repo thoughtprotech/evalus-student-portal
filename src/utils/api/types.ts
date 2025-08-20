@@ -351,6 +351,14 @@ export interface TestDifficultyLevelOData {
 
 }
 
+// OData entity for Test Templates (Step 1 - Test Template)
+export interface TestTemplateOData {
+  TestTemplateId: number;
+  TestTemplateName: string;
+  TestHtmlpreview: string; // relative path under public, e.g., /templates/Bank/Bank.html
+  TestTemplateThumbNail: string; // relative path under public, e.g., /templates/Bank/thumb.png
+}
+
 export interface GetCompaniesRequest {
     // Prebuilt OData query string: "$top=...&$skip=...&..."
     query: string;
