@@ -85,33 +85,26 @@ export interface GetQuestionByIdRequest {
 
 export interface GetQuestionByIdResponse {
   questionId: number;
-  questionText: string;
-  headerText?: string;
-  questionTypeId: number;
-  subjectId: number;
-  marks: number;
-  negativeMarks: number;
-  graceMarks: number;
-  questionDifficultyLevelId: number;
-  additionalExplanation: string;
-  videoSolutionWeburl: string;
-  videoSolutionMobileurl: string;
-  allowCandidateComments: number;
-  writeUpId: number | null;
-  hasMultipleAnswers: string;
-  questionOptionsJson: string;
-  userAnswer: any;
-  questionCorrectAnswerJson: string;
-  language: string;
-  isActive: number;
-  createdBy: string;
-  createdDate: string;
-  modifiedBy: string;
-  modifiedDate: string;
-  subject: Subject;
-  questionType: QuestionType;
-  writeUp: any;
-  questionTags: any[];
+  explanation: string;
+  questionsMeta: {
+    allowCandidateComments: number;
+    tags: string;
+    marks: number;
+    negativeMarks: number;
+    graceMarks: number;
+    difficultyLevelId: number;
+      questionTypeId: number;
+      questionTypeName: string;
+    subjectId: number;
+    topicId: number;
+    chapterId: number;
+    language: string;
+  };
+  question: string;
+  options: {
+    options: string;
+    answer: string;
+  };
 }
 
 export interface GetTestMetaDataRequest {

@@ -38,33 +38,16 @@ import toast from "react-hot-toast";
 export default function ExamPage() {
   const { id } = useParams();
   const [loaded, setLoaded] = useState<boolean>(false);
-  const [questionsMeta, setQuestionsMeta] = useState<QuestionsMetaResponse[]>(
-    []
-  );
+
   const [question, setQuestion] = useState<GetQuestionByIdResponse>();
   const [showModal, setShowModal] = useState(false);
   const [errorMessage] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [showQuestionsModal, setShowQuestionsModal] = useState(false);
-  const [showInstructionsModal, setShowInstructionsModal] =
-    useState<boolean>(false);
-  const [instructionData, setInstructionData] =
-    useState<InstructionData | null>(null);
-
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [currentQuestion, setCurrentQuestion] = useState<{
-    questionId: number;
-  }>();
 
   const instructionsMap: Record<string, InstructionData> = mockInstructions;
 
   const router = useRouter();
-
-  useEffect(() => {
-    if (id && instructionsMap[id as string]) {
-      setInstructionData(instructionsMap[id as string]);
-    }
-  }, [id]);
 
   const fetchQuestionById = async (questionId: number) => {
     const res = await fetchQuestionByIdAction(questionId);
@@ -77,30 +60,6 @@ export default function ExamPage() {
     }
   };
 
-  const fetchQuestionMeta = async () => {
-    setLoaded(false);
-    const res = await fetchQuestionsMetaAction(Number(id));
-    const { data, status, error, errorMessage, message } = res;
-    if (status === 200 && data) {
-      setQuestionsMeta(data!);
-      setCurrentQuestion({ questionId: data[0].questionId });
-      setLoaded(true);
-    } else {
-      // Error fetching questions
-    }
-  };
-
-  // Load the test list once on mount
-  useEffect(() => {
-    fetchQuestionMeta();
-  }, []);
-
-  useEffect(() => {
-    if (currentQuestion?.questionId) {
-      fetchQuestionById(currentQuestion.questionId);
-    }
-  }, [currentQuestion]);
-
   const handleSubmit = () => setShowModal(true);
 
   const cancelSubmit = () => setShowModal(false);
@@ -110,12 +69,12 @@ export default function ExamPage() {
   }, [question]);
 
   const handleNextQuestion = async () => {
-    fetchQuestionById(questionsMeta[currentIndex + 1].questionId);
+    fetchQuestionById(currentSection?.questions[currentIndex + 1].questionId!);
     setCurrentIndex(currentIndex + 1);
   };
 
   const clearResponse = async () => {
-    switch (question!.questionType.questionType) {
+    switch (question!.questionsMeta.questionTypeName) {
       case "Single MCQ":
         setQuestion((prev) => {
           if (!prev) {
@@ -160,7 +119,7 @@ export default function ExamPage() {
 
           let emptyArr: string[][] = [];
 
-          JSON.parse(question!.questionOptionsJson)[0].map(() => {
+          JSON.parse(question!.options.options)[0].map(() => {
             emptyArr.push([]);
           });
 
@@ -222,7 +181,7 @@ export default function ExamPage() {
   };
 
   const handleJumpTo = (index: number, questionId: number) => {
-    setCurrentQuestion({ questionId });
+    fetchQuestionById(questionId);
     setCurrentIndex(index);
   };
 
@@ -274,6 +233,16 @@ export default function ExamPage() {
       }
     }
   };
+
+  useEffect(() => {
+    if (currentSection) {
+      fetchQuestionById(currentSection?.questions[0]?.questionId!);
+    }
+  }, [currentSection]);
+
+  useEffect(() => {
+    console.log({ question });
+  }, [question]);
 
   const handleTimeout = () => {
     // TODO: Handle timeout
@@ -342,7 +311,7 @@ export default function ExamPage() {
       )}
 
       {/* Test Area */}
-      <div className="w-full h-full flex flex-row pb-9">
+      <div className="w-full h-full overflow-auto flex flex-row pb-9">
         {/* Main */}
         <main className="w-full flex-1 p-2 flex flex-col gap-2 relative overflow-y-auto">
           <div className="w-full h-full">
@@ -353,20 +322,20 @@ export default function ExamPage() {
                     <div>
                       <h1 className="text-sm text-gray-600">
                         Question {currentIndex + 1} -{" "}
-                        {question?.questionType?.questionType}
+                        {question?.questionsMeta?.questionTypeName}
                       </h1>
                     </div>
                     <div className="flex gap-3 items-center">
                       <div className="flex gap-3 text-xs md:text-sm">
                         <h1 className="text-green-500">Mark(s)</h1>
-                        <h1>{question.marks}</h1>
+                        <h1>{question.questionsMeta.marks}</h1>
                       </div>
                       <h1 className="text-gray-500">|</h1>
                       <div className="flex gap-3 text-xs md:text-sm pr-1">
                         <h1 className="text-red-500 text-nowrap">
                           Negative Mark(s)
                         </h1>
-                        <h1>{question.negativeMarks}</h1>
+                        <h1>{question.questionsMeta.negativeMarks}</h1>
                       </div>
                       <h1 className="text-gray-500">|</h1>
                       <div>
@@ -385,7 +354,7 @@ export default function ExamPage() {
                           id="questionBox"
                         >
                           <div className="w-[1200px] mb-20 relative flex flex-col gap-4">
-                            {question.headerText && (
+                            {question.explanation && (
                               <>
                                 <div>
                                   <h1 className="font-bold text-2xl">
@@ -394,7 +363,9 @@ export default function ExamPage() {
                                 </div>
                                 <div>
                                   <div className="text-md sm:text-lg font-medium">
-                                    <TextOrHtml content={question.headerText} />
+                                    <TextOrHtml
+                                      content={question.explanation}
+                                    />
                                   </div>
                                 </div>
                               </>
@@ -405,7 +376,7 @@ export default function ExamPage() {
                             </div>
                             <div>
                               <div className="text-md sm:text-lg font-medium">
-                                <TextOrHtml content={question.questionText} />
+                                <TextOrHtml content={question.question} />
                               </div>
                             </div>
                             <ScrollXToggleButton containerSelector="#questionBox" />
@@ -476,7 +447,7 @@ export default function ExamPage() {
                           Previous
                         </button>
                       </div> */}
-                    {currentIndex + 1 === questionsMeta.length ? (
+                    {currentIndex + 1 === currentSection?.questions.length ? (
                       <div className="w-full md:w-fit">
                         <button
                           onClick={handleSubmit}
@@ -489,7 +460,10 @@ export default function ExamPage() {
                       <div className="w-full md:w-fit">
                         <button
                           onClick={handleNextQuestion}
-                          disabled={currentIndex + 1 === questionsMeta.length}
+                          disabled={
+                            currentIndex + 1 ===
+                            currentSection?.questions.length
+                          }
                           className={clsx(
                             "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 whitespace-nowrap text-sm"
                           )}
@@ -509,7 +483,7 @@ export default function ExamPage() {
         <Sidebar
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
-          questionsMeta={questionsMeta}
+          questionsMeta={currentSection?.questions!}
           handleSubmit={handleSubmit}
           handleJumpTo={handleJumpTo}
           currentIndex={currentIndex}
@@ -518,7 +492,7 @@ export default function ExamPage() {
 
       {/* Modals */}
       <SubmitExamModal
-        questionsMeta={questionsMeta}
+        questionsMeta={currentSection?.questions!}
         showModal={showModal}
         confirmSubmit={confirmSubmit}
         cancelSubmit={cancelSubmit}

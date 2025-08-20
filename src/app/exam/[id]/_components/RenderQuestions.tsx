@@ -46,7 +46,7 @@ export default function RenderQuestion(
         const result = await deleteQuestionOptionAction(optionToDelete);
         if (result.success) {
           // Remove the option from the question
-          const options = JSON.parse(question.questionOptionsJson);
+          const options = JSON.parse(question.options.options);
           options.splice(optionToDelete, 1);
           setQuestion(prev => prev ? { ...prev, questionOptionsJson: JSON.stringify(options) } : prev);
         }
@@ -56,7 +56,7 @@ export default function RenderQuestion(
         const result = await deleteMultipleQuestionOptionsAction(optionIndices);
         if (result.success) {
           // Remove selected options from the question
-          const options = JSON.parse(question.questionOptionsJson);
+          const options = JSON.parse(question.options.options);
           const filteredOptions = options.filter((_: any, index: number) => !selectedOptions.has(index));
           setQuestion(prev => prev ? { ...prev, questionOptionsJson: JSON.stringify(filteredOptions) } : prev);
           setSelectedOptions(new Set());
@@ -69,7 +69,7 @@ export default function RenderQuestion(
       setShowDeleteModal(false);
       setOptionToDelete(null);
     }
-  }, [deleteMode, optionToDelete, selectedOptions, question.questionOptionsJson, setQuestion]);
+  }, [deleteMode, optionToDelete, selectedOptions, question.options.options, setQuestion]);
 
   const cancelDelete = useCallback(() => {
     setShowDeleteModal(false);
@@ -91,7 +91,7 @@ export default function RenderQuestion(
   const clearSelection = useCallback(() => {
     setSelectedOptions(new Set());
   }, []);
-  switch (question?.questionType?.questionType) {
+  switch (question?.questionsMeta?.questionTypeName) {
   case QUESTION_TYPES.SINGLE_MCQ:
       return (
         <div className="flex flex-col gap-3">
@@ -126,7 +126,7 @@ export default function RenderQuestion(
           {/* Question Options */}
           <div className="flex flex-col gap-2">
             {(function(){
-              const raw = JSON.parse(question!.questionOptionsJson);
+              const raw = JSON.parse(question!.options.options);
               const list: string[] = Array.isArray(raw) ? raw : (raw?.options ?? []);
               return list;
             })().map(
@@ -134,7 +134,7 @@ export default function RenderQuestion(
                 // Parse current answers safely
                 let currentAnswers: string[] = [];
                 try {
-                  const parsed = JSON.parse(question!.userAnswer || "[]");
+                  const parsed = JSON.parse(question!.options.answer || "[]");
                   currentAnswers = Array.isArray(parsed) ? parsed : [];
                 } catch {
                   currentAnswers = [];
@@ -233,7 +233,7 @@ export default function RenderQuestion(
           // Parse existing answers
           let answers: string[];
           try {
-            answers = JSON.parse(prev.userAnswer || "[]");
+            answers = JSON.parse(prev.options.answer || "[]");
             if (!Array.isArray(answers)) answers = [];
           } catch {
             answers = [];
@@ -291,7 +291,7 @@ export default function RenderQuestion(
           {/* Question Options */}
           <div className="flex flex-col gap-2">
             {(function(){
-              const raw = JSON.parse(question!.questionOptionsJson);
+              const raw = JSON.parse(question!.options.options);
               const list: string[] = Array.isArray(raw) ? raw : (raw?.options ?? []);
               return list;
             })().map(
@@ -299,7 +299,7 @@ export default function RenderQuestion(
                 // Parse current answers safely
                 let currentAnswers: string[] = [];
                 try {
-                  const parsed = JSON.parse(question!.userAnswer || "[]");
+                  const parsed = JSON.parse(question!.options.answer || "[]");
                   currentAnswers = Array.isArray(parsed) ? parsed : [];
                 } catch {
                   currentAnswers = [];
@@ -384,7 +384,7 @@ export default function RenderQuestion(
       );
     case QUESTION_TYPES.MATCH_PAIRS_SINGLE: {
       // Support both legacy array [[left...],[right...]] and new object {type,left,right}
-      const raw = JSON.parse(question!.questionOptionsJson);
+      const raw = JSON.parse(question!.options.options);
       const opts = Array.isArray(raw)
         ? { left: raw[0] ?? [], right: raw[1] ?? [] }
         : { left: raw.left ?? [], right: raw.right ?? [] };
@@ -410,14 +410,14 @@ export default function RenderQuestion(
                   {opts.right.map((row: string, idx: number) => (
                     <div
                       className={`rounded-md border p-2 border-gray-300 cursor-pointer ${
-                        JSON.parse(question!.userAnswer)[index] === row
+                        JSON.parse(question!.options.answer)[index] === row
                           ? "border-indigo-600 bg-indigo-100 text-indigo-900"
                           : "border-gray-300 hover:bg-gray-100"
                       }`}
                       key={idx}
                       onClick={() => {
                         let updatedAnswer: string[] = JSON.parse(
-                          question!.userAnswer
+                          question!.options.answer
                         );
                         if (updatedAnswer.includes(row)) {
                           const rplIdx = updatedAnswer.indexOf(row);
@@ -450,7 +450,7 @@ export default function RenderQuestion(
         <div className="w-full flex flex-col gap-5">
           <div className="w-full max-w-1/4 flex justify-between gap-2">
             {(function(){
-              const raw = JSON.parse(question!.questionOptionsJson);
+              const raw = JSON.parse(question!.options.options);
               const left: string[] = Array.isArray(raw) ? (raw[0] ?? []) : (raw?.left ?? []);
               const right: string[] = Array.isArray(raw) ? (raw[1] ?? []) : (raw?.right ?? []);
               return [left, right];
@@ -466,7 +466,7 @@ export default function RenderQuestion(
           </div>
           <div>
             {(() => {
-              const raw = JSON.parse(question!.questionOptionsJson);
+              const raw = JSON.parse(question!.options.options);
               const left: string[] = Array.isArray(raw) ? (raw[0] ?? []) : (raw?.left ?? []);
               const rightList: string[] = Array.isArray(raw) ? (raw[1] ?? []) : (raw?.right ?? []);
               return left.map((col: string, index: number) => (
@@ -476,7 +476,7 @@ export default function RenderQuestion(
                     {rightList.map((row: string, idx: number) => (
                       <div
                         className={`rounded-md border p-2 border-gray-300 cursor-pointer ${
-                          JSON.parse(question!.userAnswer)[
+                          JSON.parse(question!.options.answer)[
                             index
                           ].includes(row)
                             ? "border-indigo-600 bg-indigo-100 text-indigo-900"
@@ -489,7 +489,7 @@ export default function RenderQuestion(
 
                             // 1. Parse the existing 2D userAnswer array
                             const answers: string[][] = JSON.parse(
-                              prev.userAnswer
+                              prev.options.answer
                             );
 
                             // 2. Work on a fresh copy of the sub-array at [index]
@@ -540,7 +540,7 @@ export default function RenderQuestion(
                 };
               });
             }}
-            value={question?.userAnswer}
+            value={question?.options.answer}
           />
         </div>
       );
@@ -552,7 +552,7 @@ export default function RenderQuestion(
             inputMode="decimal"
             pattern="\d*(\.\d*)?"
             className="w-full rounded-md border border-gray-300 px-4 py-2"
-            value={question?.userAnswer ?? ""}
+            value={question?.options.answer ?? ""}
             onChange={(e) => {
               const val = e.target.value;
               // allow empty string or valid numeric/float
@@ -572,7 +572,7 @@ export default function RenderQuestion(
           <label
             className={clsx(
               "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base",
-              question!.userAnswer === "True"
+              question!.options.answer === "True"
                 ? "border-indigo-600 bg-indigo-100 text-indigo-900"
                 : "border-gray-300 hover:bg-gray-100"
             )}
@@ -599,7 +599,7 @@ export default function RenderQuestion(
           <label
             className={clsx(
               "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base",
-              question!.userAnswer === "False"
+              question!.options.answer === "False"
                 ? "border-indigo-600 bg-indigo-100 text-indigo-900"
                 : "border-gray-300 hover:bg-gray-100"
             )}
@@ -631,7 +631,7 @@ export default function RenderQuestion(
           <input
             type="text"
             className="w-full rounded-md border border-gray-300 px-4 py-2"
-            value={question?.userAnswer ?? ""}
+            value={question?.options.answer ?? ""}
             onChange={(e) => {
               const val = e.target.value;
               setQuestion((prev) => {

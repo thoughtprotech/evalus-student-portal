@@ -1,5 +1,5 @@
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { QuestionsMetaResponse } from "@/utils/api/types";
+import { QuestionsMetaDataInterface } from "@/utils/api/types";
 import { QUESTION_STATUS } from "@/utils/constants";
 
 export default function SubmitExamModal({
@@ -8,7 +8,7 @@ export default function SubmitExamModal({
   confirmSubmit,
   cancelSubmit,
 }: {
-  questionsMeta: QuestionsMetaResponse[];
+  questionsMeta: QuestionsMetaDataInterface[];
   showModal: any;
   confirmSubmit: any;
   cancelSubmit: any;

@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
 import Legend from "./Legend";
 import QuestionIndex from "./QuestionIndex";
-import { QuestionsMetaResponse } from "@/utils/api/types";
+import { QuestionsMetaDataInterface } from "@/utils/api/types";
 import { Dispatch, SetStateAction } from "react";
 
 export default function Sidebar({
@@ -15,7 +15,7 @@ export default function Sidebar({
 }: {
   sidebarOpen: boolean;
   setSidebarOpen: Dispatch<SetStateAction<boolean>>;
-  questionsMeta: QuestionsMetaResponse[];
+  questionsMeta: QuestionsMetaDataInterface[];
   handleSubmit: () => void;
   handleJumpTo: (index: number, questionId: number) => void;
   currentIndex: number;

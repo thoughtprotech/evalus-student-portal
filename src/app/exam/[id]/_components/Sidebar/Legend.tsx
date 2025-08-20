@@ -1,11 +1,11 @@
-import { QuestionsMetaResponse } from "@/utils/api/types";
+import { QuestionsMetaDataInterface } from "@/utils/api/types";
 import { QUESTION_STATUS } from "@/utils/constants";
 import { CheckCheck } from "lucide-react";
 
 export default function Legend({
   questionsMeta,
 }: {
-  questionsMeta: QuestionsMetaResponse[];
+  questionsMeta: QuestionsMetaDataInterface[];
 }) {
   return (
     <div className="flex flex-col gap-2 border-b border-b-gray-300 pb-4">
@@ -14,7 +14,7 @@ export default function Legend({
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 p-2 flex items-center justify-center bg-green-500 rounded-md font-bold text-white">
               {
-                questionsMeta.filter(
+                questionsMeta?.filter(
                   (question) => question.status === QUESTION_STATUS.ATTEMPTED
                 ).length
               }
@@ -24,7 +24,7 @@ export default function Legend({
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 p-2 flex items-center justify-center bg-red-500 rounded-md font-bold text-white">
               {
-                questionsMeta.filter(
+                questionsMeta?.filter(
                   (question) => question.status === QUESTION_STATUS.UNATTEMPTED
                 ).length
               }
@@ -35,7 +35,7 @@ export default function Legend({
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 p-2 flex items-center justify-center bg-gray-300 rounded-md font-bold">
               {
-                questionsMeta.filter(
+                questionsMeta?.filter(
                   (question) => question.status === QUESTION_STATUS.NOT_VISITED
                 ).length
               }
@@ -46,7 +46,7 @@ export default function Legend({
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 p-2 flex items-center justify-center bg-purple-500 rounded-full font-bold text-white">
               {
-                questionsMeta.filter(
+                questionsMeta?.filter(
                   (question) => question.status === QUESTION_STATUS.TO_REVIEW
                 ).length
               }
@@ -60,7 +60,7 @@ export default function Legend({
               <CheckCheck className="text-green-500 w-5 h-5 absolute -top-3 -right-3" />
             </div>
             {
-              questionsMeta.filter(
+              questionsMeta?.filter(
                 (question) =>
                   question.status === QUESTION_STATUS.ANSWERED_TO_REVIEW
               ).length

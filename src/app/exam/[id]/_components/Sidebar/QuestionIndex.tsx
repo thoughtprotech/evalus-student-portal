@@ -1,4 +1,4 @@
-import { QuestionsMetaResponse } from "@/utils/api/types";
+import { QuestionsMetaDataInterface } from "@/utils/api/types";
 import { QUESTION_STATUS } from "@/utils/constants";
 import { CheckCheck } from "lucide-react";
 import clsx from "clsx";
@@ -8,7 +8,7 @@ export default function QuestionIndex({
   handleJumpTo,
   currentIndex,
 }: {
-  questionsMeta: QuestionsMetaResponse[];
+  questionsMeta: QuestionsMetaDataInterface[];
   handleJumpTo: (index: number, questionId: number) => void;
   currentIndex: number;
 }) {
