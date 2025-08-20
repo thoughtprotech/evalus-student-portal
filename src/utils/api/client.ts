@@ -42,8 +42,8 @@ function createApiClient() {
     let fullUrl: string;
     if (isAbsolute) {
       fullUrl = pathOnly;
-    } else if (typeof pathOnly === 'string' && pathOnly.startsWith('/api/')) {
-      // Internal Next.js API route
+    } else if (typeof pathOnly === 'string' && pathOnly.startsWith('/api/odata')) {
+      // Only proxy OData through Next.js internal API
       if (typeof window === 'undefined') {
         // Server-side: need absolute URL
         fullUrl = `${env.NEXTAUTH_URL}${pathOnly}`;
@@ -52,7 +52,7 @@ function createApiClient() {
         fullUrl = pathOnly;
       }
     } else {
-      // Backend-relative path – prefix with API_BASE_URL
+      // All other relative paths (including /api/* meant for backend) – prefix with API_BASE_URL
       fullUrl = `${env.API_BASE_URL}${pathOnly}`;
     }
 
@@ -144,9 +144,15 @@ function createApiClient() {
       
       // Provide more detailed error messages
       let errorMessage = "Network error occurred";
+      // Try to show the actual URL we attempted
+      let target = "";
+      try {
+        const u = new URL(fullUrl);
+        target = `${u.protocol}//${u.host}`;
+      } catch {}
       if (err?.message) {
         if (err.message.includes("fetch")) {
-          errorMessage = `Failed to connect to ${env.API_BASE_URL} - Server may be down or unreachable`;
+          errorMessage = `Failed to connect to ${target || fullUrl} - Server may be down or unreachable`;
         } else if (err.message.includes("CORS")) {
           errorMessage = `CORS error - Check server CORS configuration`;
         } else if (err.message.includes("SSL") || err.message.includes("certificate")) {
