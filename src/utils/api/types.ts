@@ -138,6 +138,8 @@ export interface CreateQuestionRequest {
     options: string;
     answer: string;
   };
+  // Question active status (1 = Active, 0 = InActive)
+  isActive?: number;
 }
 
 export interface GetQuestionTypesResponse {

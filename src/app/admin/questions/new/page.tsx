@@ -56,6 +56,8 @@ export default function Index() {
     graceMarks: 0,
   allowComments: 0, // 0 = No, 1 = Yes (Allow Candidate Comments)
   });
+  // Question Status (Active by default)
+  const [questionStatus, setQuestionStatus] = useState<number>(1); // 1 = Active, 0 = InActive
   const [questionHeader, setQuestionHeader] = useState<string>("");
   // Video Solution URLs (separate for Web and Mobile)
   const [videoSolWebURL, setVideoSolWebURL] = useState<string>("");
@@ -566,6 +568,7 @@ export default function Index() {
           options: stringifiedOptions!,
           answer: stringifiedAnswer!,
         },
+  isActive: questionStatus,
       };
 
       // Step 1: Create the question
@@ -656,6 +659,7 @@ export default function Index() {
         graceMarks: 0,
   allowComments: 0,
       });
+  setQuestionStatus(1);
       
       // Reset dependent dropdowns
       setChapters([]);
@@ -1091,6 +1095,19 @@ export default function Index() {
                         }}
                         value={questionsMeta.tags}
                       />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-xs font-medium text-gray-600">Question Status</label>
+                      <select
+                        value={questionStatus}
+                        onChange={(e) => setQuestionStatus(Number(e.target.value))}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                      >
+                        <option value={1}>Active</option>
+                        <option value={0}>InActive</option>
+                      </select>
+                      <p className="text-[10px] text-gray-500 mt-1">Controls whether the question is Active or InActive. Default is Active.</p>
                     </div>
 
                     <div className="space-y-1">
