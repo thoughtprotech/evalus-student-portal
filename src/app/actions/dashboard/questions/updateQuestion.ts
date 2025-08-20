@@ -3,6 +3,7 @@
 import { apiHandler } from "@/utils/api/client";
 import { ApiResponse, CreateQuestionRequest } from "@/utils/api/types";
 import { endpoints } from "@/utils/api/endpoints";
+import { getUserAction } from "@/app/actions/getUser";
 
 export interface UpdateQuestionRequest extends Partial<CreateQuestionRequest> {
   questionId: number;
@@ -13,9 +14,19 @@ export async function updateQuestionAction(
   payload: Partial<CreateQuestionRequest>
 ): Promise<ApiResponse<null>> {
   try {
+    // Add audit user for modifiedBy (and createdBy fallback if backend requires it)
+    let username: string | null = null; try { username = await getUserAction(); } catch { /* ignore */ }
+    const auditUser = username || 'admin';
+  const finalPayload: any = { questionId, ...payload };
+    // Only set modifiedBy / createdBy if not already provided by caller
+    if (!('modifiedBy' in finalPayload)) finalPayload.modifiedBy = auditUser;
+    if (!('createdBy' in finalPayload)) finalPayload.createdBy = auditUser; // some APIs require both
+  // Provide PascalCase variants for backend compatibility
+  if (!('ModifiedBy' in finalPayload)) finalPayload.ModifiedBy = finalPayload.modifiedBy;
+  if (!('CreatedBy' in finalPayload)) finalPayload.CreatedBy = finalPayload.createdBy;
     const { status, error, data, errorMessage, message } = await apiHandler(
       endpoints.updateQuestion,
-      { questionId, ...payload }
+      finalPayload
     );
 
     const isSuccess = (status >= 200 && status < 300) && !error;

@@ -118,6 +118,9 @@ export interface CreateQuestionRequest {
   explanation: string;
   videoSolURL?: string;
   videoSolMobileURL?: string;
+  // Audit fields (added to allow passing logged in user like Products actions)
+  createdBy?: string; // server may derive if omitted
+  modifiedBy?: string; // for create we'll mirror createdBy
   questionsMeta: {
     tags: string;
     marks: number;
