@@ -34,9 +34,14 @@ interface ApiQuestionItem {
   questionDifficultyLevel: string;
   createdDate: string;
   modifiedDate: string;
-  isActive: number;
+  isActive: number | string;
   language: string;
   questionOptionId: number;
+  // New (backend now returns these audit fields)
+  createdBy?: string | null;
+  modifiedBy?: string | null;
+  CreatedBy?: string | null; // tolerate different casing
+  ModifiedBy?: string | null;
 }
 
 interface ODataResponse<T> {
@@ -53,14 +58,14 @@ export interface FetchQuestionsParams {
 
 function buildQuery(params: FetchQuestionsParams): string {
   const searchParams = new URLSearchParams();
-  
+
   // Since language is already in the endpoint, don't add $count as it might not be supported by your function call API
   // Add standard OData query parameters that work with function calls
   if (typeof params.top === "number") searchParams.set("$top", String(params.top));
   if (typeof params.skip === "number") searchParams.set("$skip", String(params.skip));
   if (params.orderBy) searchParams.set("$orderby", params.orderBy);
   if (params.filter) searchParams.set("$filter", params.filter);
-  
+
   return searchParams.toString();
 }
 
@@ -70,25 +75,31 @@ function mapToRows(items: ApiQuestionItem[]): QuestionRow[] {
     if (!item) {
       return null;
     }
-    
+
     if (typeof item !== 'object') {
       return null;
     }
-    
+
+    // Normalize isActive which may arrive as number or string ("0"/"1")
+    const rawIsActive: any = (item as any)?.isActive;
+    const normalizedIsActive = Number(rawIsActive) === 1 ? 1 : 0;
+
     const mapped = {
       id: item.questionId || 0,
       title: stripHtmlTags(item.questionText) || "No Title",
       subject: item.subject || "N/A",
-      topic: item.topic || "N/A", 
+      topic: item.topic || "N/A",
       level: item.questionDifficultyLevel || "N/A",
       createdAt: item.createdDate || "",
       updatedAt: item.modifiedDate || "",
       language: item.language || "English",
-      isActive: item.isActive || 0,
-      createdBy: "System", // Not provided in API response
+      // Use normalized numeric value (0/1) so UI Boolean casting is reliable
+      isActive: normalizedIsActive,
+      // Prefer camelCase, then PascalCase, fallback to System
+      createdBy: (item.createdBy ?? item.CreatedBy ?? undefined) ? String(item.createdBy ?? item.CreatedBy) : "System",
       questionoptionId: item.questionOptionId || undefined, // Map questionOptionId from API response
     };
-    
+
     return mapped;
   }).filter(item => item !== null) as QuestionRow[]; // Remove any null items
 }
@@ -99,7 +110,7 @@ export async function fetchQuestionsAction(
   try {
     // For OData function calls, we need to handle pagination differently
     // First, get all data without pagination parameters since function calls don't support $top/$skip
-    
+
     const response = await apiHandler(endpoints.getAdminQuestions, { query: "" });
 
     if (response.error || response.status !== 200) {
@@ -114,21 +125,21 @@ export async function fetchQuestionsAction(
     // Your API returns a direct array, so handle it with client-side pagination
     let allItems: ApiQuestionItem[] = [];
     let total = 0;
-    
+
     if (Array.isArray(response.data)) {
       allItems = response.data;
       total = allItems.length;
-      
+
       // Apply client-side pagination
       const requestedTop = params.top || 15;
       const currentSkip = params.skip || 0;
-      
+
       // Apply sorting if specified
       if (params.orderBy) {
         const [field, direction] = params.orderBy.split(' ');
         const fieldMap: Record<string, string> = {
           "questionId": "questionId",
-          "questionText": "questionText", 
+          "questionText": "questionText",
           "subject": "subject",
           "topic": "topic",
           "questionDifficultyLevel": "questionDifficultyLevel",
@@ -137,29 +148,29 @@ export async function fetchQuestionsAction(
           "createdDate": "createdDate",
           "modifiedDate": "modifiedDate",
         };
-        
+
         const mappedField = fieldMap[field] || field;
         allItems.sort((a: any, b: any) => {
           const aVal = a[mappedField];
           const bVal = b[mappedField];
           let comparison = 0;
-          
+
           if (aVal < bVal) comparison = -1;
           else if (aVal > bVal) comparison = 1;
-          
+
           return direction === 'desc' ? -comparison : comparison;
         });
       }
-      
+
       // Apply filtering if specified
       if (params.filter) {
         // Parse OData-style filters
         const filterParts = params.filter.split(' and ');
-        
+
         allItems = allItems.filter((item: any) => {
           return filterParts.every(filterPart => {
             const trimmedFilter = filterPart.trim();
-            
+
             // Handle 'contains' filters
             const containsMatch = trimmedFilter.match(/contains\((\w+),'(.+?)'\)/);
             if (containsMatch) {
@@ -167,28 +178,28 @@ export async function fetchQuestionsAction(
               const itemValue = String(item[field] || '').toLowerCase();
               return itemValue.includes(value.toLowerCase());
             }
-            
+
             // Handle 'eq' filters for numbers/booleans
             const eqMatch = trimmedFilter.match(/(\w+)\s+eq\s+(\d+|true|false|'[^']*')/);
             if (eqMatch) {
               const [, field, value] = eqMatch;
               const itemValue = item[field];
-              
+
               // Handle numeric comparisons
               if (/^\d+$/.test(value)) {
                 return Number(itemValue) === Number(value);
               }
-              
+
               // Handle boolean comparisons
               if (value === 'true' || value === 'false') {
                 return Boolean(itemValue) === (value === 'true');
               }
-              
+
               // Handle string comparisons (remove quotes)
               const stringValue = value.replace(/^'|'$/g, '');
               return String(itemValue).toLowerCase() === stringValue.toLowerCase();
             }
-            
+
             // Handle 'startswith' filters
             const startsWithMatch = trimmedFilter.match(/startswith\((\w+),'(.+?)'\)/);
             if (startsWithMatch) {
@@ -196,7 +207,7 @@ export async function fetchQuestionsAction(
               const itemValue = String(item[field] || '').toLowerCase();
               return itemValue.startsWith(value.toLowerCase());
             }
-            
+
             // Handle 'endswith' filters
             const endsWithMatch = trimmedFilter.match(/endswith\((\w+),'(.+?)'\)/);
             if (endsWithMatch) {
@@ -204,18 +215,18 @@ export async function fetchQuestionsAction(
               const itemValue = String(item[field] || '').toLowerCase();
               return itemValue.endsWith(value.toLowerCase());
             }
-            
+
             // If no pattern matches, fall back to simple contains across all values
             const filterLower = trimmedFilter.toLowerCase();
-            return Object.values(item).some(value => 
+            return Object.values(item).some(value =>
               String(value).toLowerCase().includes(filterLower)
             );
           });
         });
-        
+
         total = allItems.length; // Update total after filtering
       }
-      
+
       // Apply pagination
       const paginatedItems = allItems.slice(currentSkip, currentSkip + requestedTop);
       const mappedRows = mapToRows(paginatedItems);
@@ -237,7 +248,7 @@ export async function fetchQuestionsAction(
           }
         }
       }
-      
+
       if (allItems.length === 0) {
         return {
           status: 200,
@@ -245,13 +256,13 @@ export async function fetchQuestionsAction(
           data: { rows: [], total: 0 }
         };
       }
-      
+
       // Apply client-side pagination to fallback data too
       const requestedTop = params.top || 15;
       const currentSkip = params.skip || 0;
       const paginatedItems = allItems.slice(currentSkip, currentSkip + requestedTop);
       const mappedRows = mapToRows(paginatedItems);
-      
+
       return {
         status: 200,
         message: `Successfully fetched ${mappedRows.length} questions`,
@@ -272,7 +283,7 @@ export async function deleteQuestionAction(question: any): Promise<ApiResponse<n
   try {
     // First delete the question option
     await apiHandler(endpoints.deleteQuestionOption, { questionOptionId: question.questionoptionId });
-    
+
     // Then immediately delete the question itself
     const res = await apiHandler(endpoints.deleteQuestion, { questionId: question.id });
     return res;
