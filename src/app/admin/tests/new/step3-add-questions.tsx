@@ -13,15 +13,30 @@ export default function Step3AddQuestions() {
   const [selectedCount, setSelectedCount] = useState<number>(0);
   const [importType, setImportType] = useState<string>("");
 
-  // Read any returned selection from sessionStorage and clear it once consumed
+  // Read any returned selection from sessionStorage and merge into draft.testQuestions
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem("admin:newTest:selectedQuestions");
       if (raw) {
-        const data = JSON.parse(raw) as { questionIds?: number[] };
-        const count = Array.isArray(data?.questionIds) ? data!.questionIds!.length : 0;
-        setSelectedCount(count);
-        // keep it for potential next steps; don't remove immediately
+        const data = JSON.parse(raw) as { questionIds?: number[]; testQuestions?: any[] };
+        const toAdd = Array.isArray(data?.testQuestions) ? data!.testQuestions! : [];
+    if (toAdd.length > 0) {
+          // Merge into draft model
+          setDraft((d) => {
+            const existing = Array.isArray(d.testQuestions) ? d.testQuestions : [];
+            // de-dup by TestQuestionId
+            const map: Record<number, any> = {};
+            for (const q of existing) map[q.TestQuestionId] = q;
+      const testId = typeof d?.TestId === 'number' && d.TestId > 0 ? d.TestId : 0;
+      for (const q of toAdd) map[q.TestQuestionId] = { ...q, TestId: testId };
+            const merged = Object.values(map);
+            return { ...d, testQuestions: merged };
+          });
+        }
+        const newCount = Array.isArray(data?.questionIds) ? data!.questionIds!.length : (toAdd.length || 0);
+        setSelectedCount((prev) => (newCount > 0 ? newCount : prev));
+        // Clear once consumed to avoid duplicate merges on subsequent renders
+        sessionStorage.removeItem("admin:newTest:selectedQuestions");
       }
     } catch {
       // ignore parse errors
@@ -30,7 +45,14 @@ export default function Step3AddQuestions() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search?.toString()]);
 
-  const { draft } = useTestDraft();
+  const { draft, setDraft } = useTestDraft();
+
+  // Keep banner in sync with draft if session is empty
+  useEffect(() => {
+    if (Array.isArray(draft?.testQuestions)) {
+      setSelectedCount(draft.testQuestions.length);
+    }
+  }, [draft?.testQuestions]);
   const handleSelectQuestions = () => {
     // TODO: Route to question bank selection when available
     router.push("/admin/tests/new/questions/select");

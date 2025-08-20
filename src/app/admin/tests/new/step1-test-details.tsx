@@ -129,7 +129,7 @@ export default function Step1CreateTestDetails({
   }, []);
 
   return (
-    <div className="w-full">
+    <div className="w-full max-w-[1400px] mx-auto">
   <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* Left: Form (2 columns on large) */}
   <div className="lg:col-span-7 space-y-4 font-sans text-gray-900 min-h-0" id="step1-form-col">
@@ -395,63 +395,48 @@ export default function Step1CreateTestDetails({
 
         {/* Right: Template + Important Instructions side-by-side */}
   <div className="lg:col-span-5 flex flex-col min-h-0 overflow-hidden" style={{ height: '100%' }}>
-          <div className="mb-2 text-sm font-semibold text-gray-800">
-            Test Template
-          </div>
+          <div className="mb-2 text-sm font-semibold text-gray-800">Test Template</div>
           <div className="flex-1 min-h-0 flex flex-row gap-4 h-full">
             <div className="flex-1 min-w-0 flex flex-col" style={{ height: '100%' }}>
-              <div
-                className="overflow-y-auto pb-2"
-                style={templateGridHeight ? { height: templateGridHeight, maxHeight: templateGridHeight } : {}}
-              >
-                  <div className="grid grid-cols-2 gap-2">
-                    {(templates?.length
-                      ? templates.map((t) => ({
-                          key: String(t.TestTemplateId),
-                          name: t.TestTemplateName,
-                          img: t.TestTemplateThumbNail,
-                          html: t.TestHtmlpreview,
-                        }))
-                      : [
-                          { key: "classic", name: "Classic", img: "/window.svg" },
-                          { key: "modern", name: "Modern", img: "/globe.svg" },
-                          { key: "compact", name: "Compact", img: "/file.svg" },
-                          { key: "sleek", name: "Sleek", img: "/next.svg" },
-                          { key: "minimal", name: "Minimal", img: "/vercel.svg" },
-                          { key: "vivid", name: "Vivid", img: "/under_construction.svg" },
-                        ]
-                    ).map((t) => (
-                      <button
-                        key={t.key}
-                        type="button"
-                        onClick={() => {
-                          setTemplateKey(t.key);
-                          if ((t as any).html) {
-                            setPreviewUrl((t as any).html);
-                            setPreviewOpen(true);
-                          }
-                          setDraft((d: any) => ({ ...d, TemplateKey: t.key }));
-                        }}
-                        className={`text-left border rounded-lg overflow-hidden shadow-sm transition-all duration-150 w-full bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          templateKey === t.key
-                            ? "ring-2 ring-blue-500 border-blue-400"
-                            : "border-gray-200 hover:border-blue-300"
-                        }`}
-                        aria-pressed={templateKey === t.key}
-                      >
-                        <div className="aspect-[4/3] bg-white flex items-center justify-center">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
+              <div className="overflow-y-auto pb-2" style={templateGridHeight ? { height: templateGridHeight, maxHeight: templateGridHeight } : {}}>
+                <div className="grid grid-cols-2 gap-2">
+                  {templates.map((t) => (
+                    <div key={t.TestTemplateId} className={`border rounded-lg overflow-hidden shadow-sm transition-all duration-150 w-full bg-white flex flex-col items-center ${templateKey === String(t.TestTemplateId) ? "ring-2 ring-blue-500 border-blue-400" : "border-gray-200 hover:border-blue-300"}`}>
+                      <div className="w-full flex flex-col items-center">
+                        <div className="w-full flex items-center justify-center gap-1 mb-2 mt-1 rounded bg-blue-50/60 px-1 py-0.5 shadow-sm">
+                          <input
+                            type="checkbox"
+                            checked={templateKey === String(t.TestTemplateId)}
+                            onChange={() => {
+                              setTemplateKey(String(t.TestTemplateId));
+                              setDraft((d: any) => ({ ...d, TemplateKey: String(t.TestTemplateId) }));
+                            }}
+                            className="accent-blue-600 w-4 h-4 rounded border-gray-300 focus:ring-2 focus:ring-blue-500 transition"
+                          />
+                          <span className="text-[11px] font-normal text-blue-900 tracking-wide select-none">{t.TestTemplateName}</span>
+                        </div>
+                        <div
+                          className="aspect-[4/3] bg-white flex items-center justify-center w-full cursor-pointer"
+                          onClick={() => {
+                            setTemplateKey(String(t.TestTemplateId));
+                            setDraft((d: any) => ({ ...d, TemplateKey: String(t.TestTemplateId) }));
+                            if (t.TestHtmlpreview) {
+                              setPreviewUrl(t.TestHtmlpreview);
+                              setPreviewOpen(true);
+                            }
+                          }}
+                        >
                           <img
-                            src={t.img}
-                            alt={t.name}
+                            src={t.TestTemplateThumbNail}
+                            alt={t.TestTemplateName}
                             className="w-full h-full object-contain p-1 opacity-95"
                           />
                         </div>
-                        <div className="px-2 py-1 text-xs font-semibold text-center">{t.name}</div>
-                      </button>
-                    ))}
-                  </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
+              </div>
             </div>
             <div className="flex-1 min-w-0 flex flex-col justify-between h-full">
               <div className="bg-white shadow-sm p-4 h-full flex flex-col justify-between">

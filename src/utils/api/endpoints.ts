@@ -157,7 +157,7 @@ export const endpoints = {
   // OData - Writeups list for dropdowns
   getWriteUpsOData: {
     method: "GET",
-    path: () => `/odata/Writeups?$select=WriteUpId,WriteUpName,Language,IsActive`,
+  path: () => `/Odata/Writeups?$select=WriteUpId,WriteUpName,Language,IsActive`,
     type: "OPEN",
   } as Endpoint<null, import('./types').ODataList<GetWriteUpsResponse>>, 
 
@@ -179,7 +179,7 @@ export const endpoints = {
     path: ({ language }) => {
       // Escape single quotes per OData rules by doubling them
       const lang = (language ?? "").replace(/'/g, "''");
-      const base = `/odata/QuestionDifficultyLevels?$select=QuestionDifficultylevelId,QuestionDifficultylevel1,Language,IsActive`;
+  const base = `/Odata/QuestionDifficultyLevels?$select=QuestionDifficultylevelId,QuestionDifficultylevel1,Language,IsActive`;
       const filter = lang ? `&$filter=Language eq '${lang}' and IsActive eq 1` : `&$filter=IsActive eq 1`;
       return `${base}${filter}`;
     },
@@ -197,7 +197,7 @@ export const endpoints = {
   getAdminTests: {
     method: "GET",
     // query should include leading ?params already: e.g., ?$top=25&$skip=0...
-    path: ({ query }) => `/odata/Tests${query ? (query.startsWith('?') ? query : `?${query}`) : ''}`,
+  path: ({ query }) => `/Odata/Tests${query ? (query.startsWith('?') ? query : `?${query}`) : ''}`,
     type: "OPEN",
   } as Endpoint<import('./types').GetTestsODataRequest, {
     "@odata.count"?: number;
@@ -232,39 +232,39 @@ export const endpoints = {
   // OData lists for Admin Test creation
   getTestTypes: {
     method: "GET",
-  path: () => `/odata/TestTypes?$select=TestTypeId,TestType1`,
+  path: () => `/Odata/TestTypes?$select=TestTypeId,TestType1`,
     type: "OPEN",
   } as Endpoint<null, import('./types').ODataList<import('./types').TestTypeOData>>,
 
   getTestCategories: {
     method: "GET",
-  path: () => `/odata/TestCategories?$select=TestCategoryId,TestCategoryName`,
+  path: () => `/Odata/TestCategories?$select=TestCategoryId,TestCategoryName`,
     type: "OPEN",
   } as Endpoint<null, import('./types').ODataList<import('./types').TestCategoryOData>>,
 
   getTestInstructions: {
     method: "GET",
-  path: () => `/odata/TestInstructions?$select=TestInstructionId,TestInstructionName`,
+  path: () => `/Odata/TestInstructions?$select=TestInstructionId,TestInstructionName`,
     type: "OPEN",
   } as Endpoint<null, import('./types').ODataList<import('./types').TestInstructionOData>>,
 
   getTestDifficultyLevelsOData: {
     method: "GET",
-  path: () => `/odata/TestDifficultyLevels?$select=TestDifficultyLevelId,TestDifficultyLevel1`,
+  path: () => `/Odata/TestDifficultyLevels?$select=TestDifficultyLevelId,TestDifficultyLevel1`,
     type: "OPEN",
   } as Endpoint<null, import('./types').ODataList<import('./types').TestDifficultyLevelOData>>,
 
   // OData - Test Templates for Step 1 template picker
   getTestTemplatesOData: {
     method: "GET",
-    path: () => `/odata/TestTemplates?$select=TestTemplateId,TestTemplateName,TestHtmlpreview,TestTemplateThumbNail`,
+  path: () => `/Odata/TestTemplates?$select=TestTemplateId,TestTemplateName,TestHtmlpreview,TestTemplateThumbNail`,
     type: "OPEN",
   } as Endpoint<null, import('./types').ODataList<import('./types').TestTemplateOData>>,
 
   // Select Questions page endpoints
   getLanguagesOData: {
     method: "GET",
-    path: () => `/odata/Languages?$select=Language1`,
+  path: () => `/Odata/Languages?$select=Language1`,
     type: "OPEN",
   } as Endpoint<null, import('./types').ODataList<{ Language1: string }>>,
 
@@ -272,7 +272,7 @@ export const endpoints = {
     method: "GET",
     path: ({ language }) => {
       const lang = (language ?? "").replace(/'/g, "''");
-      return `/odata/Subjects?$filter=Language eq '${lang}' and ParentId eq 0&$select=SubjectId,SubjectName`;
+  return `/Odata/Subjects?$filter=Language eq '${lang}' and ParentId eq 0&$select=SubjectId,SubjectName`;
     },
     type: "OPEN",
   } as Endpoint<{ language?: string }, import('./types').ODataList<{ SubjectId: number; SubjectName: string }>>,
@@ -281,28 +281,64 @@ export const endpoints = {
     method: "GET",
     path: ({ language }) => {
       const lang = (language ?? "").replace(/'/g, "''");
-      return `/odata/QuestionTypes?$filter=Language eq '${lang}'&$select=QuestionTypeId,QuestionType1`;
+  return `/Odata/QuestionTypes?$filter=Language eq '${lang}'&$select=QuestionTypeId,QuestionType1`;
     },
     type: "OPEN",
   } as Endpoint<{ language?: string }, import('./types').ODataList<{ QuestionTypeId: number; QuestionType1: string }>>,
 
   getSubjectTree: {
     method: "GET",
-    path: ({ parentId }) => `/odata/Subjects/GetSubjectTree(ParentId=${parentId})`,
+  path: ({ parentId }) => `/Odata/Subjects/GetSubjectTree(ParentId=${parentId})`,
     type: "OPEN",
   } as Endpoint<{ parentId: number }, any[]>,
 
   getQuestionsByQuery: {
     method: "GET",
-    path: ({ query }) => `/odata/Questions${query}`,
+  path: ({ query }) => `/Odata/Questions${query}`,
     type: "OPEN",
   } as Endpoint<{ query?: string }, { value: any[] }>,
+
+  // OData - Filtered Questions with pagination and expands, using SubjectId list
+  getQuestionsFilteredOData: {
+    method: "GET",
+    path: ({ language, subjectIds, questionTypeId, difficultyId, top = 15, skip = 0 }) => {
+      const lang = (language ?? "").replace(/'/g, "''");
+      const parts: string[] = [
+        "IsActive eq 1",
+        `Language eq '${lang}'`,
+      ];
+      const idsArr = (Array.isArray(subjectIds) ? subjectIds : []).filter((n) => Number.isFinite(n));
+      if (idsArr.length === 1) {
+        parts.push(`SubjectId eq ${idsArr[0]}`);
+      } else if (idsArr.length > 1) {
+        parts.push(`(${idsArr.map((n) => `SubjectId eq ${n}`).join(" or ")})`);
+      }
+  if (questionTypeId) parts.push(`QuestionTypeId eq ${questionTypeId}`);
+  if (difficultyId) parts.push(`QuestionDifficultyLevelId eq ${difficultyId}`);
+  const filter = encodeURIComponent(parts.join(" and "));
+  // Encode $expand value so inner $select is represented as %24select (matches working browser URL)
+  const expand = encodeURIComponent("Questionoptions($select=QuestionText),Questiondifficultylevel($select=QuestionDifficultylevel1)");
+  const select = encodeURIComponent("QuestionId,Marks,NegativeMarks,GraceMarks,Language,SubjectId,QuestionTypeId,QuestionDifficultyLevelId");
+  return `/api/odata/Questions?$count=true&$top=${top}&$skip=${skip}&$filter=${filter}&$expand=${expand}&$select=${select}`;
+    },
+    type: "OPEN",
+  } as Endpoint<{
+    language: string;
+    subjectIds: number[];
+    questionTypeId: number;
+    difficultyId?: number;
+    top?: number;
+    skip?: number;
+  }, {
+    "@odata.count"?: number;
+    value: any[];
+  }>,
 
   // Admin Questions (server actions moved here)
   getAdminQuestions: {
     method: "GET",
     // Use your specific API endpoint for getting questions by language
-    path: ({ query }) => `/odata/Questions/GetAllQuestionsByLanguage(language=English)${query ? (query.startsWith('?') ? query : `?${query}`) : ''}`,
+  path: ({ query }) => `/Odata/Questions/GetAllQuestionsByLanguage(language=English)${query ? (query.startsWith('?') ? query : `?${query}`) : ''}`,
     type: "OPEN",
     } as Endpoint<import('./types').GetQuestionsODataRequest, any[]>,
 

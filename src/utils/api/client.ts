@@ -10,10 +10,8 @@ function createApiClient() {
     endpoint: Endpoint<Req, Res>,
     body: Req | FormData
   ): Promise<ApiResponse<Res>> {
-    const isForm = body instanceof FormData;
-    const headers: Record<string, string> = isForm
-      ? {}
-      : { "Content-Type": "application/json" };
+  const isForm = body instanceof FormData;
+  const headers: Record<string, string> = {};
 
     const startTime = Date.now();
 
@@ -39,28 +37,50 @@ function createApiClient() {
     }
     
 
+    const pathOnly = endpoint.path(body as Req) as string;
+    const isAbsolute = typeof pathOnly === 'string' && /^https?:\/\//i.test(pathOnly);
+    let fullUrl: string;
+    if (isAbsolute) {
+      fullUrl = pathOnly;
+    } else if (typeof pathOnly === 'string' && pathOnly.startsWith('/api/')) {
+      // Internal Next.js API route
+      if (typeof window === 'undefined') {
+        // Server-side: need absolute URL
+        fullUrl = `${env.NEXTAUTH_URL}${pathOnly}`;
+      } else {
+        // Browser: relative is fine (same-origin)
+        fullUrl = pathOnly;
+      }
+    } else {
+      // Backend-relative path – prefix with API_BASE_URL
+      fullUrl = `${env.API_BASE_URL}${pathOnly}`;
+    }
+
     logger("request:start", {
       endpoint,
       headers,
       body,
-      url: `${env.API_BASE_URL}${endpoint.path(body as Req)}`,      
+      url: fullUrl,      
     });
 
     try {
-      const res = await fetch(
-        `${env.API_BASE_URL}${endpoint.path(body as Req)}`,
-        {
-          method: endpoint.method,
-          headers,
-          body:
-            endpoint.method === "GET"
-              ? undefined
-              : isForm
-              ? (body as FormData)
-              : JSON.stringify(body),
-          credentials: endpoint.type === "CLOSE" ? "include" : undefined,
-        }
-      );
+      // Only set Content-Type for non-GET JSON requests to avoid CORS preflight for GET
+      const finalHeaders: Record<string, string> = { ...headers };
+      if (endpoint.method !== "GET" && !isForm) {
+        finalHeaders["Content-Type"] = "application/json";
+      }
+
+      const res = await fetch(fullUrl, {
+        method: endpoint.method,
+        headers: finalHeaders,
+        body:
+          endpoint.method === "GET"
+            ? undefined
+            : isForm
+            ? (body as FormData)
+            : JSON.stringify(body),
+        credentials: endpoint.type === "CLOSE" ? "include" : undefined,
+      });
 
       const elapsed = `${Date.now() - startTime}ms`;
 
