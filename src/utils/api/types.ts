@@ -37,11 +37,11 @@ export interface GetQuestionListResponse {
   questionText: string;
   questionType: QuestionType;
   questionStatus:
-    | "Not Visited"
-    | "Attempted"
-    | "UnAttempted"
-    | "To Review"
-    | "Answered To Review";
+  | "Not Visited"
+  | "Attempted"
+  | "UnAttempted"
+  | "To Review"
+  | "Answered To Review";
   marks: number;
   negativeMarks: number;
   questionSectionId: number;
@@ -130,10 +130,10 @@ export interface CreateQuestionRequest {
     language: string;
     writeUpId?: number | null;
     headerText?: string | null;
-  allowCandidateComments?: number; // 0 | 1
+    allowCandidateComments?: number; // 0 | 1
   };
   question: string;
-  headerText:string;
+  headerText: string;
   options: {
     options: string;
     answer: string;
@@ -163,11 +163,11 @@ export interface GetCandidateTestResponse {
   testStartDate: string;
   testEndDate: string;
   testCandidateRegistrationStatus:
-    | "Registered"
-    | "Completed"
-    | "Cancelled"
-    | "In Progress"
-    | "Missed";
+  | "Registered"
+  | "Completed"
+  | "Cancelled"
+  | "In Progress"
+  | "Missed";
   testId: number;
 }
 
@@ -298,7 +298,7 @@ export interface GetQuestionOptionsResponse {
   createdDate: string;
   modifiedDate: string;
 }
-  
+
 // Admin Tests (OData)
 export interface GetTestsODataRequest {
   // Prebuilt OData query string: "$top=...&$skip=...&..."
@@ -360,18 +360,18 @@ export interface TestTemplateOData {
 }
 
 export interface GetCompaniesRequest {
-    // Prebuilt OData query string: "$top=...&$skip=...&..."
-    query: string;
+  // Prebuilt OData query string: "$top=...&$skip=...&..."
+  query: string;
 }
 
 export interface DeleteCompanyRequest {
-    companyId: number;
+  companyId: number;
 }
 export interface GetCandidatesRequest {
-    query: string;
+  query: string;
 }
 
 export interface DeleteCandidateRequest {
-    candidateId: number;
+  candidateId: number;
 }
 

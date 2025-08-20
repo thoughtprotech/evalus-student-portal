@@ -41,7 +41,7 @@ export default function Index() {
     languageId: string;
     writeUpId: number | null;
     graceMarks: number;
-  allowComments: number; // 1 = Yes, 0 = No
+    allowComments: number; // 1 = Yes, 0 = No
   }>({
     tags: "",
     marks: 0,
@@ -54,7 +54,7 @@ export default function Index() {
     languageId: "",
     writeUpId: null,
     graceMarks: 0,
-  allowComments: 0, // 0 = No, 1 = Yes (Allow Candidate Comments)
+    allowComments: 0, // 0 = No, 1 = Yes (Allow Candidate Comments)
   });
   // Question Status (Active by default)
   const [questionStatus, setQuestionStatus] = useState<number>(1); // 1 = Active, 0 = InActive
@@ -107,17 +107,17 @@ export default function Index() {
       const clean = (v?: string) => normalize(v).replace(/[^a-z]/g, '');
       const sel = clean(language);
       // First, filter by language (robust)
-  const languageRows = (data ?? []).filter((s) => {
+      const languageRows = (data ?? []).filter((s) => {
         if (!language) return true;
         const subj = clean(s.language);
         if (!subj) return true; // include unlabeled subjects
         return subj === sel || subj.includes(sel) || sel.includes(subj);
       });
-  setAllLanguageSubjects(languageRows);
+      setAllLanguageSubjects(languageRows);
 
       // Filter to show only items where SubjectType === 'Subject'
       const isType = (s: any, t: string) => (s?.subjectType ?? '').toString().trim().toLowerCase() === t;
-      
+
       // Only include items with SubjectType === 'Subject'
       const subjectTypeItems = languageRows.filter((s) => isType(s, 'subject'));
 
@@ -179,14 +179,14 @@ export default function Index() {
     }
 
     const isType = (s: any, t: string) => (s?.subjectType ?? '').toString().trim().toLowerCase() === t;
-    
+
     // Filter chapters that belong to the selected subject
-    const chapterList = allLanguageSubjects.filter((s) => 
+    const chapterList = allLanguageSubjects.filter((s) =>
       isType(s, 'chapter') && s.parentId === subjectId
     );
 
     setChapters(chapterList);
-    
+
     // Reset chapter and topic selection
     setQuestionsMeta((prev) => ({ ...prev, chapterId: 0, topicId: 0 }));
   };
@@ -224,7 +224,7 @@ export default function Index() {
     // Load only languages and question types initially
     fetchQuestionTypes();
     fetchLanguages();
-  fetchWriteUps();
+    fetchWriteUps();
     // Subjects and topics are loaded on dropdown selection
   }, []);
 
@@ -259,7 +259,7 @@ export default function Index() {
     return () => t && clearTimeout(t);
   }, [isDifficultyLoading]);
 
-  const submitQuestion = async (showModal: boolean = true): Promise<{success: boolean}> => {
+  const submitQuestion = async (showModal: boolean = true): Promise<{ success: boolean }> => {
     try {
       // Detect current question type label
       const currentType = questionTypes.find(
@@ -370,7 +370,7 @@ export default function Index() {
       let stringifiedOptions = "";
       let stringifiedAnswer: string | undefined = undefined;
 
-  if (currentType === QUESTION_TYPES.MATCH_PAIRS_SINGLE) {
+      if (currentType === QUESTION_TYPES.MATCH_PAIRS_SINGLE) {
         // Expect options as [left[], right[]] and answer as array mapping by index to a single right
         const cols = (questionOptions?.options || []) as any[];
         const left: string[] = Array.isArray(cols?.[0]) ? cols[0] : [];
@@ -385,8 +385,8 @@ export default function Index() {
           .map((l, i) => [l, ansList[i]] as [string, string])
           .filter(([l, r]) => !!(l && r));
 
-  // Serialize with a `type` property for clarity/compat
-  stringifiedOptions = JSON.stringify({ type: "match-pair-single", left, right });
+        // Serialize with a `type` property for clarity/compat
+        stringifiedOptions = JSON.stringify({ type: "match-pair-single", left, right });
         stringifiedAnswer = JSON.stringify(pairs);
       } else if (currentType === QUESTION_TYPES.MATCH_PAIRS_MULTIPLE) {
         // Expect options as [left[], right[]] and answer as string[][] (multiple right per left)
@@ -402,12 +402,12 @@ export default function Index() {
 
         stringifiedOptions = JSON.stringify({ type: "match-pair-multiple", left, right });
         stringifiedAnswer = JSON.stringify(answer2D);
-  } else if (currentType === QUESTION_TYPES.SINGLE_MCQ) {
+      } else if (currentType === QUESTION_TYPES.SINGLE_MCQ) {
         const optsArr = (questionOptions?.options || []) as string[];
         const ansArr = Array.isArray(questionOptions?.answer) ? (questionOptions!.answer as string[]) : [];
         stringifiedOptions = JSON.stringify({ type: "mcq-single", options: optsArr });
         stringifiedAnswer = JSON.stringify(ansArr);
-  } else if (currentType === QUESTION_TYPES.MULTIPLE_MCQ) {
+      } else if (currentType === QUESTION_TYPES.MULTIPLE_MCQ) {
         const optsArr = (questionOptions?.options || []) as string[];
         const ansArr = Array.isArray(questionOptions?.answer) ? (questionOptions!.answer as string[]) : [];
         stringifiedOptions = JSON.stringify({ type: "mcq-multiple", options: optsArr });
@@ -463,48 +463,48 @@ export default function Index() {
 
       if (questionsMeta.subjectId === 0) {
         toast.error("Subject Is Required");
-        return {success: false};
+        return { success: false };
       }
 
       if (questionsMeta.chapterId === 0) {
         toast.error("Chapter Is Required");
-        return {success: false};
+        return { success: false };
       }
 
       if (questionsMeta.topicId === 0) {
         toast.error("Topic Is Required");
-        return {success: false};
+        return { success: false };
       }
 
       if (questionsMeta.languageId === "") {
         toast.error("Language Is Required");
-        return {success: false};
+        return { success: false };
       }
 
       if (questionsMeta.difficulty === 0) {
         toast.error("Difficulty Level Is Required");
-        return {success: false};
+        return { success: false };
       }
 
       if (questionsMeta.questionType === 0) {
         toast.error("Question Type Is Required");
-        return {success: false};
+        return { success: false };
       }
 
       if (questionsMeta.marks === 0) {
         toast.error("Marks Is Required");
-        return {success: false};
+        return { success: false };
       }
 
       // Base presence checks (skip for WRITE_UP because it's optional)
       if (currentType !== QUESTION_TYPES.WRITE_UP) {
         if (stringifiedOptions?.length === 0 || stringifiedOptions === "[]") {
           toast.error("Options Are Required");
-          return {success: false};
+          return { success: false };
         }
         if (stringifiedAnswer?.length === 0 || stringifiedAnswer === "[]") {
           toast.error("Answer Is Required");
-          return {success: false};
+          return { success: false };
         }
       }
 
@@ -525,7 +525,7 @@ export default function Index() {
       // For HTML content, we check if there's actual text content
       const hasQuestionContent = (content: string): boolean => {
         if (!content) return false;
-        
+
         // Create a temporary div to check if there's actual text content
         const div = document.createElement('div');
         div.innerHTML = content;
@@ -535,18 +535,18 @@ export default function Index() {
 
       if (!hasQuestionContent(question.trim())) {
         toast.error("Question Is Required");
-        return {success: false};
+        return { success: false };
       }
 
-  const cleanVideoUrlWeb = webUrl;
-  const cleanVideoUrlMobile = mobileUrl;
-  // For now, backend createQuestion supports a single field. Prefer Web URL; fallback to Mobile.
-  const selectedSingleVideoUrl = cleanVideoUrlWeb || cleanVideoUrlMobile;
-      
+      const cleanVideoUrlWeb = webUrl;
+      const cleanVideoUrlMobile = mobileUrl;
+      // For now, backend createQuestion supports a single field. Prefer Web URL; fallback to Mobile.
+      const selectedSingleVideoUrl = cleanVideoUrlWeb || cleanVideoUrlMobile;
+
       const payload: CreateQuestionRequest = {
-  explanation: explanation.trim(), // Save HTML as-is
-  ...(selectedSingleVideoUrl && { videoSolURL: selectedSingleVideoUrl }), // Only include if not empty
-  ...(cleanVideoUrlMobile && { videoSolMobileURL: cleanVideoUrlMobile }), // Only include if not empty
+        explanation: explanation.trim(), // Save HTML as-is
+        ...(selectedSingleVideoUrl && { videoSolURL: selectedSingleVideoUrl }), // Only include if not empty
+        ...(cleanVideoUrlMobile && { videoSolMobileURL: cleanVideoUrlMobile }), // Only include if not empty
         questionsMeta: {
           tags: questionsMeta.tags,
           marks: questionsMeta.marks,
@@ -568,7 +568,7 @@ export default function Index() {
           options: stringifiedOptions!,
           answer: stringifiedAnswer!,
         },
-  isActive: questionStatus,
+        isActive: questionStatus,
       };
 
       // Step 1: Create the question
@@ -583,11 +583,11 @@ export default function Index() {
         if (showModal) {
           setShowSuccessModal(true);
         }
-        return {success: true};
+        return { success: true };
       } else {
         // Extract detailed error message from API response if available
         let detailedError = errorMessage || "Failed to create question";
-        
+
         if (data && typeof data === 'object') {
           const errorData = data as any;
           if (errorData.errors) {
@@ -601,13 +601,13 @@ export default function Index() {
             detailedError = `Validation errors: ${validationErrors}`;
           }
         }
-        
+
         toast.error(detailedError);
-        return {success: false};
+        return { success: false };
       }
     } catch (error) {
       toast.error("An unexpected error occurred while saving the question");
-      return {success: false};
+      return { success: false };
     }
   };
 
@@ -618,9 +618,9 @@ export default function Index() {
     }
 
     setIsSaving(true);
-    
+
     const result = await submitQuestion(true); // true means show modal
-    
+
     setIsSaving(false);
   };
 
@@ -633,17 +633,17 @@ export default function Index() {
     setIsSaving(true);
 
     const result = await submitQuestion(false); // false means don't show modal
-    
+
     if (result.success) {
       // Show success toast instead of modal
       toast.success("Question saved successfully! Creating new question...");
-      
+
       // Reset form for creating another question
       setQuestion("");
       setExplanation("");
       setQuestionHeader("");
-  setVideoSolWebURL("");
-  setVideoSolMobileURL("");
+      setVideoSolWebURL("");
+      setVideoSolMobileURL("");
       setQuestionOptions(undefined);
       setQuestionsMeta({
         tags: "",
@@ -655,17 +655,17 @@ export default function Index() {
         chapterId: 0,
         topicId: 0,
         languageId: "",
-  writeUpId: null,
+        writeUpId: null,
         graceMarks: 0,
-  allowComments: 0,
+        allowComments: 0,
       });
-  setQuestionStatus(1);
-      
+      setQuestionStatus(1);
+
       // Reset dependent dropdowns
       setChapters([]);
       setTopics([]);
     }
-    
+
     setIsSaving(false);
   };
 
@@ -695,22 +695,20 @@ export default function Index() {
                 <button
                   onClick={handleSaveAndNew}
                   disabled={isSaving}
-                  className={`px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium transition-colors ${
-                    isSaving 
-                      ? 'bg-gray-50 text-gray-400 cursor-not-allowed' 
+                  className={`px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium transition-colors ${isSaving
+                      ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
                       : 'bg-white text-gray-700 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   {isSaving ? 'Saving...' : 'Save & New'}
                 </button>
                 <button
                   onClick={() => handleSubmit()}
                   disabled={isSaving}
-                  className={`px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-colors ${
-                    isSaving 
-                      ? 'bg-gray-400 cursor-not-allowed' 
+                  className={`px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-colors ${isSaving
+                      ? 'bg-gray-400 cursor-not-allowed'
                       : 'bg-indigo-600 hover:bg-indigo-700'
-                  }`}
+                    }`}
                 >
                   {isSaving ? 'Saving...' : 'Save Question'}
                 </button>
@@ -732,7 +730,7 @@ export default function Index() {
                 </div>
                 <h2 className="text-lg font-semibold text-gray-900">Question Configuration</h2>
               </div>
-              
+
               <div className="space-y-6">
                 {/* Language Selection */}
                 <div className="space-y-2">
@@ -805,13 +803,13 @@ export default function Index() {
                       style={{
                         height:
                           (showSubjectsStatus && isSubjectsLoading && questionsMeta.languageId) ||
-                          (!isSubjectsLoading && subjects.length === 0 && questionsMeta.languageId)
+                            (!isSubjectsLoading && subjects.length === 0 && questionsMeta.languageId)
                             ? '1rem'
                             : 0,
                         transition: 'height 200ms ease',
                         marginTop:
                           (showSubjectsStatus && isSubjectsLoading && questionsMeta.languageId) ||
-                          (!isSubjectsLoading && subjects.length === 0 && questionsMeta.languageId)
+                            (!isSubjectsLoading && subjects.length === 0 && questionsMeta.languageId)
                             ? '0.25rem'
                             : 0,
                       }}
@@ -888,13 +886,13 @@ export default function Index() {
                       style={{
                         height:
                           (showTopicsStatus && isTopicsLoading && questionsMeta.chapterId > 0) ||
-                          (!isTopicsLoading && topics.length === 0 && questionsMeta.chapterId > 0)
+                            (!isTopicsLoading && topics.length === 0 && questionsMeta.chapterId > 0)
                             ? '1rem'
                             : 0,
                         transition: 'height 200ms ease',
                         marginTop:
                           (showTopicsStatus && isTopicsLoading && questionsMeta.chapterId > 0) ||
-                          (!isTopicsLoading && topics.length === 0 && questionsMeta.chapterId > 0)
+                            (!isTopicsLoading && topics.length === 0 && questionsMeta.chapterId > 0)
                             ? '0.25rem'
                             : 0,
                       }}
@@ -970,13 +968,13 @@ export default function Index() {
                       style={{
                         height:
                           (showDifficultyStatus && isDifficultyLoading && questionsMeta.languageId) ||
-                          (!isDifficultyLoading && difficultyLevels.length === 0 && questionsMeta.languageId)
+                            (!isDifficultyLoading && difficultyLevels.length === 0 && questionsMeta.languageId)
                             ? '1rem'
                             : 0,
                         transition: 'height 200ms ease',
                         marginTop:
                           (showDifficultyStatus && isDifficultyLoading && questionsMeta.languageId) ||
-                          (!isDifficultyLoading && difficultyLevels.length === 0 && questionsMeta.languageId)
+                            (!isDifficultyLoading && difficultyLevels.length === 0 && questionsMeta.languageId)
                             ? '0.25rem'
                             : 0,
                       }}
@@ -998,7 +996,7 @@ export default function Index() {
                     </div>
                     Marks Configuration
                   </h3>
-                  
+
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <label className="block text-xs font-medium text-gray-600">
@@ -1083,7 +1081,7 @@ export default function Index() {
                     </div>
                     Additional Options
                   </h3>
-                  
+
                   <div className="space-y-3">
                     <div className="space-y-1">
                       <label className="block text-xs font-medium text-gray-600">Tags</label>
@@ -1159,7 +1157,7 @@ export default function Index() {
                   <div className="space-y-3">
                     {/* Progress Bar */}
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
+                      <div
                         className="bg-gradient-to-r from-indigo-500 to-blue-600 h-2 rounded-full transition-all duration-500 ease-out"
                         style={{
                           width: `${([questionsMeta.languageId, questionsMeta.subjectId, questionsMeta.chapterId, questionsMeta.topicId, questionsMeta.questionType, questionsMeta.difficulty].filter(Boolean).length / 6) * 100}%`
@@ -1170,43 +1168,43 @@ export default function Index() {
                     {/* Configuration Checklist */}
                     <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
                       <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.languageId ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
-              <div className={`w-3 h-3 rounded-full ${questionsMeta.languageId ? 'bg-green-500' : 'bg-gray-300'}`}>
-                {!!questionsMeta.languageId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+                        <div className={`w-3 h-3 rounded-full ${questionsMeta.languageId ? 'bg-green-500' : 'bg-gray-300'}`}>
+                          {!!questionsMeta.languageId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
                         </div>
                         <span className="font-medium">Language</span>
                       </div>
-                      
+
                       <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.subjectId ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
-              <div className={`w-3 h-3 rounded-full ${questionsMeta.subjectId ? 'bg-green-500' : 'bg-gray-300'}`}>
-                {!!questionsMeta.subjectId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+                        <div className={`w-3 h-3 rounded-full ${questionsMeta.subjectId ? 'bg-green-500' : 'bg-gray-300'}`}>
+                          {!!questionsMeta.subjectId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
                         </div>
                         <span className="font-medium">Subject</span>
                       </div>
-                      
+
                       <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.chapterId ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
-              <div className={`w-3 h-3 rounded-full ${questionsMeta.chapterId ? 'bg-green-500' : 'bg-gray-300'}`}>
-                {!!questionsMeta.chapterId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+                        <div className={`w-3 h-3 rounded-full ${questionsMeta.chapterId ? 'bg-green-500' : 'bg-gray-300'}`}>
+                          {!!questionsMeta.chapterId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
                         </div>
                         <span className="font-medium">Chapter</span>
                       </div>
-                      
+
                       <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.topicId ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
-              <div className={`w-3 h-3 rounded-full ${questionsMeta.topicId ? 'bg-green-500' : 'bg-gray-300'}`}>
-                {!!questionsMeta.topicId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+                        <div className={`w-3 h-3 rounded-full ${questionsMeta.topicId ? 'bg-green-500' : 'bg-gray-300'}`}>
+                          {!!questionsMeta.topicId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
                         </div>
                         <span className="font-medium">Topic</span>
                       </div>
-                      
+
                       <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.questionType ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
-              <div className={`w-3 h-3 rounded-full ${questionsMeta.questionType ? 'bg-green-500' : 'bg-gray-300'}`}>
-                {!!questionsMeta.questionType && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+                        <div className={`w-3 h-3 rounded-full ${questionsMeta.questionType ? 'bg-green-500' : 'bg-gray-300'}`}>
+                          {!!questionsMeta.questionType && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
                         </div>
                         <span className="font-medium">Type</span>
                       </div>
-                      
+
                       <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.difficulty ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
-              <div className={`w-3 h-3 rounded-full ${questionsMeta.difficulty ? 'bg-green-500' : 'bg-gray-300'}`}>
-                {!!questionsMeta.difficulty && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
+                        <div className={`w-3 h-3 rounded-full ${questionsMeta.difficulty ? 'bg-green-500' : 'bg-gray-300'}`}>
+                          {!!questionsMeta.difficulty && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
                         </div>
                         <span className="font-medium">Difficulty</span>
                       </div>
@@ -1361,22 +1359,20 @@ export default function Index() {
                   <button
                     onClick={handleSaveAndNew}
                     disabled={isSaving}
-                    className={`flex-1 px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium transition-colors ${
-                      isSaving 
-                        ? 'bg-gray-50 text-gray-400 cursor-not-allowed' 
+                    className={`flex-1 px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium transition-colors ${isSaving
+                        ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
                         : 'bg-white text-gray-700 hover:bg-gray-50'
-                    }`}
+                      }`}
                   >
                     {isSaving ? 'Saving...' : 'Save & New'}
                   </button>
                   <button
                     onClick={() => handleSubmit()}
                     disabled={isSaving}
-                    className={`flex-1 px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-colors ${
-                      isSaving 
-                        ? 'bg-gray-400 cursor-not-allowed' 
+                    className={`flex-1 px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-colors ${isSaving
+                        ? 'bg-gray-400 cursor-not-allowed'
                         : 'bg-indigo-600 hover:bg-indigo-700'
-                    }`}
+                      }`}
                   >
                     {isSaving ? 'Saving...' : 'Save Question'}
                   </button>

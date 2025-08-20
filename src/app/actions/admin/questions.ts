@@ -75,6 +75,10 @@ function mapToRows(items: ApiQuestionItem[]): QuestionRow[] {
       return null;
     }
     
+    // Normalize isActive which may arrive as number or string ("0"/"1")
+    const rawIsActive: any = (item as any)?.isActive;
+    const normalizedIsActive = Number(rawIsActive) === 1 ? 1 : 0;
+
     const mapped = {
       id: item.questionId || 0,
       title: stripHtmlTags(item.questionText) || "No Title",
@@ -84,7 +88,8 @@ function mapToRows(items: ApiQuestionItem[]): QuestionRow[] {
       createdAt: item.createdDate || "",
       updatedAt: item.modifiedDate || "",
       language: item.language || "English",
-      isActive: item.isActive || 0,
+      // Use normalized numeric value (0/1) so UI Boolean casting is reliable
+      isActive: normalizedIsActive,
       createdBy: "System", // Not provided in API response
       questionoptionId: item.questionOptionId || undefined, // Map questionOptionId from API response
     };
