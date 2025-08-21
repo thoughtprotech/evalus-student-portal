@@ -393,6 +393,13 @@ export const endpoints = {
     },
     type: "OPEN",
   } as Endpoint<{ query?: string }, any[]>,
+  
+  // OData - Test Sections (for Step 3 bulk assignment)
+  getTestSectionsOData: {
+    method: "GET",
+    path: () => `/Odata/TestSections?$select=TestSectionId,TestSectionName`,
+    type: "OPEN",
+  } as Endpoint<null, import('./types').ODataList<{ TestSectionId: number; TestSectionName: string }>>,
   getProductById: {
     method: "GET",
     path: ({ productId }: { productId: number }) => `/api/TestProducts/${productId}`,

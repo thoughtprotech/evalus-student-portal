@@ -202,6 +202,23 @@ export default function SelectQuestionsPage() {
     await fetchQuestions({ resetPage: true });
   };
 
+  // Initialize preselected from Step 3, once
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("admin:newTest:preselectedIds");
+      if (raw) {
+        const ids = JSON.parse(raw) as number[];
+        if (Array.isArray(ids) && ids.length) {
+          setSelected((prev) => {
+            const next = { ...prev } as Record<number, boolean>;
+            ids.forEach((id) => { next[id] = true; });
+            return next;
+          });
+        }
+      }
+    } catch {}
+  }, []);
+
   const toggleAll = () => {
     const all = rows.length > 0 && rows.every(r => selected[r.QuestionId]);
     if (all) {
@@ -329,7 +346,14 @@ export default function SelectQuestionsPage() {
                 Results
               </div>
               <div className="flex items-center gap-2">
-                <button className="px-4 py-2 rounded bg-green-600 text-white text-sm flex items-center gap-2 font-medium hover:bg-green-700 transition-colors" onClick={() => router.push("/admin/tests/new?step=3") }>
+                <button className="px-4 py-2 rounded bg-green-600 text-white text-sm flex items-center gap-2 font-medium hover:bg-green-700 transition-colors" onClick={() => {
+                  // persist selection state locally before leaving
+                  try {
+                    const ids = Object.keys(selected).filter(k=> selected[Number(k)]).map(Number);
+                    sessionStorage.setItem("admin:newTest:preselectedIds", JSON.stringify(ids));
+                  } catch {}
+                  router.push("/admin/tests/new?step=3")
+                }}>
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                   Back to Test
                 </button>
