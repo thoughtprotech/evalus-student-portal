@@ -38,7 +38,25 @@ export async function fetchCandidateTestList(
       // If backend already returns an array
       let hasExplicitUpNext = false;
       if (Array.isArray(data)) {
-        list = data as any;
+        // API returned a flat list already containing classification field
+        list = (data as any[]).map((t) => {
+          let finalStatus =
+            t.testCandidateRegistrationStatus ||
+            t.testRegistrationStatus ||
+            t.type ||
+            t.status;
+          if (finalStatus === "InProgress") finalStatus = "In Progress";
+            // Backend may send UpNext (camel-cased) while UI expects Up Next
+          if (finalStatus === "UpNext") finalStatus = "Up Next";
+          return {
+            testName: t.testName || t.TestName || t.name,
+            testStartDate: t.testStartDate || t.StartDate || t.TestStartDate,
+            testEndDate: t.testEndDate || t.EndDate || t.TestEndDate,
+            testCandidateRegistrationStatus: finalStatus,
+            testId: t.testId || t.TestId || t.id,
+            testRegistrationId: t.testRegistrationId || t.TestRegistrationId || 0,
+          } as GetCandidateTestResponse;
+        });
       } else if (data && typeof data === "object") {
         // Accept case-insensitive keys from StudentDashboard endpoint
         const rawObj: any = data;

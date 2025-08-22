@@ -173,6 +173,8 @@ export interface GetCandidateTestResponse {
   | "Missed"
   | "Up Next"; // Virtual grouping for upcoming registered tests
   testId: number;
+  // Optional id from registration table if candidate already registered
+  testRegistrationId?: number;
 }
 
 export interface GetCandidateStarredTestRequest {
