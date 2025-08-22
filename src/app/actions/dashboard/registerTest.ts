@@ -21,6 +21,7 @@ export interface RegisterTestRequest {
 
 export async function registerTestAction(req: { testId: number; testDate: string; comments?: string; language?: string; }): Promise<{ ok: boolean; status: number; message?: string; errorMessage?: string; }> {
     try {
+        console.log("Registering test with request:", req);
         const username = await getUserAction();
         if (!username) {
             return { ok: false, status: 401, message: "Unauthorized" };
@@ -34,29 +35,17 @@ export async function registerTestAction(req: { testId: number; testDate: string
             UserName: username,
             TestId: req.testId,
             TestDate: req.testDate,
-            TestRegistrationStatus: "Registered",
+            TestStatus: "Registered",
             Comments: req.comments || "",
             Language: req.language || "English",
             IsActive: 1,
             CreatedBy: username,
             CreatedDate: nowIso,
             ModifiedBy: username,
-            ModifiedDate: nowIso,
-            // camelCase duplicates (in case API is case-insensitive already)
-            testRegistrationId: 0,
-            userName: username,
-            testId: req.testId,
-            testDate: req.testDate,
-            testRegistrationStatus: "Registered",
-            comments: req.comments || "",
-            language: req.language || "English",
-            isActive: 1,
-            createdBy: username,
-            createdDate: nowIso,
-            modifiedBy: username,
-            modifiedDate: nowIso,
+            ModifiedDate: nowIso
         };
 
+        console.log("Registering test with payload:", payload);
         const { status, error, message, errorMessage } = await apiHandler(endpoints.registerTest, payload);
 
         return { ok: !error && status >= 200 && status < 300, status, message, errorMessage };

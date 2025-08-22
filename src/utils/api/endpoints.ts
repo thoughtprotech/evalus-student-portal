@@ -433,7 +433,7 @@ export const endpoints = {
   registerTest: {
     method: "POST",
     path: () => `/api/TestRegistrations`,
-    type: "CLOSE",
+    type: "OPEN",
   } as Endpoint<any, any>,
 
 };
