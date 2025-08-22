@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { InstructionData } from "../../instructions/[id]/[registrationId]/page";
 import mockInstructions from "@/mock/mockInstructions.json";
@@ -25,6 +25,9 @@ import SubmitExamModal from "./_components/SubmitExamModal";
 import { endCandidateSessionAction } from "@/app/actions/exam/session/endCandidateSession";
 import { QUESTION_STATUS } from "@/utils/constants";
 import { submitQuestionAction } from "@/app/actions/exam/session/submitQuestion";
+import { signalRClient } from "@/utils/signalR/signalrClient";
+import { LogLevel } from "@microsoft/signalr";
+import { sendHeartbeatAck } from "@/utils/signalR/calls/heartbeat";
 
 export default function ExamPage() {
   const { id, testResponseId } = useParams();
@@ -347,6 +350,79 @@ export default function ExamPage() {
   useEffect(() => {
     console.log({ question });
   }, [question]);
+
+  const intervalRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function start() {
+      // Connect or reuse existing connection
+      await signalRClient.connect({
+        url: process.env.NEXT_PUBLIC_HUB_URL!,
+        logLevel: LogLevel.Information,
+        reconnectDelays: [0, 2000, 5000, 10000],
+        // accessTokenFactory: async () => "jwt", // if needed
+      });
+
+      // Receive server heartbeat event
+      const onHeartbeat = async (timestamp: string) => {
+        // App-specific logic when server notifies heartbeat
+        // Then ack back
+        try {
+          await sendHeartbeatAck({
+            testResponseId: Number(testResponseId),
+            clientId: "nextjs-client",
+          });
+          // eslint-disable-next-line no-console
+          console.log("Heartbeat received, ack sent:", timestamp);
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.error("Ack failed", err);
+        }
+      };
+
+      // Register handler
+      signalRClient.on<[string]>("Heartbeat", onHeartbeat);
+
+      // Optional: proactively ping every 2 minutes (example),
+      // only if you also have a server method expecting it.
+      // Replace "ClientHeartbeat" with your hub method if you need this.
+      const TWO_MIN = 2 * 60 * 1000;
+      if (intervalRef.current == null) {
+        intervalRef.current = window.setInterval(async () => {
+          // If you have a server method to record a client-side heartbeat:
+          // await signalRClient.send("ClientHeartbeat", testResponseId, Date.now());
+          // eslint-disable-next-line no-console
+          console.log("Proactive client heartbeat tick");
+        }, TWO_MIN);
+      }
+
+      // Cleanup registration on unmount
+      return () => {
+        signalRClient.off("Heartbeat", onHeartbeat);
+      };
+    }
+
+    start().catch((err) => {
+      // eslint-disable-next-line no-console
+      console.error("SignalR connection error", err);
+    });
+
+    return () => {
+      // Remove proactive interval
+      if (intervalRef.current != null) {
+        window.clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+
+      // If this screen owns the connection lifecycle, you can also disconnect here.
+      // If multiple pages share the same singleton connection, you might choose to leave it connected.
+      // For exam-only usage, it's reasonable to stop on unmount:
+      signalRClient.disconnect().catch(() => {});
+      isMounted = false;
+    };
+  }, [testResponseId]);
 
   if (!loaded) {
     return <Loader />;
