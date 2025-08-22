@@ -124,7 +124,7 @@ export default function Index() {
         {filteredTestList?.length > 0 ? (
           <div className="w-full grid grid-cols-1 lg:grid-cols-4 gap-4">
             {filteredTestList?.map((test, index) => (
-              <div key={test.testName}>
+              <div key={`test-${test.testId}`}>
                 <TestCards
                   id={test.testId.toString()}
                   name={test.testName}
