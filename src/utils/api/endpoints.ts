@@ -110,6 +110,7 @@ export const endpoints = {
     method: "GET",
     // OData function import style endpoint returning tests grouped by status for a candidate
     path: ({ username }: { username: string }) => `/Odata/Tests/StudentDashboard(username=${encodeURIComponent(username)})`,
+
     type: "CLOSE",
   } as Endpoint<{ username: string }, GetCandidateTestResponse[]>,
 
