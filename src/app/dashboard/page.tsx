@@ -40,7 +40,7 @@ export default function Index() {
   // Load the test list once on mount
   useEffect(() => {
     fetchTestList();
-  }, [currentGroupId]);
+  }, [currentGroupId, groupSelected]);
 
   // Derive the filtered test list based on the current tab and search query
   const filteredTestList = testList?.filter(
@@ -154,9 +154,8 @@ function StatCard({
 }) {
   return (
     <div
-      className={`border border-gray-300 ${
-        current ? "bg-indigo-50 border-indigo-300" : "bg-white"
-      } rounded-xl shadow-md duration-200 ease-in-out px-6 py-1 flex items-center gap-5 min-w-[150px] w-full`}
+      className={`border border-gray-300 ${current ? "bg-indigo-50 border-indigo-300" : "bg-white"
+        } rounded-xl shadow-md duration-200 ease-in-out px-6 py-1 flex items-center gap-5 min-w-[150px] w-full`}
     >
       <div className="flex-shrink-0 rounded-full">{icon}</div>
       <div className="flex flex-col">

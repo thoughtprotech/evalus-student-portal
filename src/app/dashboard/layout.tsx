@@ -50,7 +50,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     try {
       const response = await fetchSideBarMenuAction();
 
-  const { data, status } = response;
+      const { data, status } = response;
 
       if (status === 200) {
         const list = Array.isArray(data) ? data : [];
@@ -187,19 +187,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Mobile Background Overlay */}
       <div
-        className={`fixed inset-0 z-40 bg-black transition-opacity duration-300 ${
-          mobileMenuOpen
+        className={`fixed inset-0 z-40 bg-black transition-opacity duration-300 ${mobileMenuOpen
             ? "opacity-50 pointer-events-auto"
             : "opacity-0 pointer-events-none"
-        } md:hidden`}
+          } md:hidden`}
         onClick={toggleMobileMenu}
       />
 
       {/* Mobile Sidebar Overlay */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ${
-          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        } md:hidden`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          } md:hidden`}
       >
         <aside className="bg-white border-r border-gray-300 shadow-md flex flex-col h-full">
           <div className="h-16 px-4 flex items-center justify-between shadow-md border-b border-gray-300">
@@ -348,9 +346,8 @@ function SidebarItem({ onClick, category }: SidebarItemProps) {
         <a
           onClick={onClick}
           href={category.href}
-          className={`w-full flex items-center space-x-3 p-2 font-semibold transition-all rounded-lg ${
-            pathname === category.href ? "text-indigo-600" : "text-gray-600"
-          } hover:bg-indigo-100 hover:text-indigo-600`}
+          className={`w-full flex items-center space-x-3 p-2 font-semibold transition-all rounded-lg ${pathname === category.href ? "text-indigo-600" : "text-gray-600"
+            } hover:bg-indigo-100 hover:text-indigo-600`}
         >
           <category.icon className="w-6 h-6 min-w-[24px]" />
           <span className="whitespace-nowrap transition-opacity duration-300">
@@ -408,9 +405,8 @@ function MenuWithSubmenu({ item, currentPath }: MenuWithSubmenuProps) {
       <div className="flex items-center justify-between">
         <a
           href={item.href}
-          className={`w-full flex items-center space-x-2 px-2 py-3 rounded-lg ${
-            currentPath === item.href ? "text-indigo-600" : "text-gray-900"
-          } hover:bg-indigo-100 hover:text-indigo-600`}
+          className={`w-full flex items-center space-x-2 px-2 py-3 rounded-lg ${currentPath === item.href ? "text-indigo-600" : "text-gray-900"
+            } hover:bg-indigo-100 hover:text-indigo-600`}
         >
           {item.icon && <item.icon className="w-5 h-5" />}
           {item.name}
@@ -431,9 +427,8 @@ function MenuWithSubmenu({ item, currentPath }: MenuWithSubmenuProps) {
             <a
               key={i.name}
               href={i.href}
-              className={`flex items-center space-x-2 px-2 py-2 rounded-lg ${
-                currentPath === i.href ? "text-indigo-600" : "text-gray-600"
-              } hover:bg-indigo-100 hover:text-indigo-600`}
+              className={`flex items-center space-x-2 px-2 py-2 rounded-lg ${currentPath === i.href ? "text-indigo-600" : "text-gray-600"
+                } hover:bg-indigo-100 hover:text-indigo-600`}
             >
               {i.icon && <i.icon className="w-5 h-5" />}
               {i.name}
@@ -447,13 +442,19 @@ function MenuWithSubmenu({ item, currentPath }: MenuWithSubmenuProps) {
 
 function SidebarItemMobile({ icon: Icon, label, href, onClick }: any) {
   const pathname = usePathname();
+  const { setGroupSelected } = useUser();
+  const handleClick = (e: React.MouseEvent) => {
+    if (label === "TestHub") {
+      setGroupSelected(false); // ensures StudentDashboard initial load
+    }
+    onClick && onClick();
+  };
   return (
     <a
       href={href}
-      onClick={onClick}
-      className={`flex items-center space-x-3 px-2 py-3 font-bold ${
-        pathname === href ? "text-indigo-600" : "text-gray-600"
-      } hover:bg-indigo-500/40 hover:text-indigo-600 transition-all rounded-lg`}
+      onClick={handleClick}
+      className={`flex items-center space-x-3 px-2 py-3 font-bold ${pathname === href ? "text-indigo-600" : "text-gray-600"
+        } hover:bg-indigo-500/40 hover:text-indigo-600 transition-all rounded-lg`}
     >
       <Icon className="w-6 h-6 min-w-[24px]" />
       <span className="whitespace-nowrap">{label}</span>

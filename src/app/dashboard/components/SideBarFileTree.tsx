@@ -96,17 +96,24 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
     <nav className="space-y- w-full">
       {/* Root toggler */}
       <div
-        className={`w-full flex items-center space-x-3 p-2 font-semibold transition-all rounded-lg ${
-          new RegExp(regExp).test(pathname)
+        className={`w-full flex items-center space-x-3 p-2 font-semibold transition-all rounded-lg ${new RegExp(regExp).test(pathname)
             ? "text-indigo-600"
             : "text-gray-600"
-        } hover:bg-indigo-100 hover:text-indigo-600`}
+          } hover:bg-indigo-100 hover:text-indigo-600`}
         onClick={toggleRoot}
       >
         <div className="w-full flex justify-between cursor-pointer">
           <div className="flex items-center gap-2">
             {rootIcon && <span>{rootIcon}</span>}
-            <Link href={rootLink} className="font-semibold">
+            <Link
+              href={rootLink}
+              className="font-semibold"
+              onClick={(e) => {
+                // Ensure clicking TestHub (root) resets group selection so StudentDashboard endpoint is used
+                // Prevent this click from only toggling expansion when user intends to navigate
+                setGroupSelected(false);
+              }}
+            >
               {rootLabel}
             </Link>
           </div>
