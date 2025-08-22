@@ -405,14 +405,23 @@ export interface StartSessionResponse {
   testResponseId: number;
 }
 
-export interface SubmitQuestionRequest {
+// The full request your client function will accept
+export type SubmitQuestionRequest = {
   testResponseId: number;
-}
-
+  answer: {
+    testQuestionId: number;
+    responseJson: string;
+    status: string;
+    comments: string;
+    userName: string;
+  };
+  userName: string;
+};
 export interface SubmitQuestionResponse {}
 
 export interface SubmitTestRequest {
   testResponseId: number;
+  userName: string;
 }
 
 export interface SubmitTestResponse {
@@ -427,6 +436,4 @@ export interface SubmitTestResponse {
   unansweredCount: number;
 }
 
-export interface GetInstructionsByTestIdRequest {
-
-}
+export interface GetInstructionsByTestIdRequest {}

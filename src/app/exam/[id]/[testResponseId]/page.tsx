@@ -22,6 +22,9 @@ import RenderQuestion from "./_components/RenderQuestions";
 import Header from "./_components/Header/Header";
 import Sidebar from "./_components/Sidebar/Sidebar";
 import SubmitExamModal from "./_components/SubmitExamModal";
+import { endCandidateSessionAction } from "@/app/actions/exam/session/endCandidateSession";
+import { QUESTION_STATUS } from "@/utils/constants";
+import { submitQuestionAction } from "@/app/actions/exam/session/submitQuestion";
 
 export default function ExamPage() {
   const { id, testResponseId } = useParams();
@@ -57,8 +60,33 @@ export default function ExamPage() {
   }, [id, testResponseId]);
 
   const handleNextQuestion = async () => {
-    fetchQuestionById(currentSection?.questions[currentIndex + 1].questionId!);
-    setCurrentIndex(currentIndex + 1);
+    console.log({ question });
+    console.log("USER ANSWER: ", question?.options.answer);
+
+    const userName = await getUserAction();
+
+    if (userName) {
+      const response = await submitQuestionAction(
+        Number(testResponseId),
+        question?.questionId!,
+        question?.options.answer!,
+        QUESTION_STATUS.ATTEMPTED,
+        "",
+        userName
+      );
+
+      if (response.status === 200) {
+        fetchQuestionById(
+          currentSection?.questions[currentIndex + 1].questionId!
+        );
+        setCurrentIndex(currentIndex + 1);
+      } else {
+        console.log(response.errorMessage);
+        toast.error("Something Went Wrong");
+      }
+    } else {
+      toast.error("Something Went Wrong");
+    }
   };
 
   const clearResponse = async () => {
@@ -201,18 +229,33 @@ export default function ExamPage() {
     // TODO: Implement API here to update question status
   };
 
-  const confirmSubmit = () => {
-    const targetUrl = `/dashboard/analytics/${id}`;
+  const confirmSubmit = async () => {
+    const username = await getUserAction();
 
-    // If this window was opened via window.open(), window.opener points back to the parent
-    if (window.opener && !window.opener.closed) {
-      // Navigate the parent
-      window.opener.location.assign(targetUrl);
-      // Then close this popup
-      window.close();
+    if (!username) {
+      toast.error("Something Went Wrong");
+    }
+
+    const response = await endCandidateSessionAction(
+      Number(testResponseId),
+      username!
+    );
+
+    if (response.status === 200) {
+      const targetUrl = `/dashboard/analytics/${id}`;
+
+      // If this window was opened via window.open(), window.opener points back to the parent
+      if (window.opener && !window.opener.closed) {
+        // Navigate the parent
+        window.opener.location.assign(targetUrl);
+        // Then close this popup
+        window.close();
+      } else {
+        // Fallback: same‐window navigation
+        router.push(targetUrl);
+      }
     } else {
-      // Fallback: same‐window navigation
-      router.push(targetUrl);
+      toast.error("Something Went Wrong");
     }
   };
 
@@ -463,7 +506,7 @@ export default function ExamPage() {
                           Previous
                         </button>
                       </div> */}
-                    {currentIndex + 1 === currentSection?.questions.length ? (
+                    {/* {currentIndex + 1 === currentSection?.questions.length ? (
                       <div className="w-full md:w-fit">
                         <button
                           onClick={handleSubmit}
@@ -472,22 +515,21 @@ export default function ExamPage() {
                           Submit Test
                         </button>
                       </div>
-                    ) : (
-                      <div className="w-full md:w-fit">
-                        <button
-                          onClick={handleNextQuestion}
-                          disabled={
-                            currentIndex + 1 ===
-                            currentSection?.questions.length
-                          }
-                          className={clsx(
-                            "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 whitespace-nowrap text-sm"
-                          )}
-                        >
-                          Save & Next
-                        </button>
-                      </div>
-                    )}
+                    ) : ( */}
+                    <div className="w-full md:w-fit">
+                      <button
+                        onClick={handleNextQuestion}
+                        // disabled={
+                        //   currentIndex + 1 === currentSection?.questions.length
+                        // }
+                        className={clsx(
+                          "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 whitespace-nowrap text-sm"
+                        )}
+                      >
+                        Save & Next
+                      </button>
+                    </div>
+                    {/* )} */}
                   </div>
                 </div>
               </div>

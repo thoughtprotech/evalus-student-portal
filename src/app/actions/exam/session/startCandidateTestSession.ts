@@ -16,13 +16,13 @@ export async function startCandidateTestSessionAction(
       status: 200,
       error: false,
       data,
-      message: "Questions Meta Retrieved",
+      message: "Candidate Session Started",
     };
   } catch (error) {
     return {
       status: 500,
       error: true,
-      errorMessage: "Error Fetching Test Meta Data",
+      errorMessage: "Error Starting Candidate Session",
     };
   }
 }

@@ -20,9 +20,9 @@ export default function SubmitExamModal({
       message="Are you sure you want to submit the test? You won't be able to change your answers after this."
       onConfirm={confirmSubmit}
       onCancel={cancelSubmit}
-      className="max-w-1/2"
+      className="w-full max-w-1/2"
     >
-      <div className="overflow-x-auto my-8">
+      <div className="my-8 w-full">
         <table className="min-w-full text-left text-sm rounded-md">
           <thead>
             <tr className="bg-gray-100">
