@@ -28,6 +28,11 @@ import {
   LogoutRequest,
   QuestionsMetaRequest,
   QuestionsMetaResponse,
+  StartSessionResponse,
+  SubmitQuestionRequest,
+  SubmitQuestionResponse,
+  SubmitTestRequest,
+  SubmitTestResponse,
 } from "./types";
 
 export const endpoints = {
@@ -250,7 +255,7 @@ export const endpoints = {
   getTestTypes: {
     method: "GET",
     path: () => `/odata/TestTypes?$select=TestTypeId,TestType1`,
-    type: "OPEN",
+    type: "CLOSE",
   } as Endpoint<
     null,
     import("./types").ODataList<import("./types").TestTypeOData>
@@ -259,7 +264,7 @@ export const endpoints = {
   getTestCategories: {
     method: "GET",
     path: () => `/odata/TestCategories?$select=TestCategoryId,TestCategoryName`,
-    type: "OPEN",
+    type: "CLOSE",
   } as Endpoint<
     null,
     import("./types").ODataList<import("./types").TestCategoryOData>
@@ -269,7 +274,7 @@ export const endpoints = {
     method: "GET",
     path: () =>
       `/odata/TestInstructions?$select=TestInstructionId,TestInstructionName`,
-    type: "OPEN",
+    type: "CLOSE",
   } as Endpoint<
     null,
     import("./types").ODataList<import("./types").TestInstructionOData>
@@ -279,7 +284,7 @@ export const endpoints = {
     method: "GET",
     path: () =>
       `/odata/TestDifficultyLevels?$select=TestDifficultyLevelId,TestDifficultyLevel1`,
-    type: "OPEN",
+    type: "CLOSE",
   } as Endpoint<
     null,
     import("./types").ODataList<import("./types").TestDifficultyLevelOData>
@@ -293,7 +298,7 @@ export const endpoints = {
       `/odata/Questions/GetAllQuestionsByLanguage(language=English)${
         query ? (query.startsWith("?") ? query : `?${query}`) : ""
       }`,
-    type: "OPEN",
+    type: "CLOSE",
   } as Endpoint<import("./types").GetQuestionsODataRequest, any[]>,
 
   // Admin Questions (server actions moved here)
@@ -304,7 +309,7 @@ export const endpoints = {
       `/api/Company?IncludeInactive=true&Language=English'${
         query ? (query.startsWith("?") ? query : `?${query}`) : ""
       }`,
-    type: "OPEN",
+    type: "CLOSE",
   } as Endpoint<import("./types").GetCompaniesRequest, any[]>,
 
   getCandidates: {
@@ -314,7 +319,7 @@ export const endpoints = {
       `/api/CandidateRegistration?includeInactive=true'${
         query ? (query.startsWith("?") ? query : `?${query}`) : ""
       }`,
-    type: "OPEN",
+    type: "CLOSE",
   } as Endpoint<import("./types").GetCandidatesRequest, any[]>,
 
   getTestMetaData: {
@@ -323,4 +328,23 @@ export const endpoints = {
     path: ({ testId, userId }) => `/api/Tests/${testId}/meta-payload`,
     type: "OPEN",
   } as Endpoint<GetTestMetaDataRequest, GetTestMetaDataResponse>,
+
+  // Test Session Endpoints
+  startTestSession: {
+    path: () => `/api/TestSessions/start`,
+    method: "POST",
+    type: "CLOSE",
+  } as Endpoint<null, StartSessionResponse>,
+
+  submitQuestion: {
+    path: ({ testResponseId }) => `/api/TestSessions/${testResponseId}/answers`,
+    method: "POST",
+    type: "CLOSE",
+  } as Endpoint<SubmitQuestionRequest, SubmitQuestionResponse>,
+
+  submitTest: {
+    path: ({ testResponseId }) => `/api/TestSessions/${testResponseId}/submit`,
+    method: "POST",
+    type: "CLOSE",
+  } as Endpoint<SubmitTestRequest, SubmitTestResponse>,
 };

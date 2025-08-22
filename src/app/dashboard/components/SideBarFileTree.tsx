@@ -1,4 +1,4 @@
-import React, { useState, ReactNode } from "react";
+import React, { useState, ReactNode, useEffect } from "react";
 import Link from "next/link";
 import { ChevronDown, ChevronRight, Tag, Badge, ChevronUp } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
@@ -83,6 +83,10 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
   const roots = safeData.filter(
     (item) => item.parentId === 0 || item.relation === "PARENT"
   );
+
+  useEffect(() => {
+    console.log({ data });
+  }, [data]);
 
   return (
     <nav className="space-y- w-full">

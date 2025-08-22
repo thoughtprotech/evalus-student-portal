@@ -93,8 +93,8 @@ export interface GetQuestionByIdResponse {
     negativeMarks: number;
     graceMarks: number;
     difficultyLevelId: number;
-      questionTypeId: number;
-      questionTypeName: string;
+    questionTypeId: number;
+    questionTypeName: string;
     subjectId: number;
     topicId: number;
     chapterId: number;
@@ -394,4 +394,30 @@ export interface GetCandidatesRequest {
 
 export interface DeleteCandidateRequest {
   candidateId: number;
+}
+
+export interface StartSessionResponse {
+  testResponseId: number;
+}
+
+export interface SubmitQuestionRequest {
+  testResponseId: number;
+}
+
+export interface SubmitQuestionResponse {}
+
+export interface SubmitTestRequest {
+  testResponseId: number;
+}
+
+export interface SubmitTestResponse {
+  testResponseId: number;
+  testId: number;
+  status: string;
+  startedAtUtc: string;
+  endedAtUtc: string;
+  totalQuestions: number;
+  answeredCount: number;
+  markedForReviewCount: number;
+  unansweredCount: number;
 }
