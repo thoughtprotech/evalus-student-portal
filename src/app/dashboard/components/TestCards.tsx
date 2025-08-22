@@ -22,7 +22,8 @@ interface TestCardsProps {
     | "Completed"
     | "Cancelled"
     | "In Progress"
-    | "Missed"
+  | "Missed"
+  | "Up Next"
     | undefined;
   bookmarked?: boolean;
 }
@@ -64,6 +65,7 @@ export default function TestCards({
   const actionButtonMapping: Record<any, string> = {
     Registered: "bg-purple-600 hover:bg-purple-700",
     "In Progress": "bg-blue-600 hover:bg-blue-700",
+  "Up Next": "bg-indigo-600 hover:bg-indigo-700",
     Missed: "bg-orange-600 hover:bg-orange-700",
     Cancelled: "bg-red-600 hover:bg-red-700",
     Completed: "bg-green-600 hover:bg-green-700",
@@ -78,6 +80,10 @@ export default function TestCards({
     linkText = "Start";
     linkIcon = <Play className="w-5 h-5 ml-2" />;
     linkHref = `/exam/systemCheck/${encodeURIComponent(id)}`;
+  } else if (status === "Up Next") {
+    linkText = "View";
+    linkIcon = <ArrowRight className="w-5 h-5 ml-2" />;
+    linkHref = `/dashboard/register/${encodeURIComponent(id)}`;
   } else if (status === "In Progress") {
     linkText = "Resume";
     linkIcon = <CalendarCheckIcon className="w-5 h-5 ml-2" />;

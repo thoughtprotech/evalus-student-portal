@@ -49,7 +49,7 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
   const [rootExpanded, setRootExpanded] = useState(initiallyExpanded);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
 
-  const { setCurrentGroupId } = useUser();
+  const { setCurrentGroupId, setGroupSelected } = useUser();
 
   const router = useRouter();
 
@@ -75,6 +75,7 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
           onClick={() => {
             router.push("/dashboard");
             setCurrentGroupId(child.candidateGroupId.toString());
+            setGroupSelected(true);
           }}
         >
           <Badge size={14} />

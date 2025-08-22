@@ -6,6 +6,8 @@ type UserContextType = {
   currentGroupId: string;
   setUsername: (name: string) => void;
   setCurrentGroupId: (groupId: string) => void;
+  groupSelected: boolean;
+  setGroupSelected: (val: boolean) => void;
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -13,10 +15,11 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [username, setUsername] = useState<string>("");
   const [currentGroupId, setCurrentGroupId] = useState<string>("");
+  const [groupSelected, setGroupSelected] = useState<boolean>(false);
 
   return (
     <UserContext.Provider
-      value={{ username, currentGroupId, setUsername, setCurrentGroupId }}
+      value={{ username, currentGroupId, setUsername, setCurrentGroupId, groupSelected, setGroupSelected }}
     >
       {children}
     </UserContext.Provider>

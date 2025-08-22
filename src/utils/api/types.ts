@@ -170,7 +170,8 @@ export interface GetCandidateTestResponse {
   | "Completed"
   | "Cancelled"
   | "In Progress"
-  | "Missed";
+  | "Missed"
+  | "Up Next"; // Virtual grouping for upcoming registered tests
   testId: number;
 }
 

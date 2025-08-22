@@ -105,6 +105,14 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<GetCandidateTestRequest, GetCandidateTestResponse[]>,
 
+  // Student Dashboard consolidated tests (absolute OData endpoint)
+  getStudentDashboardTests: {
+    method: "GET",
+    // OData function import style endpoint returning tests grouped by status for a candidate
+    path: ({ username }: { username: string }) => `http://localhost:5000/odata/Tests/StudentDashboard(username=${encodeURIComponent(username)})`,
+    type: "CLOSE",
+  } as Endpoint<{ username: string }, GetCandidateTestResponse[]>,
+
   getCandidateStarredTests: {
     method: "GET",
     path: ({ username }) => `/api/Tests/starred/${username}`,

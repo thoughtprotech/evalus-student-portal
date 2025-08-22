@@ -16,13 +16,16 @@ export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
   const [testList, setTestList] = useState<GetCandidateTestResponse[]>([]);
 
-  const { username, setUsername, currentGroupId, setCurrentGroupId } =
+  const { username, setUsername, currentGroupId, setCurrentGroupId, groupSelected } =
     useUser();
 
   const tabs = ["Registered", "In Progress", "Up Next", "Completed", "Missed"];
 
   const fetchTestList = async () => {
-    const res = await fetchCandidateTestList(Number(currentGroupId));
+    const res = await fetchCandidateTestList(
+      Number(currentGroupId),
+      { useGroupEndpoint: !!groupSelected }
+    );
     const { data, status } = res;
     setLoaded(false);
     if (status === 200) {
