@@ -34,20 +34,19 @@ export default function ConfirmationModal({
   return (
     <div className="fixed inset-0 bg-black/40 bg-opacity-40 flex items-center justify-center z-50 p-4">
       <div
-        className={`bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 sm:p-7 ${className || ""}`}
+        className={`bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6 sm:p-7 ${className || ""}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-modal-title"
       >
         <div className="flex items-start gap-4">
           <div
-            className={`flex-shrink-0 rounded-full p-2 ${
-              variant === "danger" 
-                ? "bg-red-100 text-red-600" 
+            className={`flex-shrink-0 rounded-full p-2 ${variant === "danger"
+                ? "bg-red-100 text-red-600"
                 : variant === "success"
-                ? "bg-green-100 text-green-600"
-                : "bg-blue-100 text-blue-600"
-            }`}
+                  ? "bg-green-100 text-green-600"
+                  : "bg-blue-100 text-blue-600"
+              }`}
           >
             {variant === "danger" ? (
               <AlertTriangle className="w-6 h-6" />
@@ -62,9 +61,13 @@ export default function ConfirmationModal({
               {title}
             </h2>
             <p className="mt-2 text-sm text-gray-600">{message}</p>
-            {children ? <div className="mt-3 text-sm text-gray-700">{children}</div> : null}
           </div>
         </div>
+        {children ? (
+          <div className="mt-5 text-sm text-gray-700">
+            {children}
+          </div>
+        ) : null}
         <div className="mt-6 flex items-center justify-end gap-3">
           {cancelText && (
             <button
@@ -80,15 +83,14 @@ export default function ConfirmationModal({
               onConfirm();
             }}
             disabled={confirmDisabled}
-            className={`min-w-28 px-4 py-2 rounded-md text-white ${
-              confirmDisabled
+            className={`min-w-28 px-4 py-2 rounded-md text-white ${confirmDisabled
                 ? "bg-indigo-400 cursor-not-allowed opacity-70"
                 : variant === "danger"
-                ? "bg-red-600 hover:bg-red-700 cursor-pointer"
-                : variant === "success"
-                ? "bg-green-600 hover:bg-green-700 cursor-pointer"
-                : "bg-indigo-600 hover:bg-indigo-700 cursor-pointer"
-            }`}
+                  ? "bg-red-600 hover:bg-red-700 cursor-pointer"
+                  : variant === "success"
+                    ? "bg-green-600 hover:bg-green-700 cursor-pointer"
+                    : "bg-indigo-600 hover:bg-indigo-700 cursor-pointer"
+              }`}
           >
             {confirmText}
           </button>

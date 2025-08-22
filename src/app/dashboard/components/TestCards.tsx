@@ -21,13 +21,13 @@ interface TestCardsProps {
   startDateTimeString?: string;
   endDateTimeString?: string;
   status?:
-    | "Registered"
-    | "Completed"
-    | "Cancelled"
-    | "In Progress"
+  | "Registered"
+  | "Completed"
+  | "Cancelled"
+  | "In Progress"
   | "Missed"
   | "Up Next"
-    | undefined;
+  | undefined;
   bookmarked?: boolean;
 }
 
@@ -69,8 +69,8 @@ export default function TestCards({
     // Registered button should be blue like its tab icon
     Registered: "bg-blue-600 hover:bg-blue-700",
     "In Progress": "bg-blue-600 hover:bg-blue-700",
-  // Up Next should use purple per requirement (matching tab icon)
-  "Up Next": "bg-purple-600 hover:bg-purple-700",
+    // Up Next should use purple per requirement (matching tab icon)
+    "Up Next": "bg-purple-600 hover:bg-purple-700",
     Missed: "bg-orange-600 hover:bg-orange-700",
     Cancelled: "bg-red-600 hover:bg-red-700",
     Completed: "bg-green-600 hover:bg-green-700",
@@ -158,7 +158,7 @@ export default function TestCards({
       // Re-request fullscreen if user exits
       popup.document.addEventListener("fullscreenchange", () => {
         if (!popup.document.fullscreenElement) {
-          popup.document.documentElement.requestFullscreen().catch(() => {});
+          popup.document.documentElement.requestFullscreen().catch(() => { });
         }
       });
     });
@@ -179,7 +179,7 @@ export default function TestCards({
         if (isFinite(s.getTime()) && s.getTime() > Date.now() - 60000) {
           return s.toISOString().slice(0, 16);
         }
-      } catch {}
+      } catch { }
     }
     return defaultLocal();
   })();
@@ -283,9 +283,8 @@ export default function TestCards({
         <a
           href={linkHref}
           onClick={status === "Up Next" ? onClickRegister : openInPopup}
-          className={`w-full flex items-center justify-center gap-1 px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${
-            status && actionButtonMapping[status]
-          }`}
+          className={`w-full flex items-center justify-center gap-1 px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${status && actionButtonMapping[status]
+            }`}
         >
           {linkText}
           {linkIcon}
@@ -316,11 +315,10 @@ export default function TestCards({
               onChange={(e) => setProposedStart(e.target.value)}
               onBlur={() => setStartTouched(true)}
               required
-              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${
-                startTouched && (!proposedStart || isPast)
+              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${startTouched && (!proposedStart || isPast)
                   ? "border-red-500"
                   : "border-gray-300"
-              }`}
+                }`}
             />
             {startTouched && !proposedStart && (
               <p className="text-xs text-red-600">Start date/time is required.</p>
