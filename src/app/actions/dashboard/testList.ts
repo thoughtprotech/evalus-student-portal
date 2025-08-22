@@ -46,7 +46,7 @@ export async function fetchCandidateTestList(
             t.type ||
             t.status;
           if (finalStatus === "InProgress") finalStatus = "In Progress";
-            // Backend may send UpNext (camel-cased) while UI expects Up Next
+          // Backend may send UpNext (camel-cased) while UI expects Up Next
           if (finalStatus === "UpNext") finalStatus = "Up Next";
           return {
             testName: t.testName || t.TestName || t.name,
