@@ -13,6 +13,7 @@ interface ConfirmationModalProps {
   variant?: "default" | "danger" | "success";
   confirmText?: string;
   cancelText?: string;
+  confirmDisabled?: boolean;
 }
 
 export default function ConfirmationModal({
@@ -26,6 +27,7 @@ export default function ConfirmationModal({
   variant = "default",
   confirmText = "Confirm",
   cancelText = "Cancel",
+  confirmDisabled = false,
 }: ConfirmationModalProps) {
   if (!isOpen) return null;
 
@@ -73,13 +75,19 @@ export default function ConfirmationModal({
             </button>
           )}
           <button
-            onClick={onConfirm}
-            className={`min-w-28 px-4 py-2 rounded-md text-white cursor-pointer ${
-              variant === "danger"
-                ? "bg-red-600 hover:bg-red-700"
+            onClick={() => {
+              if (confirmDisabled) return;
+              onConfirm();
+            }}
+            disabled={confirmDisabled}
+            className={`min-w-28 px-4 py-2 rounded-md text-white ${
+              confirmDisabled
+                ? "bg-indigo-400 cursor-not-allowed opacity-70"
+                : variant === "danger"
+                ? "bg-red-600 hover:bg-red-700 cursor-pointer"
                 : variant === "success"
-                ? "bg-green-600 hover:bg-green-700"
-                : "bg-indigo-600 hover:bg-indigo-700"
+                ? "bg-green-600 hover:bg-green-700 cursor-pointer"
+                : "bg-indigo-600 hover:bg-indigo-700 cursor-pointer"
             }`}
           >
             {confirmText}

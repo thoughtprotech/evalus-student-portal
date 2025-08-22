@@ -9,7 +9,10 @@ import {
   RotateCcw,
   ArrowRight,
   Play,
+  PenSquare,
 } from "lucide-react";
+import { useState } from "react";
+import ConfirmationModal from "@/components/ConfirmationModal";
 import { format, parseISO, differenceInMinutes } from "date-fns";
 
 interface TestCardsProps {
@@ -63,9 +66,11 @@ export default function TestCards({
 
   // Map status to action button colors
   const actionButtonMapping: Record<any, string> = {
-    Registered: "bg-purple-600 hover:bg-purple-700",
+    // Registered button should be blue like its tab icon
+    Registered: "bg-blue-600 hover:bg-blue-700",
     "In Progress": "bg-blue-600 hover:bg-blue-700",
-  "Up Next": "bg-indigo-600 hover:bg-indigo-700",
+  // Up Next should use purple per requirement (matching tab icon)
+  "Up Next": "bg-purple-600 hover:bg-purple-700",
     Missed: "bg-orange-600 hover:bg-orange-700",
     Cancelled: "bg-red-600 hover:bg-red-700",
     Completed: "bg-green-600 hover:bg-green-700",
@@ -81,9 +86,9 @@ export default function TestCards({
     linkIcon = <Play className="w-5 h-5 ml-2" />;
     linkHref = `/exam/systemCheck/${encodeURIComponent(id)}`;
   } else if (status === "Up Next") {
-    linkText = "View";
-    linkIcon = <ArrowRight className="w-5 h-5 ml-2" />;
-    linkHref = `/dashboard/register/${encodeURIComponent(id)}`;
+    linkText = "Register"; // per requirement
+    linkIcon = <PenSquare className="w-5 h-5 ml-2" />;
+    linkHref = `#register-${encodeURIComponent(id)}`; // no navigation; modal opens
   } else if (status === "In Progress") {
     linkText = "Resume";
     linkIcon = <CalendarCheckIcon className="w-5 h-5 ml-2" />;
@@ -157,6 +162,46 @@ export default function TestCards({
         }
       });
     });
+  };
+
+  // Modal state for Up Next registration
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  // Pre-fill with server provided start (if future) else current datetime local (rounded to minutes)
+  const defaultLocal = () => {
+    const d = new Date();
+    d.setSeconds(0, 0);
+    return d.toISOString().slice(0, 16);
+  };
+  const initialStart = (() => {
+    if (startDateTimeString) {
+      try {
+        const s = new Date(startDateTimeString);
+        if (isFinite(s.getTime()) && s.getTime() > Date.now() - 60000) {
+          return s.toISOString().slice(0, 16);
+        }
+      } catch {}
+    }
+    return defaultLocal();
+  })();
+  const [proposedStart, setProposedStart] = useState<string>(initialStart);
+  const [comments, setComments] = useState("");
+  const [startTouched, setStartTouched] = useState(false);
+
+  const onClickRegister = (e: React.MouseEvent) => {
+    if (status === "Up Next") {
+      e.preventDefault();
+      setShowRegisterModal(true);
+    }
+  };
+
+  const isPast = proposedStart
+    ? new Date(proposedStart).getTime() < Date.now() - 60000
+    : true;
+  const confirmRegistration = () => {
+    setStartTouched(true);
+    if (!proposedStart || isPast) return;
+    // TODO: Hook API call for registration
+    setShowRegisterModal(false);
   };
 
   return (
@@ -237,15 +282,65 @@ export default function TestCards({
       <div className="w-full">
         <a
           href={linkHref}
-          onClick={openInPopup}
-          className={`w-full flex items-center justify-center px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${
+          onClick={status === "Up Next" ? onClickRegister : openInPopup}
+          className={`w-full flex items-center justify-center gap-1 px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${
             status && actionButtonMapping[status]
           }`}
         >
-          {linkIcon}
           {linkText}
+          {linkIcon}
         </a>
       </div>
+
+      {/* Registration Modal for Up Next */}
+      <ConfirmationModal
+        title={`Register for ${name}`}
+        message="Confirm the proposed start date/time or adjust if allowed, then add optional comments."
+        isOpen={showRegisterModal}
+        onCancel={() => setShowRegisterModal(false)}
+        onConfirm={confirmRegistration}
+        confirmText="Register"
+        cancelText="Cancel"
+        confirmDisabled={!proposedStart || isPast}
+      >
+        <form className="space-y-5 text-left" onSubmit={(e) => e.preventDefault()}>
+          <div className="grid gap-2">
+            <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+              <span>Test Start Date & Time</span>
+              <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="datetime-local"
+              value={proposedStart}
+              min={new Date().toISOString().slice(0, 16)}
+              onChange={(e) => setProposedStart(e.target.value)}
+              onBlur={() => setStartTouched(true)}
+              required
+              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${
+                startTouched && (!proposedStart || isPast)
+                  ? "border-red-500"
+                  : "border-gray-300"
+              }`}
+            />
+            {startTouched && !proposedStart && (
+              <p className="text-xs text-red-600">Start date/time is required.</p>
+            )}
+            {startTouched && proposedStart && isPast && (
+              <p className="text-xs text-red-600">Start date/time cannot be in the past.</p>
+            )}
+          </div>
+          <div className="grid gap-2">
+            <label className="text-sm font-medium text-gray-700">Comments</label>
+            <textarea
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              rows={4}
+              placeholder="Any specific notes or requirements..."
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+            />
+          </div>
+        </form>
+      </ConfirmationModal>
     </div>
   );
 }

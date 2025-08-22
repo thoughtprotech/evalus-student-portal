@@ -11,13 +11,13 @@ import { useUser } from "@/contexts/UserContext";
 import toast from "react-hot-toast";
 
 export default function Index() {
-  const [loaded, setLoaded] = useState<boolean>(false);
-  const [currentTab, setCurrentTab] = useState(0);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [testList, setTestList] = useState<GetCandidateTestResponse[]>([]);
-
   const { username, setUsername, currentGroupId, setCurrentGroupId, groupSelected } =
     useUser();
+  const [loaded, setLoaded] = useState<boolean>(false);
+  // Default tab: Up Next for normal dashboard, Registered when viewing a group
+  const [currentTab, setCurrentTab] = useState<number>(groupSelected ? 0 : 2);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [testList, setTestList] = useState<GetCandidateTestResponse[]>([]);
 
   const tabs = ["Registered", "In Progress", "Up Next", "Completed", "Missed"];
 
@@ -41,6 +41,11 @@ export default function Index() {
   useEffect(() => {
     fetchTestList();
   }, [currentGroupId, groupSelected]);
+
+  // When groupSelected toggles, reset the default tab per requirement
+  useEffect(() => {
+    setCurrentTab(groupSelected ? 0 : 2);
+  }, [groupSelected]);
 
   // Derive the filtered test list based on the current tab and search query
   const filteredTestList = testList?.filter(
