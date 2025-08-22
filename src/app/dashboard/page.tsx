@@ -3,7 +3,13 @@
 import SearchBar from "@/components/SearchBar";
 import { useEffect, useState } from "react";
 import TestCards from "./components/TestCards";
-import { Play, Clock, XCircle, CheckCircle, CircleArrowRight } from "lucide-react";
+import {
+  Play,
+  Clock,
+  XCircle,
+  CheckCircle,
+  CircleArrowRight,
+} from "lucide-react";
 import { fetchCandidateTestList } from "../actions/dashboard/testList";
 import Loader from "@/components/Loader";
 import { GetCandidateTestResponse } from "@/utils/api/types";
@@ -124,6 +130,7 @@ export default function Index() {
                   endDateTimeString={test.testEndDate}
                   status={test.testCandidateRegistrationStatus}
                   bookmarked={index % 2 === 0}
+                  registrationId={test.testRegistrationId}
                 />
               </div>
             ))}

@@ -25,6 +25,7 @@ interface TestCardsProps {
     | "Missed"
     | undefined;
   bookmarked?: boolean;
+  registrationId?: number;
 }
 
 export default function TestCards({
@@ -34,6 +35,7 @@ export default function TestCards({
   endDateTimeString,
   status,
   bookmarked = false,
+  registrationId,
 }: TestCardsProps) {
   // Parse ISO date strings
   let formattedStartDate;
@@ -77,7 +79,7 @@ export default function TestCards({
   if (status === "Registered") {
     linkText = "Start";
     linkIcon = <Play className="w-5 h-5 ml-2" />;
-    linkHref = `/exam/systemCheck/${encodeURIComponent(id)}`;
+    linkHref = `/exam/systemCheck/${encodeURIComponent(id)}/${registrationId}`;
   } else if (status === "In Progress") {
     linkText = "Resume";
     linkIcon = <CalendarCheckIcon className="w-5 h-5 ml-2" />;

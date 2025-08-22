@@ -111,7 +111,7 @@ export default function Header({
         onClose={() => setShowQuestions(false)}
         sections={sections}
         currentSectionId={
-          currentSectionId?.sectionId ?? currentSectionId.sectionId
+          currentSectionId?.sectionId ?? currentSectionId?.sectionId
         }
       />
     </HeaderContainer>

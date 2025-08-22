@@ -40,18 +40,18 @@ export default function SubmitExamModal({
               <td className="border-t border-gray-300 px-4 py-2">Math</td>
               <td className="border-t border-gray-300 px-4 py-2">
                 {" "}
-                {questionsMeta.length}
+                {questionsMeta?.length}
               </td>
               <td className="border-t border-gray-300 px-4 py-2">
                 {
-                  questionsMeta.filter(
+                  questionsMeta?.filter(
                     (question) => question.status === QUESTION_STATUS.ATTEMPTED
                   ).length
                 }
               </td>
               <td className="border-t border-gray-300 px-4 py-2">
                 {
-                  questionsMeta.filter(
+                  questionsMeta?.filter(
                     (question) =>
                       question.status === QUESTION_STATUS.UNATTEMPTED
                   ).length
@@ -59,7 +59,7 @@ export default function SubmitExamModal({
               </td>
               <td className="border-t border-gray-300 px-4 py-2">
                 {
-                  questionsMeta.filter(
+                  questionsMeta?.filter(
                     (question) =>
                       question.status === QUESTION_STATUS.NOT_VISITED
                   ).length
@@ -67,14 +67,14 @@ export default function SubmitExamModal({
               </td>
               <td className="border-t border-gray-300 px-4 py-2">
                 {
-                  questionsMeta.filter(
+                  questionsMeta?.filter(
                     (question) => question.status === QUESTION_STATUS.TO_REVIEW
                   ).length
                 }
               </td>
               <td className="border-t border-gray-300 px-4 py-2">
                 {
-                  questionsMeta.filter(
+                  questionsMeta?.filter(
                     (question) =>
                       question.status === QUESTION_STATUS.ANSWERED_TO_REVIEW
                   ).length

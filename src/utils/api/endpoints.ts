@@ -28,6 +28,7 @@ import {
   LogoutRequest,
   QuestionsMetaRequest,
   QuestionsMetaResponse,
+  StartSessionRequest,
   StartSessionResponse,
   SubmitQuestionRequest,
   SubmitQuestionResponse,
@@ -334,7 +335,7 @@ export const endpoints = {
     path: () => `/api/TestSessions/start`,
     method: "POST",
     type: "CLOSE",
-  } as Endpoint<null, StartSessionResponse>,
+  } as Endpoint<StartSessionRequest, StartSessionResponse>,
 
   submitQuestion: {
     path: ({ testResponseId }) => `/api/TestSessions/${testResponseId}/answers`,

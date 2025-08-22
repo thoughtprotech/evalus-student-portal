@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import mockInstructions from "@/mock/mockInstructions.json";
+import { startCandidateTestSessionAction } from "@/app/actions/exam/session/startCandidateTestSession";
+import toast from "react-hot-toast";
 
 export interface InstructionData {
   title: string;
@@ -12,7 +14,7 @@ export interface InstructionData {
 const instructionsMap: Record<string, InstructionData> = mockInstructions;
 
 export default function ExamStartPage() {
-  const { id } = useParams();
+  const { id, registrationId } = useParams();
   const router = useRouter();
   const [instructionData, setInstructionData] =
     useState<InstructionData | null>(null);
@@ -25,6 +27,10 @@ export default function ExamStartPage() {
     }
   }, [id]);
 
+  useEffect(() => {
+    console.log({ registrationId });
+  }, [registrationId]);
+
   if (!instructionData) {
     return (
       <div className="w-full h-full flex justify-center items-center px-4 py-8">
@@ -33,9 +39,19 @@ export default function ExamStartPage() {
     );
   }
 
-  const handleProceed = () => {
+  const handleProceed = async () => {
     // Navigate to the exam start page (adjust the route as needed)
-    router.push(`/exam/${id}`);
+    const response = await startCandidateTestSessionAction(
+      Number(registrationId)
+    );
+
+    if (response.status === 200) {
+      const testResponseId = response.data?.testResponseId;
+      console.log(testResponseId);
+      router.push(`/exam/${id}/${testResponseId}`);
+    } else {
+      toast.error("Something Went Wrong");
+    }
   };
 
   return (

@@ -3,40 +3,28 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
-import CountdownTimer from "@/components/CountdownTimer";
-import { Info, Menu, X } from "lucide-react";
-import { InstructionData } from "../instructions/[id]/page";
+import { InstructionData } from "../../instructions/[id]/[registrationId]/page";
 import mockInstructions from "@/mock/mockInstructions.json";
 import {
   GetQuestionByIdResponse,
   GetTestMetaDataResponse,
-  QuestionsMetaResponse,
   SectionsMetaDataInterface,
-  TestMetaDataInterface,
 } from "@/utils/api/types";
 import Loader from "@/components/Loader";
-import { fetchQuestionsMetaAction } from "@/app/actions/exam/questions/getQuestionsMeta";
 import { fetchQuestionByIdAction } from "@/app/actions/exam/questions/getQuestionById";
 import ScrollToggleButton from "@/components/ScrollToggleButton";
 import { TextOrHtml } from "@/components/TextOrHtml";
 import ScrollXToggleButton from "@/components/ScrollXToggleButton";
-import OnHover from "@/components/OnHover";
-import QuestionCountPreview from "./_components/QuestionCountPreview";
-import Header from "./_components/Header/Header";
-import SubmitExamModal from "./_components/SubmitExamModal";
-import RenderQuestion from "./_components/RenderQuestions";
-import Sidebar from "./_components/Sidebar/Sidebar";
-import {
-  ExamTabsContent,
-  ExamTabsList,
-  ExamTabsRoot,
-} from "./_components/ExamTabs";
 import { getUserAction } from "@/app/actions/getUser";
 import { fetchTestMetaDataAction } from "@/app/actions/exam/questions/getTestMetaData";
 import toast from "react-hot-toast";
+import RenderQuestion from "./_components/RenderQuestions";
+import Header from "./_components/Header/Header";
+import Sidebar from "./_components/Sidebar/Sidebar";
+import SubmitExamModal from "./_components/SubmitExamModal";
 
 export default function ExamPage() {
-  const { id } = useParams();
+  const { id, testResponseId } = useParams();
   const [loaded, setLoaded] = useState<boolean>(false);
 
   const [question, setQuestion] = useState<GetQuestionByIdResponse>();
@@ -65,8 +53,8 @@ export default function ExamPage() {
   const cancelSubmit = () => setShowModal(false);
 
   useEffect(() => {
-    // Question loaded effect
-  }, [question]);
+    console.log({ id, testResponseId });
+  }, [id, testResponseId]);
 
   const handleNextQuestion = async () => {
     fetchQuestionById(currentSection?.questions[currentIndex + 1].questionId!);

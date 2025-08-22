@@ -200,6 +200,7 @@ export interface GetCandidateTestResponse {
     | "In Progress"
     | "Missed";
   testId: number;
+  testRegistrationId: number;
 }
 
 export interface GetCandidateStarredTestRequest {
@@ -396,6 +397,10 @@ export interface DeleteCandidateRequest {
   candidateId: number;
 }
 
+export interface StartSessionRequest {
+  testRegistrationId: number;
+}
+
 export interface StartSessionResponse {
   testResponseId: number;
 }
@@ -420,4 +425,8 @@ export interface SubmitTestResponse {
   answeredCount: number;
   markedForReviewCount: number;
   unansweredCount: number;
+}
+
+export interface GetInstructionsByTestIdRequest {
+
 }

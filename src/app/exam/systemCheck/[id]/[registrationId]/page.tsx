@@ -18,7 +18,7 @@ interface ExtendedNavigator extends Navigator {
 }
 
 export default function SystemCheckPage() {
-  const { id } = useParams();
+  const { id, registrationId } = useParams();
   const router = useRouter();
 
   // The check steps
@@ -56,8 +56,7 @@ export default function SystemCheckPage() {
     const ram = nav.deviceMemory;
     const cores = nav.hardwareConcurrency;
 
-    const hasEnoughRAM =
-      typeof ram === "number" ? ram > 2 : undefined;
+    const hasEnoughRAM = typeof ram === "number" ? ram > 2 : undefined;
     const hasMultiCore = typeof cores === "number" ? cores > 1 : false;
     const hasWebGL = (() => {
       const canvas = document.createElement("canvas");
@@ -140,7 +139,7 @@ export default function SystemCheckPage() {
 
   const handleProceed = () => {
     if (allPassed) {
-      router.push(`/exam/instructions/${id}`);
+      router.push(`/exam/instructions/${id}/${registrationId}`);
     }
   };
 
