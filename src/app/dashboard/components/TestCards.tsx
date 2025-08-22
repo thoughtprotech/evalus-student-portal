@@ -11,9 +11,11 @@ import {
   Play,
   PenSquare,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { format, parseISO, differenceInMinutes } from "date-fns";
+import { registerTestAction } from "@/app/actions/dashboard/registerTest";
+import toast from "react-hot-toast";
 
 interface TestCardsProps {
   id: string;
@@ -29,6 +31,7 @@ interface TestCardsProps {
   | "Up Next"
   | undefined;
   bookmarked?: boolean;
+  onRegistered?: () => Promise<void> | void; // callback to refresh dashboard after registration
 }
 
 export default function TestCards({
@@ -38,6 +41,7 @@ export default function TestCards({
   endDateTimeString,
   status,
   bookmarked = false,
+  onRegistered,
 }: TestCardsProps) {
   // Parse ISO date strings
   let formattedStartDate;
@@ -197,11 +201,33 @@ export default function TestCards({
   const isPast = proposedStart
     ? new Date(proposedStart).getTime() < Date.now() - 60000
     : true;
-  const confirmRegistration = () => {
+  const [registering, setRegistering] = useState(false);
+  const confirmRegistration = async () => {
     setStartTouched(true);
-    if (!proposedStart || isPast) return;
-    // TODO: Hook API call for registration
-    setShowRegisterModal(false);
+    if (!proposedStart || isPast || registering) return;
+    try {
+      setRegistering(true);
+      const iso = new Date(proposedStart).toISOString();
+      const res = await registerTestAction({
+        testId: Number(id),
+        testDate: iso,
+        comments,
+        language: "English",
+      });
+      if (res.ok) {
+        toast.success("Test registered successfully");
+        setShowRegisterModal(false);
+        if (onRegistered) {
+          try { await onRegistered(); } catch { /* ignore */ }
+        }
+      } else {
+        toast.error(res.errorMessage || res.message || "Registration failed");
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Registration failed");
+    } finally {
+      setRegistering(false);
+    }
   };
 
   return (
@@ -298,9 +324,9 @@ export default function TestCards({
         isOpen={showRegisterModal}
         onCancel={() => setShowRegisterModal(false)}
         onConfirm={confirmRegistration}
-        confirmText="Register"
+        confirmText={registering ? "Registering..." : "Register"}
         cancelText="Cancel"
-        confirmDisabled={!proposedStart || isPast}
+        confirmDisabled={!proposedStart || isPast || registering}
       >
         <form className="space-y-5 text-left" onSubmit={(e) => e.preventDefault()}>
           <div className="grid gap-2">
@@ -316,8 +342,8 @@ export default function TestCards({
               onBlur={() => setStartTouched(true)}
               required
               className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${startTouched && (!proposedStart || isPast)
-                  ? "border-red-500"
-                  : "border-gray-300"
+                ? "border-red-500"
+                : "border-gray-300"
                 }`}
             />
             {startTouched && !proposedStart && (

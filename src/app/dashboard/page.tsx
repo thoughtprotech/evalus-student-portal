@@ -132,6 +132,9 @@ export default function Index() {
                   endDateTimeString={test.testEndDate}
                   status={test.testCandidateRegistrationStatus}
                   bookmarked={index % 2 === 0}
+                  onRegistered={async () => {
+                    await fetchTestList();
+                  }}
                 />
               </div>
             ))}
@@ -157,15 +160,17 @@ function StatCard({
   icon: React.ReactNode;
   current: boolean;
 }) {
+  // Increase width specifically for "In Progress" so it stays single line
+  const minWidthClass = label === "In Progress" ? "min-w-[175px]" : "min-w-[150px]";
   return (
     <div
       className={`border border-gray-300 ${current ? "bg-indigo-50 border-indigo-300" : "bg-white"
-        } rounded-xl shadow-md duration-200 ease-in-out px-6 py-1 flex items-center gap-5 min-w-[150px] w-full`}
+        } rounded-xl shadow-md duration-200 ease-in-out px-6 py-1 flex items-center gap-5 ${minWidthClass} w-full`}
     >
       <div className="flex-shrink-0 rounded-full">{icon}</div>
       <div className="flex flex-col">
         <span className="text-xl font-bold text-gray-800">{value}</span>
-        <span className="text-xs font-medium text-gray-500">{label}</span>
+        <span className="text-xs font-medium text-gray-500 whitespace-nowrap">{label}</span>
       </div>
     </div>
   );

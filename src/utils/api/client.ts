@@ -10,8 +10,8 @@ function createApiClient() {
     endpoint: Endpoint<Req, Res>,
     body: Req | FormData
   ): Promise<ApiResponse<Res>> {
-  const isForm = body instanceof FormData;
-  const headers: Record<string, string> = {};
+    const isForm = body instanceof FormData;
+    const headers: Record<string, string> = {};
 
     const startTime = Date.now();
 
@@ -35,7 +35,7 @@ function createApiClient() {
         };
       }
     }
-    
+
 
     const pathOnly = endpoint.path(body as Req) as string;
     const isAbsolute = typeof pathOnly === 'string' && /^https?:\/\//i.test(pathOnly);
@@ -60,7 +60,7 @@ function createApiClient() {
       endpoint,
       headers,
       body,
-      url: fullUrl,      
+      url: fullUrl,
     });
 
     try {
@@ -77,48 +77,66 @@ function createApiClient() {
           endpoint.method === "GET"
             ? undefined
             : isForm
-            ? (body as FormData)
-            : JSON.stringify(body),
+              ? (body as FormData)
+              : JSON.stringify(body),
         credentials: endpoint.type === "CLOSE" ? "include" : undefined,
       });
 
       const elapsed = `${Date.now() - startTime}ms`;
 
       let json: Partial<ApiResponse<Res>> = {};
-      
-      // Handle empty responses (204 No Content, etc.)
-      if (res.status === 204 || res.headers.get('content-length') === '0') {
+
+      // Attempt to read body safely (could be empty or non-JSON)
+      let rawText: string | null = null;
+      try {
+        rawText = await res.text();
+      } catch {
+        rawText = null;
+      }
+
+      const trimmed = rawText?.trim() || "";
+      const contentType = res.headers.get('content-type') || '';
+      const looksJson = contentType.includes('application/json') || /^[\[{]/.test(trimmed);
+
+      if (!trimmed || res.status === 204) {
+        // No content – fine
         json = {};
-      } else {
+      } else if (looksJson) {
         try {
-          const text = await res.text();
-          if (text.trim()) {
-            json = JSON.parse(text);
-          }
+          json = JSON.parse(trimmed);
         } catch (error) {
+          // Preserve raw text for diagnostics
+          const snippet = trimmed.slice(0, 300);
           logger("request:error", {
             endpoint,
             status: res.status,
-            errorMessage: error || "Invalid JSON response",
+            errorMessage: `Invalid JSON response: ${snippet}`,
             elapsed,
           });
-          return {
-            status: res.status,
-            error: true,
-            message: "Invalid JSON response",
-            errorMessage: "The server returned an invalid JSON",
-            data: undefined,
-          };
+          if (res.ok) {
+            json = { message: snippet } as any;
+          } else {
+            return {
+              status: res.status,
+              error: true,
+              message: "Request failed (invalid JSON)",
+              errorMessage: snippet,
+              data: undefined,
+            };
+          }
         }
+      } else {
+        // Plain text / HTML fallback
+        json = { message: trimmed } as any;
       }
 
       const finalResponse: ApiResponse<Res> = {
         status: (json as any).status ?? res.status,
         error: (json as any).error ?? !res.ok,
         message: (json as any).message ?? res.statusText ?? "No message",
-        errorMessage: (json as any).errorMessage ?? (!res.ok ? "Request failed" : ""),
+        errorMessage: (json as any).errorMessage ?? (!res.ok ? (typeof (json as any).message === 'string' ? (json as any).message : 'Request failed') : ""),
         // If the server doesn’t wrap payloads, fall back to the raw JSON
-        data: ((json as any).data !== undefined ? (json as any).data : (json as any)) as Res,
+        data: ((json as any).data !== undefined ? (json as any).data : (looksJson ? (json as any) : undefined)) as Res,
       };
 
       if (finalResponse.error) {
@@ -141,7 +159,7 @@ function createApiClient() {
       return finalResponse;
     } catch (err: any) {
       const elapsed = `${Date.now() - startTime}ms`;
-      
+
       // Provide more detailed error messages
       let errorMessage = "Network error occurred";
       // Try to show the actual URL we attempted
@@ -149,7 +167,7 @@ function createApiClient() {
       try {
         const u = new URL(fullUrl);
         target = `${u.protocol}//${u.host}`;
-      } catch {}
+      } catch { }
       if (err?.message) {
         if (err.message.includes("fetch")) {
           errorMessage = `Failed to connect to ${target || fullUrl} - Server may be down or unreachable`;
@@ -161,13 +179,13 @@ function createApiClient() {
           errorMessage = err.message;
         }
       }
-      
+
       logger("request:network-error", {
         endpoint,
         errorMessage,
         elapsed,
       });
-      
+
       return {
         status: 500,
         error: true,
