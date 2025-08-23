@@ -22,7 +22,6 @@ import {
   FilePlus2,
   Rocket,
   Users,
-  Award,
 } from "lucide-react";
 import { TestDraftProvider } from "@/contexts/TestDraftContext";
 import { apiHandler } from "@/utils/api/client";
@@ -53,10 +52,29 @@ export default function TestSteps({
   const [draftInitial, setDraftInitial] = useState<any | null>(null);
 
   useEffect(() => {
+    let mounted = true;
     (async () => {
-      const res = await apiHandler(endpoints.getNewTestModel, null as any);
-      setDraftInitial(res?.data ?? {});
+      try {
+        // Prefer cached model to avoid duplicate New Test calls
+        const cached = typeof window !== 'undefined' ? sessionStorage.getItem('admin:newTest:model') : null;
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (mounted) setDraftInitial(parsed ?? {});
+          return;
+        }
+      } catch {}
+      try {
+        const res = await apiHandler(endpoints.getNewTestModel, null as any);
+        const data = res?.data ?? {};
+        if (typeof window !== 'undefined') {
+          try { sessionStorage.setItem('admin:newTest:model', JSON.stringify(data)); } catch {}
+        }
+        if (mounted) setDraftInitial(data);
+      } catch {
+        if (mounted) setDraftInitial({});
+      }
     })();
+    return () => { mounted = false; };
   }, []);
 
   const steps = [
@@ -90,12 +108,6 @@ export default function TestSteps({
       description: "Assign to candidates/groups",
       icon: <Users className="w-4 h-4" />,
     },
-    {
-      key: "certs",
-      title: "Create Certificates",
-      description: "Certificate template",
-      icon: <Award className="w-4 h-4" />,
-    },
   ];
 
   const stepsLength = steps.length;
@@ -113,17 +125,8 @@ export default function TestSteps({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stepParamString, stepsLength]);
 
-  // Reflect current step into the URL (after render), avoiding updates during render
-  useEffect(() => {
-    if (!queryHydrated) return;
-    const desiredStepString = String(current + 1);
-    if (stepParamString !== desiredStepString) {
-      const params = new URLSearchParams(searchString);
-      params.set("step", desiredStepString);
-      router.replace(`?${params.toString()}`);
-    }
-    // Depend on stable primitives only to avoid re-running unnecessarily
-  }, [current, stepParamString, searchString, router, queryHydrated]);
+  // Note: We no longer reflect current -> URL automatically.
+  // URL updates are performed explicitly in navigation handlers to avoid routing loops.
 
   const handleBack = () => {
   const next = Math.max(0, current - 1);
@@ -246,14 +249,15 @@ export default function TestSteps({
 
   <div className="sticky bottom-0 z-20 flex items-center justify-between p-6 border-t bg-white">
           <div className="flex items-center gap-4">
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-lg border border-gray-300 text-base font-semibold bg-white hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-sm"
-              onClick={handleBack}
-              disabled={current === 0}
-            >
-              Back
-            </button>
+            {current > 0 && (
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-lg border border-gray-300 text-base font-semibold bg-white hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-sm"
+                onClick={handleBack}
+              >
+                Back
+              </button>
+            )}
           </div>
           <div className="flex items-center gap-4">
             {current < stepsLength - 1 ? (

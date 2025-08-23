@@ -1,692 +1,485 @@
 "use client";
 
-import { useState } from "react";
-import InfoTooltip from "@/components/InfoTooltip";
-import Accordion from "@/components/Accordion";
+import { useEffect, useState } from "react";
 import YesNoToggle from "@/components/ui/YesNoToggle";
 import TogglePair from "@/components/ui/TogglePair";
 import { useTestDraft } from "@/contexts/TestDraftContext";
 
+// Helper transforms for mapping UI state <-> draft (DTO)
+const toUlong = (b: boolean): number => (b ? 1 : 0);
+const fromUlong = (v: any): boolean => v === 1 || v === "1" || v === true;
+
+const toNumberOrNull = (v: string): number | null => (v.trim() === "" ? null : Number(v));
+
+function toLocalDateTimeInputValue(iso?: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function toIsoFromLocal(local: string): string | null {
+  if (!local || local.trim() === "") return null;
+  const d = new Date(local);
+  if (isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
+
 export default function Step2TestSettings() {
-  const [groupBySubject, setGroupBySubject] = useState(false);
-  const [groupByTopic, setGroupByTopic] = useState(false);
-  const [numberingMode, setNumberingMode] = useState<"section" | "continuous">(
-    "continuous"
-  );
-  const [shuffleWithinTopics, setShuffleWithinTopics] = useState(true);
-  const [shuffleAnswerOptions, setShuffleAnswerOptions] = useState(true);
-  // Test Options state
-  const [mandateAll, setMandateAll] = useState(false);
-  const [showMarks, setShowMarks] = useState(true);
-  const [showSpeed, setShowSpeed] = useState(false);
-  const [partialMarking, setPartialMarking] = useState(false);
-  const [scientificCalc, setScientificCalc] = useState(false);
-  const [alertEmpty, setAlertEmpty] = useState(false);
-  const [secureBrowser, setSecureBrowser] = useState(false);
-  const [submitTimeLeft, setSubmitTimeLeft] = useState<number | "">(0);
-  const [minTimePerQ, setMinTimePerQ] = useState<number | "">(0);
-  const [mobileAppRestriction, setMobileAppRestriction] = useState(false);
-
-  const [allowNav, setAllowNav] = useState(true);
-  const [multiLangUI, setMultiLangUI] = useState(false);
-  const [webhooks, setWebhooks] = useState(false);
-  const [defaultCalc, setDefaultCalc] = useState(false);
-  const [watermark, setWatermark] = useState(false);
-  const [dndMobile, setDndMobile] = useState(false);
-  const [activityLog, setActivityLog] = useState(true);
-  const [maxQuestionAttempt, setMaxQuestionAttempt] = useState<number | "">(0);
-  const [numericOptions, setNumericOptions] = useState(false);
-  const [mobileRestriction, setMobileRestriction] = useState(false);
-  const [essayList, setEssayList] = useState(false);
-
-  // Time Setting state
   const { draft, setDraft } = useTestDraft();
-  const [displayTimeBound, setDisplayTimeBound] = useState(true);
-  const [clockFormat, setClockFormat] = useState<"hh:mm" | "mm:ss">("mm:ss");
-  const [sections, setSections] = useState(false);
-  const [sectionInstructions, setSectionInstructions] = useState(false);
-  const [sampleQuestionPerSection, setSampleQuestionPerSection] = useState(false);
-  const [topicAttemptLimits, setTopicAttemptLimits] = useState(false);
-  const [individualTimePerQAll, setIndividualTimePerQAll] = useState(false);
-  const [essaySpecificTimeAll, setEssaySpecificTimeAll] = useState(false);
-  const [minimumQuestionWiseTimeAll, setMinimumQuestionWiseTimeAll] = useState(false);
 
-  // End Test Setting state
-  const [showPersonalizedMessage, setShowPersonalizedMessage] = useState(false);
-  const [feedbackPass, setFeedbackPass] = useState("");
-  const [feedbackFail, setFeedbackFail] = useState("");
-  const [displaySubmissionMessage, setDisplaySubmissionMessage] = useState("");
-  const [setScoreEnabled, setSetScoreEnabled] = useState(false);
-  const [minPassingPercent, setMinPassingPercent] = useState<number | "">("");
-  const [studyPortalEnabled, setStudyPortalEnabled] = useState(false);
+  // Grouping & Randomization
+  const [groupBySubjects, setGroupBySubjects] = useState(false);
+  const [numberBySections, setNumberBySections] = useState(false);
+  const [randomizeByTopics, setRandomizeByTopics] = useState(false);
+  const [randomizeAnswerOptions, setRandomizeAnswerOptions] = useState(false);
+  const [attemptAll, setAttemptAll] = useState(false);
+  const [displayMarks, setDisplayMarks] = useState(false);
 
-  // Generate Rank state
-  const [generateRankMode, setGenerateRankMode] = useState<"automatic" | "manual">("automatic");
-  const [allowDuplicateRanks, setAllowDuplicateRanks] = useState(false);
-  const [skipRankAfterDuplicate, setSkipRankAfterDuplicate] = useState(false);
+  // Time configuration
+  const [minTestTime, setMinTestTime] = useState<string>("");
+  const [maxTestTimePer, setMaxTestTimePer] = useState<string>("");
+  const [minTimePerQ, setMinTimePerQ] = useState<string>("");
+  const [maxTimePerQ, setMaxTimePerQ] = useState<string>("");
+  const [minTimePerSection, setMinTimePerSection] = useState<string>("");
+  const [maxTimePerSection, setMaxTimePerSection] = useState<string>("");
 
-  // Test Attempt & Resume state
-  const [multipleAttempt, setMultipleAttempt] = useState(false);
-  const [testResume, setTestResume] = useState(false);
-  const [fullScreenMode, setFullScreenMode] = useState(false);
-  const [candidateInitiatedBreaks, setCandidateInitiatedBreaks] = useState(false);
-  const [allowBioBreaks, setAllowBioBreaks] = useState(false);
-  const [showDetailedPerformanceReports, setShowDetailedPerformanceReports] = useState(false);
-  const [treatNegativeAsZero, setTreatNegativeAsZero] = useState(false);
-  const [enableWhitelistedWebsite, setEnableWhitelistedWebsite] = useState(false);
+  // Visibility & Logging
+  const [lockSectionsOnSubmission, setLockSectionsOnSubmission] = useState(false);
+  const [logTestActivity, setLogTestActivity] = useState(false);
+  const [displayTestTime, setDisplayTestTime] = useState(false);
+  const [displaySectionTime, setDisplaySectionTime] = useState(false);
 
-  // Controlled accordions: only one open at a time
-  const [openSection, setOpenSection] = useState<
-    | "grouping"
-    | "options"
-    | "time"
-    | "end"
-    | "rank"
-    | "attempt"
-    | "bio"
-    | "report"
-    | "whitelist"
-    | null
-  >("grouping");
+  // Scoring
+  const [testMinimumPassMarks, setTestMinimumPassMarks] = useState<string>("");
+
+  // Feedback messages
+  const [completionMsg, setCompletionMsg] = useState("");
+  const [passMsg, setPassMsg] = useState("");
+  const [failMsg, setFailMsg] = useState("");
+  const [submissionMsg, setSubmissionMsg] = useState("");
+
+  // Ranking & results
+  const [automaticRankCalculation, setAutomaticRankCalculation] = useState(false);
+  const [allowDuplicateRank, setAllowDuplicateRank] = useState(false);
+  const [skipRankForDuplicateTank, setSkipRankForDuplicateTank] = useState(false);
+  const [allowTestPauseResume, setAllowTestPauseResume] = useState(false);
+  const [detailedReportOnCompletion, setDetailedReportOnCompletion] = useState(false);
+  const [negativeScoreZeroes, setNegativeScoreZeroes] = useState(false);
+
+  // Schedule & extra time
+  const [tentativeStart, setTentativeStart] = useState<string>("");
+  const [tentativeEnd, setTentativeEnd] = useState<string>("");
+  const [testAdditionalTime, setTestAdditionalTime] = useState<string>("");
+
+  // Hydrate from draft
+  useEffect(() => {
+    if (!draft) return;
+    setGroupBySubjects(fromUlong(draft.GroupQuestionsBySubjects));
+    setNumberBySections(fromUlong(draft.QuestionNumberingBySections));
+    setRandomizeByTopics(fromUlong(draft.RandomizeQuestionByTopics));
+    setRandomizeAnswerOptions(fromUlong(draft.RandomizeAnswerOptionsByQuestions));
+    setAttemptAll(fromUlong(draft.AttemptAllQuestions));
+    setDisplayMarks(fromUlong(draft.DisplayMarksDuringTest));
+
+    setMinTestTime(draft.MinimumTestTime != null ? String(draft.MinimumTestTime) : "");
+    setMaxTestTimePer(draft.MaximumTestTimePer != null ? String(draft.MaximumTestTimePer) : "");
+    setMinTimePerQ(draft.MinimumTimePerQuestion != null ? String(draft.MinimumTimePerQuestion) : "");
+    setMaxTimePerQ(draft.MaximumTimePerQuestion != null ? String(draft.MaximumTimePerQuestion) : "");
+    setMinTimePerSection(draft.MinimumTimePerSection != null ? String(draft.MinimumTimePerSection) : "");
+    setMaxTimePerSection(draft.MaximumTimePerSection != null ? String(draft.MaximumTimePerSection) : "");
+
+    setLockSectionsOnSubmission(fromUlong(draft.LockSectionsOnSubmission));
+    setLogTestActivity(fromUlong(draft.LogTestActivity));
+    setDisplayTestTime(fromUlong(draft.DisplayTestTime));
+    setDisplaySectionTime(fromUlong(draft.DisplaySectionTime));
+
+    setTestMinimumPassMarks(draft.TestMinimumPassMarks != null ? String(draft.TestMinimumPassMarks) : "");
+
+    setCompletionMsg(draft.TestCompletionMessage ?? "");
+    setPassMsg(draft.TestPassFeedbackMessage ?? "");
+    setFailMsg(draft.TestFailFeedbackMessage ?? "");
+    setSubmissionMsg(draft.TestSubmissionMessage ?? "");
+
+    setAutomaticRankCalculation(fromUlong(draft.AutomaticRankCalculation));
+    setAllowDuplicateRank(fromUlong(draft.AllowDuplicateRank));
+    setSkipRankForDuplicateTank(fromUlong(draft.SkipRankForDuplicateTank));
+    setAllowTestPauseResume(fromUlong(draft.AllowTestPauseResume));
+    setDetailedReportOnCompletion(fromUlong(draft.DetailedTestReportOnTestCompletion));
+    setNegativeScoreZeroes(fromUlong(draft.NegativeScoreZeroes));
+
+    setTentativeStart(toLocalDateTimeInputValue(draft.TentativeTestStartDate));
+    setTentativeEnd(toLocalDateTimeInputValue(draft.TentativeTestEndDate));
+    setTestAdditionalTime(draft.TestAdditionalTime != null ? String(draft.TestAdditionalTime) : "");
+  }, [draft]);
 
   return (
     <div className="space-y-4">
-      {/* Grouping & Shuffling */}
-      <Accordion
-        title="Grouping & Shuffling"
-        isOpen={openSection === "grouping"}
-        onToggle={(next) => setOpenSection(next ? "grouping" : null)}
-      >
-        <div className="border rounded-lg bg-white shadow-sm">
-          <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">
-            Organize questions and randomize their order and answer options
-          </div>
-          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Grouping (left column) */}
-            <div className="space-y-2 border rounded-md p-3 bg-gray-50">
-              <div className="text-sm font-semibold text-gray-800">Grouping</div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-sm text-gray-700">
-                  Group Questions by Subject Area
-                </span>
-                <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={groupBySubject} onChange={setGroupBySubject} />
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-sm text-gray-700">
-                  Group Questions by Topic
-                </span>
-                <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={groupByTopic} onChange={setGroupByTopic} />
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-sm text-gray-700">
-                  Choose Section-Specific Question Numbering
-                </span>
-                <TogglePair
-                  value={numberingMode}
-                  onChange={setNumberingMode}
-                  left={{ label: "By Section", value: "section" }}
-                  right={{ label: "Continuous", value: "continuous" }}
-                  size="sm"
-                  className="shrink-0"
-                  equalWidth
-                  segmentWidthClass="w-24 h-6 text-xs"
-                />
-              </div>
-            </div>
-
-            {/* Shuffling (right column) */}
-            <div className="space-y-2 border rounded-md p-3 bg-gray-50">
-              <div className="text-sm font-semibold text-gray-800">Shuffling</div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-sm text-gray-700">
-                  Randomize Question Order Within Topics
-                </span>
-                <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={shuffleWithinTopics} onChange={setShuffleWithinTopics} />
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-sm text-gray-700">
-                  Randomize Answer Options Within Questions
-                </span>
-                <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={shuffleAnswerOptions} onChange={setShuffleAnswerOptions} />
-              </div>
-            </div>
-          </div>
-        </div>
-      </Accordion>
-
-      {/* Test Options */}
-      <Accordion
-        title="Test Options"
-        isOpen={openSection === "options"}
-        onToggle={(next) => setOpenSection(next ? "options" : null)}
-      >
-        <div className="border rounded-lg bg-white shadow-sm">
-          <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">
-            Set the required fields for a candidate appearing in the test
-          </div>
-          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Column 1 */}
-            <div className="space-y-2 border rounded-md p-3 bg-gray-50">
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={mandateAll}
-                  onChange={(e) => setMandateAll(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 focus:ring-blue-500" />
-                <span className="text-sm font-medium">Mandate All Question Attempts <span className="text-red-500">*</span></span>
-                <InfoTooltip text="The Candidate has to provide at-least one input for a question" />
-              </label>
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={showMarks}
-                  onChange={(e) => setShowMarks(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 focus:ring-blue-500" />
-                <span className="text-sm font-medium">Show Marks/Points During Test</span>
-                <InfoTooltip text="Show the scores against every question" />               
-              </label>
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={showSpeed}
-                  onChange={(e) => setShowSpeed(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 focus:ring-blue-500" />
-                <span className="text-sm font-medium">Show Internet Speed During Test</span>
-              </label>
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={partialMarking}
-                  onChange={(e) => setPartialMarking(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 focus:ring-blue-500" />
-                <span className="text-sm font-medium">Apply Partial Marking</span>
-              </label>
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={scientificCalc}
-                  onChange={(e) => setScientificCalc(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 focus:ring-blue-500" />
-                <span className="text-sm font-medium">Show Scientific Calculator</span>
-              </label>
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={alertEmpty}
-                  onChange={(e) => setAlertEmpty(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 focus:ring-blue-500" />
-                <span className="text-sm font-medium">Show Alerts for Empty Responses</span>
-              </label>
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={secureBrowser}
-                  onChange={(e) => setSecureBrowser(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 focus:ring-blue-500" />
-                <span className="text-sm font-medium">Secure Browser</span>
-                <InfoTooltip text="Secure Browser is for candidate portal. You can request Super Admin to activate it in your admin portal." />
-              </label>
-              <div className="grid grid-cols-[1fr_auto] items-center gap-2 text-sm">
-                <span className="flex items-center gap-1 text-sm">
-                  Time left for submit (in min)
-                  <InfoTooltip maxWidthClass="max-w-sm" text="Candidate can only submit the test before the given time of the test duration (Total time - Given time)." />
-                </span>
-                <input
-                  type="number"
-                  className="w-24 border rounded px-2 py-1 text-sm"
-                  value={submitTimeLeft}
-                  onChange={(e) =>
-                    setSubmitTimeLeft(
-                      e.target.value === "" ? "" : Number(e.target.value)
-                    )
-                  }
-                />
-              </div>
-              <div className="grid grid-cols-[1fr_auto] items-center gap-2 text-sm">
-                <span className="text-sm">Set Minimum Time Required Per Question</span>
-                <input
-                  type="number"
-                  className="w-24 border rounded px-2 py-1 text-sm"
-                  value={minTimePerQ}
-                  onChange={(e) =>
-                    setMinTimePerQ(
-                      e.target.value === "" ? "" : Number(e.target.value)
-                    )
-                  }
-                />
-              </div>
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={mobileAppRestriction}
-                  onChange={(e) => setMobileAppRestriction(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 focus:ring-blue-500" />
-                <span className="text-sm font-medium">Enable Mobile Application Restriction</span>
-                <InfoTooltip text="Enables/Disables candidate to attempt test from Mobile/Tab App." />
-              </label>
-            </div>
-
-            {/* Column 2 */}
-            <div className="space-y-2 border rounded-md p-3 bg-gray-50">
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={allowNav}
-                  onChange={(e) => setAllowNav(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 focus:ring-blue-500" />
-                Allow Back and Forward Navigation Between Questions
-                <InfoTooltip text="This will provide the liberty to switch in between the last and next question. If it is not checked then the candidate can only move to the next question" />
-              </label>
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={multiLangUI}
-                  onChange={(e) => setMultiLangUI(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 focus:ring-blue-500" />
-                Support Multiple Languages for Interface Test
-                 <InfoTooltip text="English is the default language for your question bank. However, if required you can select this option to use multiple languages while creating a test" />
-              </label>
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={webhooks}
-                  onChange={(e) => setWebhooks(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 focus:ring-blue-500" />
-                Integrate with Web Hooks for External Tracking
-                <InfoTooltip text="Store data onto your personalized database" />
-              </label>
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={defaultCalc}
-                  onChange={(e) => setDefaultCalc(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 focus:ring-blue-500" />
-                Show Default Calculator
-              </label>
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={watermark}
-                  onChange={(e) => setWatermark(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 focus:ring-blue-500" />
-                Display Watermark with Student Enrollment Number
-              </label>
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={dndMobile}
-                  onChange={(e) => setDndMobile(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 focus:ring-blue-500" />
-                Enable Do Not Disturb Mode on Mobile Devices
-                <InfoTooltip text="Supported on Android only" />
-              </label>
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={activityLog}
-                  onChange={(e) => setActivityLog(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 focus:ring-blue-500" />
-                Activity Log
-                <InfoTooltip text="Track candidate actions and key events during the test" />
-              </label>
-              <div className="grid grid-cols-[1fr_auto] items-center gap-2 text-sm">
-                <span className="text-sm">Maximum Question Attempt</span>
-                <input
-                  type="number"
-                  className="w-24 border rounded px-2 py-1 text-sm"
-                  value={maxQuestionAttempt}
-                  onChange={(e) =>
-                    setMaxQuestionAttempt(
-                      e.target.value === "" ? "" : Number(e.target.value)
-                    )
-                  }
-                />
-              </div>
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={numericOptions}
-                  onChange={(e) => setNumericOptions(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 focus:ring-blue-500" />
-                Show Question options in Numeric
-              </label>
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={mobileRestriction}
-                  onChange={(e) => setMobileRestriction(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 focus:ring-blue-500" />
-                Enable Mobile Restriction
-              </label>
-              <label className="flex items-center gap-2 text-[11px] font-medium">
-                <input
-                  type="checkbox"
-                  checked={essayList}
-                  onChange={(e) => setEssayList(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 focus:ring-blue-500" />
-                <span className="text-sm font-medium">Essay List View</span>
-              </label>
-            </div>
-          </div>
-        </div>
-      </Accordion>
-      <Accordion
-        title="Time Setting"
-        isOpen={openSection === "time"}
-        onToggle={(next) => setOpenSection(next ? "time" : null)}
-      >
-        <div className="border rounded-md">
-          <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">
-            Amend the clock settings for a test
-          </div>
-          <div className="divide-y">
-            {/* Row: Display Time Bound for Entire Test */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr_auto] items-center gap-3 px-4 py-3 text-sm">
-              <div className="text-sm font-medium text-gray-800">Display Time Bound for Entire Test</div>
-              <div className="text-gray-600">The Candidate has to finish the test in between the allocated time frame</div>
-              <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={displayTimeBound} onChange={setDisplayTimeBound} />
-            </div>
-
-            {/* Row: Choose Clock Format */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr_auto] items-center gap-3 px-4 py-3 text-sm">
-              <div className="text-sm font-medium text-gray-800">Choose Clock Format</div>
-              <div className="text-gray-600">Select Clock Format</div>
-              <TogglePair
-                value={clockFormat}
-                onChange={setClockFormat}
-                left={{ label: "hh:mm", value: "hh:mm" }}
-                right={{ label: "mm:ss", value: "mm:ss" }}
-                className="justify-self-start"
+      {/* Grouping & Randomization */}
+      <section className="border rounded-lg bg-white shadow-sm">
+        <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Grouping & Randomization</div>
+        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-gray-800">Group Questions by Subjects</span>
+              <YesNoToggle
+                className="shrink-0"
                 size="sm"
-                segmentWidthClass="w-20 h-6 text-xs"
+                segmentWidthClass="w-10 h-5 text-xs"
+                value={groupBySubjects}
+                onChange={(v) => {
+                  setGroupBySubjects(v);
+                  setDraft((d: any) => ({ ...d, GroupQuestionsBySubjects: toUlong(v) }));
+                }}
               />
             </div>
-
-            {/* Row: Sections */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr_auto] items-center gap-3 px-4 py-3 text-sm">
-              <div className="text-sm font-medium text-gray-800">Sections</div>
-              <div className="text-gray-600">In order to set up sections according to your exam</div>
-              <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={sections} onChange={setSections} />
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-gray-800">Question Numbering by Sections</span>
+              <TogglePair<boolean>
+                value={numberBySections}
+                onChange={(v: boolean) => {
+                  setNumberBySections(v);
+                  setDraft((d: any) => ({ ...d, QuestionNumberingBySections: toUlong(v) }));
+                }}
+                left={{ label: "By Section", value: true }}
+                right={{ label: "Continuous", value: false }}
+                size="sm"
+                equalWidth
+                segmentWidthClass="w-28"
+              />
             </div>
-
-            {/* Row: Provide Descriptive Instructions for Each Section */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr_auto] items-center gap-3 px-4 py-3 text-sm">
-              <div className="text-sm font-medium text-gray-800">Provide Descriptive Instructions for Each Section</div>
-              <div className="text-gray-600">If required you can allocate Instruction to each section</div>
-              <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={sectionInstructions} onChange={setSectionInstructions} />
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-gray-800">Randomize Questions by Topics</span>
+              <YesNoToggle
+                className="shrink-0"
+                size="sm"
+                segmentWidthClass="w-10 h-5 text-xs"
+                value={randomizeByTopics}
+                onChange={(v) => {
+                  setRandomizeByTopics(v);
+                  setDraft((d: any) => ({ ...d, RandomizeQuestionByTopics: toUlong(v) }));
+                }}
+              />
             </div>
-
-            {/* Row: Show Specific Sample Question for Each Section */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr_auto] items-center gap-3 px-4 py-3 text-sm">
-              <div className="text-sm font-medium text-gray-800">Show Specific Sample Question for Each Section</div>
-              <div className="text-gray-600">Display Sample Question Before Test Start</div>
-              <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={sampleQuestionPerSection} onChange={setSampleQuestionPerSection} />
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-gray-800">Randomize Answer Options by Questions</span>
+              <YesNoToggle
+                className="shrink-0"
+                size="sm"
+                segmentWidthClass="w-10 h-5 text-xs"
+                value={randomizeAnswerOptions}
+                onChange={(v) => {
+                  setRandomizeAnswerOptions(v);
+                  setDraft((d: any) => ({ ...d, RandomizeAnswerOptionsByQuestions: toUlong(v) }));
+                }}
+              />
             </div>
-
-            {/* Row: Set Topic-Wise Attempt Limits for Students */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr_auto] items-center gap-3 px-4 py-3 text-sm">
-              <div className="text-sm font-medium text-gray-800">Set Topic-Wise Attempt Limits for Students</div>
-              <div className="text-gray-600">If required you can allocate attempt to each topic</div>
-              <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={topicAttemptLimits} onChange={setTopicAttemptLimits} />
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-gray-800">Attempt All Questions</span>
+              <YesNoToggle
+                className="shrink-0"
+                size="sm"
+                segmentWidthClass="w-10 h-5 text-xs"
+                value={attemptAll}
+                onChange={(v) => {
+                  setAttemptAll(v);
+                  setDraft((d: any) => ({ ...d, AttemptAllQuestions: toUlong(v) }));
+                }}
+              />
             </div>
-
-            {/* Row: Set Individual Time Limits for Each Question */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr_auto] items-center gap-3 px-4 py-3 text-sm">
-              <div className="text-sm font-medium text-gray-800">Set Individual Time Limits for Each Question</div>
-              <div className="text-gray-600">Automize time for all questions in a test</div>
-              <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={individualTimePerQAll} onChange={setIndividualTimePerQAll} />
-            </div>
-
-            {/* Row: Set Specific Time Limit for Essay Questions (Minutes) */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr_auto] items-center gap-3 px-4 py-3 text-sm">
-              <div className="text-sm font-medium text-gray-800">Set Specific Time Limit for Essay Questions (Minutes)</div>
-              <div className="text-gray-600">Automize time for all essay questions in a test</div>
-              <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={essaySpecificTimeAll} onChange={setEssaySpecificTimeAll} />
-            </div>
-
-            {/* Row: Minimum Question Wise Time */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr_auto] items-center gap-3 px-4 py-3 text-sm">
-              <div className="text-sm font-medium text-gray-800">Minimum Question Wise Time</div>
-              <div className="text-gray-600">Automize Minimum time for all questions in a test</div>
-              <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={minimumQuestionWiseTimeAll} onChange={setMinimumQuestionWiseTimeAll} />
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-gray-800">Display Marks During Test</span>
+              <YesNoToggle
+                className="shrink-0"
+                size="sm"
+                segmentWidthClass="w-10 h-5 text-xs"
+                value={displayMarks}
+                onChange={(v) => {
+                  setDisplayMarks(v);
+                  setDraft((d: any) => ({ ...d, DisplayMarksDuringTest: toUlong(v) }));
+                }}
+              />
             </div>
           </div>
         </div>
-      </Accordion>
-      <Accordion
-        title="End Test Setting"
-        isOpen={openSection === "end"}
-        onToggle={(next) => setOpenSection(next ? "end" : null)}
-      >
-        <div className="border rounded-md">
-          <div className="bg-blue-600 text-white px-4 py-2 text-sm font-medium">Amend final phase changes to the test that includes result, score, message, etc.</div>
-          <div className="divide-y">
-            {/* Row: Custom Message (merged toggle + feedback fields under one centered label with separator) */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] items-stretch gap-3 px-4 py-3 text-sm">
-              <div className="h-full text-sm font-medium text-gray-800 flex items-center gap-1">
-                Custom Message
-                <InfoTooltip text="Show personalized messages at end of test" />
-              </div>
-              <div className="w-full border-l border-gray-200 pl-4">
-                {/* Toggle row */}
-                <div className="grid grid-cols-[1fr_auto] items-center gap-2 mb-3">
-                  <div className="text-sm text-gray-800">Show Personalized Message</div>
-                  <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={showPersonalizedMessage} onChange={setShowPersonalizedMessage} />
-                </div>
-                {/* Feedback fields */}
-                <div className="grid gap-3">
-                  <div className="grid gap-2">
-                    <label className="text-sm text-gray-800">Feedback for pass</label>
-                    <textarea
-                      className="w-full min-h-[72px] border rounded-md px-3 py-2 disabled:opacity-50"
-                      value={feedbackPass}
-                      onChange={(e) => setFeedbackPass(e.target.value)}
-                      disabled={!showPersonalizedMessage}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <label className="text-sm text-gray-800">Feedback for fail</label>
-                    <textarea
-                      className="w-full min-h-[72px] border rounded-md px-3 py-2 disabled:opacity-50"
-                      value={feedbackFail}
-                      onChange={(e) => setFeedbackFail(e.target.value)}
-                      disabled={!showPersonalizedMessage}
-                    />
-                  </div>
-                </div>
-              </div>
+      </section>
+
+      {/* Time Limits */}
+      <section className="border rounded-lg bg-white shadow-sm">
+        <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Time Limits</div>
+        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className="space-y-3">
+            <div>
+              <label className="block text-gray-800 mb-1">Minimum Test Time (mins)</label>
+              <input
+                type="number"
+                min={1}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={minTestTime}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setMinTestTime(v);
+                  setDraft((d: any) => ({ ...d, MinimumTestTime: toNumberOrNull(v) }));
+                }}
+                placeholder="e.g., 10"
+              />
             </div>
-            {/* Row: Display Message Upon Submission (aligned to Custom Message) */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] items-stretch gap-3 px-4 py-3 text-sm">
-              <div className="h-full font-medium text-gray-800 flex items-center gap-1">
-                Display Message Upon Submission
-                <InfoTooltip text="Show a message to the candidate after submitting the test" />
-              </div>
-              <div className="w-full border-l border-gray-200 pl-4">
-                <div className="grid gap-2">
-                  <label className="text-sm text-gray-800">Submission Message</label>
-                  <textarea
-                    className="w-full min-h-[72px] border rounded-md px-3 py-2"
-                    value={displaySubmissionMessage}
-                    onChange={(e) => setDisplaySubmissionMessage(e.target.value)}
-                  />
-                </div>
-              </div>
+            <div>
+              <label className="block text-gray-800 mb-1">Maximum Test Time Per (mins)</label>
+              <input
+                type="number"
+                min={1}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={maxTestTimePer}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setMaxTestTimePer(v);
+                  setDraft((d: any) => ({ ...d, MaximumTestTimePer: toNumberOrNull(v) }));
+                }}
+                placeholder="e.g., 120"
+              />
             </div>
-            {/* Row: Set Score enable */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr_auto] items-center gap-3 px-4 py-3 text-sm">
-              <div className="text-sm font-medium text-gray-800">Set Score</div>
-              <div className="text-gray-800">Set Minimum Passing Percentage</div>
-              <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={setScoreEnabled} onChange={setSetScoreEnabled} />
+            <div>
+              <label className="block text-gray-800 mb-1">Minimum Time per Question (secs)</label>
+              <input
+                type="number"
+                min={1}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={minTimePerQ}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setMinTimePerQ(v);
+                  setDraft((d: any) => ({ ...d, MinimumTimePerQuestion: toNumberOrNull(v) }));
+                }}
+                placeholder="e.g., 30"
+              />
             </div>
-            {setScoreEnabled && (
-              <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] items-center gap-3 px-4 py-3 text-sm">
-                <div className="hidden md:block" />
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    className="w-28 border rounded px-2 py-1"
-                    placeholder="e.g., 40"
-                    value={minPassingPercent}
-                    onChange={(e) => setMinPassingPercent(e.target.value === "" ? "" : Number(e.target.value))}
-                  />
-                  <span className="text-gray-600">%</span>
-                </div>
-              </div>
-            )}
-            {/* Row: Study Portal Enable */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr_auto] items-center gap-3 px-4 py-3 text-sm">
-              <div className="font-medium text-gray-800">Study Portal Enable</div>
-              <div className="text-gray-800">Enable study portal integration with thinkexam</div>
-              <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={studyPortalEnabled} onChange={setStudyPortalEnabled} />
+          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-gray-800 mb-1">Maximum Time per Question (secs)</label>
+              <input
+                type="number"
+                min={1}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={maxTimePerQ}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setMaxTimePerQ(v);
+                  setDraft((d: any) => ({ ...d, MaximumTimePerQuestion: toNumberOrNull(v) }));
+                }}
+                placeholder="e.g., 120"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-800 mb-1">Minimum Time per Section (mins)</label>
+              <input
+                type="number"
+                min={1}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={minTimePerSection}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setMinTimePerSection(v);
+                  setDraft((d: any) => ({ ...d, MinimumTimePerSection: toNumberOrNull(v) }));
+                }}
+                placeholder="e.g., 10"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-800 mb-1">Maximum Time per Section (mins)</label>
+              <input
+                type="number"
+                min={1}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={maxTimePerSection}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setMaxTimePerSection(v);
+                  setDraft((d: any) => ({ ...d, MaximumTimePerSection: toNumberOrNull(v) }));
+                }}
+                placeholder="e.g., 60"
+              />
             </div>
           </div>
         </div>
-      </Accordion>
-      <Accordion
-        title="Generate Rank"
-        isOpen={openSection === "rank"}
-        onToggle={(next) => setOpenSection(next ? "rank" : null)}
-      >
-        <div className="border rounded-md">
-          <div className="bg-blue-600 text-white px-4 py-2 text-sm font-medium">To produce the position of the candidates appearing in a test</div>
-          <div className="divide-y">
-            {/* Row: Generate Rank (merged controls on right, centered label with separator) */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] items-stretch gap-3 px-4 py-3 text-sm">
-              <div className="h-full font-medium text-gray-800 flex items-center">Generate Rank</div>
-              <div className="w-full border-l border-gray-200 pl-4">
-                <div className="grid grid-cols-1 gap-3">
-                  <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-                    <div className="text-gray-800">Calculate Ranks</div>
-                    <TogglePair
-                      value={generateRankMode}
-                      onChange={setGenerateRankMode}
-                      left={{ label: "Automatic", value: "automatic" }}
-                      right={{ label: "Manual", value: "manual" }}
-                      className="justify-self-start"
-                      equalWidth
-                      segmentWidthClass="w-20 h-7 text-sm flex items-center"
-                      size="sm"
-                    />
-                  </div>
-                  <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-                    <div className="text-gray-800">Allow/Disallow Duplicate Ranks</div>
-                    <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={allowDuplicateRanks} onChange={setAllowDuplicateRanks} />
-                  </div>
-                  <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-                    <div className="text-gray-800">Skip Rank After Duplicate</div>
-                    <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={skipRankAfterDuplicate} onChange={setSkipRankAfterDuplicate} />
-                  </div>
-                </div>
-              </div>
+      </section>
+
+      {/* Visibility & Logging */}
+      <section className="border rounded-lg bg-white shadow-sm">
+        <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Visibility & Locking</div>
+        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className="space-y-3">
+            <label className="flex items-center justify-between gap-3">
+              <span className="text-gray-800">Display Test Time</span>
+              <YesNoToggle
+                className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs"
+                value={displayTestTime}
+                onChange={(v) => { setDisplayTestTime(v); setDraft((d: any) => ({ ...d, DisplayTestTime: toUlong(v) })); }}
+              />
+            </label>
+            <label className="flex items-center justify-between gap-3">
+              <span className="text-gray-800">Display Section Time</span>
+              <YesNoToggle
+                className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs"
+                value={displaySectionTime}
+                onChange={(v) => { setDisplaySectionTime(v); setDraft((d: any) => ({ ...d, DisplaySectionTime: toUlong(v) })); }}
+              />
+            </label>
+          </div>
+          <div className="space-y-3">
+            <label className="flex items-center justify-between gap-3">
+              <span className="text-gray-800">Lock Sections on Submission</span>
+              <YesNoToggle
+                className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs"
+                value={lockSectionsOnSubmission}
+                onChange={(v) => { setLockSectionsOnSubmission(v); setDraft((d: any) => ({ ...d, LockSectionsOnSubmission: toUlong(v) })); }}
+              />
+            </label>
+            <label className="flex items-center justify-between gap-3">
+              <span className="text-gray-800">Log Test Activity</span>
+              <YesNoToggle
+                className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs"
+                value={logTestActivity}
+                onChange={(v) => { setLogTestActivity(v); setDraft((d: any) => ({ ...d, LogTestActivity: toUlong(v) })); }}
+              />
+            </label>
+          </div>
+        </div>
+      </section>
+
+      {/* Scoring */}
+      <section className="border rounded-lg bg-white shadow-sm">
+        <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Scoring</div>
+        <div className="p-4 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-gray-800 mb-1">Test Minimum Pass Marks</label>
+              <input
+                type="number"
+                min={0}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={testMinimumPassMarks}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setTestMinimumPassMarks(v);
+                  setDraft((d: any) => ({ ...d, TestMinimumPassMarks: v.trim() === "" ? null : Number(v) }));
+                }}
+                placeholder="e.g., 40"
+              />
             </div>
           </div>
         </div>
-      </Accordion>
-      <Accordion
-        title="Test Attempt & Resume"
-        isOpen={openSection === "attempt"}
-        onToggle={(next) => setOpenSection(next ? "attempt" : null)}
-      >
-        <div className="border rounded-md">
-          <div className="bg-blue-600 text-white px-4 py-2 text-sm font-medium">Attempt limits and resume policy</div>
-          <div className="divide-y">
-            {/* Row: Multiple Attempt */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr_auto] items-center gap-3 px-4 py-3 text-sm">
-              <div className="font-medium text-gray-800">Multiple Attempt</div>
-              <div className="text-gray-800">Allow Multiple Attempt</div>
-              <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={multipleAttempt} onChange={setMultipleAttempt} />
-            </div>
-            {/* Row: Test Resume */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr_auto] items-center gap-3 px-4 py-3 text-sm">
-              <div className="font-medium text-gray-800">Test Resume</div>
-              <div className="text-gray-800">
-                <div>Enable Test Resumption After Stopping</div>
-                <div className="text-gray-600 text-xs">Candidates can resume test up to a certain number of times</div>
-              </div>
-              <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={testResume} onChange={setTestResume} />
-            </div>
-            {/* Row: Optional Break - Allow Candidate-Initiated Breaks */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr_auto] items-center gap-3 px-4 py-3 text-sm">
-              <div className="font-medium text-gray-800">Optional Break</div>
-              <div className="text-gray-800">Allow Candidate-Initiated Breaks</div>
-              <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={candidateInitiatedBreaks} onChange={setCandidateInitiatedBreaks} />
-            </div>
-            {/* Row: Full Screen Mode */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr_auto] items-center gap-3 px-4 py-3 text-sm">
-              <div className="font-medium text-gray-800">Full Screen Mode</div>
-              <div className="text-gray-800">Provide Full-Screen Mode Option During Test</div>
-              <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={fullScreenMode} onChange={setFullScreenMode} />
-            </div>
+      </section>
+
+      {/* Feedback Messages */}
+      <section className="border rounded-lg bg-white shadow-sm">
+        <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Feedback Messages</div>
+        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className="grid gap-2">
+            <label className="text-gray-800">Test Completion Message</label>
+            <textarea className="w-full min-h-[72px] border rounded-md px-3 py-2" value={completionMsg} onChange={(e) => { const v = e.target.value; setCompletionMsg(v); setDraft((d: any) => ({ ...d, TestCompletionMessage: v })); }} />
+          </div>
+          <div className="grid gap-2">
+            <label className="text-gray-800">Test Submission Message</label>
+            <textarea className="w-full min-h-[72px] border rounded-md px-3 py-2" value={submissionMsg} onChange={(e) => { const v = e.target.value; setSubmissionMsg(v); setDraft((d: any) => ({ ...d, TestSubmissionMessage: v })); }} />
+          </div>
+          <div className="grid gap-2">
+            <label className="text-gray-800">Test Pass Feedback Message</label>
+            <textarea className="w-full min-h-[72px] border rounded-md px-3 py-2" value={passMsg} onChange={(e) => { const v = e.target.value; setPassMsg(v); setDraft((d: any) => ({ ...d, TestPassFeedbackMessage: v })); }} />
+          </div>
+          <div className="grid gap-2">
+            <label className="text-gray-800">Test Fail Feedback Message</label>
+            <textarea className="w-full min-h-[72px] border rounded-md px-3 py-2" value={failMsg} onChange={(e) => { const v = e.target.value; setFailMsg(v); setDraft((d: any) => ({ ...d, TestFailFeedbackMessage: v })); }} />
           </div>
         </div>
-      </Accordion>
-      
-      <Accordion
-        title="Bio Break"
-        isOpen={openSection === "bio"}
-        onToggle={(next) => setOpenSection(next ? "bio" : null)}
-      >
-        <div className="border rounded-md">
-          <div className="bg-blue-600 text-white px-4 py-2 text-sm font-medium">Bio break configuration</div>
-          <div className="divide-y">
-            {/* Row: Allow Breaks for Biological Needs */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr_auto] items-center gap-3 px-4 py-3 text-sm">
-              <div className="font-medium text-gray-800">Allow Breaks for Biological Needs</div>
-              <div className="text-gray-600">Permit candidates to take short bio breaks during the test</div>
-              <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={allowBioBreaks} onChange={setAllowBioBreaks} />
-            </div>
+      </section>
+
+      {/* Ranking & Results / Resume & Breaks */}
+      <section className="border rounded-lg bg-white shadow-sm">
+        <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Ranking & Results</div>
+        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className="space-y-3">
+            <label className="flex items-center justify-between gap-3">
+              <span className="text-gray-800">Automatic Rank Calculation</span>
+              <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={automaticRankCalculation} onChange={(v) => { setAutomaticRankCalculation(v); setDraft((d: any) => ({ ...d, AutomaticRankCalculation: toUlong(v) })); }} />
+            </label>
+            <label className="flex items-center justify-between gap-3">
+              <span className="text-gray-800">Allow Duplicate Rank</span>
+              <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={allowDuplicateRank} onChange={(v) => { setAllowDuplicateRank(v); setDraft((d: any) => ({ ...d, AllowDuplicateRank: toUlong(v) })); }} />
+            </label>
+            <label className="flex items-center justify-between gap-3">
+              <span className="text-gray-800">Skip Rank for Duplicate Tank</span>
+              <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={skipRankForDuplicateTank} onChange={(v) => { setSkipRankForDuplicateTank(v); setDraft((d: any) => ({ ...d, SkipRankForDuplicateTank: toUlong(v) })); }} />
+            </label>
+          </div>
+          <div className="space-y-3">
+            <label className="flex items-center justify-between gap-3">
+              <span className="text-gray-800">Allow Test Pause/Resume</span>
+              <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={allowTestPauseResume} onChange={(v) => { setAllowTestPauseResume(v); setDraft((d: any) => ({ ...d, AllowTestPauseResume: toUlong(v) })); }} />
+            </label>
+            <label className="flex items-center justify-between gap-3">
+              <span className="text-gray-800">Detailed Test Report on Completion</span>
+              <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={detailedReportOnCompletion} onChange={(v) => { setDetailedReportOnCompletion(v); setDraft((d: any) => ({ ...d, DetailedTestReportOnTestCompletion: toUlong(v) })); }} />
+            </label>
+            <label className="flex items-center justify-between gap-3">
+              <span className="text-gray-800">Treat Negative Score as Zero</span>
+              <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={negativeScoreZeroes} onChange={(v) => { setNegativeScoreZeroes(v); setDraft((d: any) => ({ ...d, NegativeScoreZeroes: toUlong(v) })); }} />
+            </label>
           </div>
         </div>
-      </Accordion>
-      <Accordion
-        title="Report Setting"
-        isOpen={openSection === "report"}
-        onToggle={(next) => setOpenSection(next ? "report" : null)}
-      >
-        <div className="border rounded-md">
-          <div className="bg-blue-600 text-white px-4 py-2 text-sm font-medium">Report visibility and analytics</div>
-          <div className="divide-y">
-            {/* Row: Test Taker Report (centered label; right has two toggles) */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] items-stretch gap-3 px-4 py-3 text-sm">
-              <div className="h-full text-sm font-medium text-gray-800 flex items-center">Test Taker Report</div>
-              <div className="w-full border-l border-gray-100 pl-4">
-                <div className="grid gap-3">
-                  <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-                    <div className="text-sm text-gray-800">Show Detailed Performance Reports</div>
-                    <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={showDetailedPerformanceReports} onChange={setShowDetailedPerformanceReports} />
-                  </div>
-                  <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-                    <div className="text-sm text-gray-800">Treat Negative Scores as Zero</div>
-                    <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={treatNegativeAsZero} onChange={setTreatNegativeAsZero} />
-                  </div>
-                </div>
-              </div>
-            </div>
+      </section>
+
+      {/* Schedule */}
+      <section className="border rounded-lg bg-white shadow-sm">
+        <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Schedule</div>
+        <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div>
+            <label className="block text-gray-800 mb-1">Tentative Test Start</label>
+            <input
+              type="datetime-local"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              value={tentativeStart}
+              onChange={(e) => {
+                const v = e.target.value;
+                setTentativeStart(v);
+                setDraft((d: any) => ({ ...d, TentativeTestStartDate: toIsoFromLocal(v) }));
+              }}
+            />
+          </div>
+          <div>
+            <label className="block text-gray-800 mb-1">Tentative Test End</label>
+            <input
+              type="datetime-local"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              value={tentativeEnd}
+              onChange={(e) => {
+                const v = e.target.value;
+                setTentativeEnd(v);
+                setDraft((d: any) => ({ ...d, TentativeTestEndDate: toIsoFromLocal(v) }));
+              }}
+            />
+          </div>
+          <div>
+            <label className="block text-gray-800 mb-1">Additional Time (mins)</label>
+            <input
+              type="number"
+              min={0}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              value={testAdditionalTime}
+              onChange={(e) => {
+                const v = e.target.value;
+                setTestAdditionalTime(v);
+                setDraft((d: any) => ({ ...d, TestAdditionalTime: v.trim() === "" ? null : Number(v) }));
+              }}
+              placeholder="e.g., 5"
+            />
           </div>
         </div>
-      </Accordion>
-      <Accordion
-        title="Whitelisted Website (Open Book Test)"
-        isOpen={openSection === "whitelist"}
-        onToggle={(next) => setOpenSection(next ? "whitelist" : null)}
-      >
-        <div className="border rounded-md">
-          <div className="bg-blue-600 text-white px-4 py-2 text-sm font-medium">Add allowed websites for open book tests</div>
-          <div className="divide-y">
-            {/* Row: Whitelisted Website toggle */}
-            <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] items-stretch gap-3 px-4 py-3 text-sm">
-              <div className="h-full text-sm font-medium text-gray-800 flex items-center">Whitelisted Website</div>
-              <div className="w-full border-l border-gray-100 pl-4">
-                <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-                  <div className="text-sm text-gray-800">Enable Whitelisted Website of test by a candidate</div>
-                  <YesNoToggle className="justify-self-start" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={enableWhitelistedWebsite} onChange={setEnableWhitelistedWebsite} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Accordion>
+      </section>
     </div>
   );
 }

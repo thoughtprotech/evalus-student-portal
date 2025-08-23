@@ -28,6 +28,9 @@ const CANDIDATE_GROUPS = [
 ];
 
 export default function AddCandidatePage() {
+  const inputCls = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition";
+  const selectCls = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition";
+  const textareaCls = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition";
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -262,28 +265,28 @@ export default function AddCandidatePage() {
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-800 mb-1">
                   First Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   name="firstName"
                   required
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                  className={inputCls}
                   placeholder="Enter first name"
                   value={form.firstName}
                   onChange={handleInputChange}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-800 mb-1">
                   Last Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   name="lastName"
                   required
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                  className={inputCls}
                   placeholder="Enter last name"
                   value={form.lastName}
                   onChange={handleInputChange}
@@ -292,28 +295,28 @@ export default function AddCandidatePage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-800 mb-1">
                   Email <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="email"
                   name="email"
                   required
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                  className={inputCls}
                   placeholder="Enter email"
                   value={form.email}
                   onChange={handleInputChange}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-800 mb-1">
                   Phone Number <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   name="phoneNumber"
                   required
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                  className={inputCls}
                   placeholder="Enter phone number"
                   value={form.phoneNumber}
                   onChange={handleInputChange}
@@ -322,26 +325,26 @@ export default function AddCandidatePage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-800 mb-1">
                   Cell Phone
                 </label>
                 <input
                   type="text"
                   name="cellPhone"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                  className={inputCls}
                   placeholder="Enter cell phone"
                   value={form.cellPhone}
                   onChange={handleInputChange}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-800 mb-1">
                   Company
                 </label>
                 <select
                   name="companyId"
                   aria-label="Company"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white"
+                  className={selectCls}
                   value={form.companyId}
                   onChange={handleInputChange}
                 >
@@ -352,14 +355,14 @@ export default function AddCandidatePage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-800 mb-1">
                   Candidate Groups (multi-select)
                 </label>
                 <select
                   multiple
                   name="candidateGroupIds"
                   aria-label="Candidate Groups"
-                  className="w-full h-32 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white"
+                  className={`w-full h-32 border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition`}
                   value={form.candidateGroupIds}
                   onChange={(e) => {
                     const options = Array.from(e.target.selectedOptions).map(o => o.value);
@@ -377,16 +380,16 @@ export default function AddCandidatePage() {
                   onChange={(e) => setForm(prev => ({ ...prev, isActive: e.target.checked }))}
                   className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
                 />
-                <label htmlFor="isActive" className="text-sm text-gray-700">Active</label>
+                <label htmlFor="isActive" className="text-sm text-gray-800">Active</label>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-800 mb-1">
                 Address
               </label>
               <textarea
                 name="address"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                className={textareaCls}
                 placeholder="Enter address"
                 rows={2}
                 value={form.address}
@@ -395,26 +398,26 @@ export default function AddCandidatePage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-800 mb-1">
                   City
                 </label>
                 <input
                   type="text"
                   name="city"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                  className={inputCls}
                   placeholder="Enter city"
                   value={form.city}
                   onChange={handleInputChange}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-800 mb-1">
                   State
                 </label>
                 <select
                   aria-label="State"
                   name="state"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white"
+                  className={selectCls}
                   value={form.state}
                   onChange={handleInputChange}
                 >
@@ -429,26 +432,26 @@ export default function AddCandidatePage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-800 mb-1">
                   Postal Code
                 </label>
                 <input
                   type="text"
                   name="postalCode"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                  className={inputCls}
                   placeholder="Enter postal code"
                   value={form.postalCode}
                   onChange={handleInputChange}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-800 mb-1">
                   Country
                 </label>
                 <select
                   aria-label="Country"
                   name="country"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white"
+                  className={selectCls}
                   value={form.country}
                   onChange={handleInputChange}
                 >
@@ -462,12 +465,12 @@ export default function AddCandidatePage() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-800 mb-1">
                 Notes
               </label>
               <textarea
                 name="notes"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                className={textareaCls}
                 placeholder="Additional notes (optional)"
                 rows={2}
                 value={form.notes}

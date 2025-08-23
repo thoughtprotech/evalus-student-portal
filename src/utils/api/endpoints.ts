@@ -266,7 +266,7 @@ export const endpoints = {
   // OData - Test Templates for Step 1 template picker
   getTestTemplatesOData: {
     method: "GET",
-    path: () => `/Odata/TestTemplates?$select=TestTemplateId,TestTemplateName,TestHtmlpreview,TestTemplateThumbNail`,
+    path: () => `/Odata/TestTemplates?$filter=IsActive eq 1&$select=TestTemplateId,TestTemplateName,TestHtmlpreview,TestTemplateThumbNail`,
     type: "OPEN",
   } as Endpoint<null, import('./types').ODataList<import('./types').TestTemplateOData>>,
 

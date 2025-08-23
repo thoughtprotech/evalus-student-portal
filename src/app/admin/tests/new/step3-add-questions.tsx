@@ -5,7 +5,7 @@ import Toast, { type ToastType } from "@/components/Toast";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTestDraft } from "@/contexts/TestDraftContext";
-import { Key, MousePointerClick, FileSpreadsheet, FilePlus2, Trash2 } from "lucide-react";
+import { MousePointerClick, FilePlus2, Trash2 } from "lucide-react";
 import PaginationControls from "@/components/PaginationControls";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
@@ -18,7 +18,6 @@ export default function Step3AddQuestions() {
   const { draft, setDraft } = useTestDraft();
 
   const [selectedCount, setSelectedCount] = useState<number>(0);
-  const [importType, setImportType] = useState<string>("");
   const [selectionFromBank, setSelectionFromBank] = useState(false);
 
   // Paging for selected questions grid
@@ -181,7 +180,6 @@ export default function Step3AddQuestions() {
     router.push("/admin/tests/new/questions/select");
   };
   const handleAddQuestions = () => router.push("/admin/questions/new");
-  const handleImportChange = (e: React.ChangeEvent<HTMLSelectElement>) => setImportType(e.target.value);
 
   return (
     <div className="w-full pb-32">
@@ -351,8 +349,8 @@ export default function Step3AddQuestions() {
     {/* Default cards; show instructions only when total === 0 */}
     {(total === 0 || (total > 0 && !selectionFromBank)) && (
           <>
-      <div className={total === 0 ? "lg:col-span-3" : "lg:col-span-4"}>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className={total === 0 ? "lg:col-span-3" : "lg:col-span-4"}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
                 <div className="rounded-md border bg-gray-50 flex flex-col shadow-sm p-2">
                   <div className="p-3 text-center flex-1 flex flex-col items-center">
                     <MousePointerClick className="mx-auto mb-2 h-8 w-8 text-gray-400" strokeWidth={1.5} />
@@ -360,28 +358,6 @@ export default function Step3AddQuestions() {
                   </div>
                   <div className="px-4 pb-4 mt-auto">
                     <button onClick={handleSelectQuestions} className="w-full rounded-md bg-green-600 hover:bg-green-700 text-white py-1 text-sm">Select Question</button>
-                  </div>
-                </div>
-                <div className="rounded-md border bg-gray-50 flex flex-col shadow-sm p-2">
-                  <div className="p-3 text-center flex-1 flex flex-col items-center">
-                    <Key className="mx-auto mb-2 h-8 w-8 text-gray-400" strokeWidth={1.5} />
-                    <p className="text-xs text-gray-600">Associate new questions using a passkey.</p>
-                  </div>
-                  <div className="px-4 pb-4 mt-auto">
-                    <button disabled className="w-full rounded-md bg-green-400/60 text-white py-1 text-sm cursor-not-allowed">Add With Passkey</button>
-                  </div>
-                </div>
-                <div className="rounded-md border bg-gray-50 flex flex-col shadow-sm p-2">
-                  <div className="p-3 text-center flex-1 flex flex-col items-center">
-                    <FileSpreadsheet className="mx-auto mb-2 h-8 w-8 text-gray-400" strokeWidth={1.5} />
-                    <p className="text-xs text-gray-600">Add questions via import.</p>
-                  </div>
-                  <div className="px-4 pb-4 mt-auto">
-                    <select value={importType} onChange={handleImportChange} className="w-full rounded-md border border-gray-300 bg-white py-1 text-sm px-2">
-                      <option value="">Select Import Type</option>
-                      <option value="xls">Import from xls</option>
-                      <option value="xml">Import from xml (QTI)</option>
-                    </select>
                   </div>
                 </div>
                 <div className="rounded-md border bg-gray-50 flex flex-col shadow-sm p-2">
@@ -399,7 +375,7 @@ export default function Step3AddQuestions() {
               <div className="lg:col-span-1">
                 <ImportantInstructions
                   title="Important Instructions"
-                  detail="This is to add questions in a created test. You can add questions using three methods: 1) Select predefined questions using question bank, 2) Import an excel sheet, incorporating multiple questions in one go, 3) Add new questions as per the user requirement."
+          detail="This is to add questions in a created test. You can add questions using two methods: 1) Select predefined questions using the question bank, 2) Create and add new questions as per the requirement."
                 />
               </div>
             )}
@@ -417,28 +393,6 @@ export default function Step3AddQuestions() {
                 </div>
                 <div className="px-4 pb-4 mt-auto">
                   <button onClick={handleSelectQuestions} className="w-full rounded-md bg-green-600 hover:bg-green-700 text-white py-1 text-sm">Select Question</button>
-                </div>
-              </div>
-              <div className="rounded-md border bg-gray-50 flex flex-col shadow-sm p-2">
-                <div className="p-3 text-center flex-1 flex flex-col items-center">
-                  <Key className="mx-auto mb-2 h-8 w-8 text-gray-400" strokeWidth={1.5} />
-                  <p className="text-xs text-gray-600">Associate new questions using a passkey.</p>
-                </div>
-                <div className="px-4 pb-4 mt-auto">
-                  <button disabled className="w-full rounded-md bg-green-400/60 text-white py-1 text-sm cursor-not-allowed">Add With Passkey</button>
-                </div>
-              </div>
-              <div className="rounded-md border bg-gray-50 flex flex-col shadow-sm p-2">
-                <div className="p-3 text-center flex-1 flex flex-col items-center">
-                  <FileSpreadsheet className="mx-auto mb-2 h-8 w-8 text-gray-400" strokeWidth={1.5} />
-                  <p className="text-xs text-gray-600">Add questions via import.</p>
-                </div>
-                <div className="px-4 pb-4 mt-auto">
-                  <select value={importType} onChange={handleImportChange} className="w-full rounded-md border border-gray-300 bg-white py-1 text-sm px-2">
-                    <option value="">Select Import Type</option>
-                    <option value="xls">Import from xls</option>
-                    <option value="xml">Import from xml (QTI)</option>
-                  </select>
                 </div>
               </div>
               <div className="rounded-md border bg-gray-50 flex flex-col shadow-sm p-2">
