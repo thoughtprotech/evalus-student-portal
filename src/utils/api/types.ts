@@ -399,6 +399,7 @@ export interface DeleteCandidateRequest {
 
 export interface StartSessionRequest {
   testRegistrationId: number;
+  userName: string | null;
 }
 
 export interface StartSessionResponse {

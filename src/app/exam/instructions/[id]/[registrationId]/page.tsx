@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import mockInstructions from "@/mock/mockInstructions.json";
 import { startCandidateTestSessionAction } from "@/app/actions/exam/session/startCandidateTestSession";
 import toast from "react-hot-toast";
+import { getUserAction } from "@/app/actions/getUser";
 
 export interface InstructionData {
   title: string;
@@ -40,9 +41,12 @@ export default function ExamStartPage() {
   }
 
   const handleProceed = async () => {
+
+    const userName = await getUserAction();
     // Navigate to the exam start page (adjust the route as needed)
     const response = await startCandidateTestSessionAction(
-      Number(registrationId)
+      Number(registrationId),
+      userName
     );
 
     if (response.status === 200) {
