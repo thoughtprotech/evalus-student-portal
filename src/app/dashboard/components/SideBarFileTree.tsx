@@ -1,6 +1,6 @@
 import React, { useState, ReactNode } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronRight, Tag, Badge, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronRight, Badge, ChevronUp } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useRouter } from "next/navigation";
 
@@ -134,17 +134,22 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
               <div key={root.candidateGroupId}>
                 <div
                   className="flex items-center justify-between px-2 py-1 hover:bg-gray-100 rounded-md cursor-pointer transition-colors"
-                  onClick={() => hasChildren && toggle(root.candidateGroupId)}
+                  onClick={() => {
+                    if (hasChildren) {
+                      toggle(root.candidateGroupId);
+                    } else {
+                      // Uniform behavior: selecting a leaf top-level group should act like selecting a child
+                      router.push("/dashboard");
+                      setCurrentGroupId(root.candidateGroupId.toString());
+                      setGroupSelected(true);
+                    }
+                  }}
                 >
                   <div className="flex items-center space-x-2">
-                    {hasChildren ? (
-                      isOpen ? (
-                        <ChevronDown size={14} />
-                      ) : (
-                        <ChevronRight size={14} />
-                      )
+                    {isOpen ? (
+                      <ChevronDown size={14} />
                     ) : (
-                      <Tag size={14} />
+                      <ChevronRight size={14} />
                     )}
                     <span className="text-sm font-medium text-gray-800">
                       {root.candidateGroupName}
