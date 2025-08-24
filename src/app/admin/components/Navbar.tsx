@@ -33,7 +33,7 @@ const navItems: NavItem[] = [
   { label: "Tests", path: "/admin/tests", Icon: ClipboardList },
   { label: "Products", path: "/admin/products", Icon: Box },
   { label: "Candidates", path: "/admin/candidates", Icon: User },
-  { label: "Companies", path: "/admin/companies", Icon: BarcodeIcon },
+  // { label: "Companies", path: "/admin/companies", Icon: BarcodeIcon, hidden: true },
   { label: "Reports", path: "/admin/reports", Icon: BarChart2 },
   { label: "Settings", path: "/admin/settings", Icon: Settings },
 ];

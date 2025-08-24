@@ -1,0 +1,388 @@
+/*
+ * Project Name: ThinkExam API
+ * Version: 1.0.0.1
+ * Dated: 31-July-2015
+ * Description: ThinkExam API provides the services according to the need of user
+ */
+var languageVariable ;
+$(document).ready(function(){
+
+var engJsonPath = "/student/Document6/eng.json";
+if(isNovo=='1'){
+    engJsonPath = "/student/Document6/eng_novo.json";
+}
+//var browserCompatality = $("#browserCompatibilty").html();
+//var userValidity = $("#userValidity").html();
+//var a = $("#browserCompatibilty1").html();
+$.ajax({
+  
+    type:'post',
+    url: httpValue + scope1 + engJsonPath,
+    async:false,
+    dataType: "json", 
+    error:function(result){
+        console.log(result);
+    },
+    success:function(result){ 
+        languageVariable = result;
+        $("#browserCompatibilty").html(languageVariable.browserCompatibilty);
+        $(".userValidity").html(languageVariable.userValidity);
+        $(".testValidity").html(languageVariable.testValidity);
+        $(".verify").html(languageVariable.verify);
+//        $("#subject_ins").html(languageVariable.subject_ins);
+        $("#agreement_ins").html(languageVariable.agreement_ins);
+        $("#next_ins").html(languageVariable.next_ins);
+        $("#neg_marks_ssc").html(languageVariable.neg_marks_ssc);
+        $("#max_marks_ssc").html(languageVariable.max_marks_ssc);
+        $("#please_ins").html(languageVariable.please_ins);
+        $("#question_test").html(languageVariable.question_test);
+        $("#savennext_ssc").html(languageVariable.savennext_ssc);
+        $("#attempted_ssc").html(languageVariable.attempted_ssc);
+        $("#unattempted_ssc").html(languageVariable.unattempted_ssc);
+        $("#review_ssc").html(languageVariable.review_ssc);
+        $("#skip_ssc").html(languageVariable.skip_ssc);
+        $("#instruction_ssc").html(languageVariable.instruction_ssc);
+        $("#instruction1_ssc").html(languageVariable.instruction1_ssc);
+        $("#done_ssc").html(languageVariable.done_ssc);
+        $("#savennext_ssc").html(languageVariable.savennext_ssc);
+        $("#submit_ssc").html(languageVariable.submit_ssc);
+        $("#please_wait_ssc").html(languageVariable.please_wait_ssc);
+        $("#review_ur_ssc").html(languageVariable.review_ur_ssc);
+        $("#confirm_dialog").val(languageVariable.confirm_dialog);
+        $("#instruc_ssc").html(languageVariable.instruc_ssc);
+        $("#total_question_ssc").html(languageVariable.total_question_ssc);
+        $("#total_duration_ssc").html(languageVariable.total_duration_ssc);
+        $(".max_mark_banking").html(languageVariable.max_mark_banking);
+        $(".neg_mark_banking").html(languageVariable.neg_mark_banking);
+        $("#mark_review_banking").val(languageVariable.mark_review_banking);
+        $("#skip_banking").val(languageVariable.skip_banking);
+        $("#reset_banking").val(languageVariable.reset_banking);
+        $("#saveButton").val(languageVariable.saveButton);
+        $("#question_pallete_ssc").html(languageVariable.question_pallete_ssc);
+        $("#legend_banking").html(languageVariable.legend_banking);
+        $(".answered_banking").html(languageVariable.answered_banking);
+        $(".not_ans_banking").html(languageVariable.not_ans_banking);
+        $(".marked_banking").html(languageVariable.marked_banking);
+        $(".not_visited_banking").html(languageVariable.not_visited_banking);
+        $("#instruction_banking").val(languageVariable.instruction_banking);
+        $("#view_qp_banking").val(languageVariable.view_qp_banking);
+        $("#submit_banking").val(languageVariable.submit_banking);
+        $("#please_wait_banking").val(languageVariable.please_wait_banking);
+        $("#time_left_banking").html(languageVariable.time_left_banking);
+        $("#back_banking").val(languageVariable.back_banking);
+        $("#do_submit_banking").html(languageVariable.do_submit_banking);
+        $("#sec_name_banking").html(languageVariable.sec_name_banking);
+        $("#tot_ques_banking").html(languageVariable.tot_ques_banking);
+        $(".textsize").html(languageVariable.textsize);
+        $(".time_left_sify").html(languageVariable.time_left_sify);
+        $(".roll_no_sify").html(languageVariable.roll_no_sify);
+        $(".candidate_name_sify").html(languageVariable.candidate_name_sify);
+        $(".previous_sify").html(languageVariable.previous_sify);
+        $(".next_sify").html(languageVariable.next_sify);
+        $(".erase_sify").html(languageVariable.erase_sify);
+        $(".tag_sify").html(languageVariable.tag_sify);
+        $(".please_sify").html(languageVariable.please_sify);
+        $(".submit_sify").html(languageVariable.submit_sify);
+        $("#number_question_sify").html(languageVariable.number_question_sify);
+        $(".attempted_sify").html(languageVariable.attempted_sify);
+        $(".tagged_sify").html(languageVariable.tagged_sify);
+        $(".tagged_attempt_sify").html(languageVariable.tagged_attempt_sify);
+        $(".uattempted_sify").html(languageVariable.uattempted_sify);
+        $(".are_you_sure_sify").html(languageVariable.are_you_sure_sify);
+        $(".right_mark_sify").html(languageVariable.right_mark_sify);
+        $(".neg_marks_sify").html(languageVariable.neg_marks_sify);
+        $("#save_ssc").html(languageVariable.save);
+        $("#question_ssc").html(languageVariable.Question);
+        $("#fullScreenA").html(languageVariable.fullScreenA);
+        $("#serialNoDiv").html(languageVariable.Question);
+        $("#mark_for_review_gate").val(languageVariable.mark_review_banking);
+        $("#saveButton").val(languageVariable.saveButton);
+        $("#gate_back_btn").val(languageVariable.back_banking);
+        $("#reset_btn_gate").val(languageVariable.reset_banking);
+        $("#gate_skip_btn").val(languageVariable.skip_ssc);
+        $("#gate_you_are_viewing_Section").html(languageVariable.you_are_viewing);
+        $("#section_question_palette").html(languageVariable.section_question_palette);
+        $("#attempted_gate").html(languageVariable.answered_banking);
+        $("#unattempted_gate").html(languageVariable.not_ans_banking);
+        $("#review_gate").html(languageVariable.marked_banking);
+        $("#skip_gate").html(languageVariable.not_visited_banking);
+        //btns
+        $("#view_qp_gate").val(languageVariable.view_qp_banking);
+        $("#instructions_gate").val(languageVariable.instruction_banking);
+        $("#profile_gate").val(languageVariable.header_profile);
+        $("#submit_btn_gate").val(languageVariable.submit);
+        $("#please_wait_btn_gate").val(languageVariable.Pleasewait);
+        $("#final_submit_test").html(languageVariable.do_submit_banking);
+    }
+});
+});
+
+
+var url = window.location.href;
+var temp_Url = url.toString().split("/");
+var scopeUrl = temp_Url[2];
+var scopeUrl1 = scopeUrl.replace("www.", "");
+var httpValue = temp_Url[0];
+httpValue = httpValue + "//";
+delete url;
+delete temp_Url;
+var scope;
+var scope1
+if (scopeUrl == "localhost" || scopeUrl == "192.168.0.253" || scopeUrl == "test.gingertab.com" || scopeUrl == "192.168.0.60") {
+    scope1 = scopeUrl + "/thinkSaas";
+} else {
+    scope1 = scopeUrl;
+}
+var includeInitJs = 0;
+//$.ajax({
+//    type: 'post',
+//    url: httpValue + scope1 + "/student/Document6/constant",
+//    async: false,
+//    dataType: "json",
+//    error: function (result) {
+//        console.log(result);
+//    },
+//    success: function (result) {
+        scope = studentConstantsObject.scope;
+        webhookUrl = studentConstantsObject.webhookUrl;
+        webhookKey = studentConstantsObject.webhookKey;
+        testUrl = "";//result['studentConstant'].testUrl;
+        filePath = studentConstantsObject.filePath;
+//    }
+//
+//});
+
+var returnResult;
+
+//Call the functions once the page is full loaded
+var myApiCall = function (para, service, action, sync) {
+
+    var syncVar = false;
+    if (sync == true) {
+        syncVar = true;
+    }
+    var publicKey = DbStorage.getItem("publicKey");
+    var clientId = '';
+    if (publicKey == "" || publicKey == undefined || publicKey == null) {
+        var urlData = "apiUrl=" + scope + "&userUrl=" + scopeUrl1;
+        $.ajax({
+            type: "post",
+            url: httpValue + scope1 + "/student/util/publicKey.php",
+            data: urlData,
+            async: false,
+            error: function (response) {
+                console.log(response);
+                errorfunction();
+            },
+            success: function (response) {
+                response = JSON.parse(response);
+                if (response['status'] == 'error') {
+                    errorfunction();
+                } else {
+                    publicKey = response['accessKey'];
+                    clientId = response['clientId'];
+//                    DbStorage.setItem("publicKey", window.btoa(publicKey));
+                    DbStorage.setItem("publicKey", publicKey);
+                    DbStorage.setItem("clientId", clientId);
+                }
+            }
+        });
+    }
+
+    var tokenlocal = DbStorage.getItem('tokenaccess');
+    returnResult = thinkApi.init({// initialize the API
+        publicKey: publicKey, // public key which is shared among the user and the service provider
+        accessToken: tokenlocal, // token is used to check if user is admin or student
+        requestUrl: scopeUrl1, // to retrieve current user internet hostname
+        async: syncVar, // next step will execute only after reponse from this call is obtained i.e only after obtaining data
+        service: service, // specifies the called service
+        apiUrl: scope, // specifies the called service
+        action: action, // specifies the particular action/method/function of above service   
+        parameter: para, // encodes the parameter required from user to get data
+        returnType: 'json'                          // specifies the data type of response of this call.
+    });
+
+//    updateNotificationStatus
+    var serviceWithOutASync = ['updateTestData','updateStudentFaceRecognitionStatus','getStudentFaceVerificationStatus',"saveStudentLiveTestImage","saveSubjectiveResponse","deleteSubjectiveResponse"];
+    var servicesWithoutToken = ["getCategory", "checkLogin", "getCourses",
+        "getCountry", "getState", "getCity", "checkEmailVerification",
+        "checkEnrollVerification", "newUser", "newTestUser", "sendForgotMail",
+        "updateStudentCourse", "facebookLogin", "getUpComingTest",
+        "checkEnrollment", "getAccessCodeAndLink", "deleteStudentSession", "packageDetailServiceAdmin", "getClientDetails"];
+
+    if (returnResult['status'] == 500 || returnResult['status'] == 404) {
+        errorfunction();
+        return "";
+    }
+
+    var checkWithOutASync = serviceWithOutASync.indexOf(action);
+    if (checkWithOutASync != -1) {
+        return "";
+    } else {
+
+        var resultParsed = JSON.parse(returnResult.responseText);
+        var checkTocken = servicesWithoutToken.indexOf(action);
+        if (checkTocken == -1 && (resultParsed['ACCESS_TOKEN'] == "" || resultParsed['ACCESS_TOKEN'] == null)) {
+            logOutFunction()
+            return "";
+        } else if (resultParsed['result'] == "error" && (resultParsed[resultParsed['result']]['code'] == "3031" || resultParsed[resultParsed['result']]['msg'] == "Database Error : Check Logger" || resultParsed[resultParsed['result']]['msg'] == "Invalid Key")) {
+            errorfunction();
+            return "";
+        } else if (resultParsed['result'] == "error") {
+            alert(resultParsed['error']['msg']);
+            window.location.reload();
+            return "";
+        } else {
+            return resultParsed;
+        }
+    }
+
+};
+
+function errorfunction() {
+    alert("Contact Your Admin");
+    DbStorage.removeItem('user', "");
+    DbStorage.removeItem('emailId', "");
+    DbStorage.removeItem('studentName', "");
+    DbStorage.removeItem('tokenaccess', "");
+    DbStorage.removeItem('hash', "");
+    DbStorage.removeItem('hash1', "");
+    DbStorage.removeItem('testRefresh', "");
+    DbStorage.removeItem('endTestRefresh', "");
+    DbStorage.removeItem('profilePic', "");
+    DbStorage.removeItem('publicKey', "");
+    window.location.href = httpValue + scope1 + "/source/util/missing/missing.html";
+}
+
+function logOutFunction() {
+    alert("Session Expired.");
+    DbStorage.removeItem('user', "");
+    DbStorage.removeItem('emailId', "");
+    DbStorage.removeItem('studentName', "");
+    DbStorage.removeItem('tokenaccess', "");
+    DbStorage.removeItem('hash', "");
+    DbStorage.removeItem('hash1', "");
+    DbStorage.removeItem('testRefresh', "");
+    DbStorage.removeItem('endTestRefresh', "");
+    DbStorage.removeItem('profilePic', "");
+    DbStorage.removeItem('publicKey', "");
+    window.location.href = httpValue + scope1 + "/login";
+}
+/*FUNCTION FOR IMG ZOOM STARTS*/
+function get_Zoom_btn(imgElement) {
+    if (!$(imgElement).hasClass('ZoomCursor')) {
+        $(imgElement).attr('title','Click to zoom');
+        $(imgElement).addClass('ZoomCursor');
+        $(imgElement).attr('onclick','openZoomDiv(this);return false;');//if(event.stopPropagation){event.stopPropagation();}else{event.cancelBubble=true;}
+    }
+}
+function openZoomDiv(imgelement) {
+//    imgelement = $(imgelement).next('img');
+    $('#imageZoomPanel').show();
+    $('#imageSource').attr('src', $(imgelement).attr('src'));
+    if (($(imgelement).height() * zoominlevel) > maxheight)
+        $('#imageSource').css('height', maxheight);
+    else
+        $('#imageSource').css('height', ($(imgelement).height() * zoominlevel));
+
+    if (($(imgelement).width() * zoominlevel) > maxheight)
+        $('#imageSource').css('width', maxwidth);
+    else
+        $('#imageSource').css('width', ($(imgelement).width() * zoominlevel));
+}
+function closeZoomDiv() {
+    $('#imageZoomPanel').hide();
+    $('#imageSource').attr('src', '');
+}
+/*FUNCTION FOR IMG ZOOM ENDS*/
+function googleTranslateElementInit() {
+    new google.translate.TranslateElement({pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.SIMPLE, autoDisplay: false}, 'google_translate_element');
+}
+
+function get_browser() {
+    var ua = navigator.userAgent, tem, M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+    if (/trident/i.test(M[1])) {
+        tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
+        return {name: 'IE', version: (tem[1] || '')};
+    }
+    if (M[1] === 'Chrome') {
+        tem = ua.match(/\bOPR|Edge\/(\d+)/)
+        if (tem != null) {
+            return {name: 'Opera', version: tem[1]};
+        }
+    }
+    M = M[2] ? [M[1], M[2]] : [navigator.appName, navigator.appVersion, '-?'];
+    if ((tem = ua.match(/version\/(\d+)/i)) != null) {
+        M.splice(1, 1, tem[1]);
+    }
+    return {
+        name: M[0],
+        version: M[1]
+    };
+}
+
+function isalreadyfullScreen(){
+    var winHight = window.innerHeight;
+    var winwidth = window.innerWidth;
+    if (winwidth + screenMargin >= screen.width && winHight + screenMargin >= screen.height) {
+        return true;
+    }
+    return false;
+}
+function keysDissabler(e){
+    if (e.keyCode == 112 || e.keyCode == 113 || e.keyCode == 123
+        || e.keyCode == 114 || e.keyCode == 115 || e.keyCode == 116
+        || e.keyCode == 117 || e.keyCode == 118 || e.keyCode == 119
+        || e.keyCode == 120 || e.keyCode == 121
+        || e.keyCode == 27 || e.keyCode == 18 || e.keyCode == 9
+        || e.keyCode == 45 || e.keyCode == 46 || e.keyCode == 36
+        || e.keyCode == 35 || e.keyCode == 33 || e.keyCode == 34
+        || e.keyCode == 91 || e.keyCode == 18 || e.keyCode == 17) {
+        return false;
+    }
+    if(browser.name != 'IE' && e.keyCode == 122){
+        return  false;
+    }
+    if (e.keyCode === 8) {
+        var doPrevent = true;
+        var types = ["text", "number"];
+        var d = $(e.srcElement || e.target);
+        var disabled = d.prop("readonly") || d.prop("disabled");
+        if (!disabled) {
+            if (d[0].isContentEditable) {
+                doPrevent = false;
+            } else if (d.is("input")) {
+                var type = d.attr("type");
+                if (type) {
+                    type = type.toLowerCase();
+                }
+                if (types.indexOf(type) > -1) {
+                    doPrevent = false;
+                }
+            } else if (d.is("textarea")) {
+                doPrevent = false;
+            }
+        }
+        if (doPrevent) {
+            e.preventDefault();
+            return false;
+        }
+    }
+    return true;
+}
+
+function checkbrowserType(){
+    browser =  get_browser();
+    if(browser.name == "IE"){
+        screenMargin = 30;
+        $('#fullscreen_cancel_div').css('margin-left','50px');
+        document.getElementById("forIE").style.display = "block";
+        document.getElementById("forNonIE").style.display = "none";
+    }else{
+        document.getElementById("forNonIE").style.display = "block";
+        document.getElementById("forIE").style.display = "none";
+    }
+    if(isalreadyfullScreen()){
+        fullScreen();
+    }
+}

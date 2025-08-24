@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="36px" height="36px" viewBox="0 0 36 36" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 59.1 (86144) - https://sketch.com -->
+    <title>Group 15</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Review-pop-up" transform="translate(-1165.000000, -62.000000)">
+            <g id="Group-15" transform="translate(1165.000000, 62.000000)">
+                <circle id="Oval" stroke="#FFFFFF" stroke-width="2" fill="#0063C6" cx="18" cy="18" r="17"></circle>
+                <g id="noun_Cross_1364737" transform="translate(11.000000, 11.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                    <path d="M2.92993581,0.522664363 L6.98812305,4.58336442 L11.0488231,0.522664363 C12.6369187,-1.0654312 15.0693182,1.32425057 13.4586074,2.93496142 L9.40042011,6.99314867 L13.4586074,11.0538487 C15.0441901,12.6369187 12.631893,15.0492157 11.0488231,13.463633 L6.98812305,9.40544573 L2.92993581,13.463633 C1.34435305,15.0492157 -1.0654312,12.6369187 0.517638744,11.0538487 L4.5783388,6.99314867 L0.517638744,2.93496142 C-1.0654312,1.34937867 1.34435305,-1.06291839 2.92993581,0.522664363 Z" id="Path"></path>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

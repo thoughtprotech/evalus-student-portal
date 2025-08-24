@@ -63,15 +63,24 @@ function LanguageCellRenderer(props: { value: string }) {
   );
 }
 
-function IsActiveCellRenderer(props: { value: number | boolean }) {
-  const isActive = Boolean(props.value);
+function IsActiveCellRenderer(props: { value: number | boolean | string }) {
+  // Accept numeric, boolean, or string ("0"/"1"/"active"/"inactive") and normalize
+  const val = props.value;
+  const isActive = (() => {
+    if (typeof val === 'number') return val === 1;
+    if (typeof val === 'boolean') return val;
+    if (typeof val === 'string') {
+      const v = val.trim().toLowerCase();
+      return ['1', 'true', 'active', 'yes', 'enabled'].includes(v);
+    }
+    return false;
+  })();
   return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-      isActive 
-        ? 'bg-green-100 text-green-800' 
+    <span className={`px-2 py-1 rounded-full text-xs font-medium ${isActive
+        ? 'bg-green-100 text-green-800'
         : 'bg-red-100 text-red-800'
-    }`}>
-      {isActive ? 'Active' : 'Inactive'}
+      }`}>
+      {isActive ? 'Active' : 'InActive'}
     </span>
   );
 }
@@ -111,129 +120,142 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
   const columnDefs = useMemo<ColDef<QuestionRow>[]>(
     () => [
       // Checkbox selection column will be injected automatically and shown first when rowSelection.checkboxes = true
-  // Removed S.No. column as per requirements
-      { 
-        field: "title", 
-        headerName: "Question Title", 
-        headerTooltip: "Question Title", 
-        sortable: true, 
-        filter: 'agTextColumnFilter', 
-        filterParams: { 
-          buttons: ['apply','reset','clear'],
+      // Removed S.No. column as per requirements
+      {
+        field: "title",
+        headerName: "Question Title",
+        headerTooltip: "Question Title",
+        sortable: true,
+        filter: 'agTextColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear'],
           suppressAndOrCondition: false
-        }, 
+        },
         width: 450,
         minWidth: 380,
-        flex: 2, 
-        cellRenderer: NameCellRenderer, 
-        tooltipField: "title", 
-        cellClass: 'no-left-border', 
-        headerClass: 'no-left-border' 
+        flex: 2,
+        cellRenderer: NameCellRenderer,
+        tooltipField: "title",
+        cellClass: 'no-left-border',
+        headerClass: 'no-left-border'
       },
-      { 
-        field: "subject", 
-        headerName: "Subject", 
-        headerTooltip: "Subject", 
-        sortable: true, 
-        filter: 'agTextColumnFilter', 
-        filterParams: { 
-          buttons: ['apply','reset','clear']
-        }, 
-        width: 160 
+      {
+        field: "subject",
+        headerName: "Subject",
+        headerTooltip: "Subject",
+        sortable: true,
+        filter: 'agTextColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear']
+        },
+        width: 160
       },
-      { 
-        field: "topic", 
-        headerName: "Topic", 
-        headerTooltip: "Topic", 
-        sortable: true, 
-        filter: 'agTextColumnFilter', 
-        filterParams: { 
-          buttons: ['apply','reset','clear']
-        }, 
+      {
+        field: "topic",
+        headerName: "Topic",
+        headerTooltip: "Topic",
+        sortable: true,
+        filter: 'agTextColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear']
+        },
         width: 220,
         minWidth: 200
       },
-      { 
-        field: "level", 
-        headerName: "Level", 
-        headerTooltip: "Difficulty Level", 
-        sortable: true, 
-        filter: 'agTextColumnFilter', 
-        filterParams: { 
-          buttons: ['apply','reset','clear']
-        }, 
-        cellRenderer: LevelCellRenderer, 
-        width: 130 
-      },
-      { 
-        field: "language", 
-        headerName: "Language", 
-        headerTooltip: "Language", 
-        sortable: true, 
-        filter: 'agTextColumnFilter', 
-        filterParams: { 
-          buttons: ['apply','reset','clear']
-        }, 
-        cellRenderer: LanguageCellRenderer, 
-        width: 120 
-      },
-      { 
-        field: "isActive", 
-        headerName: "Status", 
-        headerTooltip: "Active Status", 
-        sortable: true, 
-        filter: 'agTextColumnFilter', 
-        filterParams: { 
-          buttons: ['apply','reset','clear'],
-          debounceMs: 200
-        }, 
-        valueGetter: (params: any) => {
-          // Convert numeric value to text for filtering purposes
-          const isActive = Boolean(params.data?.isActive);
-          return isActive ? 'Active' : 'Inactive';
+      {
+        field: "level",
+        headerName: "Level",
+        headerTooltip: "Difficulty Level",
+        sortable: true,
+        filter: 'agTextColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear']
         },
-        cellRenderer: IsActiveCellRenderer, 
-        width: 125 
+        cellRenderer: LevelCellRenderer,
+        width: 130
       },
-      { 
-        field: "createdAt", 
-        headerName: "Created Date", 
-        headerTooltip: "Question Created Date", 
-        sortable: true, 
-        filter: 'agDateColumnFilter', 
-        filterParams: { 
-          buttons: ['apply','reset','clear'], 
+      {
+        field: "language",
+        headerName: "Language",
+        headerTooltip: "Language",
+        sortable: true,
+        filter: 'agTextColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear']
+        },
+        cellRenderer: LanguageCellRenderer,
+        width: 120
+      },
+      {
+        field: "duration",
+        headerName: "Duration (sec)",
+        headerTooltip: "Question Duration (seconds)",
+        sortable: true,
+        filter: 'agNumberColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear']
+        },
+        width: 140,
+  valueFormatter: (p: any) => (p.value ? String(Number(p.value)) : '0')
+      },
+      {
+        field: "isActive",
+        headerName: "Status",
+        headerTooltip: "Active Status",
+        sortable: true,
+        filter: 'agTextColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear'],
+          debounceMs: 200
+        },
+        valueGetter: (params: any) => {
+          // Convert raw value to a stable string for display & filtering
+          const raw = params.data?.isActive;
+          const active = (typeof raw === 'number') ? raw === 1 : (typeof raw === 'string') ? raw === '1' : !!raw;
+          return active ? 'Active' : 'InActive';
+        },
+        cellRenderer: IsActiveCellRenderer,
+        width: 125
+      },
+      {
+        field: "createdAt",
+        headerName: "Created Date",
+        headerTooltip: "Question Created Date",
+        sortable: true,
+        filter: 'agDateColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear'],
           browserDatePicker: true
-        }, 
-        valueFormatter: ({ value }) => formatDate(value), 
-        width: 180 
+        },
+        valueFormatter: ({ value }) => formatDate(value),
+        width: 180
       },
-      { 
-        field: "updatedAt", 
-        headerName: "Updated Date", 
-        headerTooltip: "Question Updated Date", 
-        sortable: true, 
-        filter: 'agDateColumnFilter', 
-        filterParams: { 
-          buttons: ['apply','reset','clear'], 
+      {
+        field: "updatedAt",
+        headerName: "Updated Date",
+        headerTooltip: "Question Updated Date",
+        sortable: true,
+        filter: 'agDateColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear'],
           browserDatePicker: true
-        }, 
-        valueFormatter: ({ value }) => formatDate(value), 
-        width: 180 
+        },
+        valueFormatter: ({ value }) => formatDate(value),
+        width: 180
       },
-      { 
-        field: "createdBy", 
-        headerName: "Created By", 
-        headerTooltip: "Created By", 
-        sortable: true, 
-        filter: 'agTextColumnFilter', 
-        filterParams: { 
-          buttons: ['apply','reset','clear']
-        }, 
-        minWidth: 150, 
-        flex: 1 
+      {
+        field: "createdBy",
+        headerName: "Created By",
+        headerTooltip: "Created By",
+        sortable: true,
+        filter: 'agTextColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear']
+        },
+        minWidth: 150,
+        flex: 1
       },
-  // Removed Actions column; edit link now on title
+      // Removed Actions column; edit link now on title
       { field: "id", headerName: "ID", hide: true },
       { field: "questionoptionId", headerName: "Question Option ID", hide: true },
     ],
@@ -255,11 +277,11 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
   const fetchPage = useCallback(async () => {
     const reqId = ++lastReqIdRef.current;
     setLoading(true);
-    
+
     const sort = sortModelRef.current?.[0];
     const fieldMap: Record<string, string> = {
       id: "questionId",
-      title: "questionText", 
+      title: "questionText",
       subject: "subject",
       topic: "topic",
       level: "questionDifficultyLevel",
@@ -270,23 +292,23 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
       createdBy: "createdBy",
     };
     const orderBy = sort ? `${fieldMap[sort.colId] ?? "questionId"} ${sort.sort}` : "questionId desc";
-    
+
     // Build filter from both global search and column filters
     const filters: string[] = [];
     const search = (query ?? "").trim();
     if (search) filters.push(`contains(questionText,'${search.replace(/'/g, "''")}')`);
-    
+
     // Add column filters from AG Grid
     const filterModel = filterModelRef.current || {};
     Object.entries(filterModel).forEach(([field, filterConfig]: [string, any]) => {
       if (!filterConfig) return;
-      
+
       const serverField = fieldMap[field] || field;
-      
+
       // Handle text filters
       if (filterConfig.filterType === 'text' && filterConfig.filter) {
         const value = filterConfig.filter.replace(/'/g, "''");
-        
+
         // Special handling for isActive field
         if (field === 'isActive') {
           const lowerValue = value.toLowerCase();
@@ -297,7 +319,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           }
           return;
         }
-        
+
         switch (filterConfig.type) {
           case 'contains':
             filters.push(`contains(${serverField},'${value}')`);
@@ -313,11 +335,11 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
             break;
         }
       }
-      
+
       // Handle other filter types (e.g., set filter, number filter, etc.)
       else if (filterConfig.filter !== undefined) {
         const value = String(filterConfig.filter).replace(/'/g, "''");
-        
+
         // Special handling for isActive field
         if (field === 'isActive') {
           const lowerValue = value.toLowerCase();
@@ -328,16 +350,15 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           }
           return;
         }
-        
+
         // Default to contains for other fields
         filters.push(`contains(${serverField},'${value}')`);
       }
     });
-    
+
     const filter = filters.length ? Array.from(new Set(filters)).join(" and ") : undefined;
 
     const res = await fetchQuestionsAction({ top: pageSize, skip: (page - 1) * pageSize, orderBy, filter });
-    
     // Only apply if this is the latest request
     if (reqId === lastReqIdRef.current) {
       if (res.status === 200 && res.data) {
@@ -448,7 +469,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           </button>
         </div>
       </div>
-      
+
       {/* Active filter chips */}
       {(query || Object.keys(filterModelRef.current || {}).length > 0) && (
         <div className="mb-3 flex items-center flex-wrap gap-2 flex-none">
@@ -463,7 +484,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
             </button>
           ) : null}
           {Object.entries(filterModelRef.current as Record<string, any>).map(([key, m]) => {
-            const nameMap: Record<string,string> = {
+            const nameMap: Record<string, string> = {
               id: 'ID', title: 'Question Title', subject: 'Subject', topic: 'Topic', level: 'Level',
               language: 'Language', createdAt: 'Created Date', updatedAt: 'Updated Date', createdBy: 'Created By'
             };
@@ -475,7 +496,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
               const t = c.type || c.filterType || 'contains';
               const isDateKey = key === 'createdAt' || key === 'updatedAt';
               const val = c.filter ?? c.dateFrom ?? '';
-              
+
               if (isDateKey) {
                 if (t === 'inRange') return `${labelBase}: ${formatDate(c.dateFrom)} → ${formatDate(c.dateTo)}`;
                 if (val) return `${labelBase}: ${formatDate(val)}`;
@@ -528,85 +549,85 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           </button>
         </div>
       )}
-      
-  <div className="flex-1 min-h-0 relative">
-  {(!loading && rows.length === 0) ? (
-        <div className="bg-white shadow rounded-md border border-gray-300 p-8 h-full overflow-auto">
-          <div className="text-center">
-            <HelpCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Questions Found</h3>
-            <p className="text-gray-500 mb-4">
-              No questions found. Try adjusting your search criteria or add new questions.
-            </p>
-            <Link href="/admin/questions/new">
-              <button className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-md transition-colors duration-300">
-                Add New Question
-              </button>
-            </Link>
-          </div>
-        </div>
-      ) : (
-        <div className="h-full min-h-0 relative">
-        <AgGridReact<QuestionRow>
-          columnDefs={columnDefs}
-          defaultColDef={defaultColDef}
-          rowData={rows}
-          onGridReady={onGridReady}
-          onSortChanged={onSortChanged}
-          onFilterChanged={() => {
-            const api = gridApiRef.current as any;
-            if (!api) return;
-            
-            const fm = api.getFilterModel?.() as any;
-            filterModelRef.current = fm || {};
-            setFiltersVersion((v) => v + 1);
-            
-            // Clear the debounce timer
-            if (filterDebounceRef.current) {
-              clearTimeout(filterDebounceRef.current);
-            }
-            
-            // Debounce the filter request
-            filterDebounceRef.current = setTimeout(() => {
-              if (!skipNextFilterFetchRef.current) {
-                setPage(1); // Reset to first page when filter changes
-              }
-              skipNextFilterFetchRef.current = false;
-            }, 300);
-          }}
-          onSelectionChanged={() => {
-            const api = gridApiRef.current;
-            if (!api) return;
-            const selected = api.getSelectedRows?.() as QuestionRow[];
-            setSelectedCount(selected?.length || 0);
-          }}
-          // Disable client-side pagination since we're doing server-side
-          pagination={false}
-          // Client-side operations
-          rowSelection={{ mode: 'multiRow', checkboxes: true, enableClickSelection: true }}
-          selectionColumnDef={{ pinned: 'left', width: 44, headerName: '', resizable: false, cellClass: 'no-right-border', headerClass: 'no-right-border', suppressMovable: true }}
-          animateRows
-          
-          headerHeight={36}
-          rowHeight={32}
-          tooltipShowDelay={300}
-          suppressMenuHide={false}
-          stopEditingWhenCellsLoseFocus={true}
-          theme="legacy"
-        />
-        {loading && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white backdrop-blur-sm transition-opacity duration-150">
-            <div className="relative mb-3">
-              <div className="absolute -inset-3 bg-gradient-to-r from-indigo-200 via-blue-200 to-indigo-200 opacity-30 blur-xl animate-pulse rounded-full" />
-              <LoaderPinwheel className="relative w-10 h-10 text-indigo-600 animate-spin" />
+
+      <div className="flex-1 min-h-0 relative">
+        {(!loading && rows.length === 0) ? (
+          <div className="bg-white shadow rounded-md border border-gray-300 p-8 h-full overflow-auto">
+            <div className="text-center">
+              <HelpCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Questions Found</h3>
+              <p className="text-gray-500 mb-4">
+                No questions found. Try adjusting your search criteria or add new questions.
+              </p>
+              <Link href="/admin/questions/new">
+                <button className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-md transition-colors duration-300">
+                  Add New Question
+                </button>
+              </Link>
             </div>
-            <p className="text-sm font-medium text-gray-600 tracking-wide">Loading questions...</p>
+          </div>
+        ) : (
+          <div className="h-full min-h-0 relative">
+            <AgGridReact<QuestionRow>
+              columnDefs={columnDefs}
+              defaultColDef={defaultColDef}
+              rowData={rows}
+              onGridReady={onGridReady}
+              onSortChanged={onSortChanged}
+              onFilterChanged={() => {
+                const api = gridApiRef.current as any;
+                if (!api) return;
+
+                const fm = api.getFilterModel?.() as any;
+                filterModelRef.current = fm || {};
+                setFiltersVersion((v) => v + 1);
+
+                // Clear the debounce timer
+                if (filterDebounceRef.current) {
+                  clearTimeout(filterDebounceRef.current);
+                }
+
+                // Debounce the filter request
+                filterDebounceRef.current = setTimeout(() => {
+                  if (!skipNextFilterFetchRef.current) {
+                    setPage(1); // Reset to first page when filter changes
+                  }
+                  skipNextFilterFetchRef.current = false;
+                }, 300);
+              }}
+              onSelectionChanged={() => {
+                const api = gridApiRef.current;
+                if (!api) return;
+                const selected = api.getSelectedRows?.() as QuestionRow[];
+                setSelectedCount(selected?.length || 0);
+              }}
+              // Disable client-side pagination since we're doing server-side
+              pagination={false}
+              // Client-side operations
+              rowSelection={{ mode: 'multiRow', checkboxes: true, enableClickSelection: true }}
+              selectionColumnDef={{ pinned: 'left', width: 44, headerName: '', resizable: false, cellClass: 'no-right-border', headerClass: 'no-right-border', suppressMovable: true }}
+              animateRows
+
+              headerHeight={36}
+              rowHeight={32}
+              tooltipShowDelay={300}
+              suppressMenuHide={false}
+              stopEditingWhenCellsLoseFocus={true}
+              theme="legacy"
+            />
+            {loading && (
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white backdrop-blur-sm transition-opacity duration-150">
+                <div className="relative mb-3">
+                  <div className="absolute -inset-3 bg-gradient-to-r from-indigo-200 via-blue-200 to-indigo-200 opacity-30 blur-xl animate-pulse rounded-full" />
+                  <LoaderPinwheel className="relative w-10 h-10 text-indigo-600 animate-spin" />
+                </div>
+                <p className="text-sm font-medium text-gray-600 tracking-wide">Loading questions...</p>
+              </div>
+            )}
           </div>
         )}
-        </div>
-      )}
       </div>
-      
+
       {/* Remove separator between selection checkbox column and S.No */}
       <style jsx global>{`
         .ag-theme-alpine.ag-theme-evalus .ag-cell.no-right-border,
@@ -624,11 +645,11 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           display: none !important;
         }
       `}</style>
-      
+
       <ConfirmationModal
         title="Confirm Delete"
-        message={pendingDelete.length > 0 
-          ? pendingDelete.length === 1 
+        message={pendingDelete.length > 0
+          ? pendingDelete.length === 1
             ? `Are you sure you want to delete "${pendingDelete[0].title}"? This action cannot be undone.`
             : `Are you sure you want to delete ${pendingDelete.length} questions? This action cannot be undone.`
           : ""
@@ -641,30 +662,30 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         onConfirm={async () => {
           if (pendingDelete.length === 0) return;
           setDeleting(true);
-          
+
           try {
             // Delete all selected questions using the entire question object
-            const deletePromises = pendingDelete.map(question => 
+            const deletePromises = pendingDelete.map(question =>
               deleteQuestionAction(question)
             );
             const results = await Promise.all(deletePromises);
-            
+
             const failedDeletes = results.filter(res => res.status !== 200);
-            
+
             if (failedDeletes.length === 0) {
-              setToast({ 
-                message: pendingDelete.length === 1 
-                  ? "Question deleted successfully." 
-                  : `${pendingDelete.length} questions deleted successfully.`, 
-                type: "success" 
+              setToast({
+                message: pendingDelete.length === 1
+                  ? "Question deleted successfully."
+                  : `${pendingDelete.length} questions deleted successfully.`,
+                type: "success"
               });
             } else {
-              setToast({ 
-                message: `${failedDeletes.length} questions failed to delete.`, 
-                type: "error" 
+              setToast({
+                message: `${failedDeletes.length} questions failed to delete.`,
+                type: "error"
               });
             }
-            
+
             // Clear selection and refresh the data
             const api = gridApiRef.current;
             if (api) {
@@ -675,13 +696,13 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           } catch (error) {
             setToast({ message: "Delete operation failed", type: "error" });
           }
-          
+
           setDeleting(false);
           setConfirmOpen(false);
           setPendingDelete([]);
         }}
       />
-      
+
       {/* Toast container top-right */}
       <div className="fixed top-4 right-4 z-50 space-y-2">
         {toast ? (

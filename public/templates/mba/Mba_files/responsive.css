@@ -1,0 +1,86 @@
+@media only screen and (max-width:1024px){
+    .wrapper {left: 1%; right: 1%}
+}
+    
+@media only screen and (max-width:980px){
+    .optninr{width:90%;}
+    .radiobtn + .option{width:100%}
+    
+}
+@media only screen and (max-width:800px){
+    .lftmatrix {
+    display: inline-block;
+    float: left;
+    margin: 0 2% 0 0;
+    width: 48%;
+    }
+
+    .questioninr{padding:10px 10px;}
+    .matrixoptn{width:103%}
+
+}
+@media only screen and (max-width:480px){
+    .stdntnam{display: none}
+    .profile{width:auto}
+    .testname{font-size: 14px;font-family: open_sansregular;line-height: 16px;text-align: center}
+    .rightpart{display: none;}
+    .sbjcthdng{display: none}
+    .rightmain {
+    background: #fff none repeat scroll 0 0;
+    border: 1px solid #e0e0e0;
+    bottom: 98px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    position: absolute;
+    right: -3px;
+    top: -83px;
+    width: 220px;
+    z-index: 9999;
+}
+    .logo{padding:10px 5px;}
+    
+.submit {
+    background: #fff none repeat scroll 0 0;
+    border: 1px solid #e0e0e0;
+    bottom: 0;
+    position: absolute;
+    right: -3px;
+    width: 220px;
+    z-index: 99991;}
+.rytpart {   background: transparent none repeat scroll 0 0;
+    color: #777;
+    font-size: 11px;
+    height: 0;
+    line-height: 0;
+    padding: 0;
+    right: 0;
+    top: -13px;
+    width: auto;}
+    .clock{display: none}
+    .clckinr { margin: 0 auto;padding: 3px 4px;width: auto;}
+    .lftpart{margin-right: 0;height: 26px;}
+    .leftmain{margin-right:0px}
+    .questionoutr{right: 0}
+    .quehdnglft{font-size: 12px; margin-left:10px}
+    .markdef{padding-right: 3px}
+    .markdef:last-child{padding-right: 3px;}
+    .radiobtn + .option{padding: 10px}
+    .optncntnt{width:85%}
+    .footrlft{right: 0}
+    .subjinr{height: 26px;line-height: 26px;}
+    .subject{height: 26px;width:113px;}
+    .dropdown-content{top: 26px;}
+    header{height: 126px;}
+    .inrmain{top: 36px;}
+    .profileimg{margin-right: 40px;}
+    .rytbtn{display: block}
+}
+@media only screen and (max-width:360px){
+    
+    .inrmain{bottom: 4px;}
+    .arrow_slide{padding: 0}
+    .arrow_slide2{width: 93px;font-size: 13px;line-height: 26px;}
+    .footrlft{height: 38px;}
+    .questionoutr{bottom: 38px;}
+    .chckbx_ques{margin: 12px 0 0}
+}

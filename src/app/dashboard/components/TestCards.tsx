@@ -9,8 +9,13 @@ import {
   RotateCcw,
   ArrowRight,
   Play,
+  PenSquare,
 } from "lucide-react";
+import { useState, useTransition } from "react";
+import ConfirmationModal from "@/components/ConfirmationModal";
 import { format, parseISO, differenceInMinutes } from "date-fns";
+import { registerTestAction } from "@/app/actions/dashboard/registerTest";
+import toast from "react-hot-toast";
 
 interface TestCardsProps {
   id: string;
@@ -18,14 +23,16 @@ interface TestCardsProps {
   startDateTimeString?: string;
   endDateTimeString?: string;
   status?:
-    | "Registered"
-    | "Completed"
-    | "Cancelled"
-    | "In Progress"
-    | "Missed"
-    | undefined;
+  | "Registered"
+  | "Completed"
+  | "Cancelled"
+  | "In Progress"
+  | "Missed"
+  | "Up Next"
+  | undefined;
   bookmarked?: boolean;
   registrationId?: number;
+  onRegistered?: () => Promise<void> | void; // callback to refresh dashboard after registration
 }
 
 export default function TestCards({
@@ -36,6 +43,7 @@ export default function TestCards({
   status,
   bookmarked = false,
   registrationId,
+  onRegistered,
 }: TestCardsProps) {
   // Parse ISO date strings
   let formattedStartDate;
@@ -64,8 +72,11 @@ export default function TestCards({
 
   // Map status to action button colors
   const actionButtonMapping: Record<any, string> = {
-    Registered: "bg-purple-600 hover:bg-purple-700",
+    // Registered button should be blue like its tab icon
+    Registered: "bg-blue-600 hover:bg-blue-700",
     "In Progress": "bg-blue-600 hover:bg-blue-700",
+    // Up Next should use purple per requirement (matching tab icon)
+    "Up Next": "bg-purple-600 hover:bg-purple-700",
     Missed: "bg-orange-600 hover:bg-orange-700",
     Cancelled: "bg-red-600 hover:bg-red-700",
     Completed: "bg-green-600 hover:bg-green-700",
@@ -80,6 +91,10 @@ export default function TestCards({
     linkText = "Start";
     linkIcon = <Play className="w-5 h-5 ml-2" />;
     linkHref = `/exam/systemCheck/${encodeURIComponent(id)}/${registrationId}`;
+  } else if (status === "Up Next") {
+    linkText = "Register"; // per requirement
+    linkIcon = <PenSquare className="w-5 h-5 ml-2" />;
+    linkHref = `#register-${encodeURIComponent(id)}`; // no navigation; modal opens
   } else if (status === "In Progress") {
     linkText = "Resume";
     linkIcon = <CalendarCheckIcon className="w-5 h-5 ml-2" />;
@@ -149,10 +164,72 @@ export default function TestCards({
       // Re-request fullscreen if user exits
       popup.document.addEventListener("fullscreenchange", () => {
         if (!popup.document.fullscreenElement) {
-          popup.document.documentElement.requestFullscreen().catch(() => {});
+          popup.document.documentElement.requestFullscreen().catch(() => { });
         }
       });
     });
+  };
+
+  // Modal state for Up Next registration
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  // Pre-fill with server provided start (if future) else current datetime local (rounded to minutes)
+  const defaultLocal = () => {
+    const d = new Date();
+    d.setSeconds(0, 0);
+    return d.toISOString().slice(0, 16);
+  };
+  const initialStart = (() => {
+    if (startDateTimeString) {
+      try {
+        const s = new Date(startDateTimeString);
+        if (isFinite(s.getTime()) && s.getTime() > Date.now() - 60000) {
+          return s.toISOString().slice(0, 16);
+        }
+      } catch { }
+    }
+    return defaultLocal();
+  })();
+  const [proposedStart, setProposedStart] = useState<string>(initialStart);
+  const [comments, setComments] = useState("");
+  const [startTouched, setStartTouched] = useState(false);
+
+  const onClickRegister = (e: React.MouseEvent) => {
+    if (status === "Up Next") {
+      e.preventDefault();
+      setShowRegisterModal(true);
+    }
+  };
+
+  const isPast = proposedStart
+    ? new Date(proposedStart).getTime() < Date.now() - 60000
+    : true;
+  const [registering, setRegistering] = useState(false);
+  const confirmRegistration = async () => {
+    setStartTouched(true);
+    if (!proposedStart || isPast || registering) return;
+    try {
+      setRegistering(true);
+      const iso = new Date(proposedStart).toISOString();
+      const res = await registerTestAction({
+        testId: Number(id),
+        testDate: iso,
+        comments,
+        language: "English",
+      });
+      if (res.ok) {
+        toast.success("Test registered successfully");
+        setShowRegisterModal(false);
+        if (onRegistered) {
+          try { await onRegistered(); } catch { /* ignore */ }
+        }
+      } else {
+        toast.error(res.errorMessage || res.message || "Registration failed");
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Registration failed");
+    } finally {
+      setRegistering(false);
+    }
   };
 
   return (
@@ -233,15 +310,63 @@ export default function TestCards({
       <div className="w-full">
         <a
           href={linkHref}
-          onClick={openInPopup}
-          className={`w-full flex items-center justify-center px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${
-            status && actionButtonMapping[status]
-          }`}
+          onClick={status === "Up Next" ? onClickRegister : openInPopup}
+          className={`w-full flex items-center justify-center gap-1 px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${status && actionButtonMapping[status]
+            }`}
         >
-          {linkIcon}
           {linkText}
+          {linkIcon}
         </a>
       </div>
+
+      {/* Registration Modal for Up Next */}
+      <ConfirmationModal
+        title={`Register for ${name}`}
+        message="Confirm the proposed start date/time or adjust if allowed, then add optional comments."
+        isOpen={showRegisterModal}
+        onCancel={() => setShowRegisterModal(false)}
+        onConfirm={confirmRegistration}
+        confirmText={registering ? "Registering..." : "Register"}
+        cancelText="Cancel"
+        confirmDisabled={!proposedStart || isPast || registering}
+      >
+        <form className="space-y-5 text-left" onSubmit={(e) => e.preventDefault()}>
+          <div className="grid gap-2">
+            <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+              <span>Test Start Date & Time</span>
+              <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="datetime-local"
+              value={proposedStart}
+              min={new Date().toISOString().slice(0, 16)}
+              onChange={(e) => setProposedStart(e.target.value)}
+              onBlur={() => setStartTouched(true)}
+              required
+              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${startTouched && (!proposedStart || isPast)
+                ? "border-red-500"
+                : "border-gray-300"
+                }`}
+            />
+            {startTouched && !proposedStart && (
+              <p className="text-xs text-red-600">Start date/time is required.</p>
+            )}
+            {startTouched && proposedStart && isPast && (
+              <p className="text-xs text-red-600">Start date/time cannot be in the past.</p>
+            )}
+          </div>
+          <div className="grid gap-2">
+            <label className="text-sm font-medium text-gray-700">Comments</label>
+            <textarea
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              rows={4}
+              placeholder="Any specific notes or requirements..."
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+            />
+          </div>
+        </form>
+      </ConfirmationModal>
     </div>
   );
 }

@@ -1,0 +1,1588 @@
+$(document).ready(function ()
+{
+
+    addListeners();
+    $("#conot-1").mouseover(function () {
+        $(".mousovrrcrd").hide();
+    });
+    $("#questiondivMain").mouseover(function () {
+        $(".mousovrrcrd").hide();
+    });
+    $("#formdiv").mouseover(function () {
+        $(".mousovrrcrd").hide();
+    });
+});
+function getQuestion1(optionArray, essayDetail, questionText, queType, essayexist,unitforQuesType2, examId) {
+
+    if (queType == 8) {
+
+        if (essayexist == 0) {
+            return getMCQTrueFalse();
+        } else {
+            hideEssay();
+            return getMCQEssay(optionArray, essayDetail, questionText, queType);
+        }
+    } else if (queType == 7) {
+        if (essayexist == 0) {
+            return getMCQSingleChoice(optionArray);
+        } else {
+            hideEssay();
+            return getMCQEssay(optionArray, essayDetail, questionText, queType);
+        }
+    } else if (queType == 5) {
+        if (essayexist == 0) {
+            return getMCQMutipleChoice(optionArray);
+        } else {
+            hideEssay();
+            return  getMCQEssay(optionArray, essayDetail, questionText, queType);
+        }
+    } else if (queType == 6) {
+        return getMCQSequence(optionArray);
+    } else if (queType == 3) {
+        return getMCQMatchMatrix(optionArray);
+    } else if (queType == 4) {
+        return  getMCQMatchtheFollowing(optionArray);
+    } else if (queType == 2) {
+        if (essayexist == 0) {
+            return  getMCQFillInTheBlanks(optionArray,unitforQuesType2, examId);
+        } else {
+            hideEssay();
+            return getMCQEssay(optionArray, essayDetail, questionText, queType, unitforQuesType2. examId);
+        }
+    }
+}
+
+
+function getMCQTrueFalse() {
+    var html = "";
+    html = "<div style='width:auto; margin:10px 0 0 10px;'>";
+    html = html + "<ul class='optionOver' style='width:auto; overflow:hidden;padding:5px;'>";/*here class optionOver and padding given by navneet*/
+    html = html + "<li style='float:left; margin:0px 0 0 10px;'>";
+    html = html + "<input type='radio' id='mcqTF' onclick='unCheckRadio();colorChange();'  name='mcqTF' value='true'>";
+    html = html + "</li>";
+    html = html + "<li style='float:left; margin:0px 0 0 10px; cursor:pointer;' onclick='trueFalseCheck(1)'>True</li>";
+    html = html + "</li>";
+    if($("#adminid").val() == '1500000' && answerOfQue == 'true'){
+        html = html + "<li  style='display:block;' class='right-question'>&nbsp;</li>";
+    }
+    html = html + "</div>";
+
+    html = html + "<div  id='mcqTF' style='width:auto; margin:10px 0 0 10px;'>";
+    html = html + "<ul class='optionOver' style='width:auto; overflow:hidden;padding:5px;'>";/*here class optionOver and padding given by navneet*/
+    html = html + "<li style='float:left; margin:0px 0 0 10px;'>";
+    html = html + "<input type='radio'  id='mcqTF' onclick='unCheckRadio();colorChange();'  name='mcqTF' value='false'>";
+    html = html + "</li>";
+    html = html + "<li style='float:left; margin:0px 0 0 10px; cursor:pointer;' onclick='trueFalseCheck(0)'>False</li>";
+    html = html + "</li>";
+    if($("#adminid").val() == '1500000' && answerOfQue == 'false'){
+        html = html + "<li  style='display:block;' class='right-question'>&nbsp;</li>";
+    }
+    html = html + "</div>";
+
+    return html;
+}
+
+function getMCQSingleChoice(optionArray) {
+    var html = "";
+    var htmlSequence = "";
+    //added by ankit garg for  suffle option value
+    var suffle = (document.getElementById("testSetting").value).substring(2, 3);
+    var tempArray = new Array();
+    var valueArray = getValueArray();
+    var countArray = optionArray.length;
+    for (var i = 1; i < countArray; i++) {
+        tempArray[i - 1] = optionArray[i];
+    }
+    if (suffle == 1)
+        suffleArray = arrayShuffle(tempArray);
+    else
+        suffleArray = tempArray;
+    countArray = suffleArray.length;
+    for (i = 0; i < countArray; i++) {
+        //print_r($valueArray);
+        var j = $.inArray(suffleArray[i], optionArray);
+        html = "<div style='width:auto; margin:10px 0 0 10px; '>";
+        html = html + "<ul class='optionOver' style='width:auto; overflow:hidden;padding:5px;'><label>";/*here class optionOver and padding given by navneet*/
+        
+        if($("#adminid").val() == '1500000' && answerOfQue == valueArray[j]){
+            html = html + "<li id='rightWrong_" + valueArray[j] + "' style='display:block;' class='right-question'>&nbsp;</li>";
+        }else{
+            html = html + "<li id='rightWrong_" + valueArray[j] + "' style='display:none;' class='wrong-question'>&nbsp;</li>";
+        }
+        
+        html = html + "<li style='float:left; margin:0px 10px 0 0px;'>";
+        html = html + "<input type='radio' id='mcqSingle' name='mcqSingle' onclick='unCheckRadio();colorChange();' value='" + valueArray[j] + "' >";
+        html = html + "</li>";
+        html = html + "<li style=' overflow:hidden;  margin:0px 0 0 10px; cursor:pointer;'>" + suffleArray[i] + "</li>";
+        html = html + "</label></ul>";
+        html = html + "</div>";
+
+        htmlSequence = htmlSequence + html;
+    }
+    // }
+    return htmlSequence;
+}
+
+
+function getValueArray() {
+    var valueArray = new Array();
+    valueArray[1] = "a";
+    valueArray[2] = "b";
+    valueArray[3] = "c";
+    valueArray[4] = "d";
+    valueArray[5] = "e";
+    valueArray[6] = "f";
+    valueArray[7] = "g";
+    valueArray[8] = "h";
+
+    return valueArray;
+}
+function getValueArrayPQ() {
+    var valueArray = new Array();
+    valueArray[1] = "p";
+    valueArray[2] = "q";
+    valueArray[3] = "r";
+    valueArray[4] = "s";
+    valueArray[5] = "t";
+    valueArray[6] = "u";
+    valueArray[7] = "v";
+    valueArray[8] = "w";
+
+    return valueArray;
+}
+
+
+function getMCQSequence(optionArray) {
+    var html = "";
+    var optionValue = "";
+    var htmlSequence = "";
+    var valueArray = getValueArray();
+    //print_r($value);
+    html = "<div style='width:auto; border:1px #d8d9db solid;'>";
+
+    html = html + "<table width='100%' align='center' border='0px' bgcolor='#eff0f0' cellpadding='10px' cellspacing='0px' style='border-bottom:1px #d8d9db solid;'>";
+    html = html + "  <tr style=''>";
+    html = html + "<td style='width:80%;border-right:#d8d9db solid 1px; padding-left:10px; font-weight:bold;'>Sequence Options</td>";
+    html = html + "<td style=' padding-left:10px; font-weight:bold; color:#345895;'>Correct Sequence</td>";
+    html = html + " </tr>";
+    html = html + " </table>";
+
+
+    html = html + " <table width='100%' align='center' border='0px' cellspacing='0px' cellpadding='10px'>";
+    var j = optionArray.length;
+    var k = 1;
+    for (var i = 1; i < optionArray.length; i++) {
+        html = html + " <tr style='border-bottom:1px #C66 solid;'>";
+        html = html + " <td style='width:4%; text-align:center; border-right:#d8d9db solid 1px;border-bottom:1px #d8d9db solid; background-color:#eff0f0;'>" + valueArray[i] + "</td>";
+        html = html + " <td style='width:76%;border-right:#d8d9db solid 1px; padding-left:10px;border-bottom:1px #d8d9db solid;'>" + optionArray[i] + "</td>";
+        html = html + " <td style='width:4%; text-align:center; border-right:#d8d9db solid 1px;border-bottom:1px #d8d9db solid;background-color:#eff0f0;'>" + i + "</td>";
+        html = html + " <td style='padding-left:10px; border-bottom:1px #d8d9db solid;'>";
+        html = html + " <select id='mcqSequence" + i + "' class='test-text'>";
+        html = html + " <option value='-1'></option>";
+        while (j > 0) {
+
+            optionValue = optionValue + " <option value='" + valueArray[k] + "' onclick='colorChange();'>$valueArray[$k]</option>";
+            k++;
+            j--;
+        }
+        html = html + optionValue;
+        html = html + " </select></td>";
+        html = html + " </tr>";
+    }
+    html = html + " </table>";
+
+    html = html + " </div>";
+
+    htmlSequence = htmlSequence + html;
+
+    return htmlSequence;
+}
+
+function getMCQEssay(optionArray, essayDetails, questionText, questionType,unitforQuesType2, examId) {
+
+    var html = "";
+    html = "<div style='width:auto; border:1px #d8d9db solid; margin:4px 0 0 0px;cursor:pointer;cursor:hand;'>";
+
+    html = html + "<table width='100%' align='center' border='0px' cellpadding='10px' cellspacing='0px' >";
+    //  html = html + "<tr style='background-color:#eff0f0;'>";
+//    html = html + "<td style=' width:50%;display:inline-block; border-right:#d8d9db solid 1px; padding-left:17px; background-color:#eff0f0;border-bottom:1px #d8d9db solid; font-weight:bold;'>Essay Paragraph</td>";
+    //  html = html + "<td style=' width:50%;display:inline-block; border-right:#d8d9db solid 1px; padding-left:17px; background-color:#eff0f0;border-bottom:1px #d8d9db solid; font-weight:bold;'>Question No. <span id='essayQuesNo'></span></td>";
+    //  html = html + "<td style=' width:44%;display:inline-block; padding-left:17px; font-weight:bold; background-color:#eff0f0;border-bottom:1px #d8d9db solid;'>&nbsp</td>";
+    //  html = html + "</tr>";
+    html = html + "<tr>";
+    html = html + "<td style='    border-right: #d8d9db solid 0px; width: 60%; display: inline-block;position: absolute;float: left;height: 92%;    overflow: auto;border-right:1px solid #dedede'>";
+
+    //html = html + $essayDetails;
+
+    html = html + "<div style='width:auto; text-align:justify; line-height:16pt; padding:5px 5px 5px 5px;'>";
+    html = html + essayDetails;
+    html = html + "</div>";
+
+    html = html + "</td>";
+    html = html + "<td valign='top' style='width: 38%;display: inline-block;float: right;position: absolute; right: 0px;    height: 92%;overflow:auto'";
+    html = html + "<div style='width:auto;padding:5px;'>";
+    html = html + "<table width='99%' border='0' cellpadding='0px' cellspacing='0px'  style='display:inline-block'>";
+    html = html + "<tr>";
+    html = html + "<td align='left' valign='top' style='color:#000000; text-align:justify;padding:0 2px 12px 5px;'>";
+    html = html + "<p style=' width:100%;min-width:287px;margin-bottom:5px;display:inline-block; padding:8px 0px 8px 11px; background-color:#eff0f0;border-bottom:1px #d8d9db solid; font-weight:bold;'>Question No. <span id='essayQuesNo'></span></p>" + questionText + "</td>";
+    html = html + "</tr>";
+    html = html + "<tr>";
+    html = html + "<td align='left' valign='top'>";
+    html = html + "<table width='100%' border='0' cellpadding='0px' cellspacing='0px'>";
+
+    if (questionType == "7") {
+        html = html + getMCQSingleChoiceForEssay(optionArray);
+    } else if (questionType == "5") {
+        html = html + getMCQMulitpleChoiceForEssay(optionArray);
+    } else if (questionType == "8") {
+        html = html + getMCQTrueFalse();
+    } else {
+        html = html + getMCQFillInTheBlanksForEssay(optionArray,unitforQuesType2, examId);
+    }
+    html = html + "</table>";
+    html = html + "</td>";
+    html = html + "</tr>";
+    html = html + "</table>";
+    html = html + "</div>";
+    html = html + "</td>";
+    html = html + "</tr>";
+    html = html + "</table>";
+    html = html + "</div>";
+    return html;
+}
+
+function getMCQMatchMatrix(optionArray) {
+    var html = "";
+    var htmlSequence = "";
+    var valueArray = getValueArray();
+    var valueArrayPQ = getValueArrayPQ();
+    var optionCount = parseInt(((optionArray.length - 1) / 2));
+    var optionCountB = optionCount;
+    var enable4X5Matrix = false;
+    var i = 1;
+    if(optionArray.length == 10){
+        enable4X5Matrix = true;
+        optionCountB = optionCount+1;
+    } 
+    html = "<div style='width:auto; border:1px #d8d9db solid;'>";
+    html = html + "<table width='100%' align='center' border='0px' bgcolor='#eff0f0' cellpadding='10px' cellspacing='0px' style='border-bottom:1px #d8d9db solid;'>";
+    html = html + "<tr style='border-bottom:1px #C66 solid;'>";
+    html = html + "<td style=' width:3.5%; text-align:center; border-right:#d8d9db solid 1px;'>&nbsp;</td>";
+    html = html + "<td style='width:43.5%;border-right:#d8d9db solid 1px; padding-left:10px;'>Choice</td>";
+    html = html + "<td style=' width:3.5%; text-align:center; border-right:#d8d9db solid 1px;'>&nbsp;</td>";
+    html = html + "<td style=' padding-left:10px;' >Match</td>";
+    html = html + "</tr>";
+    html = html + "</table>";
+
+    html = html + "<table width='100%' align='center' border='0px' cellpadding='10px' cellspacing='0px'>";
+    
+    for (i = 1; i <= optionCount; i++) {
+        var j = i + optionCount;
+        html = html + "<tr style='border-bottom:1px #C66 solid;'>";
+        html = html + "<td style=' width:3.5%; text-align:center; border-right:#d8d9db solid 1px;border-bottom:1px #d8d9db solid;'>" + valueArray[i].toUpperCase() + "</td>";
+        html = html + "<td style='width:43.5%;border-right:#d8d9db solid 1px; padding-left:10px;border-bottom:1px #d8d9db solid;'>" + optionArray[i] + "</td>";
+        html = html + "<td style=' width:3.5%; text-align:center; border-right:#d8d9db solid 1px;border-bottom:1px #d8d9db solid;'>" + valueArrayPQ[i].toUpperCase() + "</td>";
+        html = html + "<td style=' padding-left:10px; border-bottom:1px #d8d9db solid;'>"
+                + optionArray[j] + "</td>";
+        html = html + "<td style='border-bottom:1px #d8d9db solid;'>&nbsp;</td>";
+        html = html + "</tr>";
+    }
+    
+    if(enable4X5Matrix) {
+        var j = i + optionCount;
+        html = html + "<tr style='border-bottom:1px #C66 solid;'>";
+        html = html + "<td style=' width:3.5%; text-align:center; border-right:#d8d9db solid 1px;border-bottom:1px #d8d9db solid;'></td>";
+        html = html + "<td style='width:43.5%;border-right:#d8d9db solid 1px; padding-left:10px;border-bottom:1px #d8d9db solid;'></td>";
+        html = html + "<td style=' width:3.5%; text-align:center; border-right:#d8d9db solid 1px;border-bottom:1px #d8d9db solid;'>" + valueArrayPQ[i].toUpperCase() + "</td>";
+        html = html + "<td style=' padding-left:10px; border-bottom:1px #d8d9db solid;'>"
+                + optionArray[j] + "</td>";
+        html = html + "<td style='border-bottom:1px #d8d9db solid;'>&nbsp;</td>";
+        html = html + "</tr>";
+    }
+    
+    html = html + "</table>";
+    html = html + "</div>";
+
+    html = html + "<div style='width:auto;'>";
+    html = html + "<div style='margin:0px 0 20px 0px; float:left;'>";
+
+    html = html + "<div style='width:auto;'>";
+    html = html + "<ul style='width:auto; background-color:#eff0f0; border:1px #d8d9db solid;'>";
+    html = html + "<li class='optionOver' style='float:left; padding:5px 0px 0px 0px; vertical-align:middle; height:25px; width:40px; text-align:center; border-right:1px #d8d9db solid; '>&nbsp;</li>";/*here class optionOver given by navneet*/
+    for (i = 1; i <= optionCountB; i++) {
+        html = html + "<li style='float:left; padding:5px 0px 0px 0px; vertical-align:middle; height:25px; width:40px; text-align:center;border-right:1px #d8d9db solid; '>" + valueArrayPQ[i].toUpperCase() + "</li>";
+    }
+    html = html + "<div style='clear:both;'></div>";
+    html = html + "</ul>";
+    html = html + "</div>";
+
+    for (i = 1; i <= optionCount; i++) {
+        html = html + "<div style='width:auto;'>";
+        html = html + "<ul style='width:auto; border-right:1px #d8d9db solid; border-left:1px #d8d9db solid; border-bottom:1px #d8d9db solid;'>";
+        html = html + "<li class='optionOver' style='float:left; padding:5px 0px 0px 0px; background-color:#f6f6f6; vertical-align:middle; height:25px; width:40px; text-align:center; border-right:1px #d8d9db solid;'>" + valueArray[i].toUpperCase() + "</li>";/*here class optionOver given by navneet*/
+        j = optionCountB;
+        var k = 1;
+        while (j > 0) {
+            html = html + "<li class='optionOver' style='float:left; padding:5px 0px 0px 0px; vertical-align:middle; height:25px; width:40px; text-align:center; border-right:1px #d8d9db solid;'><input name='mcqMatchMatrix' id='mcqMatchMatrix' type='checkbox'  onclick='colorChange();' value='" + valueArray[i] + "-" + valueArrayPQ[k] + "' /></li>";
+            k++;
+            j--;
+        }
+        html = html + "<div style='clear:both;'></div>";
+        html = html + "</ul>";
+        html = html + "</div>";
+    }
+
+    html = html + "</div>";
+    html = html + "<div style='clear:both'></div>";
+    html = html + "</div>";
+
+    htmlSequence = htmlSequence + html;
+
+    return htmlSequence;
+}
+
+function getMCQMatchtheFollowing(optionArray) {
+
+
+    var html = "";
+    var htmlSequence = "";
+    var valueArray = getValueArray();
+    var valueArrayPQ = getValueArrayPQ();
+
+    html = "<div style='width:auto; border:1px #d8d9db solid;'>";
+    html = html + "<table width='100%' align='center' border='0px' bgcolor='#eff0f0' cellpadding='10px' cellspacing='0px' style='border-bottom:1px #d8d9db solid;'>";
+    html = html + "<tr style='border-bottom:1px #C66 solid;'>";
+    html = html + "<td style=' width:3.5%; text-align:center; border-right:#d8d9db solid 1px;'>&nbsp;</td>";
+    html = html + "<td style='width:43.5%;border-right:#d8d9db solid 1px; padding-left:10px;'>Choice</td>";
+    html = html + "<td style=' width:3.5%; text-align:center; border-right:#d8d9db solid 1px;'>&nbsp;</td>";
+    html = html + "<td style=' padding-left:10px;' >Match</td>";
+    html = html + "</tr>";
+    html = html + "</table>";
+
+    html = html + "<table width='100%' align='center' border='0px' cellpadding='10px' cellspacing='0px'>";
+    var optionCount = ((optionArray.length - 1) / 2);
+    for (var i = 1; i <= optionCount; i++) {
+
+        html = html + "<tr style='border-bottom:1px #C66 solid;'>";
+        html = html + "<td style=' width:3.5%; text-align:center; border-right:#d8d9db solid 1px;border-bottom:1px #d8d9db solid;'>" + valueArray[i].toUpperCase() + "</td>";
+        html = html + "<td style='width:43.5%;border-right:#d8d9db solid 1px; padding-left:10px;border-bottom:1px #d8d9db solid;'>" + optionArray[i] + "</td>";
+        html = html + "<td style=' width:3.5%; text-align:center; border-right:#d8d9db solid 1px;border-bottom:1px #d8d9db solid;'>" + valueArrayPQ[i].toUpperCase() + "</td>";
+        html = html + "<td style=' padding-left:10px; border-bottom:1px #d8d9db solid;'>" + optionArray[(i + optionCount)] + "</td>";
+        html = html + "<td style='border-bottom:1px #d8d9db solid;'>&nbsp;</td>";
+        html = html + "</tr>";
+    }
+    html = html + "</table>";
+    html = html + "</div>";
+
+    html = html + "<div style='width:auto;'>";
+    html = html + "<div style='margin:0px 0 0px 0px; float:left;'>";
+
+    html = html + "<div style='width:auto;'>";
+    html = html + "<ul style='width:auto; background-color:#eff0f0; border:1px #d8d9db solid;'>";
+    html = html + "<li  class='optionOver' style='float:left; padding:0px 0px 0px 0px; vertical-align:middle; height:25px; width:40px; text-align:center; border-right:1px #d8d9db solid; '>&nbsp;</li>";/*here class optionOver given by navneet*/
+    for (i = 1; i <= optionCount; i++) {
+        html = html + "<li  class='optionOver' style='float:left; padding:0px 0px 0px 0px; vertical-align:middle; height:25px; width:40px; text-align:center;border-right:1px #d8d9db solid; '>" + valueArrayPQ[i].toUpperCase() + "</li>";/*here class optionOver given by navneet*/
+    }
+    html = html + "<div style='clear:both;'></div>";
+    html = html + "</ul>";
+    html = html + "</div>";
+
+    for (i = 1; i <= optionCount; i++) {
+
+        html = html + "<div style='width:auto;'>";
+        html = html + "<ul style='width:auto; border-right:1px #d8d9db solid; border-left:1px #d8d9db solid; border-bottom:1px #d8d9db solid;'>";
+        html = html + "<li class='optionOver' style='float:left; padding:0px 0px 0px 0px; background-color:#f6f6f6; vertical-align:middle; height:25px; width:40px; text-align:center; border-right:1px #d8d9db solid;'>" + valueArray[i].toUpperCase() + "</li>";/*here class optionOver given by navneet*/
+        var j = optionCount;
+        var k = 1;
+        while (j > 0) {
+
+            html = html + "<li class='optionOver' style='float:left; padding:0px 0px 0px 0px; vertical-align:middle; height:25px; width:40px; text-align:center; border-right:1px #d8d9db solid;'><input name='mcqMatchtheFollowing_" + valueArray[i] + "' type='radio' onclick='unCheckRadio();colorChange();'  value='" + valueArray[i] + "-" + valueArrayPQ[k] + "' /></li>";/*here class optionOver given by navneet*/
+
+            k++;
+            j--;
+        }
+        html = html + "<div style='clear:both;'></div>";
+        html = html + "</ul>";
+        html = html + "</div>";
+    }
+
+    html = html + "</div>";
+    html = html + "<div style='clear:both'></div>";
+    html = html + "</div>";
+
+    htmlSequence = htmlSequence + html;
+
+    return htmlSequence;
+}
+
+
+function onlyNumbers(thisVal, thisId) {
+    thisVal = thisVal.replace(/[^0-9]/g, '');
+    thisVal = thisVal.replace(/(\..*)\./g, '$1');
+    thisVal = thisVal.replace(/^(-?).*?(\d+\.\d{2}).*$/, '$1$2');
+    $("#" + thisId).val(thisVal);
+}
+
+
+function getMCQFillInTheBlanks(optionArray , unitforQuesType2, examId) {
+    var html = "";
+    var htmlSequence = "";
+    if(examId == "3") {
+        html = html + "<div class='fl_cntr'>";
+        for(var z=0; z < 10; z++) {
+            html = html + "<span id='radio"+ z +"' onclick='setValue(" + z + ")'>" + z + "</span>";
+        }
+//        html = html + "<span id='radio0' onclick='setValue(0)'>0</span><span id='radio1'  onclick='setValue(1)'>1</span> <span  id='radio2'  onclick='setValue(2)'>2</span> <span  id='radio3'  onclick='setValue(3)'>3</span> <span id='radio4'  onclick='setValue(4)'>4</span> <span id='radio5'  onclick='setValue(5)'>5</span> <span id='radio6'  onclick='setValue(6)' >6</span> <span id='radio7'  onclick='setValue(7)'>7</span> <span id='radio8'  onclick='setValue(8)'>8</span> <span id='radio9'  onclick='setValue(9)'>9</span></div>";
+        html += "</div>";
+        html = html +"<input name='mcqFB_1' id='mcqFB_1'   autocomplete='off'  type='hidden' class='text-field' />";    
+        if($("#adminid").val() == '1500000' ){
+            html = html + "<div   style='padding-left : 5px'>Answer : " + answerOfQue + "</div>";
+        }
+    } else {
+        html = html + "<div id='onlnkeybrd' style='position:relative;width:100%;font-family:Arial,verdana,helvetica,sans-serif;margin-top:5px;'> \n\
+            <input name='mcqFB_1' id='mcqFB_1' \n\
+                onkeydown='return false;' \n\
+                onkeyup='return false;' \n\
+                onkeypress='return false;' \n\
+                onblur='checkbutton();colorChange();' \n\
+                oninput='onlyNumbers(this.value, this.id);' \n\
+                value='' autocomplete='off'  type='text' style='margin-left:25px;width:140px; border: 1px solid #0160ae; height: 25px; padding-left: 10px;' /> ";
+        if($("#adminid").val() == '1500000' ){
+            html = html + "<label   style='padding-left : 5px'>"+answerOfQue+"</label>";
+        }
+        html = html + " <br>  \n\
+                    <br>  \n\
+                    <center>\n\
+                        <div id='vKeyboard' style='width: 160px;margin:0px auto;padding:5px 5px;'> <div style='background:#c0c0c0;  padding: 12px 0; overflow:hidden;line-height:1'>      \n\
+                                <input type='button' value='Backspace' style='border-radius: 6px 6px 6px 6px; background:#fff; border: 1px solid #0160ae; padding:5px 10px; font-weight: normal; float: left; margin-left: 25px; cursor:pointer;' onclick='fillback();'/>      \n\
+                                <br/>      \n\
+                                <br/>  \n\
+                                <input value='7' type='button' style='border-radius: 6px 6px 6px 6px; width: 33px; line-height: 22px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 24px; font-weight: normal; cursor:pointer;' onclick='fillvkey(this);' />\n\
+                                <input value = '8' type='button' style='border-radius: 6px 6px 6px 6px; width: 33px; line-height: 22px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 2px; font-weight: normal; cursor:pointer;' onclick='fillvkey(this);' /><input value = '9' type='button' style='border-radius: 6px 6px 6px 6px; width: 33px; line-height: 22px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 2px; font-weight: normal; cursor:pointer;' onclick='fillvkey(this);'/><br>      <br/> <input type='button' value='4' style='border-radius: 6px 6px 6px 6px; width: 33px; line-height: 22px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 24px; font-weight: normal; cursor:pointer;' onclick='fillvkey(this);' /><input type='button' value='5' style='border-radius: 6px 6px 6px 6px; width: 33px; line-height: 22px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 2px; font-weight: normal; cursor:pointer;' onclick='fillvkey(this);' /><input type='button' value='6' style='border-radius: 6px 6px 6px 6px; width: 33px; line-height: 22px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 2px; font-weight: normal; cursor:pointer;' onclick='fillvkey(this);' /><br>      <br/><input type='button' value='1' style='border-radius: 6px 6px 6px 6px; width: 33px; line-height: 22px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 24px; font-weight: normal; cursor:pointer;' onclick='fillvkey(this);' /><input  type='button' value ='2' style='border-radius: 6px 6px 6px 6px; width: 33px; line-height: 22px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 2px; font-weight: normal; cursor:pointer;' onclick='fillvkey(this);' /><input  type='button' value ='3' style='border-radius: 6px 6px 6px 6px; width: 33px; line-height: 22px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 2px; font-weight: normal; cursor:pointer;' onclick='fillvkey(this);' /> <br>      <br><input  type='button' value ='0' style='border-radius: 6px 6px 6px 6px; width: 33px; line-height: 22px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 24px; font-weight: normal; cursor:pointer;' onclick='fillvkey(this);' /><input  type='button' value ='.'  style='border-radius: 6px 6px 6px 6px;  background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 2px; font-weight: normal; cursor:pointer; width:33px ;line-height:22px;' onclick='fillvkey(this)' ; /><input  type='button' value ='-' style='border-radius: 6px 6px 6px 6px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 2px; font-weight: normal; cursor:pointer; width:33px ;line-height:22px;' onclick='fillvkey(this);' /><br/> <br>    <br>   <span style='border-radius: 6px 6px 6px 6px; padding: 3px 1px 4px 3px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: -13px 0 0 45px; font-weight: normal; cursor:pointer; width: 30px;' onclick='backkey()'><img src='"+mainFilePath+"student/images/left_arow.jpg' width='70%'  /></span>      <span style='border-radius: 6px 6px 6px 6px; padding: 3px 1px 4px 3px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: -13px 0 0 2px; font-weight: normal; cursor:pointer; width: 30px;' onclick='forwardkey();'><img src='"+mainFilePath+"student/images/rgt_arow.jpg' width='70%' /></span> <span style='border-radius: 6px 6px 6px 6px; background:#fff; border: 1px solid #0160ae; padding:5px 10px; font-weight: normal; float: left; margin-top:5px; cursor:pointer; margin-left: 42px;' onclick='fillclear(this);'>Clear All</span>    </div> ";
+        if(unitforQuesType2 != "" && unitforQuesType2 != undefined) {   
+                html = html + "<div style='position: absolute; left: 184px; top: 2%;font-size:12px !important'>  "+unitforQuesType2+" </div>";
+            }
+            html = html + "</div></center></div>";            
+    }
+    htmlSequence = htmlSequence + html;
+    return htmlSequence;
+}
+function getMCQMutipleChoice(optionArray) {
+    var html = "";
+    var htmlSequence = "";
+    var suffle = (document.getElementById("testSetting").value).substring(2, 3);
+    //alert(suffle);
+    var tempArray = new Array();
+    var valueArray = getValueArray();
+    var countArray = optionArray.length;
+    for (var i = 1; i < countArray; i++) {
+        tempArray[i - 1] = optionArray[i];
+    }
+
+    if (suffle == 1)
+        suffleArray = arrayShuffle(tempArray);
+    else
+        suffleArray = tempArray;
+    countArray = suffleArray.length;
+    var tempAnswerArray = answerOfQue.split(",");
+    for (i = 0; i < countArray; i++) {
+        //print_r($valueArray);
+        var j = $.inArray(suffleArray[i], optionArray);
+        html = "<div style='width:auto; margin:10px 0 0 10px;'>";
+        html = html + "<ul class='optionOver' style='width:auto; overflow:hidden;padding:5px;'><label>";
+         if($("#adminid").val() == '1500000' && $.inArray(valueArray[j],tempAnswerArray) != -1 ){
+            html = html + "<li id='rightWrong_" + valueArray[j] + "' style='display:block;' class='right-question'>&nbsp;</li>";
+        }else{
+            html = html + "<li id='rightWrong_" + valueArray[j] + "' style='display:none;' class='wrong-question'>&nbsp;</li>";
+        }
+        html = html + "<li style='float:left; margin:0px 0 0 10px;'>";
+        html = html + "<input type='checkBox' onclick='colorChange()' id='mcqMultiple' name='mcqMultiple' value='" + valueArray[j] + "' >";
+        html = html + "</li>";
+        html = html + "<li style='margin:0px 0 0 10px; cursor:pointer;'>" + suffleArray[i] + "</li>";
+        html = html + "</label></ul>";
+        html = html + "</div>";
+
+        htmlSequence = htmlSequence + html;
+    }
+    return htmlSequence;
+}
+
+function getMCQSingleChoiceForEssay(optionArray) {
+
+    var html = "";
+    var op = "";
+    var suffle = (document.getElementById("testSetting").value).substring(2, 3);
+    var tempArray = new Array();
+    var valueArray = getValueArray();
+    var countArray = optionArray.length;
+    for (var i = 1; i < countArray; i++) {
+        tempArray[i - 1] = optionArray[i];
+    }
+    if (suffle == 1)
+        suffleArray = arrayShuffle(tempArray);
+    else
+        suffleArray = tempArray;
+    countArray = suffleArray.length;
+    for (i = 0; i < countArray; i++) {
+        var j = $.inArray(suffleArray[i], optionArray);
+        op = "'" + valueArray[j] + "'";
+        html = html + "<tr class='optionOver' style='padding: 20px;cursor:pointer;cursor:hand;'>";/*here class optionOver given by navneet*/
+        html = html + "<td width='10%' align='left' valign='top' style='padding:5px;'>";/*here class padding given by navneet*/
+        html = html + '<input type="radio" id="mcqSingle" name="mcqSingle" onclick="unCheckRadio();colorChange();" value="' + valueArray[j] + '" >';
+        
+        if($("#adminid").val() == '1500000' && answerOfQue == valueArray[j]){
+            html = html + "<li id='rightWrong_" + valueArray[j] + "' style='display:block;' class='right-question'>&nbsp;</li>";
+        }else{
+            html = html + "<li id='rightWrong_" + valueArray[j] + "' style='display:none;' class='wrong-question'>&nbsp;</li>";
+        }
+        
+        html = html + '</td>';
+        html = html + '<td style="padding:5px;" width="90%" align="left" valign="top" style="padding-top:0px; cursor:pointer;" onclick="checkessaysingle(' + op + ');colorChange()">';/*here class padding given by navneet*/
+        html = html + suffleArray[i];
+        html = html + '</td>';
+        html = html + '</tr>';
+        html = html + '<tr><td>&nbsp;</td></tr>';
+
+    }
+    return html;
+}
+function getMCQMulitpleChoiceForEssay(optionArray) {
+    var html = "";
+    var suffle = (document.getElementById("testSetting").value).substring(2, 3);
+    //alert(suffle);
+    var tempArray = new Array();
+    var valueArray = getValueArray();
+    var countArray = optionArray.length;
+    for (var i = 1; i < countArray; i++) {
+        tempArray[i - 1] = optionArray[i];
+    }
+
+    if (suffle == 1)
+        suffleArray = arrayShuffle(tempArray);
+    else
+        suffleArray = tempArray;
+    countArray = suffleArray.length;
+    var tempAnswerArray = answerOfQue.split(",");
+    for (i = 0; i < countArray; i++) {
+        //print_r($valueArray);
+        var j = $.inArray(suffleArray[i], optionArray);
+        html = html + "<tr class='optionOver' style='padding: 20px;'>";/*here class optionOver and padding given by navneet*/
+        html = html + "<td width='10%' align='left' valign='top'>";
+        html = html + "<input type='checkBox' onclick='colorChange()' id='mcqMultiple' name='mcqMultiple' value='" + valueArray[j] + "' >";
+       
+        if($("#adminid").val() == '1500000' && $.inArray(valueArray[j],tempAnswerArray) != -1  ){
+            html = html + "<li id='rightWrong_" + valueArray[j] + "' style='display:block;' class='right-question'>&nbsp;</li>";
+        }else{
+            html = html + "<li id='rightWrong_" + valueArray[j] + "' style='display:none;' class='wrong-question'>&nbsp;</li>";
+        }
+        
+        html = html + "</td>";
+        html = html + "<td width='90%' align='left' valign='top' style='padding-top:0px;'>";
+        html = html + suffleArray[i];
+        html = html + "</td>";
+        html = html + "</tr>";
+        html = html + "<tr><td>&nbsp;</td></tr>";
+    }
+    return html;
+}
+function getMCQFillInTheBlanksForEssay(optionArray, unitforQuesType2, examId) {
+    var html = "";
+    if(examId == "3") {
+        html = html + "<div class='fl_cntr'>";
+        for(var z=0; z < 10; z++) {
+            html = html + "<span id='radio"+ z +"' onclick='setValue(" + z + ")'>" + z + "</span>";
+        }
+        html += "</div>";
+        html = html +"<input name='mcqFB_1' id='mcqFB_1'   autocomplete='off'  type='hidden' class='text-field' />";    
+        if($("#adminid").val() == '1500000' ){
+            html = html + "<div   style='padding-left : 5px'>Answer : " + answerOfQue + "</div>";
+        }
+    } else {
+        html = html + "<div id='onlnkeybrd' style='position:relative;width:100%;font-family:Arial,verdana,helvetica,sans-serif;margin-top:5px;'><input name='mcqFB_1' id='mcqFB_1'   onkeydown='return false;' onkeyup='return false;' onkeypress='return false;' value='' onblur='checkbutton();colorChange();' oninput='onlyNumbers(this.value, this.id);' autocomplete='off'  type='text' style='width:140px; border: 1px solid #0160ae; height: 25px; padding-left: 10px;' /> ";
+        if($("#adminid").val() == '1500000'){
+            html = html + "<label  style='padding-left : 5px'>"+answerOfQue+"</label>";
+        }
+        html = html +" <br>  <br>  <center><div id='vKeyboard' style='width: 158px;margin:0px auto;padding:5px 5px;'>        <div style='background:#c0c0c0;  padding: 12px 0; overflow:hidden;line-height:1'>      <input type='button' value='Backspace' style='border-radius: 6px 6px 6px 6px; background:#fff; border: 1px solid #0160ae; padding:5px 10px; font-weight: normal; float: left; margin-left: 25px; cursor:pointer;' onclick='fillback();'/>      <br/>      <br/>  <input value='7' type='button' style='border-radius: 6px 6px 6px 6px; width: 33px; line-height: 25px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 24px; font-weight: normal; cursor:pointer;' onclick='fillvkey(this);' /><input value = '8' type='button' style='border-radius: 6px 6px 6px 6px; width: 33px; line-height: 25px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 2px; font-weight: normal; cursor:pointer;' onclick='fillvkey(this);' /><input value = '9' type='button' style='border-radius: 6px 6px 6px 6px; width: 33px; line-height: 25px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 2px; font-weight: normal; cursor:pointer;' onclick='fillvkey(this);'/><br>      <br/> <input type='button' value='4' style='border-radius: 6px 6px 6px 6px; width: 33px; line-height: 25px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 24px; font-weight: normal; cursor:pointer;' onclick='fillvkey(this);' /><input type='button' value='5' style='border-radius: 6px 6px 6px 6px; width: 33px; line-height: 25px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 2px; font-weight: normal; cursor:pointer;' onclick='fillvkey(this);' /><input type='button' value='6' style='border-radius: 6px 6px 6px 6px; width: 33px; line-height: 25px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 2px; font-weight: normal; cursor:pointer;' onclick='fillvkey(this);' /><br>      <br/><input type='button' value='1' style='border-radius: 6px 6px 6px 6px; width: 33px; line-height: 25px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 24px; font-weight: normal; cursor:pointer;' onclick='fillvkey(this);' /><input  type='button' value ='2' style='border-radius: 6px 6px 6px 6px; width: 33px; line-height: 25px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 2px; font-weight: normal; cursor:pointer;' onclick='fillvkey(this);' /><input  type='button' value ='3' style='border-radius: 6px 6px 6px 6px; width: 33px; line-height: 25px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 2px; font-weight: normal; cursor:pointer;' onclick='fillvkey(this);' /> <br>      <br><input  type='button' value ='0' style='border-radius: 6px 6px 6px 6px; width: 33px; line-height: 24px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 24px; font-weight: normal; cursor:pointer;' onclick='fillvkey(this);' /><input  type='button' value ='.'  style='border-radius: 6px 6px 6px 6px; padding: 0px 14px 4px 14px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 2px; font-weight: normal; cursor:pointer; width:33px ;line-height:20px;' onclick='fillvkey(this)' ; /><input  type='button' value ='-' style='border-radius: 6px 6px 6px 6px; padding: 0px 13px 4px 14px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: 0px 0 0 2px; font-weight: normal; cursor:pointer; width:33px ;line-height:20px;' onclick='fillvkey(this);' /><br/> <br><br>   <span style='border-radius: 6px 6px 6px 6px; padding: 3px 1px 4px 3px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: -13px 0 0 45px; font-weight: normal; cursor:pointer; width: 30px;' onclick='backkey()'><img src='"+mainFilePath+"student/images/left_arow.jpg' width='70%'  /></span>      <span style='border-radius: 6px 6px 6px 6px; padding: 3px 1px 4px 3px; background: #e6e7e9; border: 1px solid #0160ae;float: left; margin: -13px 0 0 2px; font-weight: normal; cursor:pointer; width: 30px;' onclick='forwardkey();'><img src='"+mainFilePath+"student/images/rgt_arow.jpg' width='70%' /></span>  <span style='border-radius: 6px 6px 6px 6px; background:#fff; border: 1px solid #0160ae; padding:5px 10px; font-weight: normal; float: left; margin-top:5px; cursor:pointer; margin-left: 42px;' onclick='fillclear(this);'>Clear All</span>    </div>     ";
+        if(unitforQuesType2 != "" && unitforQuesType2 != undefined) {
+            html = html + "<div style='position: absolute; left: 45%; top: 2%;font-size : 12px !important;'> "+unitforQuesType2+" </div>";
+        }
+        html = html + "</div></center></div>";
+    }
+    return html;
+}
+//for changing color on the basis of responce by ankit garg
+function colorChange() {
+    var value = document.getElementById("serialNo").value;
+    rgvalue = value;
+    if ($("#testSetting").val().substring(10, 11) == 1) {
+        if (document.getElementById("questionType").value == 7) {
+            if (answerOfQue != getResponse()) {
+                $("#rightWrong_" + answerOfQue).removeClass();
+                $("#rightWrong_" + answerOfQue).addClass("right-question");
+                $("#rightWrong_" + answerOfQue).html("<a href='#' onclick='showSolution();'>View Solution</a>");
+                //document.getElementById("rightWrong_"+answerOfQue)
+                document.getElementById("rightWrong_" + answerOfQue).style.display = "block";
+                document.getElementById("rightWrong_" + getResponse()).style.display = "block";
+
+            }
+        }
+    }
+}
+
+//added by ankit garg for option shuffling
+function arrayShuffle(oldArray) {
+    var newArray = oldArray.slice();
+    var len = newArray.length;
+    var i = len;
+    while (i--) {
+        var p = parseInt(Math.random() * len);
+        var t = newArray[i];
+        newArray[i] = newArray[p];
+        newArray[p] = t;
+    }
+    return newArray;
+
+}
+// this is for display attempte ,unattempted subject wise button
+function showsubjectWise(serialNo, pre, time, res, subName) {
+    $(".mousovrrcrd").hide();
+    var maxSerialNo = document.getElementById("maxSerialNoArray").value;
+    var maxSerialNoArray = maxSerialNo.split("#");
+    for (var t = 0; t < maxSerialNoArray.length; t++) {
+        if (serialNo != maxSerialNoArray[t]) {
+            $("#sujectwiseDetail_" + maxSerialNoArray[t]).hide();
+        }
+    }
+    var check = 0;
+    var var1 = 0;
+    var var2 = 0;
+    var j = parseInt($("#totalQuestion").val()) + 1;
+    maxSerialNoArray[maxSerialNoArray.length] = j;
+    for (var i = 0; i < maxSerialNoArray.length - 1; i++) {
+        if (parseInt(maxSerialNoArray[i]) <= parseInt(serialNo) && parseInt(serialNo) <= parseInt(maxSerialNoArray[i + 1])) {
+            check = 1;
+            var1 = parseInt(maxSerialNoArray[i]);
+            var2 = parseInt(maxSerialNoArray[i + 1]);
+        }
+    }
+    var totalQuestion = var2 - var1;
+    var attempted = 0;
+    var review = 0;
+    var notAnswer = 0;
+    var reviewattempted = 0;
+    for (var temp = var1; temp < var2; temp++) {
+        if (attemptQuesResponseArray[temp] != "" && arrvar[temp] == 0) {
+            attempted++;
+        }
+        if (attemptQuesResponseArray[temp] == "" && timediffArray[temp - 1] != 0 && arrvar[temp] == 0) {
+            notAnswer++;
+        }
+        if (arrvar[temp] == 1 && attemptQuesResponseArray[temp] == "") {
+            review++;
+        }
+        if (arrvar[temp] == 1 && attemptQuesResponseArray[temp] != "") {
+            reviewattempted++;
+        }
+
+    }
+    var unattempt = totalQuestion - (attempted + reviewattempted + review);
+    var html = "<li style='border-bottom : 1px solid #ccc;line-height:12px !important;'>" + subName + "</li>" +
+            "<li>Answered<strong class='attempt' id='attemptedQue'>" + attempted + "</strong></li>" +
+            "<li><strong class='unattempt' id='unattemptedQue'>" + notAnswer + "</strong> Not Answered</li>" +
+            "<li>Not Visited<strong class='notVisited' id='notvisitedQue'>" + (totalQuestion - (notAnswer + attempted + review + reviewattempted)) + "</strong></li>";
+    if (time == 0 && pre == 1 && res == 0) {
+        html = html + "<li>Marked for Review<strong class='mark' id='reviewQue'>" + review + "</strong></li>" +
+                "<li style='padding-top:2px;margin-bottom:7px;line-height:12px !important;'><strong class='attemptreview' id='reviewQue'>" + reviewattempted + "</strong><label style='position:relative;top:9px'>Answered & Marked for Review</label></li>";
+    }
+//  html=html + "<li>Total Questions<strong class='total'  id='totalQue'>"+totalQuestion+"</strong></li>";
+
+    $("#subjectData_" + serialNo).html(html);
+   var currentSerialno = parseInt($("#serialNo").val());
+   if(currentSerialno >= parseInt(serialNo)){
+        $("#sujectwiseDetail_" + serialNo).show();
+    }
+}
+function showSectionPopup(serialNo, subName) {
+
+    var maxSerialNo = document.getElementById("maxSerialNoArray").value;
+    var tempSerialNo = Number(document.getElementById("serialNo").value);
+    var maxSerialNoArray = maxSerialNo.split("#");
+    var check = 0;
+    var var1 = 0;
+    var var2 = 0;
+    var j = parseInt($("#totalQuestion").val()) + 1;
+    maxSerialNoArray[maxSerialNoArray.length] = j;
+    for (var i = 0; i < maxSerialNoArray.length - 1; i++) {
+        if (parseInt(maxSerialNoArray[i]) <= parseInt(serialNo) && parseInt(serialNo) <= parseInt(maxSerialNoArray[i + 1])) {
+            check = 1;
+            var1 = parseInt(maxSerialNoArray[i]);
+            var2 = parseInt(maxSerialNoArray[i + 1]);
+        }
+    }
+    if (var2 <= tempSerialNo) {
+        var totalQuestion = var2 - var1;
+        var attempted = 0;
+        var review = 0;
+        var notAnswer = 0;
+        var reviewattempted = 0;
+        for (var temp = var1; temp < var2; temp++) {
+            if (attemptQuesResponseArray[temp] != "" && arrvar[temp] == 0) {
+                attempted++;
+            }
+            if (attemptQuesResponseArray[temp] == "" && timediffArray[temp - 1] != 0 && arrvar[temp] == 0) {
+                notAnswer++;
+            }
+            if (arrvar[temp] == 1 && attemptQuesResponseArray[temp] == "") {
+                review++;
+            }
+            if (arrvar[temp] == 1 && attemptQuesResponseArray[temp] != "") {
+                reviewattempted++;
+            }
+
+        }
+        var unattempt = totalQuestion - (attempted + reviewattempted + review);
+        var html = "<td>" + subName + "</td>" +
+                "<td>" + totalQuestion + "</td>" +
+                "<td>" + attempted + "</td>" +
+                "<td>" + notAnswer + "</td>" +
+                "<td>" + review + "</td>" +
+                "<td>" + reviewattempted + "</td>" +
+                "<td>" + (totalQuestion - (notAnswer + attempted + review + reviewattempted)) + "</td>";
+
+        $("#sectionResult").html(html);
+        $("#secHeading").html("You have already attempted " + subName + ". Viewing or editing this section is not allowed.");
+        $("#popupSecDiv").show();
+    }
+}
+function hidesubjectWise(id) {
+    $("#sujectwiseDetail_" + id).hide();
+}
+// this is for display subject wise button
+function hiddensubjectwise(serialNo) {
+    if ($("#testSetting").val().substring(0, 1) == 1) {
+        var lower = 0;
+        var upper = 0;
+//    var subidArray=$("#maxSerialNoArray").val().split(",");
+        var subidArray = $("#maxtopicNoArray").val().split(",");
+        for (var i = 0; i < subidArray.length - 1; i++) {
+            if (subidArray[i] <= serialNo && serialNo < subidArray[i + 1]) {
+                lower = subidArray[i];
+                upper = subidArray[i + 1];
+                i = subidArray.length + 10;
+            }
+
+
+        }
+        if (serialNo >= subidArray[subidArray.length - 1]) {
+            lower = subidArray[subidArray.length - 1];
+            upper = parseInt($("#totalQuestion").val());
+        }
+        var totalQuestion = parseInt($("#totalQuestion").val());
+        if (totalQuestion == upper && serialNo >= subidArray[subidArray.length - 1]) {
+            upper = upper + 1;
+        }
+        for (var j = 1; j <= totalQuestion; j++) {
+            if (lower <= j && j < upper) {
+                $("#wrightImage_" + j).show();
+            } else {
+                $("#wrightImage_" + j).hide();
+            }
+
+        }
+    }
+
+}
+
+function hideSolution() {
+    $("#solutiondiv").hide();
+}
+function showSolution() {
+    document.getElementById("solutiondiv").style.display = "block";
+}
+function redgreen(rgvalue) {
+    if (arrvar[rgvalue] == 1 && attemptQuesResponseArray[rgvalue] != '') {
+        $("#wrightImage_" + rgvalue).removeClass();
+        $("#wrightImage_" + rgvalue).addClass("greenred");
+    } else if (arrvar[rgvalue] == 1 && attemptQuesResponseArray[rgvalue] == '') {
+        $("#wrightImage_" + rgvalue).removeClass();
+        $("#wrightImage_" + rgvalue).addClass("blue");
+    } else if (attemptQuesResponseArray[rgvalue] != '') {
+        $("#wrightImage_" + rgvalue).removeClass();
+        $("#wrightImage_" + rgvalue).addClass("green");
+    } else if(timediffArray[rgvalue - 1] > 0){
+        $("#wrightImage_" + rgvalue).removeClass();
+        $("#wrightImage_" + rgvalue).addClass("red");
+    }
+}
+function redgreenrandom(rgvalue) {
+    if (arrvar[$.inArray(parseInt(rgvalue), randomvarArray)] == 1 && attemptQuesResponseArray[randomvarArray[rgvalue]] != '') {
+        $("#wrightImage_" + rgvalue).removeClass();
+        $("#wrightImage_" + rgvalue).addClass("greenred");
+    }
+    else if (arrvar[$.inArray(parseInt(rgvalue), randomvarArray)] == 1 && attemptQuesResponseArray[randomvarArray[rgvalue]] == '') {
+        $("#wrightImage_" + rgvalue).removeClass();
+        $("#wrightImage_" + rgvalue).addClass("blue");
+    }
+    else if (attemptQuesResponseArray[randomvarArray[rgvalue]] != '') {
+        $("#wrightImage_" + rgvalue).removeClass();
+        $("#wrightImage_" + rgvalue).addClass("green");
+    }
+    else {
+        $("#wrightImage_" + rgvalue).removeClass();
+        $("#wrightImage_" + rgvalue).addClass("red");
+    }
+}
+
+
+
+function toggleFullScreen() {
+
+    var docElm = document.documentElement;
+    if ((document.fullScreenElement && document.fullScreenElement !== null) || (!document.mozFullScreen && !document.webkitIsFullScreen)) {
+        if (docElm.requestFullscreen) {
+            docElm.requestFullscreen();
+        }
+        else if (docElm.mozRequestFullScreen) {
+            docElm.mozRequestFullScreen();
+        }
+        else if (docElm.webkitRequestFullScreen) {
+            docElm.webkitRequestFullScreen();
+        }
+    }
+    else {
+
+
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+        else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        }
+        else if (document.webkitCancelFullScreen) {
+            document.webkitCancelFullScreen();
+        }
+
+
+    }
+}
+
+function getCursorPosition()
+{
+    var oField = document.getElementById("mcqFB_1");
+    var iCaretPos = 0;
+    if (document.selection) {
+        oField.focus();
+        var oSel = document.selection.createRange();
+        oSel.moveStart('character', -oField.value.length);
+        iCaretPos = oSel.text.length;
+    }
+    else if (oField.selectionStart || oField.selectionStart == '0')
+        iCaretPos = oField.selectionStart;
+
+// if(iCaretPos==0 && $("#mcqFB_1").val()!="")
+//	 {
+//	
+//	iCaretPos = $("#mcqFB_1").val().length;
+//	 }
+
+    return parseInt(iCaretPos);
+}
+
+keyCount = 0;
+
+
+function fillvkey(val) {
+    var caretPos = getCursorPosition();
+    var textAreaTxt = jQuery("#mcqFB_1").val();
+    var txtToAdd = val.value;
+    if (!(caretPos == '0' && textAreaTxt.substring(0, caretPos + 1) == '-')) {
+//        alert(caretPos+"==="+textAreaTxt.substring(0, 2))
+        if (txtToAdd != '-') {
+            var str = textAreaTxt.substring(0, caretPos) + txtToAdd + textAreaTxt.substring(caretPos);
+            str = str.replace(/[^-0-9.]/g, '');
+            str = str.replace(/(\..*)\./g, '$1');
+            str = str.replace(/^(-?).*?(\d+\.\d{20}).*$/, '$1$2');
+            jQuery("#mcqFB_1").val(str);
+            document.getElementById("mcqFB_1").selectionStart = caretPos + 1;
+        } else if (txtToAdd == '-' && caretPos == 0) {
+            var str = textAreaTxt.substring(0, caretPos) + txtToAdd + textAreaTxt.substring(caretPos);
+            jQuery("#mcqFB_1").val(str);
+            document.getElementById("mcqFB_1").selectionStart = caretPos + 1;
+        }
+    }
+    jQuery("#mcqFB_1").focus();
+
+}
+function backkey() {
+    var caretPos = getCursorPosition();
+    $('#mcqFB_1').focus();
+    document.getElementById("mcqFB_1").selectionStart = caretPos - 1;
+    document.getElementById("mcqFB_1").selectionEnd = caretPos - 1;
+
+}
+function forwardkey() {
+    var caretPos = getCursorPosition();
+    $('#mcqFB_1').focus();
+    document.getElementById("mcqFB_1").selectionStart = caretPos + 1;
+    document.getElementById("mcqFB_1").selectionEnd = caretPos + 1;
+
+}
+function fillback() {
+    var caretPos = getCursorPosition();
+    var textAreaTxt = jQuery("#mcqFB_1").val();
+    jQuery("#mcqFB_1").val(textAreaTxt.substring(0, caretPos - 1) + textAreaTxt.substring(caretPos));
+    document.getElementById("mcqFB_1").selectionStart = caretPos - 1;
+    $('#mcqFB_1').focus();
+
+}
+function fillclear() {
+    document.getElementById('mcqFB_1').value = "";
+}
+function gObj(obj) {
+    var theObj;
+    if (document.all) {
+        if (typeof obj == "string") {
+            return document.all(obj);
+        } else {
+            return obj.style;
+        }
+    }
+
+    if (document.getElementById) {
+        if (typeof obj == "string") {
+            return document.getElementById(obj);
+        } else {
+            return obj.style;
+        }
+    }
+    return null;
+}
+
+function trimAll(sString) {
+    while (sString.substring(0, 1) == ' ') {
+        sString = sString.substring(1, sString.length);
+    }
+
+    while (sString.substring(sString.length - 1, sString.length) == ' ') {
+        sString = sString.substring(0, sString.length - 1);
+    }
+    return sString;
+}
+
+function showDebugInfo() {
+}
+
+function r(A) {
+    if (A == "10x" || A == "log" || A == "ex" || A == "ln" || A == "sin"
+            || A == "asin" || A == "cos" || A == "acos" || A == "tan"
+            || A == "atan" || A == "e" || A == "pi" || A == "n!"
+            || A == "x2" || A == "1/x" || A == "swap" || A == "x3"
+            || A == "3x" || A == "RND" || A == "M-" || A == "qc"
+            || A == "MC" || A == "MR" || A == "MS" || A == "M+"
+            || A == "sqrt" || A == "pc") {
+
+        func(A);
+    } else {
+        if (A == 1 || A == 2 || A == 3 || A == 4 || A == 5 || A == 6
+                || A == 7 || A == 8 || A == 9 || A == 0) {
+            numInput(A);
+        } else {
+            if (A == "pow" || A == "apow" || A == "+" || A == "-"
+                    || A == "*" || A == "/") {
+                opt(A)
+            } else {
+                if (A == "(") {
+                    popen()
+                } else {
+                    if (A == ")") {
+                        pclose()
+                    } else {
+                        if (A == "EXP") {
+                            exp()
+                        } else {
+                            if (A == ".") {
+                                if (entered) {
+                                    value = 0;
+                                    digits = 1
+                                }
+                                entered = false;
+                                if ((decimal == 0) && (value == 0)
+                                        && (digits == 0)) {
+                                    digits = 1
+                                }
+                                if (decimal == 0) {
+                                    decimal = 1
+                                }
+                                refresh()
+                            } else {
+                                if (A == "+/-") {
+                                    if (exponent) {
+                                        expval = -expval
+                                    } else {
+                                        value = -value
+                                    }
+                                    refresh()
+                                } else {
+                                    if (A == "C") {
+                                        level = 0;
+                                        exponent = false;
+                                        value = 0;
+                                        enter();
+                                        refresh()
+                                    } else {
+                                        if (A == "=") {
+                                            enter();
+                                            while (level > 0) {
+                                                evalx()
+                                            }
+                                            refresh()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+var totalDigits = 12;
+var pareSize = 12;
+var value = 0;
+var memory = 0;
+var level = 0;
+var entered = true;
+var decimal = 0;
+var fixed = 0;
+var exponent = false;
+var digits = 0;
+var showValue = "0";
+var isShowValue = true;
+function stackItem() {
+    this.value = 0;
+    this.op = ""
+}
+function array(A) {
+    this[0] = 0;
+    for (i = 0; i < A; ++i) {
+        this[i] = 0;
+        this[i] = new stackItem()
+    }
+    this.length = A
+}
+stack = new array(pareSize);
+function push(B, C, A) {
+    if (level == pareSize) {
+        return false
+    }
+    for (i = level; i > 0; --i) {
+        stack[i].value = stack[i - 1].value;
+        stack[i].op = stack[i - 1].op;
+        stack[i].prec = stack[i - 1].prec
+    }
+    stack[0].value = B;
+    stack[0].op = C;
+    stack[0].prec = A;
+    ++level;
+    return true
+}
+function pop() {
+    if (level == 0) {
+        return false
+    }
+    for (i = 0; i < level; ++i) {
+        stack[i].value = stack[i + 1].value;
+        stack[i].op = stack[i + 1].op;
+        stack[i].prec = stack[i + 1].prec
+    }
+    --level;
+    return true
+}
+
+function format(I) {
+    //Ve = trimAll((gObj("\x63\x61\x6C\x66\x6F\x6F\x74\x6E\x6F\x74\x65").innerHTML + "").toLowerCase());
+    //xE = "\x70\x6F\x77\x65\x72\x65\x64\x20\x62\x79\x20\x3C\x61\x20\x68\x72\x65\x66\x3D\x22\x68\x74\x74\x70\x3A\x2F\x2F\x77\x77\x77\x2E\x63\x61\x6C\x63\x75\x6C\x61\x74\x6F\x72\x2E\x6E\x65\x74\x22\x3E\x63\x61\x6C\x63\x75\x6C\x61\x74\x6F\x72\x2E\x6E\x65\x74\x3C\x2F\x61\x3E";
+    //if (Ve != xE) {
+    //	cc = "a";
+    //	return
+    //}
+    //if (typeof (cc) != "undefined") {
+    //	return
+    //}
+    //;
+    //dd = (document.domain + "").toLowerCase();
+    var E = "" + I;
+    if (E.indexOf("N") >= 0 || (I == 2 * I && I == 1 + I)) {
+        return "Error "
+    }
+    var G = E.indexOf("e");
+    if (G >= 0) {
+        var A = E.substring(G + 1, E.length);
+        if (G > 11) {
+            G = 11
+        }
+        E = E.substring(0, G);
+        if (E.indexOf(".") < 0) {
+            E += "."
+        }
+        E += " " + A
+    } else {
+        var J = false;
+        if (I < 0) {
+            I = -I;
+            J = true
+        }
+        var C = Math.floor(I);
+        var K = I - C;
+        var D = totalDigits - ("" + C).length - 1;
+        if (!entered && fixed > 0) {
+            D = fixed
+        }
+        ;
+        if (D < 0) {
+            D = 0;
+        }
+        ;
+        var F = " 1000000000000000000".substring(1, D + 2);
+        var B = Math.floor(K * F + 0.5);
+        C = Math.floor(Math.floor(I * F + 0.5) / F);
+        if (J) {
+            E = "-" + C
+        } else {
+            E = "" + C
+        }
+        var H = "00000000000000" + B;
+        H = H.substring(H.length - D, H.length);
+        G = H.length - 1;
+        if (entered || fixed == 0) {
+            while (G >= 0 && H.charAt(G) == "0") {
+                --G
+            }
+            H = H.substring(0, G + 1)
+        }
+        if (G >= 0) {
+            E += "." + H
+        }
+    }
+    return E
+}
+function refresh() {
+    var A = format(value);
+    if (exponent) {
+        if (expval < 0) {
+            A += " " + expval
+        } else {
+            A += " +" + expval
+        }
+    }
+    if (A.indexOf(".") < 0 && A != "Error ") {
+        if (entered || decimal > 0) {
+            A += "."
+        } else {
+            A += " "
+        }
+    }
+    document.getElementById("calInfoOutPut").value = A
+}
+function evalx() {
+    if (level == 0) {
+        return false
+    }
+    op = stack[0].op;
+    sval = stack[0].value;
+    if (op == "+") {
+        value = parseFloat(sval) + value
+    } else {
+        if (op == "-") {
+            value = sval - value
+        } else {
+            if (op == "*") {
+                value = sval * value
+            } else {
+                if (op == "/") {
+                    value = sval / value
+                } else {
+                    if (op == "pow") {
+                        value = Math.pow(sval, value)
+                    } else {
+                        if (op == "apow") {
+                            value = Math.pow(sval, 1 / value)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    pop();
+    if (op == "(") {
+        return false
+    }
+    return true
+}
+function popen() {
+    enter();
+    if (!push(0, "(", 0)) {
+        value = "NAN"
+    }
+    refresh()
+}
+function pclose() {
+    enter();
+    while (evalx()) {
+    }
+    refresh()
+}
+function opt(A) {
+    enter();
+    if (A == "+" || A == "-") {
+        prec = 1
+    } else {
+        if (A == "*" || A == "/") {
+            prec = 2
+        } else {
+            if (A == "pow" || A == "apow") {
+                prec = 3
+            }
+        }
+    }
+    if (level > 0 && prec <= stack[0].prec) {
+        evalx()
+    }
+    if (!push(value, A, prec)) {
+        value = "NAN"
+    }
+    refresh()
+}
+function enter() {
+    if (exponent) {
+        value = value * Math.exp(expval * Math.LN10)
+    }
+    entered = true;
+    exponent = false;
+    decimal = 0;
+    fixed = 0
+}
+function numInput(A) {
+    if (entered) {
+        value = 0;
+        digits = 0;
+        entered = false
+    }
+    if (A == 0 && digits == 0) {
+        refresh();
+        return
+    }
+    if (exponent) {
+        if (expval < 0) {
+            A = -A
+        }
+        if (digits < 3) {
+            expval = expval * 10 + A;
+            ++digits;
+            refresh()
+        }
+        return
+    }
+    if (value < 0) {
+        A = -A
+    }
+    if (digits < totalDigits - 1) {
+        ++digits;
+        if (decimal > 0) {
+            decimal = decimal * 10;
+            value = value + (A / decimal);
+            ++fixed
+        } else {
+            value = value * 10 + A
+        }
+    }
+    refresh()
+}
+function exp() {
+    if (entered || exponent) {
+        return
+    }
+    exponent = true;
+    expval = 0;
+    digits = 0;
+    decimal = 0;
+    refresh()
+}
+function func(C) {
+    enter();
+    if (C == "1/x") {
+        value = 1 / value
+    }
+    if (C == "pc") {
+        value = value / 100
+    }
+    if (C == "qc") {
+        value = value / 1000
+    } else {
+        if (C == "swap") {
+            var B = value;
+            value = stack[0].value;
+            stack[0].value = B
+        } else {
+            if (C == "n!") {
+                if (value < 0 || value > 200 || value != Math.round(value)) {
+                    value = "NAN"
+                } else {
+                    var D = 1;
+                    var A;
+                    for (A = 1; A <= value; ++A) {
+                        D *= A
+                    }
+                    value = D
+                }
+            } else {
+                if (C == "MR") {
+                    value = memory
+                } else {
+                    if (C == "M+") {
+                        memory += value
+                    } else {
+                        if (C == "MS") {
+                            memory = value
+                        } else {
+                            if (C == "MC") {
+                                memory = 0
+                            } else {
+                                if (C == "M-") {
+                                    memory -= value
+                                } else {
+                                    if (C == "asin") {
+                                        value = Math.asin(value) * 180
+                                                / Math.PI
+                                    } else {
+                                        if (C == "acos") {
+                                            value = Math.acos(value) * 180
+                                                    / Math.PI
+                                        } else {
+                                            if (C == "atan") {
+                                                value = Math.atan(value)
+                                                        * 180 / Math.PI
+                                            } else {
+                                                if (C == "e^x") {
+                                                    value = Math.exp(value
+                                                            * Math.LN10)
+                                                } else {
+                                                    if (C == "2^x") {
+                                                        value = Math
+                                                                .exp(value
+                                                                        * Math.LN2)
+                                                    } else {
+                                                        if (C == "e^x") {
+                                                            value = Math
+                                                                    .exp(value)
+                                                        } else {
+                                                            if (C == "x^2") {
+                                                                value = value
+                                                                        * value
+                                                            } else {
+                                                                if (C == "e") {
+                                                                    value = Math.E
+                                                                } else {
+                                                                    if (C == "ex") {
+                                                                        value = Math
+                                                                                .pow(
+                                                                                        Math.E,
+                                                                                        value)
+                                                                    } else {
+                                                                        if (C == "10x") {
+                                                                            value = Math
+                                                                                    .pow(
+                                                                                            10,
+                                                                                            value)
+                                                                        } else {
+                                                                            if (C == "x3") {
+                                                                                value = value
+                                                                                        * value
+                                                                                        * value
+                                                                            } else {
+                                                                                if (C == "3x") {
+                                                                                    value = Math
+                                                                                            .pow(
+                                                                                                    value,
+                                                                                                    1 / 3)
+                                                                                } else {
+                                                                                    if (C == "x2") {
+                                                                                        value = value
+                                                                                                * value
+                                                                                    } else {
+                                                                                        if (C == "sin") {
+                                                                                            value = Math
+                                                                                                    .sin(value
+                                                                                                            / 180
+                                                                                                            * Math.PI)
+                                                                                        } else {
+                                                                                            if (C == "cos") {
+                                                                                                value = Math
+                                                                                                        .cos(value
+                                                                                                                / 180
+                                                                                                                * Math.PI)
+                                                                                            } else {
+                                                                                                if (C == "tan") {
+                                                                                                    value = Math
+                                                                                                            .tan(value
+                                                                                                                    / 180
+                                                                                                                    * Math.PI)
+                                                                                                } else {
+                                                                                                    if (C == "log") {
+                                                                                                        value = Math
+                                                                                                                .log(value)
+                                                                                                                / Math.LN10
+                                                                                                    } else {
+                                                                                                        if (C == "log2") {
+                                                                                                            value = Math
+                                                                                                                    .log(value)
+                                                                                                                    / Math.LN2
+                                                                                                        } else {
+                                                                                                            if (C == "ln") {
+                                                                                                                value = Math
+                                                                                                                        .log(value)
+                                                                                                            } else {
+                                                                                                                if (C == "sqrt") {
+                                                                                                                    value = Math
+                                                                                                                            .sqrt(value)
+                                                                                                                } else {
+                                                                                                                    if (C == "pi") {
+                                                                                                                        value = Math.PI
+                                                                                                                    } else {
+                                                                                                                        if (C == "RND") {
+                                                                                                                            value = Math
+                                                                                                                                    .random()
+                                                                                                                        }
+                                                                                                                    }
+                                                                                                                }
+                                                                                                            }
+                                                                                                        }
+                                                                                                    }
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    refresh()
+}
+;
+function addListeners() {
+    document.getElementById('movecalc').addEventListener('mousedown', mouseDown, false);
+    window.addEventListener('mouseup', mouseUp, false);
+
+}
+
+function mouseUp()
+{
+    window.removeEventListener('mousemove', divMove, true);
+}
+
+function mouseDown(e) {
+    window.addEventListener('mousemove', divMove, true);
+}
+
+function divMove(e) {
+
+
+    var width = window.innerWidth - 300;
+    var height = window.innerHeight - 350;
+
+    var div = document.getElementById('calc2');
+    div.style.position = 'absolute';
+
+
+    if (e.clientX < width && e.clientX > 0)
+        div.style.left = e.clientX + 'px';
+    else if (e.clientX > 0)
+        div.style.left = width + 'px';
+    else
+        div.style.left = '60px';
+    if (e.clientY < height && e.clientY > 0)
+        div.style.top = e.clientY + 'px';
+    else if (e.clientY > 0)
+        div.style.top = height + 'px';
+    else
+        div.style.top = 30 + 'px';
+
+
+}
+
+
+
+function showTopicWise(serialNo, topicName) {
+    $(".mousovrrcrd").hide();
+    var maxSerialNo = document.getElementById("maxtopicNoArray").value;
+    var maxSerialNoArray = maxSerialNo.split(",");
+    for (var t = 0; t < maxSerialNoArray.length; t++) {
+        if (serialNo != maxSerialNoArray[t]) {
+            $("#topicWiseDetail_" + maxSerialNoArray[t]).hide();
+        }
+    }
+    var check = 0;
+    var var1 = 0;
+    var var2 = 0;
+    var j = parseInt($("#totalQuestion").val()) + 1;
+    maxSerialNoArray[maxSerialNoArray.length] = j;
+    for (var i = 0; i < maxSerialNoArray.length - 1; i++) {
+        if (parseInt(maxSerialNoArray[i]) <= parseInt(serialNo) && parseInt(serialNo) <= parseInt(maxSerialNoArray[i + 1])) {
+            check = 1;
+            var1 = parseInt(maxSerialNoArray[i]);
+            var2 = parseInt(maxSerialNoArray[i + 1]);
+        }
+    }
+    var totalQuestion = var2 - var1;
+    var attempted = 0;
+    var review = 0;
+    var notAnswer = 0;
+    var reviewattempted = 0;
+    for (var temp = var1; temp < var2; temp++) {
+        if (attemptQuesResponseArray[temp] != "" && arrvar[temp] == 0) {
+            attempted++;
+        }
+        if (attemptQuesResponseArray[temp] == "" && timediffArray[temp - 1] != 0 && arrvar[temp] == 0) {
+            notAnswer++;
+        }
+        if (arrvar[temp] == 1 && attemptQuesResponseArray[temp] == "") {
+            review++;
+        }
+        if (arrvar[temp] == 1 && attemptQuesResponseArray[temp] != "") {
+            reviewattempted++;
+        }
+
+    }
+    var unattempt = totalQuestion - (attempted + reviewattempted + review);
+    var html = "<li style='border-bottom : 1px solid #ccc;line-height:12px !important;'>" + topicName + "</li>" +
+            "<li>Answered<strong class='attempt' id='attemptedQue'>" + attempted + "</strong></li>" +
+            "<li><strong class='unattempt' id='unattemptedQue'>" + notAnswer + "</strong> Not Answered</li>" +
+            "<li>Not Visited<strong class='notVisited' id='notvisitedQue'>" + (totalQuestion - (notAnswer + attempted + review + reviewattempted)) + "</strong></li>";
+    html = html + "<li>Marked for Review<strong class='mark' id='reviewQue'>" + review + "</strong></li>" +
+            "<li style='padding-top:2px;margin-bottom:7px;line-height:12px !important;'><strong class='attemptreview' id='reviewQue'>" + reviewattempted + "</strong><label style='position:relative;top:9px'>Answered & Marked for Review</label></li>";
+
+//  html=html + "<li>Total Questions<strong class='total'  id='totalQue'>"+totalQuestion+"</strong></li>";
+
+    $("#topicWise_" + serialNo).html(html);
+    $("#topicWiseDetail_" + serialNo).show();
+}
+function hideTopicWise(id) {
+    $("#topicWiseDetail_" + id).hide();
+}

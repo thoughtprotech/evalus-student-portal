@@ -61,7 +61,7 @@ export default function Index() {
         {filteredTestList.length > 0 ? (
           <div className="w-full grid grid-cols-1 lg:grid lg:grid-cols-4 gap-4">
             {filteredTestList.map((test, idx) => (
-              <div key={(test as any)?.testId ?? (test as any)?.testName ?? idx}>
+              <div key={`starred-${(test as any)?.testId ?? idx}`}> 
                 <TestCards
                   id={String((test as any)?.testId ?? "")}
                   name={String((test as any)?.testName ?? "Untitled Test")}

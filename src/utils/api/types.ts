@@ -37,11 +37,11 @@ export interface GetQuestionListResponse {
   questionText: string;
   questionType: QuestionType;
   questionStatus:
-    | "Not Visited"
-    | "Attempted"
-    | "UnAttempted"
-    | "To Review"
-    | "Answered To Review";
+  | "Not Visited"
+  | "Attempted"
+  | "UnAttempted"
+  | "To Review"
+  | "Answered To Review";
   marks: number;
   negativeMarks: number;
   questionSectionId: number;
@@ -64,6 +64,8 @@ export interface QuestionsMetaResponse {
   questionText: string;
   questionOptionsJson?: string;
   questionType: QuestionType;
+  // Optional duration per question (seconds); provided by backend when available
+  duration?: number;
 }
 
 export interface Subject {
@@ -151,13 +153,20 @@ export interface CreateQuestionRequest {
   explanation: string;
   videoSolURL?: string;
   videoSolMobileURL?: string;
+  // Audit fields (added to allow passing logged in user like Products actions)
+  createdBy?: string; // server may derive if omitted
+  modifiedBy?: string; // for create we'll mirror createdBy
   questionsMeta: {
     tags: string;
     marks: number;
     negativeMarks: number;
     graceMarks: number;
+  // Duration of the question in seconds (time allotted or reference duration)
+  duration: number; // pass 0 if not provided
     difficultyLevelId: number;
     questionTypeId: number;
+  chapterId?: number; // included for compatibility with backend payload
+  questionTypeName?: string; // optional descriptive name if backend accepts
     subjectId: number;
     topicId: number;
     language: string;
@@ -171,6 +180,11 @@ export interface CreateQuestionRequest {
     options: string;
     answer: string;
   };
+  // Question active status (1 = Active, 0 = InActive)
+  isActive?: number;
+  // Top-level duration for backward compatibility if backend expects it (seconds)
+  duration?: number;
+  Duration?: number; // PascalCase variant just in case API is case-sensitive on this
 }
 
 export interface GetQuestionTypesResponse {
@@ -194,13 +208,15 @@ export interface GetCandidateTestResponse {
   testStartDate: string;
   testEndDate: string;
   testCandidateRegistrationStatus:
-    | "Registered"
-    | "Completed"
-    | "Cancelled"
-    | "In Progress"
-    | "Missed";
+  | "Registered"
+  | "Completed"
+  | "Cancelled"
+  | "In Progress"
+  | "Missed"
+  | "Up Next"; // Virtual grouping for upcoming registered tests
   testId: number;
-  testRegistrationId: number;
+  // Optional id from registration table if candidate already registered
+  testRegistrationId?: number;
 }
 
 export interface GetCandidateStarredTestRequest {
@@ -379,6 +395,15 @@ export interface TestInstructionOData {
 export interface TestDifficultyLevelOData {
   TestDifficultyLevelId: number;
   TestDifficultyLevel1: string;
+
+}
+
+// OData entity for Test Templates (Step 1 - Test Template)
+export interface TestTemplateOData {
+  TestTemplateId: number;
+  TestTemplateName: string;
+  TestHtmlpreview: string; // relative path under public, e.g., /templates/Bank/Bank.html
+  TestTemplateThumbNail: string; // relative path under public, e.g., /templates/Bank/thumb.png
 }
 
 export interface GetCompaniesRequest {

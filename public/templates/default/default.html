@@ -1,0 +1,1774 @@
+
+<!-- saved from url=(0089)https://nivansys.thinkexam.com/admin/web/views/test/testpages/finaltestpage/testpage.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> 
+        
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+       <link href="./Default_files/testpage.css" rel="stylesheet" type="text/css"> 
+       <link href="./Default_files/testNew.css" rel="stylesheet" type="text/css"> 
+        <link href="./Default_files/flaticon.css" rel="stylesheet" type="text/css">
+        <link href="./Default_files/stylesheet.css" rel="stylesheet" type="text/css">
+        <script type="text/javascript" src="./Default_files/jquery-1.9.1.min.js.download"></script>
+<!--        <link href="css/woco-accordion.css" rel="stylesheet" type="text/css">-->
+        <link href="./Default_files/responsive.css" rel="stylesheet" type="text/css">
+        
+    </head>
+    <body class="newTestTheme">
+        <header class="ssc_header_height instrctnhdr_RTL" style="display: block;">        
+            <div class="wrapper">
+                <div class="inrhdr">
+                    <div class="hleft">
+                        <span class="logo"><img src="./Default_files/logo.png"></span>
+                        <h1 id="testNameDiv1" class="testname" style="display:none;">
+                            <span>Sample Test Preview</span>
+                        </h1>
+                    </div>
+                    <div class="hRight">
+                        <div class="actionBtn">
+                            <div id="Instructions" style="display: block;">
+                                <a href="javascript:void(0)" class="info" onclick="showInstruction();"><div class="imgBox"><img src="./Default_files/info.svg"></div><span>Instruction</span></a>
+                            </div>
+                            <a href="https://nivansys.thinkexam.com/admin/web/views/test/testpages/finaltestpage/testpage.html#openModal-about" onclick="openBookOpen();" class="ob" id="buttonOpenBook"><div class="imgBox"><img src="./Default_files/ob.svg"></div><span>Open Book</span></a>
+                            <a href="javascript:void(0)" class="bb" onclick="bioBreakFeature();"><div class="imgBox"><img src="./Default_files/bb.svg"></div><span>Bio Break</span></a>                            
+                        </div>
+                        <!-- internet Speed -->
+                                                <!-- UFM -->
+                        <div class="ufmBox" onclick="maximiseTheCamera();">
+                            <span>UFM:</span>
+                            <span id="ufmCount" class="overAllFaceCnt_test_page">0</span>
+                        </div>
+                        <!-- End UFM -->
+                        <div class="profile" id="headerProfile">
+                            <span class="profileimg">
+                                <img id="studentImage" style="" src="./Default_files/85855966.jpg">
+                            </span>
+                            <span class="stdntnam" id="studentNameShow">Shubham</span>
+                                <!--<span class="cred_scro">Credibility - <span class="below_avrage">35%</span></span>-->
+                        </div>
+                    </div>
+                    
+                
+                <div class="Main Question"></div>
+            </div>
+            </div>
+        </header>
+        <div class="wrapper maindiv sscTemp test-wapper sscTemp_copy_top wrapper_test_RTL" style="display: block;">
+            <div class="testpg-bton testpg_bton_algmnt testpg_bton_algmnt_right">
+                    <!--                        <strong class="helpline-non">
+                                <span>Helpline No.</span> 
+                                <span class="hover-text">
+                                    <span class="num-span left"><i>Primary No.</i>NA </span>
+                                    <span class="num-span"><i>Alternate No.</i> NA</span>
+                                </span>
+                            </strong>-->
+                            
+                                                    
+                            <div style="position:relative;float: left;width:70px;">
+                            <!-- <button class="help-btn " onmouseover="helpbtn(1)" onmouseout="helpbtn(0)" >HELP                            <span class="noti_alert chatCnt" id="chatCnt">0</span>                            </button>
+                                <div style="clear:both;"></div> -->
+                                <div class="help-option help_option_heplbtn" onmouseover="helpbtn(1)" onmouseout="helpbtn(0)">
+                                    <!-- <button class="scan-qr hd-btn phn-btn helpsupportBtns" style="background:transparent;">
+                                        <div style="display: flex;align-items: center;">
+                                            <span class="helpIconsSpan"><img src="https://d3b4sdo4cwytsl.cloudfront.net/student/assets6/image/phone.png"></span> 
+                                            <span class="UFMhelplineText">PRIMARY HELPLINE</span>
+                                        </div>
+                                        <strong class="UFMhelplineData">NA</strong>
+                                    </button>                       -->
+                                    <!-- <button class="scan-qr hd-btn phn-btn helpsupportBtns" style="background:transparent;">
+                                    <div style="display: flex;align-items: center;">
+                                        <span class="helpIconsSpan"><img src="https://d3b4sdo4cwytsl.cloudfront.net/student/assets6/image/bio_break.svg"></span>
+                                        <span class="UFMhelplineText">SECONDARY HELPLINE</span>
+                                    </div>
+                                    <strong class="UFMhelplineData">NA</strong>
+                                    </button>  -->
+                          
+                                    <!-- <button class="scan-qr hd-btn phn-btn helpsupportBtns" style="background:transparent;">
+                                        <div style="display: flex;align-items: center;">
+                                            <span class="helpIconsSpan"><img src="https://d3b4sdo4cwytsl.cloudfront.net/student/assets6/image/phone.png"></span>
+                                            <span class="UFMhelplineText">SECONDARY HELPLINE</span>
+                                        </div>
+                                        <strong class="UFMhelplineData">NA</strong>
+                                    </button> -->
+                                                                            <button class="scan-qr hd-btn chat-live" id="chat-live2" onclick="openchat()">
+                                                <!-- <span>CHAT WITH PROCTOR</span> -->
+                                                <strong>CHAT WITH PROCTOR</strong><span class="noti_alert chatCnt noti_alert_2" id="chatCnt">0</span>
+                                            </button>
+                                    
+     
+                                
+                                    <!--    
+                                        <button class="scan-qr hd-btn helpsupportBtns" id="bioBreakEnable" onclick="bioBreakFeature();" style="padding-left:0">
+                                            <div style="display: flex;align-items: center;">
+                                                <span class="helpIconsSpan"><img src="https://d3b4sdo4cwytsl.cloudfront.net/student/assets6/image/bio_break.svg"></span>                                         
+                                                <span class="helpTextSpan"> <strong>BIO BREAK</strong></span>
+                                            </div>                                            
+                                        </button>
+    
+                                     -->
+    
+                                    
+                            
+                                        <!-- <button class="scan-qr hd-btn chat-live" onclick="openchat()">
+                                                <span>LIVE</span>
+                                                <strong>CHAT</strong>
+                                            </button>
+                                            <button class="scan-qr hd-btn break" onclick="BIOclick()">
+                                                <span>BIO</span>
+                                                <strong>BREAK</strong>
+                                            </button>
+                                    
+                                            <button class="scan-qr phone-btn" onclick="QRclick()">
+                                                <strong>Mobile Camera View</strong>
+                                            </button>
+                                            <button class="scan-qr" onclick="QRclick()" style="display:none;">
+                                                Mobile Camera View
+                                            </button>-->
+                                </div>   
+                            </div>
+                            
+                            <!-- <button class="help-btn" onmouseover="helpbtn(1)" onmouseout="helpbtn(0)">HELP & SUPPORT</button> -->
+                                                    <div class="alert_div alert_div_hover" onmouseover="alertbtn(1)" onmouseout="alertbtn(0)">
+                                <button class="button-head mf-btn">MFD <span>Multiple Face Detected</span> <b id="MULTIPLEFACEDETECTED_cnt">0</b></button>
+                                <button class="button-head fnp-btn">FNP <span>Face Not Present</span> <b class="red-color" id="FACENOTPRESENT_cnt">0</b></button>
+                                <button class="button-head sfl-btn">SFL <span>Screen Focus Lost</span> <b class="red-color" id="SCREENFOCUSLOST_cnt">0</b></button>
+                                <div class="fm-div">
+                                    <button class="button-head fm-btn">FM <span>Face Mismatch</span> <b id="FACE_MISMATCH_cnt">0</b></button>
+    <!--                                <div class="face-match">
+                                        <strong>FM FACE MISMATCH</strong>
+                                        <div class="face-pic">
+                                            <span><img src="https://d3b4sdo4cwytsl.cloudfront.net/student/assets6/image/candidate.jpg"></span>
+                                            <strong>Your Actual Photo</strong>
+                                        </div>
+                                        <div class="face-pic right">
+                                            <span><img src="https://d3b4sdo4cwytsl.cloudfront.net/student/assets6/image/candidate.jpg"></span>
+                                            <strong>Current Photo</strong>
+                                        </div>
+                                        <p>We notice a face mismatch and this is a very serious act, that's why your exam has been terminated.</p>
+                                    </div>-->
+                                </div>
+                                <button class="button-head pr-btn">PR <span>Permission Revoke</span> <b class="red-color" id="SCREEN_PERMISSION_REVOKE_cnt">0</b></button>
+                                <button class="button-head od-btn">OD <span>Object Detected</span> <b class="red-color" id="OBJECTDETECTED_cnt">0</b></button>
+                                <button class="button-head vd-btn">VD <span>Voice detected</span> <b class="red-color" id="VOICEDETECTED_cnt">0</b></button>
+                                <button class="button-head vd-btn">VM <span>Voice Muted</span> <b class="red-color" id="VOICEMUTED_cnt">0</b></button>
+                                <button class="button-head vd-btn">LA <span>Looking Away</span> <b class="red-color" id="LOOKINGAWAY_cnt">0</b></button>
+                                <button class="button-head vd-btn">SCU <span>Secondary Camera</span> <b class="red-color" style="display:none;" id="SecondaryCameraUfmCount">0</b></button>
+                            </div>
+                        
+                <!-- //////////////////////////////////////////// edit start //////////////////////////////////////////// -->
+                            <!-- <div class="help-option" onmouseover="helpbtn(1)" onmouseout="helpbtn(0)" style="top: 40px;">
+                                <button class="scan-qr hd-btn phn-btn">
+                                    <span>PRIMARY HELPLINE</span>
+                                    <strong>NA</strong>
+                                </button>                      
+                                <button class="scan-qr hd-btn phn-btn">
+                                    <span>SECONDARY HELPLINE</span>
+                                    <strong>NA</strong>
+                                </button> 
+                            
+                                   
+                                    <button class="scan-qr hd-btn " id="bioBreakEnable" onclick="bioBreakFeature();">
+                                            
+                                            <strong>BIO BREAK</strong>
+                                    </button>
+    
+                                
+                                 -->
+    
+                            
+                                    <!--<button class="scan-qr hd-btn chat-live" onclick="openchat()">
+                                            <span>LIVE</span>
+                                            <strong>CHAT</strong>
+                                        </button>
+                                        <button class="scan-qr hd-btn break" onclick="BIOclick()">
+                                            <span>BIO</span>
+                                            <strong>BREAK</strong>
+                                        </button>
+                                        
+                                        <button class="scan-qr phone-btn" onclick="QRclick()">
+                                            <strong>Mobile Camera View</strong>
+                                        </button>
+                                        <button class="scan-qr" onclick="QRclick()" style="display:none;">
+                                            Mobile Camera View
+                                        </button>-->
+                            <!-- </div>             -->
+            <!-- //////////////////////////////////////////// edit end //////////////////////////////////////////// -->
+                            
+                        </div>
+                        
+                        <div class="lftpart" id="lftprt1">
+                        <div class="sLeft">
+                                                         </div>
+                                                    <!--**********  Subject Heading start  ********************-->
+    
+                            
+    
+    
+                            <!--********** Subject Heading closed  ********************-->
+                        <div class="sRight">
+                            <div class="languageBox">
+                            <!-- <div class="chckbx_ques instr instr_speechCopy chckbx_ques_alignmnt showInstruction_here responsedit" id="Instructions">
+                                <div href="javascript:void(0)" class="info" onclick="showInstruction();">
+                                    <img src="/student/assets6/image/icon/info.svg">
+                                    <span id='instruction1_ssc'>Instructions</span>
+                                </div>
+                            </div> -->
+                            <div class="subject language" id="languagedrop" style="display : none;">
+                                <span class="subjinr" id="langin">
+                                    <!-- <span class="sbjcthdng">Language</span> -->
+                                    <span class="sbjctname" id="languageSpan">English</span>
+                                </span>
+                                <div id="languagecntnt" class="dropdown-content langdropdown" style="display:none">
+                                    <div>
+                                        <div class="frst_drop" onclick="changeLanguage(&#39;English&#39;)">English</div>
+                                                                                <div class="brdr_btm"></div>
+                                            <div class="frst_drop" onclick="changeLanguage(&#39;Regional&#39;)"> Regional </div>
+                                                                        </div>
+                                </div>
+                                <input type="hidden" value="1" id="language" name="language">
+                                <input type="hidden" value="" id="languageId" name="languageId">
+                            </div>
+                        
+                        </div>
+                                            <div style="display:none">
+                            <img id="stuVerPic" src="./Default_files/85855966.jpg" crossorigin="anonymous">
+                        </div>
+                                                                <div class="timerBox">
+                            <div id="timerDispDiv" class="rytpart notranslate questionDv noproctortype" style="width: 220px;">
+                                <div class="clckinr">
+                                    <span class="clock">
+                                        <img src="./Default_files/clock.svg">
+                                    </span>
+                                    <span id="HRS"><b>04</b> min : <b>06</b> sec</span>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                    
+                        <span class="rytbtn" id="rightmenu">
+                            <span class="line"></span>
+                            <span class="line"></span>
+                            <span class="line"></span>
+                        </span>
+                        <div class="mainQuestionContainer">
+                         
+                            <div class="mqcRight">
+                            <div class="closeSidebar" onclick="closeSidebarNewTh()">
+                                <img src="./Default_files/cancelSSC.svg">
+                            </div>
+                        <div class="rightpart questionDv" id="rightpart">
+                            
+                            
+                        <div class="grayscale">
+                            <div>
+                            <div class="topRight" id="topRight">
+                                <!-- Mob Profile -->
+                                <div class="profile">
+                                    <span class="profileimg">
+                                                                            <img id="studentImage" style="" src="./Default_files/85855966.jpg">
+                                                                        </span>
+                                    <span class="stdntnam" id="studentNameShow">Shubham</span>
+                                </div>
+                                <!-- End Mob Profile -->
+                                <!-- Mob Test Name -->
+                                <h1 id="testNameDiv1" class="testname" style="display:none;">
+                                    <span>Sample Test Preview </span>
+                                </h1>
+                                <!-- End Mob Test Name -->
+                            </div>
+                            <div id="about" class="rightmain rightmain_copy nano_height nano_height_default showSideDiv">
+                                <!-- Camera Toggle -->
+                                <!-- <div class="cameraSideBar">
+                                    <div class="cameraOpenBox">
+                                        <span>Show Camera</span>
+                                        <div class="switch">
+                                            <input type="checkbox" id="showCamera" />
+                                            <label for="showCamera"></label>
+                                        </div>
+                                    </div>
+                                </div> -->
+                                <!-- End Camera Toggle -->
+                            <div class="nano-content">
+    
+                                <div id="scrolldiv"><ul>
+                                    
+                                                <li class="questionnumb " id="wrightImage_1" onclick="onTabClick(1)">
+                                                    <a id="questionNumber_1">1</a>
+                                                </li>
+                                        
+    
+    
+                                                                
+                                    
+                                                <li class="questionnumb " id="wrightImage_2" onclick="onTabClick(2)">
+                                                    <a id="questionNumber_2">2</a>
+                                                </li>
+                                        
+    
+    
+                                                                
+                                    
+                                                <li class="questionnumb " id="wrightImage_3" onclick="onTabClick(3)">
+                                                    <a id="questionNumber_3">3</a>
+                                                </li>
+                                        
+    
+    
+                                                                
+                                    
+                                                <li class="questionnumb " id="wrightImage_4" onclick="onTabClick(4)">
+                                                    <a id="questionNumber_4">4</a>
+                                                </li>
+                                        
+    
+    
+                                                                
+                                    
+                                                <li class="questionnumb " id="wrightImage_5" onclick="onTabClick(5)">
+                                                    <a id="questionNumber_5">5</a>
+                                                </li>
+                                        
+    
+    
+                                                                </ul></div>                                                    </div>
+                        </div>
+                            </div>
+                            <div class="submit submit_copy showSideDiv">
+                                <!-- Mob Action -->
+                                <div class="mobSideAction" id="mobSideAction">
+                                    <ul>
+                                                                        <li><a href="https://nivansys.thinkexam.com/admin/web/views/test/testpages/finaltestpage/testpage.html#openModal-about" onclick="openBookOpen();" class="ob" id="buttonOpenBook"><div class="imgBox"><img src="./Default_files/ob.svg"></div><span>Open Book</span></a></li>
+                                                                                                        <li><a href="javascript:void(0)" class="bb" onclick="bioBreakFeature();"><div class="imgBox"><img src="./Default_files/bb.svg"></div><span>Bio Break</span></a></li>
+                                                                    <li class="help-btn" style="display: none;"><a href="javascript:void(0)" onclick="showHelpPopNewTh();" class="help"><div class="imgBox"><img src="./Default_files/help.svg"></div><span>Help</span></a></li>
+                                     
+                                                                     <li style="display : none;">
+                                        <div class="mobSelect">
+                                            <div class="selectBox">
+                                                English                                        </div>
+                                            <div class="selectDrop">
+                                                <div class="langBox" onclick="changeLanguage(&#39;English&#39;)">English</div>
+                                                                                                <div class="langBox" onclick="changeLanguage(&#39;Regional&#39;)">Regional</div>
+                                                                                            <input type="hidden" value="" id="language" name="language">
+                                                <input type="hidden" value="" id="languageId" name="languageId">
+                                            </div>
+                                        </div>
+                                     </li>      
+                                    <li class="sideIns">
+                                        <a href="javascript:void(0)" onclick="showInstruction();"><div class="imgBox"><img src="./Default_files/info.svg"></div><span>Instructions</span></a>
+                                    </li>
+                                    </ul>
+                                </div>
+                                <!-- End Mob Action -->
+                        <ul>
+                            <li><span class="crcl"></span><span id="attempted_ssc">Attempted</span><span id="queAnsweredCount"> (0) </span></li>
+                            <li><span class="crcl crcl1"></span><span id="unattempted_ssc">Unattempted</span><span id="queNotVisitedCount"> (5) </span></li>
+                            <li><span class="crcl crcl2"></span><span id="review_ssc">Review</span><span id="queMarkfrReviewCount"> (0) </span></li>
+                            <li><span class="crcl crcl3"></span><span id="skip_ssc">Skip</span><span id="queNotAnsweredCount"> (0) </span></li>
+                        </ul>
+                        
+                        <input type="hidden" value="Are You Sure you want to submit the test?" id="confirm_dialog" name="confirm_dialog">
+                        <!--style="display:"-->
+                        <div class="submitbtn" id="submittest"><a href="javascript:void(0);" id="submit_ssc" onclick="javascript:confirmEndTest(&#39;end-test-popup&#39;);">Submit test</a></div>
+                        <div class="submitbtn" id="submittestComplete" style="display: none"><a href="javascript:void(0);" id="please_wait_ssc">Please Wait ...</a></div>
+                           
+                    </div>
+                        </div>
+                        
+                    
+    
+                    </div>
+                    <div class="rightpart sampleQuestionDv" id="sampleRightpart" style="display:none">
+                        <div class="grayscale">
+                            <div id="about" class="nano rightmain rightmain_copy nano_height nano_height_default showSideDiv has-scrollbar">
+                                <div class="nano-content" tabindex="0" style="margin-right: -15px;">
+                                    <div id="scrolldiv">
+                                        <ul>
+                                            <li class="questionnumb " id="wrightImage_0">
+                                                <a id="questionNumber_0">1</a>
+                                            </li>
+                                        </ul>    
+                                    </div>
+                                </div>
+                            <div class="nano-pane" style="display: none;"><div class="nano-slider" style="height: 20px; transform: translate(0px, 0px);"></div></div></div>
+                            <div class="submit submit_copy showSideDiv">
+                                <ul>
+                                    <li><span class="crcl"></span><span id="attempted_ssc">Attempted</span></li>
+                                    <li><span class="crcl crcl1"></span><span id="unattempted_ssc">Unattempted</span></li>
+                                    <li><span class="crcl crcl2"></span><span id="review_ssc">Review</span></li>
+                                    <li><span class="crcl crcl3"></span><span id="skip_ssc">Skip</span></li>
+                                </ul>
+                            
+                                <input type="hidden" value="" id="confirm_dialog" name="confirm_dialog">
+                                <!--style="display:"-->
+                                <!-- <a href="javascript:void(0);" class="submitbtn" id="submittest" onclick="javascript:startAssessment();" ><p id='start_ssc'>Start Assessment</p></a>
+                                <a href="javascript:void(0);" class="submitbtn" id="submittestComplete" style="display: none" ><p id='please_wait_ssc'>Please Wait ...</p></a> -->
+                                <div class="submitbtn" id="submittest"><a href="javascript:void(0);" id="submit_ssc" onclick="javascript:startAssessment();">Submit test</a></div>
+                                <div class="submitbtn" id="submittestComplete" style="display: none"><a href="javascript:void(0);" id="please_wait_ssc">Please Wait ...</a></div>
+               
+                            </div>
+                        </div>
+                    </div>
+                            </div>
+                            <div class="mqcLeft">           
+                <div class="inrmain inrmain_speechCopy inrmain_speechCopy_topadjest">
+                    <input type="hidden" value="yTvY5wde+W2Gp17KEsR*ctdkOLxdKO*I70YNG42oWFQCI11crP2GafjrOYN73W3P5ewPECwD0IYmTwktfVZMXs*sWmaP3TMjr2V*s3Qbg+QXyHydtrjF2F44f+jrxKhZRWmpHwFayNgc*EuXea+V*6r5IsQxifRkZC+QcyFWVHeWp+f2lC6lely*ffIEKrLFWk2J81n2gzg0E2zG*Pav5IZ8YEMmR62JQ8R0nXKEc6ML63Xum6rzZOKhwHUNoX6olCFk6gDMrAGWjL190kEcvKy2AuviIURyi9KlcdwC25lZ5OdxetQgBw+Zo4z0jIagRDHizZ*LdQRjTCPdvndeXduuwdDToOr5k63NfL3LHB9Axp0depLJJ4PUMxjYoGBi3LIuaRx*SEgFNWIPD2rFOoS6l4i3jC0j2zQVOwO2POGTc26pYhFSfCgYYMnngHqhg57F9YVDdQSr6Xpmd4kMy34o8FfEu+rvGEtChEZHBxMGtMvKQXJX1y2w05KPvyRVyLNUiUo36+p38GYMAdkBLVgQ6KLu92aW8U0SLJQa9QU=" id="accessToken" name="accessToken"> 
+                    <div class="leftmain">
+                        <div>
+                        <div class="quehdng mainQuestionDv">
+                            <div class="quehdngLeft">
+                                <div class="qno">
+                                    <span id="question_ssc" class="quehdnglft">Question</span><span class="quehdnglft" style="margin-left: 5px" id="serialNoDiv">No.1</span>
+                                </div>
+                                <div class="qaction">
+                                    <a href="javascript:void(0);" class="clr-btn clr-btn-reset rf-btn" id="refrshButton" onclick="updateQnAndOptContent()"><img src="./Default_files/refresh.svg"></a>
+                                    <a href="javascript:void(0);" class="fontsizebtn fontsizebtn_margin" onclick="fontIncrease();">A+</a>
+                                    <a href="javascript:void(0);" class="fontsizebtn fontsizebtn_margin" onclick="fontDecrease();">A-</a>
+                                </div>
+                            </div>
+                            <div class="quehdngRight">
+                            <span class="quehdngryt quehdngryt_tabAlgn">
+                                <span style="display:none" id="typing-time"></span>
+                                <span class="markdef" id="time-leftDiv" style="display:none;">
+                                    <span id="">Time Left: </span> 
+                                    <span class="typng_time" id="timeLeftUi"></span>
+                                </span>
+                                <span id="wpmArea" class="markdef" style="display:none">
+                                    <span id="">WPM: </span> 
+                                    <span class="typng_time" id="wpm">0</span>
+                                </span>
+                                <span id="accArea" class="markdef" style="display:none">
+                                    <span id="">Accuracy: </span> 
+                                    <span class="typng_time" id="accuracy">0</span>
+                                </span>
+                                <span id="wcArea" class="markdef" style="display:none">
+                                    <span id="">WC: </span> 
+                                    <span class="typng_time" id="word-count">0</span>
+                                </span>
+                                <span id="mtwArea" class="markdef" style="display:none">
+                                    <span id="">MTW: </span> 
+                                    <span class="typng_time" id="mistyped-words">0</span>
+                                </span>
+                                <span id="ecArea" class="markdef" style="display:none">
+                                    <span id="">EC: </span> 
+                                    <span class="typng_time" id="error-count">0</span>
+                                </span>
+                                <span class="markdef" style="display:none;">Question Time. <span class="green blue" id="qtime"></span>
+                                </span>
+                                
+                                <!-- <input type="hidden" id="timeRemaning" name="timeRemaning" value="00.00" /> -->
+                                <!-- <h1 id="timeLeftUi" >00:00</h1>
+                                <h1 style="color:#4caf50" id="wpm">0</h1>
+                                <h1 style="color:red" id="mistyped-words" >0</h1>
+                                <span style="display:none" id="word-count" ></span>
+                                <span style="display:none" id="error-count" ></span>
+                                <span style="display:none" id="accuracy">100%</span>
+                                <span style="display:none" id="typing-time"></span> -->
+    
+                            
+                      
+                                                                <span class="markdef markdef_show"><span id="max_marks_ssc">Maximum Mark.</span> <span class="green" id="spanRightMarks">1.00</span></span>
+                                    <span class="markdef markdef_show"><span id="neg_marks_ssc">Negative Mark.</span> <span class="green red" id="spanWrongMarks">2.00</span></span>
+                                                                                        <!--<span class="markdef"><span class="triangle"></span>Report</span>-->
+                                  
+                                                    
+                            <!--<span class="markdef"><span class="triangle"></span>Report</span>-->
+                                                    <!-- <span class="calculator-sprite"></span> -->
+                                
+                            </span>
+                            <!-- MobQactionBtn -->
+                            <div class="MobQactionCOntainer">
+                                <div class="MobQactionBtn">
+                                    <img src="./Default_files/mobqA.svg">
+                                </div>
+                                <div class="MobQactionData" style="display: none;">
+                                    <ul>
+                                        <li>
+                                            <a href="javascript:void(0);" id="refrshButton" onclick="updateQnAndOptContent()">
+                                                <div class="iconBox">
+                                                    <img src="./Default_files/refresh.svg">
+                                                </div>
+                                                <span>Refresh</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="javascript:void(0);" onclick="formReset();">
+                                                <div class="iconBox">
+                                                    <img src="./Default_files/reset.svg">
+                                                </div>
+                                                <span>Reset</span>
+                                            </a>
+                                        </li>
+                                                                        </ul>
+                                    <div class="fontBtn">
+                                        <a href="javascript:void(0);" class="fontsizebtn fontsizebtn_margin" onclick="fontIncrease();">A+</a>
+                                        <a href="javascript:void(0);" class="fontsizebtn fontsizebtn_margin" onclick="fontDecrease();">A-</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- End MobQactionBtn -->
+    
+                        </div>
+                        </div>
+                        <div id="mainQnDiv" class="mainQuestionDv">
+                            <!--  Normal Question Div Start    -->
+                            <p onmousedown="event.preventDefault ? event.preventDefault() : event.returnValue = false" id="display" style="display:none;"></p>
+                            
+                            <div id="boxscroll">
+                                <p onmousedown="event.preventDefault ? event.preventDefault() : event.returnValue = false" id="display"></p>
+                            </div>
+                            
+                            <div id="questionDivMain" class="nano questionoutr questionoutr_speechCopy widthchange_questionDivMain has-scrollbar" style="">
+    
+                            <div class="enrol-water" style="display:none;">
+                            </div>
+                            
+                                <div class="nano-content" tabindex="0" style="margin-right: -15px;">
+                                    <div class="questioninr">
+                                                                        <div id="questionDiv" style="font-size: 13px;">What is national sport of India? </div>
+                                                                            <div class="optninr mtchmtrx-opt optionDiv_table_target" id="optionDiv" style="font-size: 13px;"><div class="optninr multipleselect"><input id="mcqMultiple0" value="a" name="mcqMultiple" class="radiobtn" onclick="colorChange(&#39;a&#39;);checkMinQnAllowed(`mcqMultiple0`);" type="checkbox">              <label class="option radio-sctns" for="mcqMultiple0">                  <div class="optncrcl multipleval">A</div><div class="optncrcl"><span class="optnvalue" style="font-size: 13px;"><span class="tick-mark" style="color: rgb(255, 255, 255); font-size: 13px;"></span></span></div>                  <span class="optncntnt" style="font-size: 13px;">Kabaddi </span>              </label><input id="mcqMultiple1" value="b" name="mcqMultiple" class="radiobtn" onclick="colorChange(&#39;b&#39;);checkMinQnAllowed(`mcqMultiple1`);" type="checkbox">              <label class="option radio-sctns" for="mcqMultiple1">                  <div class="optncrcl multipleval">B</div><div class="optncrcl"><span class="optnvalue" style="font-size: 13px;"><span class="tick-mark" style="color: rgb(255, 255, 255); font-size: 13px;"></span></span></div>                  <span class="optncntnt" style="font-size: 13px;">Cricket </span>              </label><input id="mcqMultiple2" value="c" name="mcqMultiple" class="radiobtn" onclick="colorChange(&#39;c&#39;);checkMinQnAllowed(`mcqMultiple2`);" type="checkbox">              <label class="option radio-sctns" for="mcqMultiple2">                  <div class="optncrcl multipleval">C</div><div class="optncrcl"><span class="optnvalue" style="font-size: 13px;"><span class="tick-mark" style="color: rgb(255, 255, 255); font-size: 13px;"></span></span></div>                  <span class="optncntnt" style="font-size: 13px;">Hockey </span>              </label><input id="mcqMultiple3" value="d" name="mcqMultiple" class="radiobtn" onclick="colorChange(&#39;d&#39;);checkMinQnAllowed(`mcqMultiple3`);" type="checkbox">              <label class="option radio-sctns" for="mcqMultiple3">                  <div class="optncrcl multipleval">D</div><div class="optncrcl"><span class="optnvalue" style="font-size: 13px;"><span class="tick-mark" style="color: rgb(255, 255, 255); font-size: 13px;"></span></span></div>                  <span class="optncntnt" style="font-size: 13px;">Chess </span>              </label></div></div>
+                                        <!-- ////////////////Speech Rater Start/////////// -->
+    
+    <!--                                    <div class="recordingContainer">
+                                            <div class="recordDirections">
+                                                <span class="recordDirectionsSpan1">Record your answer</span>
+                                                <span class="recordDirectionsSpan2">Click on the RECORD button below to record your spoken response.</span>
+                                            </div>
+                                            <div class="recordInfo">
+                                                <div class="recordInfoLeft">
+                                                    <div class="recordInfoLeftInner">
+                                                        <div class="recordInfoImage">
+                                                            <img src="https://i.ibb.co/QQWsGyM/Icon-awesome-microphone.png" alt="mic Image">
+                                                        </div>
+                                                        <div class="recordInfoTime">
+                                                            <span class="recordInfoTimeSpan1">Response Time</span>
+                                                            <span class="recordInfoTimeSpan2">00 : 02 : 30</span>
+                                                            <button class="recordInfoTimeBtn">Record</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="recordInfoRight">
+                                                    <div class="recordInfoRightInner">
+                                                        <span class="recordingSpan">Recording</span>
+                                                        <div class="recordingPlay">
+                                                            <div class="playIconDiv"><img class="playIconImg" src="https://i.ibb.co/khSwmNh/Icon-awesome-play.png" alt="Icon-awesome-play" alt="play icon"></div>
+                                                            <div class="playTiming"><span>0:00 / 0:44</span></div>
+                                                            <div class="recordingPlaying"></div>
+                                                            <div class="soundIconDiv"><img src="https://i.ibb.co/sqJ70b8/sound.png" alt="sound icon"></div>
+                                                            <div class="dotIconDiv"><img src="https://i.ibb.co/TtRLFtX/Icon-feather-more-vertical.png" alt="three dot icon"></div>
+                                                        </div>
+                                                        <button class="submitrecord">Submit Recording</button>
+    
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>-->
+    
+                                        <!-- ////////////////Speech Rater End/////////// -->
+                                        
+                                    </div>
+                                </div>
+                            <div class="nano-pane" style="display: none;"><div class="nano-slider" style="height: 20px; transform: translate(0px, 0px);"></div></div></div>
+                            <!--  Normal Question Div End    -->
+    
+                            <!--   Essay Type Question Start    -->
+                            <div id="essayDivMain" class="essaytype watermark-div" style="display: none;">
+                            <div class="enrol-water" style="display:none;">
+                            </div>
+                                <div class="eWrap">
+                                <div class="edLeft">
+                                    <div class="essayhdng"><span>Essay Paragraph</span></div>  
+                                    <div class="lftessay" id="lftessayDiv">
+                                        <div class="nano-content">
+                                            <div style="padding: 15px; font-size: 13px;" id="essayDiv">  </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="edRight">
+                                    <div class="essayhdng rythdngpart"><span>Question</span></div>  
+                                    <div class="essayhdng rythdngpart question-part"><span id="question_test"> Question</span></div>
+                                    <div class="nano rytessay has-scrollbar" id="ryttessayDiv">
+                                        <div class="nano-content" tabindex="0" style="margin-right: -15px;">
+                                            <div style="padding:15px">
+                                                <div id="essayQuesDiv" style="font-size: 13px;"></div>
+                                                <div class="optninr mtchmtrx-optn" id="essayOptionDiv" style="font-size: 13px;"></div>
+                                            </div>
+                                        </div>
+                                    <div class="nano-pane" style="display: none;"><div class="nano-slider" style="height: 20px; transform: translate(0px, 0px);"></div></div></div>
+                                </div>
+                                        </div>
+                               
+                                
+                                
+            
+                            </div>
+                            <!-- <div class="essaytype typing_testDiv" id="questionDiv">
+                                <div class="typing_testDivInnr">
+                                <div class="typ_tstLft">
+                                <div class="typ_tstLftInnr">
+                                <span class="typ_sampleTxt">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Vero doloribus ut perferendis quidem fugiat culpa quae dolores accusamus! Magnam accusamus nostrum odio sed magni atque corporis nam veritatis tempore unde voluptatibus officiis, omnis blanditiis.</span>
+                                </div>
+                                </div>
+                                <div class="typ_tstRyt">
+                                <div class="typ_tstRytInnr">
+                                <textarea name="" id="" cols="30" rows="10" placeholder="Type here ..."></textarea>
+                                </div>
+                                </div>
+                                
+                                </div>
+                            </div> -->
+                            <!--   Essay Type Question End    -->
+    
+                            <!-- <div class="alert-div">
+                                <p id="warningExtraSubject" style="display:none;margin-bottom:15px;">
+                                    <font color="red">WARNING:<br>You have chosen to change the optional section. You are required to reset the previously chosen optional sections by clicking on the corresponding checkbox in the table given below and then clicking on the RESET button. Please be aware that by resetting one of the previously chosen optional Sections, all the answers you have provided for questions in that Section will be DELETED. (If you choose to come back to this section later, you have to start answering this Section afresh.). Are you sure that you want to reset an optional section now?<br><br>If YES, click the checkbox next to section you wish to reset and click on <b>Reset</b> button to reset that section.
+                                </font></p>
+                                 <center>
+                                    <table class="bordertable" cellspacing="0" width="60%" align="center">
+                                        <tbody id="endTestData">
+    
+                                        </tbody>
+                                    </table>
+                                </center>
+    
+                            </div> -->
+    
+                            <div class="warningPopup newPopUpclass" id="warningPopup" style="display: none;">
+                                <div class="warning-inner">
+                                    <div class="outer-flag">
+                                        <div class="ssc-outer-ssc">
+                                        <img src="./Default_files/VectorAlertSSC.svg">   
+                                        <h1>Warning</h1>
+                                        </div>
+                                        <div class="outer-part-of-txtarea">
+                                            <p>You have chosen to change the optional section. You are required to reset the previously chosen optional sections by clicking on the corresponding checkbox in the table given below and then clicking on the RESET button. Please be aware that by resetting one of the previously chosen optional Sections, all the answers you have provided for questions in that Section will be DELETED. (If you choose to come back to this section later, you have to start answering this Section afresh.). Are you sure that you want to reset an optional section now?</p>
+                                            <p>If YES, click the checkbox next to section you wish to reset and click on <b>Reset</b> button to reset that section.</p>
+                                            
+                                            <div class="btnPart">
+                                                <!-- <a id="hideFlagData" style="cursor:pointer;" onclick="closeWarningPopup()">Cancel</a> -->
+                                                <a id="saveFlagData" style="cursor:pointer;" onclick="closeWarningPopup()">ok</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+    
+                            <div id="sectionSummaryDivCheckbox" style="display: none;">
+                                <div class="sswrapper">
+                                <div class="exam-submit-wrapper">
+                                    <p id="do_submit_banking_Check">Deselecting the checkbox will DELETE all the options marked in this section. Are you sure, do you want to deselect this section?</p>
+                                    <div>
+                                        <input type="hidden" id="resetedSerialNo" name="resetedSerialNo" value="1">
+                                        <input type="hidden" id="selectedsubjectIds" name="selectedsubjectIds" value="1">
+                                        <input onclick="resetSubjectOnly($(&#39;#resetedSerialNo&#39;).val());" type="button" class="button deslectChkboxBtn yesBtn" style="cursor: pointer" value="Yes">
+                                        <input onclick="backOnTestCheck();" type="button" class="button deslectChkboxBtn noBtn" style="cursor: pointer" value="No">
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="paper_submited_sucesfully_page" id="paper_submited_sucesfully_page" style="display:none;">
+                            <div class="paper_submited_sucesfully_content">
+                                <div class="psscTop">
+                                    <div class="imgIcon"><img src="./Default_files/Icon_check_circle.svg" alt="sucessful"></div>
+                                    <p>
+                                        Paper Submitted Successfully
+                                    </p>
+                                </div>
+                              
+                                <div class="break_time_div">
+                                    <div class="title">Break Time</div>
+                                    <p>Your break time starts now. <strong>Please be back in time as the next paper will start immediately after the break, and you will lose that much time from your next paper.</strong></p>
+                                    <p>You can also skip the break and continue for next paper.</p>
+                                    <div id="optBreakTimeDisp" style="font-size: 40px;margin-top: 18px;font-weight: 400;">00 : 00 : 00</div>
+                                    <div class="btnBot">
+                                    <a href="https://nivansys.thinkexam.com/admin/web/views/test/testpages/finaltestpage/testpage.html#" id="skipBreak" onclick="nextOptBreak()">Skip Break Time</a>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <div class="instruction-page" id="subjectWiseInstructionDiv" style="display:none;">
+    
+                            <div class="quehdng">
+                                <span class="quehdnglft" id="instruc_ssc">INSTRUCTIONS</span>
+                                <span class="quehdngryt instrhdrryt">
+                                    <span class="markdef"><span id="total_question_ssc">Total Question :</span> <span class="green" id="totalSubjectTestQn"></span></span>
+                                    <span class="markdef"> <span id="total_duration_ssc">TOTAL DURATION : </span> <span class="green" id="testSubjectTime"></span></span>
+                                </span>
+                            </div>
+                            <div id="about" class="nano questionoutr instrctn_outr nano_heightUnset has-scrollbar" style="display:block;bottom:126px;">
+                                <div class="nano-content" tabindex="0" style="margin-right: -15px;">
+                                    <div class="questioninr">
+                                        <div class="instrctnlist" id="subjectWiseInstructionHtml">
+                                        </div>
+                                    </div>
+                                </div>
+                            <div class="nano-pane" style="display: none;"><div class="nano-slider" style="height: 20px; transform: translate(0px, 0px);"></div></div></div>
+                            
+                            <div class="footrlft instrctnfooter footrlft_height " style="bottom:60px;">
+                                <div class="lftflt">
+                                    <lable for="termcondition" id="labelFortermcondition" onclick="checkCondition()" style="cursor: pointer"><input type="checkbox" id="termcondition" style="margin-right:10px;float:left;margin-bottom:20px;" onclick="checkCondition()">  
+                                        <p id="agreement_ins">  I have read and understood the instructions. I agree that in case of not adhering to the exam instructions, I will be disqualified from giving the exam.</p>
+                                    </lable>
+                                </div>
+                                <div class="rytflt" id="startTestDiv" style="min-width:100px;width:auto !important;padding: 0px 10px;">
+                                    <a href="https://nivansys.thinkexam.com/admin/web/views/test/testpages/finaltestpage/testpage.html#" id="startTest" class="submitbtn fadeButton" style="padding: 0px 5px; pointer-events: none;" onclick="nextSubjectInstruction();"><p id="next_ins">Next</p></a>
+                                </div>
+                                <div class="rytflt" id="startTestDiv_1" style="display: none">
+                                    <a href="https://nivansys.thinkexam.com/admin/web/views/test/testpages/finaltestpage/testpage.html#" class="submitbtn" id="please_ins">Please Wait ...</a>
+                                </div>
+                            </div>
+                        </div>
+                                        </div>
+                                <div>
+                        <div class="footrlft footrlft_copy footrlft_speechCopy saveQuestionFooter questionDv questionDv_footrlft footer_copy_new">
+    <!--                        <a id="previousID"  onclick="event.preventDefault(); previousQuestion();"    class="arrow_slide" href="javascript:void(0);">
+                                <span class="angle1"></span>
+                            </a>-->
+                            <div class="fleftBtn">
+                                                        <a 1="" id="previousID" onclick="event.preventDefault();
+                                        previousQuestion();" class="arrow_slide" href="javascript:void(0);" style="display: none;"><span class="angle1"></span></a>
+                                                    
+                            <a id="previousID1" style="display:block;" class="arrow_slide arrow_slide_margin arowtopmargin" href="javascript:void(0);"><span class="angle1"></span></a>
+                            <a id="nextID" class="arrow_slide2 arrow_slide2_width arowtopmargin" style="display: block;" href="javascript:void(0);" onclick="event.preventDefault();
+                                    nextQuestion(&#39;&#39;, &#39;&#39;, &#39;saveNext&#39;);"><span id="savennext_ssc" style="display: block;">Save &amp; Next</span><span class="angle2"></span></a>
+                            <a id="nextRecorderID" style="display: none;" class="arrow_slide2 arrow_slide2_speechCopy" href="javascript:void(0);" onclick="event.preventDefault();
+                                    nextRecord();"><span id="savennext_ssc">Next</span><span class="angle2"></span></a>
+                            <a id="nextID1" style="display: none;" class="arrow_slide2" href="javascript:void(0);" onclick="event.preventDefault();
+                                    saveData(5, &#39;lastQnSave&#39;);
+                                    ;"><span id="save_ssc">Save option</span><span class="angle2"></span></a>
+                            <a id="saveResponseBtn" style="display: block;" class="arrow_slide2 rspoincebtn arrow_slide2_width arowtopmargin" href="javascript:void(0);" onclick="event.preventDefault();
+                                    saveData(5, &#39;lastQnSave&#39;);$(&#39;#preloader&#39;).hide();"><span id="savennext_ssc">Save Response</span></a>
+                            
+                            <div class="chckbx_ques instr instr_speechCopy chckbx_ques_alignmnt showInstruction_here divshown">
+                            <a href="javascript:void(0);" class="submitbtn heightgiven" id="mobilebrowser" onclick="javascript:confirmEndTest(&#39;end-test-popup&#39;);" style="display: none;">
+                                <p class="screenres">Submit</p></a>
+                            </div>
+                                </div>
+    
+                            <div class="frightBtn">
+                            <div class="chckbx_ques chckbx_ques_speechCopy chckbx_ques_alignmnt widthauto_adjest arowtopmargin" style="width:auto;">
+                                <button class="clr-btn clr-btn-reset" id="restButton" onclick="formReset();">RESET</button>
+                                <div class="customCheck">
+                                    <input type="checkbox" id="check1">
+                                    <label class="chckbx" for="check1" onclick="javascript:showImage(&#39;review&#39;);">
+                                    <!--<span id='review_ur_ssc'>Review your question</span>--><span id="reviewText">Review</span></label>
+                                </div>
+                               
+                                
+                            </div>
+                            </div>
+    
+                        </div>
+                        
+                        <div class="footrlft footrlft_copy footrlft_speechCopy saveQuestionFooter sampleQuestionDv" style="display:none">
+    
+                            <a id="samplePreviousID1" style="display:none;" class="arrow_slide" href="javascript:void(0);"><span class="angle1"></span></a>
+                            <a id="sampleNextRecorderID" style="display:none;" class="arrow_slide2 arrow_slide2_speechCopy" href="javascript:void(0);" onclick="event.preventDefault();
+                                    nextRecord();"><span id="savennext_ssc">Next</span><span class="angle2"></span></a>
+                            <a id="sampleNextID1" style="display:none;" class="arrow_slide2" href="javascript:void(0);" onclick="event.preventDefault();
+                                    sampleQuesSave();
+                                    ;"><span id="save_ssc">Save &amp; Next</span><span class="angle2"></span></a>
+                            <a id="sampleSaveResponseBtn" style="display:none;" class="arrow_slide2 rspoincebtn" href="javascript:void(0);" onclick="event.preventDefault();
+                                    sampleQuesSave();"><span id="savennext_ssc">Save Response</span></a>
+                            <div class="chckbx_ques instr instr_speechCopy showInstruction_here">
+                                <div href="javascript:void(0)" class="info" onclick="showInstruction();">
+                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background:new 0 0 100 100;" xml:space="preserve" width="10px" height="15px">
+                                    <g>
+                                    <g>
+                                    <path d="M62.162,0c6.696,0,10.043,4.567,10.043,9.789c0,6.522-5.814,12.555-13.391,12.555    c-6.344,0-10.045-3.752-9.869-9.947C48.945,7.176,53.35,0,62.162,0z M41.543,100c-5.287,0-9.164-3.262-5.463-17.615l6.07-25.457    c1.057-4.077,1.23-5.707,0-5.707c-1.588,0-8.451,2.816-12.51,5.59L27,52.406C39.863,41.48,54.662,35.072,61.004,35.072    c5.285,0,6.168,6.361,3.525,16.148L57.58,77.98c-1.234,4.729-0.703,6.359,0.527,6.359c1.586,0,6.787-1.963,11.896-6.041L73,82.377    C60.488,95.1,46.83,100,41.543,100z" fill="#6c6c6c"></path>
+                                    </g>
+                                    </g>
+                                    </svg>
+                                <span id="instruction1_ssc">Instruction</span>
+                                </div>
+                            </div>
+                            <div class="chckbx_ques chckbx_ques_speechCopy widthauto_adjest" style="width:auto;">
+                                <button class="clr-btn clr-btn-reset" id="restButton" onclick="sampleFormReset();">RESET</button>
+                                <input type="checkbox" id="sampleCheck1"><label class="chckbx" for="sampleCheck1" onclick="javascript:sampleShowImage();">
+                                <span id="reviewText">Review</span></label>
+                            </div>
+    
+                        </div>
+                                </div>
+                    </div>
+                    <!--    Question Pallete Start     -->
+                    
+                </div>
+                </div>  
+                                </div>
+                <!--    Question Pallete End     -->
+                <!-- Copyright -->
+                <div class="copyrightBox">
+                    Copyright © 2024 Ginger Webs Pvt Ltd. All rights reserved.&nbsp;&nbsp;|&nbsp;&nbsp;Powered by&nbsp;thinkexam.com&nbsp;&nbsp;|&nbsp;&nbsp;Last updated: <span id="lastUpdate">26-04-2023</span>&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;Version: <span id="te_version">TE_7.0.0.0</span>
+                </div>
+                            <div class="video_callchat" id="video_callchat_id" style="display:none;">
+            <div id="testPgChathide" class="testPage_chatDiv_thinkproc">
+                <span class="chtTxt_thinkproc">Video Chat</span>
+                <span id="testPgChatOpen" class="chtIcon_thinkproc">
+                    <img src="./Default_files/testPage_chatIcon.svg" alt="">
+                </span>
+            </div>
+            <div id="testPgMainDivClose" class="testPage_openChat_thinkproc">
+                <div class="scndry_chatHdr_thinkproc">
+                    <span>Video Chat
+                        <div style="border-right: 11px solid green;border-radius: 20px;height: 11px;margin-top: 3px;margin-left: 6px;">
+                        </div>
+                    </span>
+                    <div id="testPgChatClose" class="scndry_chtCrossDiv_thinkproc"><img src="./Default_files/chat_minus.svg" alt=""></div>
+                </div>
+                <div class="static_videochat">
+                    <div class="video_chat_proctor">
+                        <img src="./Default_files/10x-featured-social-media-image-size.png" alt="" class="videocall_chat">
+                    </div>
+                </div>
+                <div class="scndry_chatSecton_thinkproc">
+                    <div class="scndry_chatSecton_chat_thinkproc" id="msgBox">
+                        <div class="proctChat_thinkproc_Candidate">
+                            <div class="proctr_chatNameTime_thinkproc_">
+                                <div class="proctor_nameTime_thinkproc">
+                                    <span class="proctor_name_thinkproc">Candidate</span>
+                                </div>
+                                <div class="proctor_photoChat_thinkproc">
+                                    <div class="proctor_chatDiv_thinkproc_camera">
+                                        <span>Facing issue with camera</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="floatclear"></div>
+                        </div>
+                        <div class="proctChat_thinkproc">
+                            <div class="proctr_chatNameTime_thinkproc_chair">
+                                <div class="proctor_nameTime_thinkproc">
+                                    <span class="proctor_name_thinkproc_padding">Proctor</span>
+                                </div>
+                                <div class="proctor_photoChat_thinkproc">
+                                    <div class="proctor_chatDiv_thinkproc_proctornew">
+                                        <span>Turn camera around your chair</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="floatclear"></div>
+                        </div>
+                    </div>
+    
+                    <div class="scndryChatTypngDiv_thinkproc">
+                        <div class="scndryChatTypngInnr_thinkproc">
+                            <input type="text" placeholder="Type here..." id="msgText">
+                        </div>
+                        <div class="scndryChatSendDiv_thinkproc" style="cursor:pointer;" onclick="sendNotificationToProctor()"><img src="./Default_files/scndryChat_sndIcon.svg" alt=""></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+                </div>
+        <div class="wrapper maindiv" style="display: none;">
+            <div class="lftpart ">
+                   <h1 class="testname" style=" float: left;font-size: 18px;line-height: 34px; width: 77%;padding-left:20px;display:none">Strategies for enhancement in food production</h1>
+                <div style="">
+            <span class="subject subjecttab" id="">
+              
+               <div class="subjinr active" id=""><span class="sbjcthdng">subject</span>
+                <span class="sbjctname">Biology</span>
+                </div>
+                
+                
+                </span>
+            <span class="subject dropdown subjecttab" id="">
+              
+               <div class="subjinr" id=""><span class="sbjcthdng">subject</span>
+                <span class="sbjctname">Chemistry</span>
+                </div>
+                
+                
+                </span>
+            <span class="subject dropdown subjecttab" id="">
+              
+               <div class="subjinr" id=""><span class="sbjcthdng">subject</span>
+                <span class="sbjctname">General Knowledge</span>
+                </div>
+                
+                
+                </span>
+            <span class="subject dropdown subjecttab" id="">
+              
+               <div class="subjinr" id=""><span class="sbjcthdng">subject</span>
+                <span class="sbjctname">English</span>
+                </div>
+                
+                
+                </span>
+                </div>
+                <!--More than 4 subject-->
+                 <span id="dropsubject" class="subject dropdown" style="display:none">
+<div id="subjin" class="subjinr">
+<span class="sbjcthdng">subject</span>
+<span class="sbjctname">Biology</span>
+</div>
+                      
+                <div id="dropsubcntnt" class="dropdown-content" style="display:none">
+
+                    <div>
+                    <div class="frst_drop"><a href="javascript:void(0);">
+                        <div class="lft_blck">
+                        <p>physics</p>
+                        <div class="blocks">
+                            <div class="inr_blck">
+                        <div class="crcl"></div><span>10</span>
+                                </div>
+                            <div class="inr_blck">
+                        <div class="crcl crcl1"></div><span>05</span>                                </div>
+                            <div class="inr_blck">
+                        <div class="crcl crcl2"></div><span>01</span>
+                                </div>
+                           <div class="inr_blck">
+                        <div class="crcl crcl3"></div><span>00</span>
+                                </div>
+                        </div>
+                        </div>
+                        <div class="nmbr_blck">(20)</div>
+                            </a>
+                       
+                    </div>
+                                        
+<div class="brdr_btm"></div>
+                <div class="frst_drop"><a href="javascript:void(0);">
+                        <div class="lft_blck">
+                        <p>chemistry</p>
+                        <div class="blocks">
+                            <div class="inr_blck">
+                        <div class="crcl"></div><span>06</span>
+                                </div>
+                            <div class="inr_blck">
+                        <div class="crcl crcl1"></div><span>08</span>
+                                </div>
+                            <div class="inr_blck">
+                        <div class="crcl crcl2"></div><span>00</span>
+                                </div>
+                           <div class="inr_blck">
+                        <div class="crcl crcl3"></div><span>00</span>
+                                </div>
+                        </div>
+                        </div>
+                        <div class="nmbr_blck">(20)</div>
+                            </a>
+                    
+                    </div>
+                    <div class="brdr_btm"></div>
+                <div class="frst_drop"><a href="javascript:void(0);">
+                        <div class="lft_blck">
+                        <p>biology</p>
+                        <div class="blocks">
+                            <div class="inr_blck">
+                        <div class="crcl"></div><span>00</span>
+                                </div>
+                            <div class="inr_blck">
+                        <div class="crcl crcl1"></div><span>01</span>
+                                </div>
+                            <div class="inr_blck">
+                        <div class="crcl crcl2"></div><span>06</span>
+                                </div>
+                           <div class="inr_blck">
+                        <div class="crcl crcl3"></div><span>00</span>
+                                </div>
+                        </div>
+                        </div>
+                        <div class="nmbr_blck">(20)</div>
+                            </a>
+                 
+                    </div>
+                    <div class="brdr_btm"></div>
+                    <div class="frst_drop"><a href="javascript:void(0);">
+                        <div class="lft_blck">
+                        <p>history of anotomy</p>
+                        <div class="blocks">
+                            <div class="inr_blck">
+                        <div class="crcl"></div><span>02</span>
+                                </div>
+                            <div class="inr_blck">
+                        <div class="crcl crcl1"></div><span>01</span>
+                                </div>
+                            <div class="inr_blck">
+                        <div class="crcl crcl2"></div><span>05</span>
+                                </div>
+                           <div class="inr_blck">
+                        <div class="crcl crcl3"></div><span>00</span>
+                                </div>
+                        </div>
+                        </div>
+                        <div class="nmbr_blck">(20)</div>
+                            </a>
+                      
+                    </div>
+                    <div class="brdr_btm"></div>
+                    <div class="frst_drop"><a href="javascript:void(0);">
+                        <div class="lft_blck">
+                        <p>history of biotechnology</p>
+                        <div class="blocks">
+                            <div class="inr_blck">
+                        <div class="crcl"></div><span>09</span>
+                                </div>
+                            <div class="inr_blck">
+                        <div class="crcl crcl1"></div><span>00</span>
+                                </div>
+                            <div class="inr_blck">
+                        <div class="crcl crcl2"></div><span>05</span>
+                                </div>
+                           <div class="inr_blck">
+                        <div class="crcl crcl3"></div><span>00</span>
+                                </div>
+                        </div>
+                        </div>
+                        <div class="nmbr_blck">(20)</div>
+                            </a>
+                       
+                    </div>
+                     <div class="brdr_btm"></div>
+                    <div class="frst_drop"><a href="javascript:void(0);">
+                        <div class="lft_blck">
+                        <p>history of modal organisms</p>
+                        <div class="blocks">
+                            <div class="inr_blck">
+                        <div class="crcl"></div><span>01</span>
+                                </div>
+                            <div class="inr_blck">
+                        <div class="crcl crcl1"></div><span>05</span>
+                                </div>
+                            <div class="inr_blck">
+                        <div class="crcl crcl2"></div><span>07</span>
+                                </div>
+                           <div class="inr_blck">
+                        <div class="crcl crcl3"></div><span>00</span>
+                                </div>
+                        </div>
+                        </div>
+                        <div class="nmbr_blck">(20)</div>
+                            </a>
+                    </div>
+                </div>
+                </div>
+                
+                </span>
+                <!--more than 4 subject close-->
+            <div class="subject language" id="languagedrop">
+                <span class="subjinr" id="langin">
+                    <span class="sbjcthdng">language</span>
+                    <span class="sbjctname">English</span>
+                </span>
+                <div id="languagecntnt" class="dropdown-content langdropdown" style="display:none">
+                    <div>
+                <div class="frst_drop">
+                        English
+                        </div>
+                        <div class="brdr_btm"></div>
+                         <div class="frst_drop">
+                        Hindi
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+            
+            <div class="rytpart">
+                <div class="clckinr"><span class="clock"><!--?xml version="1.0" encoding="iso-8859-1"?-->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 462.997 462.997" enable-background="new 0 0 462.997 462.997" width="22px" height="22px">
+  <g>
+    <path d="m342.757,101.682l6.362-9.086 52.835,36.996c1.31,0.917 2.81,1.357 4.295,1.357 2.364,0 4.691-1.115 6.15-3.199 25.144-35.909 16.386-85.578-19.523-110.722-35.907-25.142-85.578-16.386-110.721,19.524-1.141,1.629-1.588,3.645-1.243,5.604 0.346,1.959 1.455,3.701 3.084,4.841l52.835,36.996-6.344,9.06c-26.606-17.112-57.901-27.529-91.49-28.886v-17.167h8.5c12.958,0 23.5-10.542 23.5-23.5s-10.54-23.5-23.498-23.5h-32c-12.958,0-23.5,10.542-23.5,23.5s10.542,23.5 23.5,23.5h8.5v17.166c-33.589,1.358-64.884,11.775-91.49,28.886l-6.344-9.06 52.835-36.995c1.629-1.141 2.739-2.882 3.084-4.841 0.345-1.959-0.102-3.975-1.243-5.604-25.143-35.909-74.812-44.667-110.72-19.524-35.909,25.144-44.667,74.813-19.523,110.722 1.459,2.084 3.786,3.199 6.15,3.199 1.486,0 2.986-0.44 4.295-1.357l52.835-36.996 6.362,9.086c-43.88,33.56-72.241,86.435-72.241,145.818-7.10543e-15,62.814 31.731,118.35 80,151.442v53.067c0,4.873 3.133,9.096 7.797,10.508 1.068,0.324 2.151,0.48 3.218,0.48 3.595,0 7.015-1.771 9.099-4.898l24.522-36.783c18.485,6.277 38.284,9.683 58.864,9.683s40.379-3.406 58.864-9.683l24.522,36.783c2.084,3.126 5.504,4.897 9.099,4.897 1.067,0 2.151-0.157 3.218-0.48 4.664-1.412 7.797-5.635 7.797-10.508v-53.067c48.269-33.092 80-88.627 80-151.442 5.68434e-14-59.382-28.362-112.257-72.242-145.817zm-6.68-83.051c16.965-2.993 34.083,0.803 48.196,10.685 27.057,18.945 35.115,55.05 19.786,83.439l-52.479-36.747-.001-.001c0,0-0.001,0-0.001,0l-52.484-36.75c9.612-10.839 22.503-18.073 36.983-20.626zm-129.078,4.869c0-4.687 3.813-8.5 8.5-8.5h32c4.687,0 8.5,3.813 8.5,8.5s-3.813,8.5-8.5,8.5h-32c-4.687,0-8.5-3.813-8.5-8.5zm-148.065,89.257c-6.898-12.738-9.288-27.326-6.734-41.806 2.992-16.967 12.412-31.753 26.524-41.635 10.966-7.679 23.745-11.682 36.858-11.682 3.763,0 7.555,0.33 11.337,0.997 14.48,2.553 27.372,9.788 36.982,20.626l-104.967,73.5zm84.065,325.972v-30.528c4.969,2.748 10.079,5.269 15.315,7.555l-15.315,22.973zm177,0l-15.315-22.973c5.236-2.286 10.346-4.807 15.315-7.555v30.528zm-88.5-22.729c-92.911,0-168.5-75.588-168.5-168.5s75.588-168.5 168.5-168.5 168.5,75.589 168.5,168.5-75.589,168.5-168.5,168.5z" fill="#FFFFFF"></path>
+    <path d="m231.499,96c-83.538,0-151.5,67.962-151.5,151.5s67.962,151.5 151.5,151.5 151.5-67.962 151.5-151.5-67.963-151.5-151.5-151.5zm74.617,265.741l-8.123-14.069c-2.072-3.588-6.659-4.817-10.245-2.745-3.587,2.071-4.816,6.658-2.745,10.245l8.137,14.094c-16.424,8.348-34.75,13.469-54.142,14.524v-16.29c0-4.142-3.358-7.5-7.5-7.5s-7.5,3.358-7.5,7.5v16.291c-19.392-1.055-37.718-6.176-54.142-14.524l8.137-14.094c2.071-3.587 0.842-8.174-2.745-10.245-3.587-2.072-8.174-0.842-10.245,2.745l-8.122,14.069c-15.774-10.338-29.286-23.85-39.624-39.624l14.069-8.123c3.587-2.071 4.816-6.658 2.745-10.245-2.071-3.588-6.658-4.817-10.245-2.745l-14.094,8.137c-8.348-16.424-13.469-34.75-14.524-54.142h16.291c4.142,0 7.5-3.358 7.5-7.5s-3.358-7.5-7.5-7.5h-16.292c1.055-19.392 6.176-37.719 14.524-54.142l14.094,8.137c1.181,0.682 2.471,1.006 3.743,1.006 2.592,0 5.113-1.346 6.502-3.751 2.071-3.587 0.842-8.174-2.745-10.245l-14.069-8.123c10.338-15.774 23.85-29.286 39.624-39.624l8.122,14.068c1.389,2.406 3.91,3.751 6.502,3.751 1.272,0 2.562-0.324 3.743-1.006 3.587-2.071 4.816-6.658 2.745-10.245l-8.137-14.094c16.424-8.348 34.75-13.469 54.142-14.524v16.292c0,4.142 3.358,7.5 7.5,7.5s7.5-3.358 7.5-7.5v-16.291c19.392,1.055 37.718,6.176 54.142,14.524l-8.137,14.094c-2.071,3.587-0.842,8.174 2.745,10.245 1.181,0.682 2.471,1.006 3.743,1.006 2.592,0 5.113-1.346 6.502-3.751l8.122-14.068c15.774,10.338 29.286,23.85 39.624,39.624l-14.069,8.123c-3.587,2.071-4.816,6.658-2.745,10.245 1.389,2.406 3.91,3.751 6.502,3.751 1.272,0 2.563-0.324 3.743-1.006l14.094-8.137c8.348,16.424 13.469,34.75 14.524,54.142h-16.291c-4.142,0-7.5,3.358-7.5,7.5s3.358,7.5 7.5,7.5h16.291c-1.055,19.392-6.176,37.718-14.524,54.142l-14.094-8.137c-3.588-2.072-8.174-0.842-10.245,2.745-2.071,3.587-0.842,8.174 2.745,10.245l14.069,8.123c-10.336,15.773-23.848,29.285-39.622,39.622z" fill="#FFFFFF"></path>
+    <path d="m238.999,225.234v-65.734c0-4.142-3.358-7.5-7.5-7.5s-7.5,3.358-7.5,7.5v65.734c-9.29,3.138-16,11.93-16,22.266 0,5.946 2.224,11.379 5.878,15.522l-26.586,46.048c-2.071,3.587-0.842,8.174 2.745,10.245 1.181,0.682 2.471,1.006 3.743,1.006 2.592,0 5.113-1.345 6.502-3.751l26.577-46.032c1.501,0.302 3.052,0.462 4.641,0.462 12.958,0 23.5-10.542 23.5-23.5 0-10.336-6.71-19.128-16-22.266zm-7.5,30.766c-4.687,0-8.5-3.813-8.5-8.5s3.813-8.5 8.5-8.5 8.5,3.813 8.5,8.5-3.813,8.5-8.5,8.5z" fill="#FFFFFF"></path>
+  </g>
+</svg>
+</span>
+                    <b>60</b> min : <b>43</b> sec</div></div>
+            <div class="inrmain">
+            
+            <div class="leftmain">
+                <div class="quehdng">
+                    <span class="quehdnglft">Question.1</span>
+                    <span class="quehdngryt">
+                    <span class="markdef">Maximum Mark. <span class="green">1</span></span>
+                    <span class="markdef">Negative Mark. <span class="green red">0</span></span>
+                    <span class="markdef"><span class="triangle"></span>Report</span>
+                    </span>
+                </div>
+                <div class="nano questionoutr has-scrollbar" style="display: none;">
+                    <div class="nano-content" tabindex="0" style="margin-right: -15px;">
+                        <div class="qustnsctn_codingscrn">
+                            <span class="txtqstn_codingscrn">Write a C program to find a factorial of a natural number</span>
+                            <div class="slectlanguge_optnbx">
+                                <select class="slectbx_lnguge">
+                                    <option>C++</option>
+                                    <option>C</option>
+                                    
+                                </select>
+                            </div>
+                            <div class="texteditor_bx">
+                                <div class="boxes_testeditor">
+                                    <div class="hdng_txteditor">
+                                        <span>Write your code here</span>
+                                    </div>
+                                    <div class="txtSctn"></div>
+                                </div>
+                                <div class="boxes_testeditor">
+                                    <div class="hdng_txteditor">
+                                        <span>Output here</span>
+                                    </div>
+                                    <div class="txtSctn"></div>
+                                </div>
+                            </div>
+                            <div class="tableSctn_texteditor">
+                                <table class="tble_textedidtr">
+                                    <tbody><tr>
+                                        <th>Test Case</th>
+                                        <th>Type</th>
+                                        <th>Input</th>
+                                        <th>Expected Output</th>
+                                        <th>Your Output</th>
+                                        <th>Status</th>
+                                        <th>Marks</th>
+                                        <th><button class="Excuteallbtn">Execute All</button></th>
+                                    </tr>
+                                    <tr>
+                                        <td><span>1</span></td>
+                                        <td><span>Public</span></td>
+                                        <td><span><input type="text" class="inpttpe_tbleeditr"></span></td>
+                                        <td><span>0</span></td>
+                                        <td><span>1</span></td>
+                                        <td><span class="errorclr_txt">Compilation Error</span></td>
+                                        <td><span>2</span></td>
+                                        <td><button class="excutebtninr">Execute</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td><span>2</span></td>
+                                        <td><span>Public</span></td>
+                                        <td><span>2</span></td>
+                                        <td><span>0</span></td>
+                                        <td><span>1</span></td>
+                                        <td><span class="successclr_txt">Executed</span></td>
+                                        <td><span>1</span></td>
+                                        <td><button class="excutebtninr">Execute</button></td>
+                                    </tr>
+                                </tbody></table>
+                            </div>
+                        </div>
+                    </div>
+                <div class="nano-pane" style="display: none;"><div class="nano-slider" style="height: 20px; transform: translate(0px, 0px);"></div></div></div>
+                <!--normal que Single choice-->
+                
+                <div id="about" class="nano questionoutr has-scrollbar" style="display:block;">
+                    <div class="nano-content" tabindex="0" style="margin-right: -15px;">
+                
+                    
+                    <div class="questioninr">
+                        The term “catalyst” refers to ___________
+                        
+                        <div class="optninr">
+<input id="radio" class="radiobtn" name="radio" type="radio">
+<label class="option" for="radio">
+    <div class="optncrcl"><span class="optnvalue">A</span></div>
+<span class="optncntnt"> Can either increase or decrease the speed of a chemical reaction </span>
+</label>
+<input id="radio1" class="radiobtn" name="radio" type="radio">
+<label class="option" for="radio1">
+    <div class="optncrcl"><span class="optnvalue">B</span></div>
+<span class="optncntnt">Alters the value of equilibrium constant in a reversible chemical reaction</span>
+</label>
+<input id="radio2" class="radiobtn" name="radio" type="radio">
+<label class="option" for="radio2">
+    <div class="optncrcl"><span class="optnvalue">C</span></div>
+<span class="optncntnt">Increases the speed of a chemical reaction</span>
+</label>
+<input id="radio3" class="radiobtn" name="radio" type="radio">
+<label class="option" for="radio3">
+    <div class="optncrcl"><span class="optnvalue">D</span></div>
+<span class="optncntnt">Decreases the speed of a chemical reaction </span>
+</label>
+</div>
+                </div>
+                    </div>
+                    
+                <div class="nano-pane" style="display: none;"><div class="nano-slider" style="height: 20px; transform: translate(0px, 0px);"></div></div></div>
+                <!--normal que Single choice-->
+                <!--essay type que-->
+                <div class="essaytype" style="display:none">
+                    <div class="essayhdng"><span>Essay Paragraph</span></div>  
+                    <div class="essayhdng rythdngpart"><span>Question</span></div>  
+                                        
+
+                    
+                        <div id="about" class="nano lftessay has-scrollbar">
+                    <div class="nano-content" tabindex="0" style="margin-right: -15px;">
+                      <div style="padding:15px">
+                     Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. ibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. ibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. ibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pell
+                        </div>
+                    </div>
+                    <div class="nano-pane" style="display: none;"><div class="nano-slider" style="height: 20px; transform: translate(0px, 0px);"></div></div></div>
+                    <div id="about" class="nano rytessay has-scrollbar">
+                          <div class="nano-content" tabindex="0" style="margin-right: -15px;">
+               <div style="padding:15px">
+                    Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. ibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. ibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. ibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pell
+                        
+                        
+                        
+                         <div class="optninr">
+<input id="radio4" class="radiobtn" name="radio" type="radio">
+<label class="option" for="radio4">
+    <div class="optncrcl"><span class="optnvalue">A</span></div>
+<span class="optncntnt">Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. </span>
+</label>
+<input id="radio5" class="radiobtn" name="radio" type="radio">
+<label class="option" for="radio5">
+    <div class="optncrcl"><span class="optnvalue">B</span></div>
+<span class="optncntnt">em.Lorem ipsum dolor sit amet, </span>
+</label>
+<input id="radio6" class="radiobtn" name="radio" type="radio">
+<label class="option" for="radio6">
+    <div class="optncrcl"><span class="optnvalue">C</span></div>
+<span class="optncntnt">cies nec, pellentesque eu, pretium quis, sem.Lorem ipsum dolor sit amet,</span>
+</label>
+<input id="radio7" class="radiobtn" name="radio" type="radio">
+<label class="option" for="radio7">
+    <div class="optncrcl"><span class="optnvalue">D</span></div>
+<span class="optncntnt">Lorem ipsum dolor sit amet, consectetuer eget dolor. </span>
+</label>
+</div>
+                    </div>
+                    </div>
+                        <div class="nano-pane" style="display: none;"><div class="nano-slider" style="height: 20px; transform: translate(0px, 0px);"></div></div></div>
+                </div>
+                <!--essay type que-->
+<!--                True False-->
+                <div id="about" class="nano questionoutr has-scrollbar" style="display:none">
+                    <div class="nano-content" tabindex="0" style="margin-right: -15px;">
+                
+                    
+                    <div class="questioninr">
+                Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. ibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. ibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. ibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pell
+                        
+                        <div class="optninr truefalse">
+<input id="true" class="radiobtn" name="radio" type="radio">
+<label class="option" for="true">
+    <div class="optncrcl"><span class="optnvalue"></span></div>
+<span class="optncntnt">True </span>
+</label>
+<input id="true1" class="radiobtn" name="radio" type="radio">
+<label class="option" for="true1">
+    <div class="optncrcl"><span class="optnvalue"></span></div>
+<span class="optncntnt">False</span>
+</label>
+
+</div>
+                </div>
+                    </div>
+                    
+                <div class="nano-pane" style="display: none;"><div class="nano-slider" style="height: 20px; transform: translate(0px, 0px);"></div></div></div>
+<!--       True False-->
+                <!--Multiple Choice-->
+                <div id="about" class="nano questionoutr has-scrollbar" style="display:none">
+                    <div class="nano-content" tabindex="0" style="margin-right: -15px;">
+                
+                    
+                    <div class="questioninr">
+                Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. ibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. ibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. ibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pell
+                        
+                        <div class="optninr multipleselect">
+<input id="multiple" class="radiobtn" name="multiple" type="radio">
+<label class="option" for="multiple">
+    <div class="optncrcl multipleval">A</div><div class="optncrcl"><span class="optnvalue"><img src="./Default_files/Right.png"></span></div>
+<span class="optncntnt">Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. </span>
+</label>
+<input id="multiple1" class="radiobtn" name="multiple1" type="radio">
+<label class="option" for="multiple1">
+    <div class="optncrcl multipleval">B</div><div class="optncrcl"><span class="optnvalue"><img src="./Default_files/Right.png"></span></div>
+<span class="optncntnt">Lorem ipsum dolor sit amet, conse ultricies nec, pell</span>
+</label>
+<input id="multiple2" class="radiobtn" name="multiple2" type="radio">
+<label class="option" for="multiple2">
+    <div class="optncrcl multipleval">C</div><div class="optncrcl"><span class="optnvalue"><img src="./Default_files/Right.png"></span></div>
+<span class="optncntnt">cies nec, pellentesque eu, pretium quis, sem.Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. ibus et magnis dis parturient montes,</span>
+</label>
+<input id="multiple3" class="radiobtn" name="multiple3" type="radio">
+<label class="option" for="multiple3">
+    <div class="optncrcl multipleval">D</div><div class="optncrcl"><span class="optnvalue"><img src="./Default_files/Right.png"></span></div>
+<span class="optncntnt">Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. </span>
+</label>
+</div>
+                </div>
+                    </div>
+                    
+                <div class="nano-pane" style="display: none;"><div class="nano-slider" style="height: 20px; transform: translate(0px, 0px);"></div></div></div>
+                
+                <!--Multiple Choice-->
+                <!--Match making-->
+                <div id="about" class="nano questionoutr has-scrollbar" style="display:none">
+                <div class="nano-content" tabindex="0" style="margin-right: -15px;">
+                    <div class="questioninr">
+                        <div class="matrixoutr">
+                        <div class="lftmatrix">
+                        <ul class="matrix">
+                            <li><span class="hdngmatrix">Column 1</span></li>
+                            <li><span class="hdngmatrix">(A)</span>L<sub>1</sub>, L<sub>2</sub>, L<sub>3</sub> are concurrent, if</li>
+                            <li><span class="hdngmatrix">(B)</span>One of L<sub>1</sub>, L<sub>2</sub>, L<sub>3</sub> is parallel to atleast one of the other two, if</li>
+                            <li><span class="hdngmatrix">(C)</span>L<sub>1</sub>, L<sub>2</sub>, L<sub>3</sub> form a triangle, if</li>
+                            <li><span class="hdngmatrix">(D)</span>L<sub>1</sub>, L<sub>2</sub>, L<sub>3</sub>  do not form a triangle, if</li>
+                            
+                            </ul>
+                        </div>
+                        <div class="lftmatrix rytmatrix">
+                        <ul class="matrix">
+                            <li><span class="hdngmatrix">Column 2</span></li>
+                            <li><span class="hdngmatrix">(P)</span>K = -9</li>
+                            <li><span class="hdngmatrix">(Q)</span>K = - 6 / 5</li>
+                            <li><span class="hdngmatrix">(R)</span>K = 6 / 5</li>
+                            <li><span class="hdngmatrix">(S)</span>K = 5</li>
+                            
+                            </ul>
+                        </div>
+                        </div>
+                        <div class="optninr" style="">
+                            
+                        <div class="matrixoptn">
+                            <div class="optionno">A</div>
+                            <div class="optionno">
+                                <input id="matrix1a" class="radiobtn" name="multiple1" type="radio">
+<label class="option" for="matrix1a">
+   <div class="optncrcl"><span class="optnvalue"><img src="./Default_files/Right.png"></span></div> <div class="optncrcl">(P)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="matrix1b" class="radiobtn" name="multiple2" type="radio">
+<label class="option" for="matrix1b">
+   <div class="optncrcl"><span class="optnvalue"><img src="./Default_files/Right.png"></span></div> <div class="optncrcl">(Q)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="matrix1c" class="radiobtn" name="multiple3" type="radio">
+<label class="option" for="matrix1c">
+   <div class="optncrcl"><span class="optnvalue"><img src="./Default_files/Right.png"></span></div> <div class="optncrcl">(R)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="matrix1d" class="radiobtn" name="multiple4" type="radio">
+<label class="option" for="matrix1d">
+   <div class="optncrcl"><span class="optnvalue"><img src="./Default_files/Right.png"></span></div> <div class="optncrcl">(S)</div>
+
+</label> </div>
+
+                            
+                            </div>
+                        <div class="matrixoptn">
+                            <div class="optionno">B</div>
+                            <div class="optionno">
+                                <input id="matrix2a" class="radiobtn" name="multiple5" type="radio">
+<label class="option" for="matrix2a">
+   <div class="optncrcl"><span class="optnvalue"><img src="./Default_files/Right.png"></span></div> <div class="optncrcl">(P)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="matrix2b" class="radiobtn" name="multiple6" type="radio">
+<label class="option" for="matrix2b">
+   <div class="optncrcl"><span class="optnvalue"><img src="./Default_files/Right.png"></span></div> <div class="optncrcl">(Q)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="matrix2c" class="radiobtn" name="multiple7" type="radio">
+<label class="option" for="matrix2c">
+   <div class="optncrcl"><span class="optnvalue"><img src="./Default_files/Right.png"></span></div> <div class="optncrcl">(R)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="matrix2d" class="radiobtn" name="multiple8" type="radio">
+<label class="option" for="matrix2d">
+   <div class="optncrcl"><span class="optnvalue"><img src="./Default_files/Right.png"></span></div> <div class="optncrcl">(S)</div>
+
+</label> </div>
+
+                            
+                            </div>
+                        <div class="matrixoptn">
+                            <div class="optionno">C</div>
+                            <div class="optionno">
+                                <input id="matrix3a" class="radiobtn" name="multiple9" type="radio">
+<label class="option" for="matrix3a">
+   <div class="optncrcl"><span class="optnvalue"><img src="./Default_files/Right.png"></span></div> <div class="optncrcl">(P)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="matrix3b" class="radiobtn" name="multiple10" type="radio">
+<label class="option" for="matrix3b">
+   <div class="optncrcl"><span class="optnvalue"><img src="./Default_files/Right.png"></span></div> <div class="optncrcl">(Q)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="matrix3c" class="radiobtn" name="multiple11" type="radio">
+<label class="option" for="matrix3c">
+   <div class="optncrcl"><span class="optnvalue"><img src="./Default_files/Right.png"></span></div> <div class="optncrcl">(R)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="matrix3d" class="radiobtn" name="multiple12" type="radio">
+<label class="option" for="matrix3d">
+   <div class="optncrcl"><span class="optnvalue"><img src="./Default_files/Right.png"></span></div> <div class="optncrcl">(S)</div>
+
+</label> </div>
+
+                            
+                            </div>
+                        <div class="matrixoptn">
+                            <div class="optionno">D</div>
+                            <div class="optionno">
+                                <input id="matrix4a" class="radiobtn" name="multiple13" type="radio">
+<label class="option" for="matrix4a">
+   <div class="optncrcl"><span class="optnvalue"><img src="./Default_files/Right.png"></span></div> <div class="optncrcl">(P)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="matrix4b" class="radiobtn" name="multiple14" type="radio">
+<label class="option" for="matrix4b">
+   <div class="optncrcl"><span class="optnvalue"><img src="./Default_files/Right.png"></span></div> <div class="optncrcl">(Q)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="matrix4c" class="radiobtn" name="multiple15" type="radio">
+<label class="option" for="matrix4c">
+   <div class="optncrcl"><span class="optnvalue"><img src="./Default_files/Right.png"></span></div> <div class="optncrcl">(R)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="matrix4d" class="radiobtn" name="multiple16" type="radio">
+<label class="option" for="matrix4d">
+   <div class="optncrcl"><span class="optnvalue"><img src="./Default_files/Right.png"></span></div> <div class="optncrcl">(S)</div>
+
+</label> </div>
+
+                            
+                            </div>
+                        </div>
+                          
+                        
+                        
+                        </div>
+                    </div>
+                <div class="nano-pane" style="display: none;"><div class="nano-slider" style="height: 20px; transform: translate(0px, 0px);"></div></div></div>
+                <!--Match making-->
+                <!--Match making simple-->
+                <div id="about" class="nano questionoutr has-scrollbar" style="display:none">
+                <div class="nano-content" tabindex="0" style="margin-right: -15px;">
+                    <div class="questioninr">
+                       
+                        <div class="matrixoutr">
+                        <div class="lftmatrix">
+                        <ul class="matrix">
+                            <li><span class="hdngmatrix">Column 1</span></li>
+                            <li><span class="hdngmatrix">(A)</span>L<sub>1</sub>, L<sub>2</sub>, L<sub>3</sub> are concurrent, if</li>
+                            <li><span class="hdngmatrix">(B)</span>One of L<sub>1</sub>, L<sub>2</sub>, L<sub>3</sub> is parallel to atleast one of the other two, if</li>
+                            <li><span class="hdngmatrix">(C)</span>L<sub>1</sub>, L<sub>2</sub>, L<sub>3</sub> form a triangle, if</li>
+                            <li><span class="hdngmatrix">(D)</span>L<sub>1</sub>, L<sub>2</sub>, L<sub>3</sub>  do not form a triangle, if</li>
+                            
+                            </ul>
+                        </div>
+                        <div class="lftmatrix rytmatrix">
+                        <ul class="matrix">
+                            <li><span class="hdngmatrix">Column 2</span></li>
+                            <li><span class="hdngmatrix">(P)</span>K = -9</li>
+                            <li><span class="hdngmatrix">(Q)</span>K = - 6 / 5</li>
+                            <li><span class="hdngmatrix">(R)</span>K = 6 / 5</li>
+                            <li><span class="hdngmatrix">(S)</span>K = 5</li>
+                            
+                            </ul>
+                        </div>
+                        </div>
+                
+                        
+                        <div class="optninr" style="">
+                            
+                        <div class="matrixoptn simplematch truefalse">
+                            <div class="optionno">A</div>
+                            <div class="optionno">
+                                <input id="match1" class="radiobtn" name="multiple" type="radio">
+                            <label class="option" for="match1">
+                               <div class="optncrcl"><span class="optnvalue"></span></div> <div class="optncrcl">(P)</div>
+
+                            </label> </div>
+
+                            <div class="optionno">
+                                <input id="match2" class="radiobtn" name="multiple" type="radio">
+                                <label class="option" for="match2">
+                                   <div class="optncrcl"><span class="optnvalue"></span></div> <div class="optncrcl">(Q)</div>
+
+                                </label> 
+                            </div>
+
+                            <div class="optionno">
+                                <input id="match3" class="radiobtn" name="multiple" type="radio">
+                                <label class="option" for="match3">
+                                   <div class="optncrcl"><span class="optnvalue"></span></div> <div class="optncrcl">(R)</div>
+
+                                </label> 
+                            </div>
+
+                            <div class="optionno">
+                                <input id="match4" class="radiobtn" name="multiple" type="radio">
+<label class="option" for="match4">
+   <div class="optncrcl"><span class="optnvalue"></span></div> <div class="optncrcl">(S)</div>
+
+</label> </div>
+
+                            
+                            </div>
+                        <div class="matrixoptn simplematch truefalse">
+                            <div class="optionno">B</div>
+                            <div class="optionno">
+                                <input id="match5" class="radiobtn" name="multiple1" type="radio">
+<label class="option" for="match5">
+   <div class="optncrcl"><span class="optnvalue"></span></div> <div class="optncrcl">(P)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="match6" class="radiobtn" name="multiple1" type="radio">
+<label class="option" for="match6">
+   <div class="optncrcl"><span class="optnvalue"></span></div> <div class="optncrcl">(Q)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="match7" class="radiobtn" name="multiple1" type="radio">
+<label class="option" for="match7">
+   <div class="optncrcl"><span class="optnvalue"></span></div> <div class="optncrcl">(R)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="match8" class="radiobtn" name="multiple1" type="radio">
+<label class="option" for="match8">
+   <div class="optncrcl"><span class="optnvalue"></span></div> <div class="optncrcl">(S)</div>
+
+</label> </div>
+
+                            
+                            </div>
+                        <div class="matrixoptn simplematch truefalse">
+                            <div class="optionno">c</div>
+                            <div class="optionno">
+                                <input id="match9" class="radiobtn" name="multiple2" type="radio">
+<label class="option" for="match9">
+   <div class="optncrcl"><span class="optnvalue"></span></div> <div class="optncrcl">(P)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="match10" class="radiobtn" name="multiple2" type="radio">
+<label class="option" for="match10">
+   <div class="optncrcl"><span class="optnvalue"></span></div> <div class="optncrcl">(Q)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="match11" class="radiobtn" name="multiple2" type="radio">
+<label class="option" for="match11">
+   <div class="optncrcl"><span class="optnvalue"></span></div> <div class="optncrcl">(R)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="match12" class="radiobtn" name="multiple2" type="radio">
+<label class="option" for="match12">
+   <div class="optncrcl"><span class="optnvalue"></span></div> <div class="optncrcl">(S)</div>
+
+</label> </div>
+
+                            
+                            </div>
+                        <div class="matrixoptn simplematch truefalse">
+                            <div class="optionno">D</div>
+                            <div class="optionno">
+                                <input id="match13" class="radiobtn" name="multiple3" type="radio">
+<label class="option" for="match13">
+   <div class="optncrcl"><span class="optnvalue"></span></div> <div class="optncrcl">(P)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="match14" class="radiobtn" name="multiple3" type="radio">
+<label class="option" for="match14">
+   <div class="optncrcl"><span class="optnvalue"></span></div> <div class="optncrcl">(Q)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="match15" class="radiobtn" name="multiple3" type="radio">
+<label class="option" for="match15">
+   <div class="optncrcl"><span class="optnvalue"></span></div> <div class="optncrcl">(R)</div>
+
+</label> </div>
+
+                            <div class="optionno">
+                                <input id="match16" class="radiobtn" name="multiple3" type="radio">
+<label class="option" for="match16">
+   <div class="optncrcl"><span class="optnvalue"></span></div> <div class="optncrcl">(S)</div>
+
+</label> </div>
+
+                            
+                            </div>
+                       
+                    
+
+                            
+                            </div>
+                        <div class="browse-tst-box" style="display: none;">
+                        <input style="width: 450px; display: none; " id="image-log" type="file" name="companylogo">
+                        <div style="display: inline-block; width: 90%; margin-top: 3px; margin-left: 8px;">
+                            
+                            <input id="fileName" class="inptrytinfo area" type="text" name="fileName" value="">
+                            <span id="browse" class="brow_btn" value="">Browse</span>
+                            <span class="hdnglft">Upload Image (only .png, .jpg), Maximum Size is 500KB</span>
+                            &nbsp;
+                            &nbsp;
+<!--                            <input type="hidden" name="logoname" id="logoname" value="logo_outer.png">-->
+                        </div>
+                             <div class="image-after-browse">
+                             
+                             </div>
+                             
+                    </div>
+                        </div>
+                        
+                        </div>
+                    <div class="nano-pane" style="display: none;"><div class="nano-slider" style="height: 20px; transform: translate(0px, 0px);"></div></div></div>
+             
+                </div>
+                <!--Match making simple-->
+                
+                
+                
+                <div class="footrlft">
+                <a class="arrow_slide" href="javascript:void(0);"><span class="angle1"></span></a>
+                    <a class="arrow_slide2" href="javascript:void(0);">SAVE<span class="angle2"></span></a>
+                     <div class="chckbx_ques instr">
+                        <a href="javascript:void(0)" class="info" onclick="show1();"><!--?xml version="1.0" encoding="iso-8859-1"?-->
+<!-- Generator: Adobe Illustrator 18.1.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background:new 0 0 100 100;" xml:space="preserve" width="10px" height="15px">
+<g>
+	<g>
+		<path d="M62.162,0c6.696,0,10.043,4.567,10.043,9.789c0,6.522-5.814,12.555-13.391,12.555    c-6.344,0-10.045-3.752-9.869-9.947C48.945,7.176,53.35,0,62.162,0z M41.543,100c-5.287,0-9.164-3.262-5.463-17.615l6.07-25.457    c1.057-4.077,1.23-5.707,0-5.707c-1.588,0-8.451,2.816-12.51,5.59L27,52.406C39.863,41.48,54.662,35.072,61.004,35.072    c5.285,0,6.168,6.361,3.525,16.148L57.58,77.98c-1.234,4.729-0.703,6.359,0.527,6.359c1.586,0,6.787-1.963,11.896-6.041L73,82.377    C60.488,95.1,46.83,100,41.543,100z" fill="#6c6c6c"></path>
+	</g>
+</g>
+</svg>
+                        Instruction
+                        </a>
+                    </div>
+                <div class="chckbx_ques">
+                    
+                    <input type="checkbox" id="check1"><label class="chckbx" for="check1">Review your question</label></div>
+                    
+                  
+                                   </div>
+                
+                </div>
+                
+             <div class="rightpart" id="rightpart">
+                      <div id="about" class="nano rightmain has-scrollbar">
+                    <div class="nano-content" tabindex="0" style="margin-right: -15px;">
+                <div id="accordion" class="ui-accordion ui-widget ui-helper-reset" role="tablist">
+                    <h3 class="acrdnhdr ui-accordion-header ui-corner-top ui-state-default ui-accordion-header-active ui-state-active ui-accordion-icons" role="tab" id="ui-id-1" aria-controls="ui-id-2" aria-selected="true" aria-expanded="true" tabindex="0"><span class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-s"></span>Physics</h3>
+                    <div class="ui-accordion-content ui-corner-bottom ui-helper-reset ui-widget-content ui-accordion-content-active" id="ui-id-2" aria-labelledby="ui-id-1" role="tabpanel" aria-hidden="false" style="display: block;">
+                    <div style="display:inline-block;width:100%">
+                    <ul>
+                        <li class="questionnumb unattempted">1</li>
+                        <li class="questionnumb skip">2</li>
+                        <li class="questionnumb attempted">3</li>
+                        <li class="questionnumb review">4</li>
+                        <li class="questionnumb ">5</li>
+                        <li class="questionnumb ">6</li>
+                        <li class="questionnumb ">7</li>
+                        <li class="questionnumb review">8</li>
+                        </ul>    
+                    
+                    </div>
+                    </div>
+                    <h3 class="acrdnhdr ui-accordion-header ui-corner-top ui-accordion-header-collapsed ui-corner-all ui-state-default ui-accordion-icons" role="tab" id="ui-id-3" aria-controls="ui-id-4" aria-selected="false" aria-expanded="false" tabindex="-1"><span class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-e"></span>Chemistry</h3>
+                    <div class="ui-accordion-content ui-corner-bottom ui-helper-reset ui-widget-content" id="ui-id-4" aria-labelledby="ui-id-3" role="tabpanel" aria-hidden="true" style="display: none;">
+                        <div style="display:inline-block;width:100%">
+                    <ul>
+                        <li class="questionnumb unattempted">1</li>
+                        <li class="questionnumb skip">2</li>
+                        <li class="questionnumb attempted">3</li>
+                        <li class="questionnumb review">4</li>
+                        <li class="questionnumb attempted">5</li>
+                        <li class="questionnumb attempted">6</li>
+                        <li class="questionnumb attempted">7</li>
+                        <li class="questionnumb review">8</li>
+                        <li class="questionnumb review">9</li>
+                        <li class="questionnumb review">10</li>
+                        </ul>  
+                        </div>
+                    </div>
+                    </div>
+                          </div>
+                
+                <div class="nano-pane" style="display: none;"><div class="nano-slider" style="height: 20px; transform: translate(0px, 0px);"></div></div></div>
+                <div class="submit">
+                <ul>
+                    <li><span class="crcl"></span>Attempted</li>
+                    <li><span class="crcl crcl1"></span>Unattempted</li>
+                    <li><span class="crcl crcl2"></span>Review</li>
+                    <li><span class="crcl crcl3"></span>Skip</li>
+                    </ul>
+                <a href="javascript:void(0);" class="submitbtn">Submit test</a>
+                </div>
+            </div>
+            </div>
+        
+        
+        <div id="gettouchform" class="getin_touchpop" style="display: none;">
+  <div id="gtformhid" class="contact_form pop_show"> <!--<span class="popclose sprite" onclick="gettouch_hide()"></span>-->
+    <div class="getpophdr">
+      <h1 id="head">Title</h1>
+    </div>
+    <div class="rgt_pg_cnct">
+        Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. ibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor.
+        <div style="margin-top:15px;"><a href="javascript:void(0);" onclick="gettouch_hide()" class="submitbtn popupbtn">Done</a></div></div>
+  </div>
+</div>
+                <script src="./Default_files/scrollbar.js.download" type="text/javascript"></script>
+        <script>
+
+           $(document).ready(function(){ 
+            $("#dropsubject").click(function(){
+            $("#dropsubcntnt").toggle();
+            $("#subjin").toggleClass("activedrop");
+                
+            }); 
+            $("#languagedrop").click(function(){
+            $("#languagecntnt").toggle();
+            $("#langin").toggleClass("activedrop");
+                
+            }); 
+            $("#rightmenu").click(function(){
+            $("#rightpart").toggle();
+            });
+               
+               $("#accordion").accordion({heightStyle: "content"});
+               $(".nano").nanoScroller();
+
+           });
+        </script>
+     <script src="./Default_files/jquery-ui.js.download"></script>
+    
+
+
+</body></html>
