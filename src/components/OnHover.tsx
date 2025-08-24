@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface OnHoverProps {
   /** The element that the user hovers over */
@@ -12,24 +12,19 @@ interface OnHoverProps {
 export default function OnHover({
   trigger,
   children,
-  dropdownClassName = '',
+  dropdownClassName = "",
 }: OnHoverProps) {
   return (
-    <div className="group relative inline-block">
+    <div className="group inline-block">
       {/* trigger */}
-      <div className="cursor-pointer flex">
-        {trigger}
-      </div>
+      <div className="cursor-pointer flex">{trigger}</div>
 
       {/* dropdown */}
-  <div
-        className={
-          `opacity-0 invisible group-hover:opacity-100 group-hover:visible
+      <div
+        className={`opacity-0 invisible group-hover:opacity-100 group-hover:visible
            transition-opacity duration-200
-       absolute z-50 mt-2
-           bg-white border border-gray-200 rounded shadow-lg
-           p-2 max-w-xs whitespace-normal break-words ${dropdownClassName}`
-        }
+       absolute z-50 mt-2 bg-white border border-gray-200 rounded shadow-lg
+           p-2 whitespace-normal break-words ${dropdownClassName}`}
       >
         {children}
       </div>

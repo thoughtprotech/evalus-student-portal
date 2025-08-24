@@ -87,33 +87,65 @@ export interface GetQuestionByIdRequest {
 
 export interface GetQuestionByIdResponse {
   questionId: number;
+  explanation: string;
+  questionsMeta: {
+    allowCandidateComments: number;
+    tags: string;
+    marks: number;
+    negativeMarks: number;
+    graceMarks: number;
+    difficultyLevelId: number;
+    questionTypeId: number;
+    questionTypeName: string;
+    subjectId: number;
+    topicId: number;
+    chapterId: number;
+    language: string;
+  };
+  question: string;
+  options: {
+    options: string;
+    answer: string;
+  };
+}
+
+export interface GetTestMetaDataRequest {
+  testId: number;
+}
+
+export interface TestMetaDataInterface {
+  testId: number;
+  testName: string;
+  testDuration: number;
+  testStartTime: string;
+  testEndTime: string;
+  instruction: {
+    primaryInstruction: string;
+    secondaryInstruction: string;
+  };
+}
+
+export interface QuestionsMetaDataInterface {
+  questionId: number;
   questionText: string;
-  headerText?: string;
-  questionTypeId: number;
-  subjectId: number;
-  marks: number;
-  negativeMarks: number;
-  graceMarks: number;
-  questionDifficultyLevelId: number;
-  additionalExplanation: string;
-  videoSolutionWeburl: string;
-  videoSolutionMobileurl: string;
-  allowCandidateComments: number;
-  writeUpId: number | null;
-  hasMultipleAnswers: string;
-  questionOptionsJson: string;
-  userAnswer: any;
-  questionCorrectAnswerJson: string;
-  language: string;
-  isActive: number;
-  createdBy: string;
-  createdDate: string;
-  modifiedBy: string;
-  modifiedDate: string;
-  subject: Subject;
-  questionType: QuestionType;
-  writeUp: any;
-  questionTags: any[];
+  questionType: string;
+  status: string;
+  options: {
+    optionText: string;
+  }[];
+}
+
+export interface SectionsMetaDataInterface {
+  sectionId: number;
+  sectionName: string;
+  minDuration: number;
+  maxDuration: number;
+  questions: QuestionsMetaDataInterface[];
+}
+
+export interface GetTestMetaDataResponse {
+  testMeta: TestMetaDataInterface;
+  sections: SectionsMetaDataInterface[];
 }
 
 export interface CreateQuestionRequest {
@@ -183,7 +215,7 @@ export interface GetCandidateTestResponse {
   | "Up Next"; // Virtual grouping for upcoming registered tests
   testId: number;
   // Optional id from registration table if candidate already registered
-  testRegistrationId?: number;
+  testRegistrationId: number;
 }
 
 export interface GetCandidateStarredTestRequest {
@@ -291,7 +323,6 @@ export interface GetDifficultyLevelsResponse {
   modifiedDate: string;
 }
 
-
 // Question Options API Types
 export interface GetQuestionOptionsRequest {
   // No request parameters needed for getting all questions
@@ -390,3 +421,55 @@ export interface DeleteCandidateRequest {
   candidateId: number;
 }
 
+export interface StartSessionRequest {
+  testRegistrationId: number;
+  userName: string | null;
+}
+
+export interface StartSessionResponse {
+  testResponseId: number;
+}
+
+// The full request your client function will accept
+export type SubmitQuestionRequest = {
+  testResponseId: number;
+  testQuestionId: number;
+  responseJson: string;
+  status: string;
+  comments: string;
+  userName: string;
+};
+export interface SubmitQuestionResponse {}
+
+export interface SubmitTestRequest {
+  testResponseId: number;
+  userName: string;
+}
+
+export interface SubmitTestResponse {
+  testResponseId: number;
+  testId: number;
+  status: string;
+  startedAtUtc: string;
+  endedAtUtc: string;
+  totalQuestions: number;
+  answeredCount: number;
+  markedForReviewCount: number;
+  unansweredCount: number;
+}
+
+export interface GetInstructionsByTestIdRequest {
+  testId: number;
+}
+
+export interface GetInstructionsByTestIdResponse {
+  testInstructionId: number;
+  testInstructionName: string;
+  testInstruction1: string;
+  language: string;
+  isActive: number;
+  createdBy: string;
+  createdDate: string;
+  modifiedBy: string;
+  modifiedDate: string;
+}

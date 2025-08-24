@@ -20,7 +20,7 @@ export default function Modal({
 
   return (
     <div
-      className={`fixed inset-0 rounded-xl bg-black/20 bg-opacity-40 flex items-center justify-center z-50`}
+      className={`fixed inset-0 rounded-xl bg-black/20 bg-opacity-40 flex items-center justify-center z-[9999]`}
     >
       <div
         className={`bg-white rounded-lg p-6 w-[90%] shadow-xl text-center space-y-4 ${className}`}
