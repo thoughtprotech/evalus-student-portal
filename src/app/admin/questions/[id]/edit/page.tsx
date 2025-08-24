@@ -57,6 +57,7 @@ export default function EditQuestionPage() {
 		writeUpId: null as number | null,
 		graceMarks: 0,
 		allowComments: 0, // 0 = No, 1 = Yes (Allow Candidate Comments)
+		duration: 0,
 	});
 	// Status (Active/InActive)
 	const [questionStatus, setQuestionStatus] = useState<number>(1);
@@ -129,6 +130,7 @@ export default function EditQuestionPage() {
 					marks: (q as any).marks ?? (q as any).questionsMeta?.marks ?? 0,
 					negativeMarks: (q as any).negativeMarks ?? (q as any).questionsMeta?.negativeMarks ?? 0,
 					graceMarks: (q as any).graceMarks ?? (q as any).questionsMeta?.graceMarks ?? 0,
+					duration: (q as any).duration ?? (q as any).questionsMeta?.duration ?? (q as any).questionDuration ?? 0,
 					difficulty: (q as any).questionDifficultyLevelId ?? (q as any).questionsMeta?.difficultyLevelId ?? 0,
 					questionType: normalized.questionTypeId,
 					languageId: normalized.language,
@@ -236,8 +238,11 @@ export default function EditQuestionPage() {
 				marks: questionsMeta.marks,
 				negativeMarks: questionsMeta.negativeMarks,
 				graceMarks: questionsMeta.graceMarks,
+				duration: questionsMeta.duration || 0,
 				difficultyLevelId: questionsMeta.difficulty,
 				questionTypeId: questionsMeta.questionType,
+					questionTypeName: currentTypeLabel || undefined,
+					chapterId: questionsMeta.chapterId || 0,
 				subjectId: questionsMeta.topicId || questionsMeta.subjectId,
 				topicId: questionsMeta.topicId,
 				language: questionsMeta.languageId,
@@ -247,6 +252,8 @@ export default function EditQuestionPage() {
 			},
 			options: { options: optionsStr, answer: answerStr },
 			isActive: questionStatus,
+			duration: questionsMeta.duration || 0,
+			Duration: questionsMeta.duration || 0,
 		};
 	};
 
@@ -354,8 +361,9 @@ export default function EditQuestionPage() {
 										<div className="space-y-1"><label className="block text-xs font-medium text-gray-600">Right Marks <span className="text-red-500">*</span></label><input type="number" min={0} value={questionsMeta.marks || ''} onChange={(e) => setQuestionsMeta(p => ({ ...p, marks: Number(e.target.value) }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" /></div>
 										<div className="space-y-1"><label className="block text-xs font-medium text-gray-600">Negative Marks</label><input type="number" min={0} value={questionsMeta.negativeMarks || ''} onChange={(e) => setQuestionsMeta(p => ({ ...p, negativeMarks: Number(e.target.value) }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" /></div>
 									</div>
-									<div className="grid grid-cols-2 gap-3">
+									<div className="space-y-4">
 										<div className="space-y-1"><label className="block text-xs font-medium text-gray-600">Grace Marks</label><input type="number" min={0} value={questionsMeta.graceMarks || ''} onChange={(e) => setQuestionsMeta(p => ({ ...p, graceMarks: Number(e.target.value) }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" /></div>
+										<div className="space-y-1"><label className="block text-xs font-medium text-gray-600">Duration (sec)</label><input type="number" min={0} value={questionsMeta.duration || ''} onChange={(e) => setQuestionsMeta(p => ({ ...p, duration: Number(e.target.value) }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" /></div>
 										<div className="space-y-1">
 											<label className="block text-xs font-medium text-gray-600">Allow Comments</label>
 											<div className="flex items-center gap-4 px-3 py-2 rounded-lg w-full">

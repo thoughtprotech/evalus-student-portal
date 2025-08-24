@@ -41,7 +41,8 @@ export default function Index() {
     languageId: string;
     writeUpId: number | null;
     graceMarks: number;
-    allowComments: number; // 1 = Yes, 0 = No
+  allowComments: number; // 1 = Yes, 0 = No
+  duration: number; // seconds
   }>({
     tags: "",
     marks: 0,
@@ -54,7 +55,8 @@ export default function Index() {
     languageId: "",
     writeUpId: null,
     graceMarks: 0,
-    allowComments: 0, // 0 = No, 1 = Yes (Allow Candidate Comments)
+  allowComments: 0, // 0 = No, 1 = Yes (Allow Candidate Comments)
+  duration: 0,
   });
   // Question Status (Active by default)
   const [questionStatus, setQuestionStatus] = useState<number>(1); // 1 = Active, 0 = InActive
@@ -552,8 +554,11 @@ export default function Index() {
           marks: questionsMeta.marks,
           negativeMarks: questionsMeta.negativeMarks,
           graceMarks: questionsMeta.graceMarks,
+          duration: questionsMeta.duration || 0,
           difficultyLevelId: questionsMeta.difficulty,
           questionTypeId: questionsMeta.questionType,
+          questionTypeName: currentType || undefined,
+          chapterId: questionsMeta.chapterId || 0,
           // Backend expects SubjectID column; pass the most specific choice.
           subjectId: questionsMeta.topicId || questionsMeta.subjectId,
           topicId: questionsMeta.topicId,
@@ -569,6 +574,9 @@ export default function Index() {
           answer: stringifiedAnswer!,
         },
         isActive: questionStatus,
+  // Mirror duration at top-level for backend compatibility
+  duration: questionsMeta.duration || 0,
+  Duration: questionsMeta.duration || 0,
       };
 
       // Step 1: Create the question
@@ -657,7 +665,8 @@ export default function Index() {
         languageId: "",
         writeUpId: null,
         graceMarks: 0,
-        allowComments: 0,
+  allowComments: 0,
+  duration: 0,
       });
       setQuestionStatus(1);
 
@@ -1029,7 +1038,7 @@ export default function Index() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-4">
                     <div className="space-y-1">
                       <label className="block text-xs font-medium text-gray-600">Grace Marks</label>
                       <input
@@ -1040,6 +1049,19 @@ export default function Index() {
                         value={questionsMeta.graceMarks || ''}
                         onChange={(e) => {
                           setQuestionsMeta((prev) => ({ ...prev, graceMarks: Number(e.target.value) }));
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-xs font-medium text-gray-600">Duration (sec)</label>
+                      <input
+                        type="number"
+                        min={0}
+                        placeholder="0"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        value={questionsMeta.duration || ''}
+                        onChange={(e) => {
+                          setQuestionsMeta((prev) => ({ ...prev, duration: Number(e.target.value) }));
                         }}
                       />
                     </div>

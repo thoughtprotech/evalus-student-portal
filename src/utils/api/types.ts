@@ -64,6 +64,8 @@ export interface QuestionsMetaResponse {
   questionText: string;
   questionOptionsJson?: string;
   questionType: QuestionType;
+  // Optional duration per question (seconds); provided by backend when available
+  duration?: number;
 }
 
 export interface Subject {
@@ -126,8 +128,12 @@ export interface CreateQuestionRequest {
     marks: number;
     negativeMarks: number;
     graceMarks: number;
+  // Duration of the question in seconds (time allotted or reference duration)
+  duration: number; // pass 0 if not provided
     difficultyLevelId: number;
     questionTypeId: number;
+  chapterId?: number; // included for compatibility with backend payload
+  questionTypeName?: string; // optional descriptive name if backend accepts
     subjectId: number;
     topicId: number;
     language: string;
@@ -143,6 +149,9 @@ export interface CreateQuestionRequest {
   };
   // Question active status (1 = Active, 0 = InActive)
   isActive?: number;
+  // Top-level duration for backward compatibility if backend expects it (seconds)
+  duration?: number;
+  Duration?: number; // PascalCase variant just in case API is case-sensitive on this
 }
 
 export interface GetQuestionTypesResponse {

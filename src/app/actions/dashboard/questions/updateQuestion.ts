@@ -24,6 +24,10 @@ export async function updateQuestionAction(
   // Provide PascalCase variants for backend compatibility
   if (!('ModifiedBy' in finalPayload)) finalPayload.ModifiedBy = finalPayload.modifiedBy;
   if (!('CreatedBy' in finalPayload)) finalPayload.CreatedBy = finalPayload.createdBy;
+  // Add duration fallbacks (top-level and PascalCase) if coming only within questionsMeta
+  const qMetaDur = (finalPayload.questionsMeta?.duration ?? finalPayload.questionsMeta?.Duration);
+  if (!('duration' in finalPayload)) finalPayload.duration = qMetaDur ?? 0;
+  if (!('Duration' in finalPayload)) finalPayload.Duration = finalPayload.duration;
     const { status, error, data, errorMessage, message } = await apiHandler(
       endpoints.updateQuestion,
       finalPayload

@@ -187,6 +187,18 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         width: 120
       },
       {
+        field: "duration",
+        headerName: "Duration (sec)",
+        headerTooltip: "Question Duration (seconds)",
+        sortable: true,
+        filter: 'agNumberColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear']
+        },
+        width: 140,
+  valueFormatter: (p: any) => (p.value ? String(Number(p.value)) : '0')
+      },
+      {
         field: "isActive",
         headerName: "Status",
         headerTooltip: "Active Status",

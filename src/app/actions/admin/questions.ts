@@ -23,6 +23,7 @@ export interface QuestionRow {
   isActive?: number;
   createdBy?: string;
   questionoptionId?: number;
+  duration?: number; // seconds
 }
 
 // API response structure based on your provided example
@@ -42,6 +43,8 @@ interface ApiQuestionItem {
   modifiedBy?: string | null;
   CreatedBy?: string | null; // tolerate different casing
   ModifiedBy?: string | null;
+  duration?: number; // may be provided
+  questionDuration?: number; // alternate field name
 }
 
 interface ODataResponse<T> {
@@ -98,6 +101,7 @@ function mapToRows(items: ApiQuestionItem[]): QuestionRow[] {
       // Prefer camelCase, then PascalCase, fallback to System
       createdBy: (item.createdBy ?? item.CreatedBy ?? undefined) ? String(item.createdBy ?? item.CreatedBy) : "System",
       questionoptionId: item.questionOptionId || undefined, // Map questionOptionId from API response
+  duration: (item as any).duration ?? (item as any).questionDuration ?? 0,
     };
 
     return mapped;

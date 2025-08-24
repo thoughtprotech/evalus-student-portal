@@ -21,6 +21,9 @@ export async function createQuestionAction(
       // Also include PascalCase versions (API for Questions may expect these; camelCase ignored)
       CreatedBy: (payload as any).CreatedBy || payload.createdBy || auditUser,
       ModifiedBy: (payload as any).ModifiedBy || payload.modifiedBy || auditUser,
+  // Ensure duration present in all expected casings if supplied
+  duration: (payload as any).duration ?? (payload as any).questionsMeta?.duration ?? 0,
+  Duration: (payload as any).Duration ?? (payload as any).duration ?? (payload as any).questionsMeta?.duration ?? 0,
     };
 
     const { status, error, data, errorMessage, message } = await apiHandler(
