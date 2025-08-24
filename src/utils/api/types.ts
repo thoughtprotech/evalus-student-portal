@@ -111,7 +111,6 @@ export interface GetQuestionByIdResponse {
 
 export interface GetTestMetaDataRequest {
   testId: number;
-  userId: number;
 }
 
 export interface TestMetaDataInterface {
@@ -216,7 +215,7 @@ export interface GetCandidateTestResponse {
   | "Up Next"; // Virtual grouping for upcoming registered tests
   testId: number;
   // Optional id from registration table if candidate already registered
-  testRegistrationId?: number;
+  testRegistrationId: number;
 }
 
 export interface GetCandidateStarredTestRequest {

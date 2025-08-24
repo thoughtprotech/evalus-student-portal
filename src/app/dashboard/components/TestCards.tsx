@@ -23,15 +23,15 @@ interface TestCardsProps {
   startDateTimeString?: string;
   endDateTimeString?: string;
   status?:
-  | "Registered"
-  | "Completed"
-  | "Cancelled"
-  | "In Progress"
-  | "Missed"
-  | "Up Next"
-  | undefined;
+    | "Registered"
+    | "Completed"
+    | "Cancelled"
+    | "In Progress"
+    | "Missed"
+    | "Up Next"
+    | undefined;
   bookmarked?: boolean;
-  registrationId?: number;
+  registrationId: number;
   onRegistered?: () => Promise<void> | void; // callback to refresh dashboard after registration
 }
 
@@ -116,6 +116,8 @@ export default function TestCards({
   const openInPopup = (e: React.MouseEvent) => {
     if (status !== "Registered") return;
 
+    console.log({ registrationId });
+
     e.preventDefault();
 
     const features = [
@@ -164,7 +166,7 @@ export default function TestCards({
       // Re-request fullscreen if user exits
       popup.document.addEventListener("fullscreenchange", () => {
         if (!popup.document.fullscreenElement) {
-          popup.document.documentElement.requestFullscreen().catch(() => { });
+          popup.document.documentElement.requestFullscreen().catch(() => {});
         }
       });
     });
@@ -185,7 +187,7 @@ export default function TestCards({
         if (isFinite(s.getTime()) && s.getTime() > Date.now() - 60000) {
           return s.toISOString().slice(0, 16);
         }
-      } catch { }
+      } catch {}
     }
     return defaultLocal();
   })();
@@ -220,7 +222,11 @@ export default function TestCards({
         toast.success("Test registered successfully");
         setShowRegisterModal(false);
         if (onRegistered) {
-          try { await onRegistered(); } catch { /* ignore */ }
+          try {
+            await onRegistered();
+          } catch {
+            /* ignore */
+          }
         }
       } else {
         toast.error(res.errorMessage || res.message || "Registration failed");
@@ -311,8 +317,9 @@ export default function TestCards({
         <a
           href={linkHref}
           onClick={status === "Up Next" ? onClickRegister : openInPopup}
-          className={`w-full flex items-center justify-center gap-1 px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${status && actionButtonMapping[status]
-            }`}
+          className={`w-full flex items-center justify-center gap-1 px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${
+            status && actionButtonMapping[status]
+          }`}
         >
           {linkText}
           {linkIcon}
@@ -330,7 +337,10 @@ export default function TestCards({
         cancelText="Cancel"
         confirmDisabled={!proposedStart || isPast || registering}
       >
-        <form className="space-y-5 text-left" onSubmit={(e) => e.preventDefault()}>
+        <form
+          className="space-y-5 text-left"
+          onSubmit={(e) => e.preventDefault()}
+        >
           <div className="grid gap-2">
             <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
               <span>Test Start Date & Time</span>
@@ -343,20 +353,27 @@ export default function TestCards({
               onChange={(e) => setProposedStart(e.target.value)}
               onBlur={() => setStartTouched(true)}
               required
-              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${startTouched && (!proposedStart || isPast)
-                ? "border-red-500"
-                : "border-gray-300"
-                }`}
+              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${
+                startTouched && (!proposedStart || isPast)
+                  ? "border-red-500"
+                  : "border-gray-300"
+              }`}
             />
             {startTouched && !proposedStart && (
-              <p className="text-xs text-red-600">Start date/time is required.</p>
+              <p className="text-xs text-red-600">
+                Start date/time is required.
+              </p>
             )}
             {startTouched && proposedStart && isPast && (
-              <p className="text-xs text-red-600">Start date/time cannot be in the past.</p>
+              <p className="text-xs text-red-600">
+                Start date/time cannot be in the past.
+              </p>
             )}
           </div>
           <div className="grid gap-2">
-            <label className="text-sm font-medium text-gray-700">Comments</label>
+            <label className="text-sm font-medium text-gray-700">
+              Comments
+            </label>
             <textarea
               value={comments}
               onChange={(e) => setComments(e.target.value)}

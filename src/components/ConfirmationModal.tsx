@@ -69,15 +69,10 @@ export default function ConfirmationModal({
               </h2>
             </div>
             <p className="mt-2 text-sm text-gray-600">{message}</p>
-            {children ? (
-              <div className="mt-3 text-sm text-gray-700">{children}</div>
-            ) : null}
           </div>
         </div>
         {children ? (
-          <div className="mt-5 text-sm text-gray-700">
-            {children}
-          </div>
+          <div className="mt-5 text-sm text-gray-700">{children}</div>
         ) : null}
         <div className="mt-6 flex items-center justify-end gap-3">
           {cancelText && (
@@ -94,14 +89,15 @@ export default function ConfirmationModal({
               onConfirm();
             }}
             disabled={confirmDisabled}
-            className={`min-w-28 px-4 py-2 rounded-md text-white ${confirmDisabled
-              ? "bg-indigo-400 cursor-not-allowed opacity-70"
-              : variant === "danger"
+            className={`min-w-28 px-4 py-2 rounded-md text-white ${
+              confirmDisabled
+                ? "bg-indigo-400 cursor-not-allowed opacity-70"
+                : variant === "danger"
                 ? "bg-red-600 hover:bg-red-700 cursor-pointer"
                 : variant === "success"
-                  ? "bg-green-600 hover:bg-green-700 cursor-pointer"
-                  : "bg-indigo-600 hover:bg-indigo-700 cursor-pointer"
-              }`}
+                ? "bg-green-600 hover:bg-green-700 cursor-pointer"
+                : "bg-indigo-600 hover:bg-indigo-700 cursor-pointer"
+            }`}
           >
             {confirmText}
           </button>

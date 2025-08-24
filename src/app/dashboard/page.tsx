@@ -18,8 +18,13 @@ import { useUser } from "@/contexts/UserContext";
 import toast from "react-hot-toast";
 
 export default function Index() {
-  const { username, setUsername, currentGroupId, setCurrentGroupId, groupSelected } =
-    useUser();
+  const {
+    username,
+    setUsername,
+    currentGroupId,
+    setCurrentGroupId,
+    groupSelected,
+  } = useUser();
   const [loaded, setLoaded] = useState<boolean>(false);
   // Default tab: Up Next for normal dashboard, Registered when viewing a group
   const [currentTab, setCurrentTab] = useState<number>(groupSelected ? 0 : 2);
@@ -31,13 +36,13 @@ export default function Index() {
   const tabs = ["Registered", "In Progress", "Up Next", "Completed", "Missed"];
 
   const fetchTestList = async () => {
-    const res = await fetchCandidateTestList(
-      Number(currentGroupId),
-      { useGroupEndpoint: !!groupSelected }
-    );
+    const res = await fetchCandidateTestList(Number(currentGroupId), {
+      useGroupEndpoint: !!groupSelected,
+    });
     const { data, status } = res;
     setLoaded(false);
     if (status === 200) {
+      console.log({ data });
       setTestList(data!);
       setLoaded(true);
     } else {
@@ -68,12 +73,16 @@ export default function Index() {
     setPage(1);
   }, [currentTab, searchQuery]);
   useEffect(() => {
-    const totalPages = Math.max(1, Math.ceil((filteredTestList?.length || 0) / pageSize));
+    const totalPages = Math.max(
+      1,
+      Math.ceil((filteredTestList?.length || 0) / pageSize)
+    );
     if (page > totalPages) setPage(totalPages);
   }, [filteredTestList, page, pageSize]);
 
   // Paginate
-  const paginatedTests = filteredTestList?.slice((page - 1) * pageSize, page * pageSize) || [];
+  const paginatedTests =
+    filteredTestList?.slice((page - 1) * pageSize, page * pageSize) || [];
 
   // Prepare tab card data including count and an appropriate icon
   const tabCardData = tabs.map((tab) => {
@@ -105,6 +114,10 @@ export default function Index() {
       icon,
     };
   });
+
+  useEffect(() => {
+    console.log({ paginatedTests });
+  }, [paginatedTests]);
 
   if (!loaded) {
     return <Loader />;
@@ -169,6 +182,7 @@ export default function Index() {
                     onRegistered={async () => {
                       await fetchTestList();
                     }}
+                    registrationId={test.testRegistrationId}
                   />
                 </div>
               ))}
@@ -196,16 +210,20 @@ function StatCard({
   current: boolean;
 }) {
   // Increase width specifically for "In Progress" so it stays single line
-  const minWidthClass = label === "In Progress" ? "min-w-[175px]" : "min-w-[150px]";
+  const minWidthClass =
+    label === "In Progress" ? "min-w-[175px]" : "min-w-[150px]";
   return (
     <div
-      className={`border border-gray-300 ${current ? "bg-indigo-50 border-indigo-300" : "bg-white"
-        } rounded-xl shadow-md duration-200 ease-in-out px-6 py-1 flex items-center gap-5 ${minWidthClass} w-full`}
+      className={`border border-gray-300 ${
+        current ? "bg-indigo-50 border-indigo-300" : "bg-white"
+      } rounded-xl shadow-md duration-200 ease-in-out px-6 py-1 flex items-center gap-5 ${minWidthClass} w-full`}
     >
       <div className="flex-shrink-0 rounded-full">{icon}</div>
       <div className="flex flex-col">
         <span className="text-xl font-bold text-gray-800">{value}</span>
-        <span className="text-xs font-medium text-gray-500 whitespace-nowrap">{label}</span>
+        <span className="text-xs font-medium text-gray-500 whitespace-nowrap">
+          {label}
+        </span>
       </div>
     </div>
   );
