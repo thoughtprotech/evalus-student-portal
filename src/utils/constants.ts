@@ -32,8 +32,8 @@ export const QUESTION_STATUS: {
   ANSWERED_TO_REVIEW: string;
 } = {
   NOT_VISITED: "Not Visited",
-  ATTEMPTED: "Attempted",
-  UNATTEMPTED: "UnAttempted",
-  TO_REVIEW: "To Review",
-  ANSWERED_TO_REVIEW: "Answered To Review",
+  ATTEMPTED: "Answered",
+  UNATTEMPTED: "Not Answered",
+  TO_REVIEW: "Marked For Review",
+  ANSWERED_TO_REVIEW: "Answered And Marked For Review",
 };

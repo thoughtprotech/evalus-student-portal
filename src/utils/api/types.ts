@@ -409,13 +409,10 @@ export interface StartSessionResponse {
 // The full request your client function will accept
 export type SubmitQuestionRequest = {
   testResponseId: number;
-  answers: {
-    testQuestionId: number;
-    responseJson: string;
-    status: string;
-    comments: string;
-    userName: string;
-  }[];
+  testQuestionId: number;
+  responseJson: string;
+  status: string;
+  comments: string;
   userName: string;
 };
 export interface SubmitQuestionResponse {}

@@ -20,14 +20,10 @@ export async function submitQuestionAction(
 
     const res = await apiHandler(endpoints.submitQuestion, {
       testResponseId,
-      answers: [{
-        testResponseId,
-        testQuestionId,
-        comments,
-        responseJson,
-        status,
-        userName,
-      }],
+      testQuestionId,
+      comments,
+      responseJson,
+      status,
       userName,
     });
     return {

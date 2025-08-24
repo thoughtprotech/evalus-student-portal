@@ -26,6 +26,7 @@ import AssessmentAreaHeader from "./_components/AssessmentArea/_components/Heade
 import QuestionArea from "./_components/AssessmentArea/QuestionArea/_components/QuestionArea";
 import AnswerArea from "./_components/AssessmentArea/QuestionArea/_components/AnswerArea";
 import AssessmentFooter from "./_components/AssessmentArea/_components/Footer";
+import SubmitSectionModal from "./_components/SubmitSectionModal";
 
 export default function ExamPage() {
   const { id, testResponseId } = useParams();
@@ -33,6 +34,7 @@ export default function ExamPage() {
 
   const [question, setQuestion] = useState<GetQuestionByIdResponse>();
   const [showModal, setShowModal] = useState(false);
+  const [showSubmitSectionModal, setSubmitSectionModal] = useState(false);
   const [errorMessage] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
@@ -52,6 +54,8 @@ export default function ExamPage() {
   const handleSubmit = () => setShowModal(true);
 
   const cancelSubmit = () => setShowModal(false);
+
+  const cancelSubmitSectionModalSubmit = () => setSubmitSectionModal(false);
 
   useEffect(() => {
     console.log({ id, testResponseId });
@@ -77,10 +81,14 @@ export default function ExamPage() {
         );
 
         if (response.status === 200) {
-          fetchQuestionById(
-            currentSection?.questions[currentIndex + 1].questionId!
-          );
-          setCurrentIndex(currentIndex + 1);
+          if (currentSection?.questions[currentIndex + 1]) {
+            fetchQuestionById(
+              currentSection?.questions[currentIndex + 1].questionId!
+            );
+            setCurrentIndex(currentIndex + 1);
+          } else {
+            setSubmitSectionModal(true);
+          }
         } else {
           console.log(response.errorMessage);
           toast.error("Something Went Wrong");
@@ -282,6 +290,59 @@ export default function ExamPage() {
 
   const toggleMarkForReview = async () => {
     // TODO: Implement API here to update question status
+    const userName = await getUserAction();
+
+    if (userName) {
+      const isValid = validateResponse();
+
+      if (isValid) {
+        const response = await submitQuestionAction(
+          Number(testResponseId),
+          question?.questionId!,
+          question?.options.answer!,
+          QUESTION_STATUS.ANSWERED_TO_REVIEW,
+          "",
+          userName
+        );
+
+        if (response.status === 200) {
+          if (currentSection?.questions[currentIndex + 1]) {
+            fetchQuestionById(
+              currentSection?.questions[currentIndex + 1].questionId!
+            );
+            setCurrentIndex(currentIndex + 1);
+          } else {
+            setSubmitSectionModal(true);
+          }
+        } else {
+          console.log(response.errorMessage);
+          toast.error("Something Went Wrong");
+        }
+      } else {
+        const response = await submitQuestionAction(
+          Number(testResponseId),
+          question?.questionId!,
+          question?.options.answer!,
+          QUESTION_STATUS.TO_REVIEW,
+          "",
+          userName
+        );
+
+        if (response.status === 200) {
+          if (currentSection?.questions[currentIndex + 1]) {
+            fetchQuestionById(
+              currentSection?.questions[currentIndex + 1].questionId!
+            );
+            setCurrentIndex(currentIndex + 1);
+          } else {
+            setSubmitSectionModal(true);
+          }
+        } else {
+          console.log(response.errorMessage);
+          toast.error("Something Went Wrong");
+        }
+      }
+    }
   };
 
   const submitTest = async () => {
@@ -383,6 +444,31 @@ export default function ExamPage() {
 
     if (isLast) {
       await submitTest();
+      return;
+    }
+
+    const nextSection = sections[curIdx + 1];
+    if (nextSection) {
+      setCurrentSection(nextSection);
+    }
+  };
+
+  const goToNextSection = async () => {
+    if (!testMetaData || !testMetaData.sections?.length || !currentSection) {
+      return;
+    }
+    const { sections } = testMetaData;
+    const curIdx = getCurrentSectionIndex(sections, currentSection);
+
+    if (curIdx === -1) {
+      // Current section not found in latest metadata; optionally refetch or no-op
+      return;
+    }
+
+    const isLast = curIdx === sections.length - 1;
+
+    if (isLast) {
+      handleSubmit();
       return;
     }
 
@@ -551,6 +637,17 @@ export default function ExamPage() {
         showModal={showModal}
         confirmSubmit={submitTest}
         cancelSubmit={cancelSubmit}
+      />
+
+      <SubmitSectionModal
+        sections={testMetaData?.sections!}
+        showModal={showSubmitSectionModal}
+        confirmSubmit={() => {
+          goToNextSection();
+          setSubmitSectionModal(false);
+        }}
+        cancelSubmit={cancelSubmitSectionModalSubmit}
+        currentSectionId={currentSection?.sectionId}
       />
     </div>
   );
