@@ -15,7 +15,7 @@ interface RenderQuestionProps {
   setQuestion: Dispatch<SetStateAction<GetQuestionByIdResponse | undefined>>;
 }
 
-export default function RenderQuestion({
+export default function RenderOptions({
   question,
   setQuestion,
 }: {

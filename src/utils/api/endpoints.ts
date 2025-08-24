@@ -6,6 +6,8 @@ import {
   GetCandidateTestRequest,
   GetCandidateTestResponse,
   GetDifficultyLevelsResponse,
+  GetInstructionsByTestIdRequest,
+  GetInstructionsByTestIdResponse,
   GetLanguagesResponse,
   GetQuestionByIdRequest,
   GetQuestionByIdResponse,
@@ -338,16 +340,23 @@ export const endpoints = {
   } as Endpoint<StartSessionRequest, StartSessionResponse>,
 
   submitQuestion: {
-    path: (req: SubmitQuestionRequest) =>
-      `/api/TestSessions/answers`,
+    path: (req: SubmitQuestionRequest) => `/api/TestSessions/answers`,
     method: "POST",
     type: "CLOSE",
   } as Endpoint<SubmitQuestionRequest, SubmitQuestionResponse>,
 
   submitTest: {
-    path: ({ testResponseId, userName }) =>
-      `/api/TestSessions/${testResponseId}/submit?userName=${userName}`,
+    path: () => `/api/TestSessions/submit`,
     method: "POST",
     type: "CLOSE",
   } as Endpoint<SubmitTestRequest, SubmitTestResponse>,
+
+  getInstructionsByTestId: {
+    path: ({ testId }) => `/api/TestInstructions/by-test/${testId}`,
+    method: "GET",
+    type: "CLOSE",
+  } as Endpoint<
+    GetInstructionsByTestIdRequest,
+    GetInstructionsByTestIdResponse[]
+  >,
 };

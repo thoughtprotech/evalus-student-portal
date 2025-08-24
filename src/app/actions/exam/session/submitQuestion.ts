@@ -20,14 +20,14 @@ export async function submitQuestionAction(
 
     const res = await apiHandler(endpoints.submitQuestion, {
       testResponseId,
-      answer: {
+      answers: [{
         testResponseId,
         testQuestionId,
         comments,
         responseJson,
         status,
         userName,
-      },
+      }],
       userName,
     });
     return {
@@ -38,6 +38,7 @@ export async function submitQuestionAction(
       errorMessage: res.errorMessage,
     };
   } catch (error) {
+    console.log({ error });
     return {
       status: 500,
       error: true,

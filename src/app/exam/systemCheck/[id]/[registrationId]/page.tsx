@@ -2,7 +2,19 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { CheckCircle, XCircle, Loader2, AlertCircle } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  Loader2,
+  AlertCircle,
+  Rocket,
+  Wifi,
+  Cpu,
+  ShieldCheck,
+  Info,
+  ChevronRight,
+  AppWindow,
+} from "lucide-react";
 
 // Define the type for each check step
 type StepStatus = "pending" | "in-progress" | "passed" | "failed" | "warning";
@@ -77,12 +89,7 @@ export default function SystemCheckPage() {
     setCheckComplete(false);
     setAllPassed(false);
 
-    setSteps((prev) =>
-      prev.map((step) => ({
-        ...step,
-        status: "pending",
-      }))
-    );
+    setSteps((prev) => prev.map((step) => ({ ...step, status: "pending" })));
 
     // Step 1: Browser Compatibility
     setSteps((prev) =>
@@ -143,77 +150,235 @@ export default function SystemCheckPage() {
     }
   };
 
-  return (
-    <div className="h-full bg-white flex flex-col items-center justify-center px-4 py-8">
-      <div className="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-10">
-        <h1 className="text-3xl font-extrabold text-gray-900 mb-4 text-center">
-          System Check
-        </h1>
-        <p className="text-center text-gray-600 mb-6">
-          To ensure the best experience, please run our system check to verify
-          that your device meets all the test requirements.
-        </p>
+  // Helpers for UI
+  const getStepIcon = (status: StepStatus) => {
+    switch (status) {
+      case "passed":
+        return (
+          <CheckCircle className="w-4.5 h-4.5 text-emerald-600" aria-hidden />
+        );
+      case "failed":
+        return <XCircle className="w-4.5 h-4.5 text-rose-600" aria-hidden />;
+      case "in-progress":
+        return (
+          <Loader2
+            className="w-4.5 h-4.5 text-indigo-600 animate-spin"
+            aria-hidden
+          />
+        );
+      case "warning":
+        return (
+          <AlertCircle className="w-4.5 h-4.5 text-amber-600" aria-hidden />
+        );
+      default:
+        return (
+          <AlertCircle className="w-4.5 h-4.5 text-gray-400" aria-hidden />
+        );
+    }
+  };
 
-        {/* Steps */}
-        <div className="space-y-4 mb-8">
-          {steps.map((step) => (
-            <div key={step.id} className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {step.status === "passed" && (
-                  <CheckCircle className="w-6 h-6 text-green-500" />
-                )}
-                {step.status === "failed" && (
-                  <XCircle className="w-6 h-6 text-red-500" />
-                )}
-                {step.status === "in-progress" && (
-                  <Loader2 className="w-6 h-6 text-indigo-500 animate-spin" />
-                )}
-                {step.status === "pending" && (
-                  <AlertCircle className="w-6 h-6 text-gray-400" />
-                )}
-                {step.status === "warning" && (
-                  <AlertCircle className="w-6 h-6 text-yellow-500" />
-                )}
-                <span className="text-gray-800 font-medium">{step.name}</span>
-              </div>
-              <div>
-                <span className="text-sm text-gray-600 capitalize">
-                  {step.status}
-                </span>
-              </div>
+  const statusTone: Record<StepStatus, string> = {
+    passed: "text-emerald-700 bg-emerald-50 ring-emerald-200",
+    failed: "text-rose-700 bg-rose-50 ring-rose-200",
+    "in-progress": "text-indigo-700 bg-indigo-50 ring-indigo-200",
+    pending: "text-gray-700 bg-gray-50 ring-gray-200",
+    warning: "text-amber-700 bg-amber-50 ring-amber-200",
+  };
+
+  const completedCount = steps.filter((s) => s.status === "passed").length;
+  const progressPct = Math.round((completedCount / steps.length) * 100);
+
+  return (
+    <div className="w-full h-full flex justify-center items-center px-3 sm:px-4 py-6">
+      <div className="max-w-4xl w-full bg-white rounded-xl shadow-lg overflow-hidden">
+        {/* Sticky compact header (aligned with Instructions page style) */}
+        <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b border-gray-200 px-5 sm:px-8 py-4">
+          <div className="text-center">
+            <div className="mx-auto mb-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-indigo-600 text-white">
+              <ShieldCheck className="h-6 w-6" />
             </div>
-          ))}
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+              System Check
+            </h1>
+            <p className="mt-1 text-sm text-gray-600">
+              Run the checks before starting your test.
+            </p>
+          </div>
+
+          {/* Slim progress bar under header */}
+          <div className="mt-3">
+            <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+              <span>Overall Compatibility</span>
+              <span className="font-medium">{progressPct}%</span>
+            </div>
+            <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+              <div
+                className={`h-1.5 rounded-full transition-all duration-500 ${
+                  checking ? "bg-indigo-500" : "bg-emerald-500"
+                }`}
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Buttons & Feedback */}
-        <div className="flex flex-col items-center gap-4">
-          {!checking && !checkComplete && (
-            <button
-              onClick={runSystemCheck}
-              className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-colors cursor-pointer"
-            >
-              Start System Check
-            </button>
-          )}
-          {checking && (
-            <p className="text-lg text-gray-700">
-              Running system check... Please wait.
-            </p>
-          )}
-          {checkComplete && allPassed && (
-            <button
-              onClick={handleProceed}
-              className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors cursor-pointer"
-            >
-              Proceed to Instructions
-            </button>
-          )}
-          {checkComplete && !allPassed && (
-            <p className="text-lg text-red-600 font-semibold text-center">
-              Your system does not meet the test requirements. Please update
-              your device.
-            </p>
-          )}
+        {/* Scrollable content to match page density */}
+        <div className="px-5 sm:px-8">
+          <div className="max-h-[62vh] overflow-auto py-4 pr-1">
+            <div className="rounded-lg border border-gray-200 bg-white p-4 sm:p-5">
+              <div className="space-y-3.5">
+                {/* Step row template repeated for each step */}
+                {/* Step 1 */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-2.5">
+                    <div className="mt-0.5">{getStepIcon(steps[0].status)}</div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <AppWindow className="w-4 h-4 text-gray-500" />
+                        <span className="text-gray-900 font-semibold text-sm">
+                          {steps[0].name}
+                        </span>
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10.5px] ring-1 ring-inset ${
+                            statusTone[steps[0].status]
+                          }`}
+                        >
+                          {steps[0].status}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-[13px] text-gray-600">
+                        Requires modern browser features like Fetch, Promises,
+                        and WebAssembly.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="h-px bg-gray-100" />
+
+                {/* Step 2 */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-2.5">
+                    <div className="mt-0.5">{getStepIcon(steps[1].status)}</div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Wifi className="w-4 h-4 text-gray-500" />
+                        <span className="text-gray-900 font-semibold text-sm">
+                          {steps[1].name}
+                        </span>
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10.5px] ring-1 ring-inset ${
+                            statusTone[steps[1].status]
+                          }`}
+                        >
+                          {steps[1].status}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-[13px] text-gray-600">
+                        Checks online status and makes a quick reachability
+                        probe.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="h-px bg-gray-100" />
+
+                {/* Step 3 */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-2.5">
+                    <div className="mt-0.5">{getStepIcon(steps[2].status)}</div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Cpu className="w-4 h-4 text-gray-500" />
+                        <span className="text-gray-900 font-semibold text-sm">
+                          {steps[2].name}
+                        </span>
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10.5px] ring-1 ring-inset ${
+                            statusTone[steps[2].status]
+                          }`}
+                        >
+                          {steps[2].status}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-[13px] text-gray-600">
+                        Evaluates CPU cores, RAM availability, and WebGL
+                        support. Limited RAM info may show a warning.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Helper note */}
+              <div className="mt-4 flex items-start gap-2 text-[12px] text-gray-500">
+                <Info className="w-4 h-4 mt-0.5" />
+                <p>
+                  If the hardware check shows a warning, it usually means RAM
+                  details were unavailable. As long as CPU cores and WebGL are
+                  supported, proceeding is allowed.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Sticky compact footer (uniform buttons) */}
+        <div className="sticky bottom-0 z-10 bg-white/90 backdrop-blur-sm border-t border-gray-200 px-5 sm:px-8">
+          <div className="py-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {!checking && !checkComplete && (
+                <button
+                  onClick={runSystemCheck}
+                  className="col-span-1 sm:col-span-2 inline-flex items-center justify-center gap-2 w-full py-2.5 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors cursor-pointer"
+                >
+                  <Rocket className="w-4 h-4" />
+                  Start System Check
+                </button>
+              )}
+
+              {checking && (
+                <div className="col-span-1 sm:col-span-2 flex items-center justify-center gap-2 text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-md py-2.5">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Running system check... Please wait.
+                </div>
+              )}
+
+              {checkComplete && allPassed && (
+                <>
+                  <div className="col-span-1 inline-flex items-center justify-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 py-2.5 px-3 text-emerald-800">
+                    <CheckCircle className="w-4 h-4" />
+                    All essential checks passed.
+                  </div>
+                  <button
+                    onClick={handleProceed}
+                    className="col-span-1 inline-flex items-center justify-center gap-2 w-full py-2.5 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors cursor-pointer"
+                  >
+                    Proceed to Instructions
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </>
+              )}
+
+              {checkComplete && !allPassed && (
+                <div className="col-span-1 sm:col-span-2 rounded-md border border-rose-200 bg-rose-50 px-3 py-2.5 text-rose-800 text-sm">
+                  <div className="flex items-start gap-2">
+                    <XCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold">
+                        System requirements not met
+                      </p>
+                      <p className="text-[12.5px]">
+                        Ensure stable internet, a modern browser, and adequate
+                        hardware support before proceeding.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
