@@ -3,6 +3,7 @@
 import SearchBar from "@/components/SearchBar";
 import { useEffect, useState } from "react";
 import TestCards from "./components/TestCards";
+import PaginationControls from "@/components/PaginationControls";
 import { Play, Clock, XCircle, CheckCircle, CircleArrowRight } from "lucide-react";
 import { fetchCandidateTestList } from "../actions/dashboard/testList";
 import Loader from "@/components/Loader";
@@ -18,6 +19,8 @@ export default function Index() {
   const [currentTab, setCurrentTab] = useState<number>(groupSelected ? 0 : 2);
   const [searchQuery, setSearchQuery] = useState("");
   const [testList, setTestList] = useState<GetCandidateTestResponse[]>([]);
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(20); // default 20 cards per page
 
   const tabs = ["Registered", "In Progress", "Up Next", "Completed", "Missed"];
 
@@ -53,6 +56,18 @@ export default function Index() {
       test.testCandidateRegistrationStatus === tabs[currentTab] &&
       test.testName.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Reset / clamp page when tab, search, or filtered length changes
+  useEffect(() => {
+    setPage(1);
+  }, [currentTab, searchQuery]);
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil((filteredTestList?.length || 0) / pageSize));
+    if (page > totalPages) setPage(totalPages);
+  }, [filteredTestList, page, pageSize]);
+
+  // Paginate
+  const paginatedTests = filteredTestList?.slice((page - 1) * pageSize, page * pageSize) || [];
 
   // Prepare tab card data including count and an appropriate icon
   const tabCardData = tabs.map((tab) => {
@@ -119,26 +134,40 @@ export default function Index() {
         </div>
       </div>
 
-      {/* Test Cards */}
+      {/* Pagination (Top) + Test Cards */}
       <div>
         {filteredTestList?.length > 0 ? (
-          <div className="w-full grid grid-cols-1 lg:grid-cols-4 gap-4">
-            {filteredTestList?.map((test, index) => (
-              <div key={`test-${test.testId}`}>
-                <TestCards
-                  id={test.testId.toString()}
-                  name={test.testName}
-                  startDateTimeString={test.testStartDate}
-                  endDateTimeString={test.testEndDate}
-                  status={test.testCandidateRegistrationStatus}
-                  bookmarked={index % 2 === 0}
-                  onRegistered={async () => {
-                    await fetchTestList();
-                  }}
-                />
-              </div>
-            ))}
-          </div>
+          <>
+            <div className="mb-4 flex justify-end">
+              <PaginationControls
+                page={page}
+                pageSize={pageSize}
+                total={filteredTestList.length}
+                pageSizeOptions={[20, 25, 30, 35, 40]}
+                onPageChange={(p) => setPage(p)}
+                onPageSizeChange={(s) => setPageSize(s)}
+                showTotalCount
+                label="Cards per page:"
+              />
+            </div>
+            <div className="w-full grid grid-cols-1 lg:grid-cols-4 gap-4">
+              {paginatedTests.map((test, index) => (
+                <div key={`test-${test.testId}`}>
+                  <TestCards
+                    id={test.testId.toString()}
+                    name={test.testName}
+                    startDateTimeString={test.testStartDate}
+                    endDateTimeString={test.testEndDate}
+                    status={test.testCandidateRegistrationStatus}
+                    bookmarked={index % 2 === 0}
+                    onRegistered={async () => {
+                      await fetchTestList();
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          </>
         ) : (
           <div className="w-full h-72 flex justify-center items-center rounded-md">
             <h1 className="font-bold text-2xl text-gray-500">No Tests Found</h1>

@@ -10,6 +10,7 @@ interface PaginationProps {
   onPageChange: (newPage: number) => void;
   onPageSizeChange: (newSize: number) => void;
   showTotalCount?: boolean;
+  label?: string; // custom label e.g., "Cards per page:" (defaults to Rows)
 }
 
 export default function PaginationControls({
@@ -20,6 +21,7 @@ export default function PaginationControls({
   onPageChange,
   onPageSizeChange,
   showTotalCount,
+  label = "Rows per page:",
 }: PaginationProps) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const start = total === 0 ? 0 : (page - 1) * pageSize + 1;
@@ -28,7 +30,7 @@ export default function PaginationControls({
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center text-sm text-gray-700">
-        <span className="font-semibold mr-2">Rows per page:</span>
+        <span className="font-semibold mr-2 whitespace-nowrap">{label}</span>
         <select
           value={pageSize}
           onChange={(e) => {
