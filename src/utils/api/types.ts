@@ -37,11 +37,11 @@ export interface GetQuestionListResponse {
   questionText: string;
   questionType: QuestionType;
   questionStatus:
-    | "Not Visited"
-    | "Attempted"
-    | "UnAttempted"
-    | "To Review"
-    | "Answered To Review";
+  | "Not Visited"
+  | "Attempted"
+  | "UnAttempted"
+  | "To Review"
+  | "Answered To Review";
   marks: number;
   negativeMarks: number;
   questionSectionId: number;
@@ -208,12 +208,12 @@ export interface GetCandidateTestResponse {
   testStartDate: string;
   testEndDate: string;
   testCandidateRegistrationStatus:
-    | "Registered"
-    | "Completed"
-    | "Cancelled"
-    | "In Progress"
-    | "Missed"
-    | "Up Next"; // Virtual grouping for upcoming registered tests
+  | "Registered"
+  | "Completed"
+  | "Cancelled"
+  | "In Progress"
+  | "Missed"
+  | "Up Next"; // Virtual grouping for upcoming registered tests
   testId: number;
   // Optional id from registration table if candidate already registered
   testRegistrationId: number;
@@ -233,6 +233,25 @@ export interface GetCandidateStarredTestResponse {
   //   | "Cancelled"
   //   | "In Progress"
   //   | "Missed";
+}
+
+// Starred User Tests (new simplified endpoints)
+export interface StarredUserTestCreateRequest {
+  testId: number;
+  userName: string; // backend expects camelCase userName per spec
+}
+
+export interface StarredUserTestDeleteRequest {
+  testId: number;
+  userName: string;
+}
+
+export interface StarredUserTestListRequest {
+  username: string; // query param casing ambiguous; we'll send username= for safety
+}
+
+export interface StarredUserTestListResponse {
+  testId: number;
 }
 
 export interface GetCandidateCompletedTestRequest {
@@ -439,7 +458,7 @@ export type SubmitQuestionRequest = {
   comments: string;
   userName: string;
 };
-export interface SubmitQuestionResponse {}
+export interface SubmitQuestionResponse { }
 
 export interface SubmitTestRequest {
   testResponseId: number;

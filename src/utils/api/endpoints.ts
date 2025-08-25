@@ -150,6 +150,25 @@ export const endpoints = {
     GetCandidateStarredTestResponse[]
   >,
 
+  // Raw Starred User Tests endpoints (simple CRUD) - used for toggle actions
+  createStarredUserTest: {
+    method: "POST",
+    path: () => `/api/StarredUserTests`,
+    type: "CLOSE",
+  } as Endpoint<import('./types').StarredUserTestCreateRequest, null>,
+
+  deleteStarredUserTest: {
+    method: "DELETE",
+    path: ({ testId, userName }: import('./types').StarredUserTestDeleteRequest) => `/api/StarredUserTests/${testId}/${encodeURIComponent(userName)}`,
+    type: "CLOSE",
+  } as Endpoint<import('./types').StarredUserTestDeleteRequest, null>,
+
+  listStarredUserTests: {
+    method: "GET",
+    path: ({ username }: import('./types').StarredUserTestListRequest) => `/api/StarredUserTests?username=${encodeURIComponent(username)}`,
+    type: "CLOSE",
+  } as Endpoint<import('./types').StarredUserTestListRequest, import('./types').StarredUserTestListResponse[]>,
+
   getCandidateCompletedTests: {
     method: "GET",
     path: ({ username }) => `/api/Tests/completed/${username}`,
@@ -239,8 +258,7 @@ export const endpoints = {
     method: "GET",
     // query should include leading ?params already: e.g., ?$top=25&$skip=0...
     path: ({ query }) =>
-      `/Odata/Tests${
-        query ? (query.startsWith("?") ? query : `?${query}`) : ""
+      `/Odata/Tests${query ? (query.startsWith("?") ? query : `?${query}`) : ""
       }`,
     type: "OPEN",
   } as Endpoint<
@@ -428,8 +446,7 @@ export const endpoints = {
     method: "GET",
     // Use your specific API endpoint for getting questions by language
     path: ({ query }) =>
-      `/Odata/Questions/GetAllQuestionsByLanguage(language=English)${
-        query ? (query.startsWith("?") ? query : `?${query}`) : ""
+      `/Odata/Questions/GetAllQuestionsByLanguage(language=English)${query ? (query.startsWith("?") ? query : `?${query}`) : ""
       }`,
     type: "OPEN",
   } as Endpoint<import("./types").GetQuestionsODataRequest, any[]>,

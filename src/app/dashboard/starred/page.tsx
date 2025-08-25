@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import TestCards from "../components/TestCards";
 import Loader from "@/components/Loader";
 import { fetchCandidateStarredTestList } from "@/app/actions/dashboard/starred/fetchStarredTestList";
+import { listStarredTestsIdsAction } from "@/app/actions/dashboard/starred/toggleStarredTest";
 import { GetCandidateStarredTestResponse } from "@/utils/api/types";
 
 export default function Index() {
@@ -61,7 +62,7 @@ export default function Index() {
         {filteredTestList.length > 0 ? (
           <div className="w-full grid grid-cols-1 lg:grid lg:grid-cols-4 gap-4">
             {filteredTestList.map((test, idx) => (
-              <div key={`starred-${(test as any)?.testId ?? idx}`}> 
+              <div key={`starred-${(test as any)?.testId ?? idx}`}>
                 <TestCards
                   id={String((test as any)?.testId ?? "")}
                   name={String((test as any)?.testName ?? "Untitled Test")}
@@ -71,6 +72,8 @@ export default function Index() {
                   //   test.status as "SignedUp" | "UpNext" | "Missed" | "Done"
                   // }
                   bookmarked={true}
+                  registrationId={(test as any)?.testRegistrationId || 0}
+                  onToggleStar={async () => { await fetchStarredList(); }}
                 />
               </div>
             ))}

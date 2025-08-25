@@ -12,6 +12,7 @@ import {
   CircleArrowRight,
 } from "lucide-react";
 import { fetchCandidateTestList } from "../actions/dashboard/testList";
+import { listStarredTestsIdsAction } from "../actions/dashboard/starred/toggleStarredTest";
 import Loader from "@/components/Loader";
 import { GetCandidateTestResponse } from "@/utils/api/types";
 import { useUser } from "@/contexts/UserContext";
@@ -30,6 +31,7 @@ export default function Index() {
   const [currentTab, setCurrentTab] = useState<number>(groupSelected ? 0 : 2);
   const [searchQuery, setSearchQuery] = useState("");
   const [testList, setTestList] = useState<GetCandidateTestResponse[]>([]);
+  const [starredIds, setStarredIds] = useState<number[]>([]);
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(20); // default 20 cards per page
 
@@ -51,9 +53,17 @@ export default function Index() {
     }
   };
 
+  const fetchStarred = async () => {
+    try {
+      const ids = await listStarredTestsIdsAction();
+      setStarredIds(ids);
+    } catch { setStarredIds([]); }
+  };
+
   // Load the test list once on mount
   useEffect(() => {
     fetchTestList();
+    fetchStarred();
   }, [currentGroupId, groupSelected]);
 
   // When groupSelected toggles, reset the default tab per requirement
@@ -170,7 +180,7 @@ export default function Index() {
               />
             </div>
             <div className="w-full grid grid-cols-1 lg:grid-cols-4 gap-4">
-              {paginatedTests.map((test, index) => (
+              {paginatedTests.map((test) => (
                 <div key={`test-${test.testId}`}>
                   <TestCards
                     id={test.testId.toString()}
@@ -178,11 +188,12 @@ export default function Index() {
                     startDateTimeString={test.testStartDate}
                     endDateTimeString={test.testEndDate}
                     status={test.testCandidateRegistrationStatus}
-                    bookmarked={index % 2 === 0}
+                    bookmarked={starredIds.includes(test.testId)}
                     onRegistered={async () => {
                       await fetchTestList();
                     }}
                     registrationId={test.testRegistrationId}
+                    onToggleStar={async () => { await fetchStarred(); }}
                   />
                 </div>
               ))}
@@ -214,9 +225,8 @@ function StatCard({
     label === "In Progress" ? "min-w-[175px]" : "min-w-[150px]";
   return (
     <div
-      className={`border border-gray-300 ${
-        current ? "bg-indigo-50 border-indigo-300" : "bg-white"
-      } rounded-xl shadow-md duration-200 ease-in-out px-6 py-1 flex items-center gap-5 ${minWidthClass} w-full`}
+      className={`border border-gray-300 ${current ? "bg-indigo-50 border-indigo-300" : "bg-white"
+        } rounded-xl shadow-md duration-200 ease-in-out px-6 py-1 flex items-center gap-5 ${minWidthClass} w-full`}
     >
       <div className="flex-shrink-0 rounded-full">{icon}</div>
       <div className="flex flex-col">

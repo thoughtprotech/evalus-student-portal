@@ -11,7 +11,7 @@ import {
   Play,
   PenSquare,
 } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { format, parseISO, differenceInMinutes } from "date-fns";
 import { registerTestAction } from "@/app/actions/dashboard/registerTest";
@@ -23,16 +23,17 @@ interface TestCardsProps {
   startDateTimeString?: string;
   endDateTimeString?: string;
   status?:
-    | "Registered"
-    | "Completed"
-    | "Cancelled"
-    | "In Progress"
-    | "Missed"
-    | "Up Next"
-    | undefined;
-  bookmarked?: boolean;
+  | "Registered"
+  | "Completed"
+  | "Cancelled"
+  | "In Progress"
+  | "Missed"
+  | "Up Next"
+  | undefined;
+  bookmarked?: boolean; // initial state from parent (optional)
   registrationId: number;
   onRegistered?: () => Promise<void> | void; // callback to refresh dashboard after registration
+  onToggleStar?: (testId: number, nowStarred: boolean) => void | Promise<void>; // allow parent sync
 }
 
 export default function TestCards({
@@ -44,6 +45,7 @@ export default function TestCards({
   bookmarked = false,
   registrationId,
   onRegistered,
+  onToggleStar,
 }: TestCardsProps) {
   // Parse ISO date strings
   let formattedStartDate;
@@ -166,7 +168,7 @@ export default function TestCards({
       // Re-request fullscreen if user exits
       popup.document.addEventListener("fullscreenchange", () => {
         if (!popup.document.fullscreenElement) {
-          popup.document.documentElement.requestFullscreen().catch(() => {});
+          popup.document.documentElement.requestFullscreen().catch(() => { });
         }
       });
     });
@@ -187,7 +189,7 @@ export default function TestCards({
         if (isFinite(s.getTime()) && s.getTime() > Date.now() - 60000) {
           return s.toISOString().slice(0, 16);
         }
-      } catch {}
+      } catch { }
     }
     return defaultLocal();
   })();
@@ -235,6 +237,36 @@ export default function TestCards({
       toast.error(e?.message || "Registration failed");
     } finally {
       setRegistering(false);
+    }
+  };
+
+  const [starLoading, setStarLoading] = useState(false);
+  const [starred, setStarred] = useState<boolean>(bookmarked);
+
+  const toggleStar = async () => {
+    if (starLoading) return;
+    setStarLoading(true);
+    try {
+      // Dynamic import server action wrapper via fetch (since server actions can't be called directly client-side)
+      const res = await fetch('/api/internal/star-tests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ testId: Number(id), makeStarred: !starred })
+      });
+      if (res.ok) {
+        const now = !starred;
+        setStarred(now);
+        if (onToggleStar) {
+          try { await onToggleStar(Number(id), now); } catch { /* ignore */ }
+        }
+      } else {
+        // best effort toast if available
+        try { (await import('react-hot-toast')).toast.error('Failed to update star'); } catch { /* ignore */ }
+      }
+    } catch {
+      try { (await import('react-hot-toast')).toast.error('Failed to update star'); } catch { /* ignore */ }
+    } finally {
+      setStarLoading(false);
     }
   };
 
@@ -304,10 +336,16 @@ export default function TestCards({
           Duration: {formattedDuration}
         </h1>
         <div className="flex items-center gap-4">
-          {bookmarked ? (
-            <BookmarkCheck className="text-gray-500 cursor-pointer hover:text-indigo-700 duration-300" />
+          {starred ? (
+            <BookmarkCheck
+              onClick={toggleStar}
+              className={`text-indigo-600 cursor-pointer hover:text-indigo-700 duration-300 ${starLoading ? 'opacity-50 pointer-events-none' : ''}`}
+            />
           ) : (
-            <Bookmark className="text-gray-500 cursor-pointer hover:text-indigo-700 duration-300" />
+            <Bookmark
+              onClick={toggleStar}
+              className={`text-gray-500 cursor-pointer hover:text-indigo-700 duration-300 ${starLoading ? 'opacity-50 pointer-events-none' : ''}`}
+            />
           )}
         </div>
       </div>
@@ -317,9 +355,8 @@ export default function TestCards({
         <a
           href={linkHref}
           onClick={status === "Up Next" ? onClickRegister : openInPopup}
-          className={`w-full flex items-center justify-center gap-1 px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${
-            status && actionButtonMapping[status]
-          }`}
+          className={`w-full flex items-center justify-center gap-1 px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${status && actionButtonMapping[status]
+            }`}
         >
           {linkText}
           {linkIcon}
@@ -353,11 +390,10 @@ export default function TestCards({
               onChange={(e) => setProposedStart(e.target.value)}
               onBlur={() => setStartTouched(true)}
               required
-              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${
-                startTouched && (!proposedStart || isPast)
+              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${startTouched && (!proposedStart || isPast)
                   ? "border-red-500"
                   : "border-gray-300"
-              }`}
+                }`}
             />
             {startTouched && !proposedStart && (
               <p className="text-xs text-red-600">
