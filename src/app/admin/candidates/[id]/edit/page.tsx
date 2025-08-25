@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import Link from "next/link";
@@ -11,6 +11,12 @@ import { fetchCandidatesAction } from "@/app/actions/admin/candidates";
 
 interface CompanyOption { id: number; name: string; }
 interface GroupOption { id: number; name: string; }
+
+// Add this to your list of roles (replace with your actual roles if needed)
+const ROLES = [
+  { value: "candidate", display: "Candidate" },
+  { value: "admin", display: "Admin" }
+];
 
 export default function EditCandidatePage() {
   const params = useParams();
@@ -37,6 +43,15 @@ export default function EditCandidatePage() {
     candidateGroupIds: [] as string[],
     isActive: true,
   });
+  const [userLogin, setUserLogin] = useState({
+    userName: "",
+    password: "",
+    displayName: "",
+    role: "",
+    userPhoto: null as File | null,
+  });
+  const [userPhotoPreview, setUserPhotoPreview] = useState<string | null>(null);
+  const userPhotoInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch candidate details + companies + groups
   useEffect(() => {
@@ -81,6 +96,14 @@ export default function EditCandidatePage() {
             candidateGroupIds: candidateGroupIds.map(String),
             isActive: c.isActive === 1 || c.isActive === true,
           });
+          // Load userLogin fields from candidate data if available
+          setUserLogin({
+            userName: c.userName || "",
+            password: "",
+            displayName: c.displayName || "",
+            role: c.role || "",
+            userPhoto: null,
+          });
         }
       } catch (e: any) {
         toast.error(e.message || "Failed to load candidate");
@@ -94,6 +117,27 @@ export default function EditCandidatePage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleUserLoginChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = e.target;
+    setUserLogin((prev) => ({
+      ...prev,
+      [name]: type === "file" ? (e.target as any).files?.[0] : value,
+    }));
+  };
+
+  // For file input (user photo)
+  const handleUserPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setUserLogin((prev) => ({
+        ...prev,
+        userPhoto: e.target.files![0],
+      }));
+      setUserPhotoPreview(URL.createObjectURL(e.target.files[0]));
+    }
   };
 
   const validate = () => {
@@ -233,6 +277,95 @@ export default function EditCandidatePage() {
             <label className="block text-xs font-medium text-gray-600 mb-1">Notes</label>
             <textarea name="notes" placeholder="Notes" aria-label="Notes" value={form.notes} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" rows={3} />
           </div>
+
+          {/* --- User Login Section --- */}
+          <div className="mt-8">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">User Login</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  User Name
+                </label>
+                <input
+                  type="text"
+                  name="userName"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  placeholder="Enter user name"
+                  value={userLogin.userName}
+                  onChange={handleUserLoginChange}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  placeholder="Enter password"
+                  value={userLogin.password}
+                  onChange={handleUserLoginChange}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Display Name
+                </label>
+                <input
+                  type="text"
+                  name="displayName"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  placeholder="Enter display name"
+                  value={userLogin.displayName}
+                  onChange={handleUserLoginChange}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Role
+                </label>
+                <select
+                  name="role"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  value={userLogin.role}
+                  onChange={handleUserLoginChange}
+                >
+                  <option value="">Select role</option>
+                  {ROLES.map((role) => (
+                    <option key={role.value} value={role.value}>
+                      {role.display}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="mt-4">
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                User Photo
+              </label>
+              <input
+                type="file"
+                name="userPhoto"
+                accept="image/*"
+                ref={userPhotoInputRef}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                onChange={handleUserPhotoChange}
+              />
+              {userPhotoPreview && (
+                <div className="mt-2">
+                  <img
+                    src={userPhotoPreview}
+                    alt="User Photo Preview"
+                    className="h-16 w-16 object-contain border rounded"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+          {/* --- End User Login Section --- */}
         </div>
       </div>
     </div>

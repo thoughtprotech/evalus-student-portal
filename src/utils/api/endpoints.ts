@@ -584,5 +584,12 @@ export const endpoints = {
       `/api/TestSessions/${testResponseId}/question-with-response/${questionId}`,
     method: "GET",
     type: "CLOSE",
-  } as Endpoint<GetSessionQuestionByIdRequest, GetSessionQuestionByIdResponse>,
+    } as Endpoint<GetSessionQuestionByIdRequest, GetSessionQuestionByIdResponse>,
+
+    getAdminRoles:  {
+        method: "GET",
+        path: () => `/api/Role`,
+            type: "CLOSE",
+  } as Endpoint<null, any[]>,
+    
 };

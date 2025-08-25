@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, ChangeEvent, FormEvent, useEffect } from "react";
+import { useState, ChangeEvent, FormEvent, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -27,6 +27,12 @@ const CANDIDATE_GROUPS = [
   "General", "OBC", "SC", "ST", "EWS"
 ];
 
+// Add this to your list of roles (replace with your actual roles if needed)
+const ROLES = [
+  { value: "candidate", display: "Candidate" },
+  { value: "admin", display: "Admin" }
+];
+
 export default function AddCandidatePage() {
   const inputCls = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition";
   const selectCls = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition";
@@ -47,10 +53,19 @@ export default function AddCandidatePage() {
     candidateGroupIds: [] as string[], // multi-select values as strings
     isActive: true,
   });
+  const [userLogin, setUserLogin] = useState({
+    userName: "",
+    password: "",
+    displayName: "",
+    role: "",
+    userPhoto: null as File | null,
+  });
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [companies, setCompanies] = useState<{id:number; name:string}[]>([]);
   const [groups, setGroups] = useState<{id:number; name:string}[]>([]);
+  const [userPhotoPreview, setUserPhotoPreview] = useState<string | null>(null);
+  const userPhotoInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   const handleInputChange = (
@@ -58,6 +73,27 @@ export default function AddCandidatePage() {
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleUserLoginChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = e.target;
+    setUserLogin((prev) => ({
+      ...prev,
+      [name]: type === "file" ? (e.target as any).files?.[0] : value,
+    }));
+  };
+
+  // For file input (user photo)
+  const handleUserPhotoChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setUserLogin((prev) => ({
+        ...prev,
+        userPhoto: e.target.files![0],
+      }));
+      setUserPhotoPreview(URL.createObjectURL(e.target.files[0]));
+    }
   };
 
   const validate = () => {
@@ -477,6 +513,96 @@ export default function AddCandidatePage() {
                 onChange={handleInputChange}
               />
             </div>
+
+            {/* --- User Login Section --- */}
+            <div className="mt-8">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">User Login</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">
+                    User Name
+                  </label>
+                  <input
+                    type="text"
+                    name="userName"
+                    className={inputCls}
+                    placeholder="Enter user name"
+                    value={userLogin.userName}
+                    onChange={handleUserLoginChange}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    name="password"
+                    className={inputCls}
+                    placeholder="Enter password"
+                    value={userLogin.password}
+                    onChange={handleUserLoginChange}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">
+                    Display Name
+                  </label>
+                  <input
+                    type="text"
+                    name="displayName"
+                    className={inputCls}
+                    placeholder="Enter display name"
+                    value={userLogin.displayName}
+                    onChange={handleUserLoginChange}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">
+                    Role
+                  </label>
+                  <select
+                    name="role"
+                    className={selectCls}
+                    value={userLogin.role}
+                    onChange={handleUserLoginChange}
+                  >
+                    <option value="">Select role</option>
+                    {ROLES.map((role) => (
+                      <option key={role.value} value={role.value}>
+                        {role.display}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-800 mb-1">
+                  User Photo
+                </label>
+                <input
+                  type="file"
+                  name="userPhoto"
+                  accept="image/*"
+                  ref={userPhotoInputRef}
+                  className={inputCls}
+                  onChange={handleUserPhotoChange}
+                />
+                {userPhotoPreview && (
+                  <div className="mt-2">
+                    <img
+                      src={userPhotoPreview}
+                      alt="User Photo Preview"
+                      className="h-16 w-16 object-contain border rounded"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+            {/* --- End User Login Section --- */}
+
             {/* Bottom action buttons removed as per requirement (only header actions retained) */}
           </form>
         </div>
