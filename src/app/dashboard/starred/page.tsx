@@ -1,46 +1,60 @@
 "use client";
 
 import SearchBar from "@/components/SearchBar";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import TestCards from "../components/TestCards";
 import Loader from "@/components/Loader";
-import { fetchCandidateStarredTestList } from "@/app/actions/dashboard/starred/fetchStarredTestList";
 import { listStarredTestsIdsAction } from "@/app/actions/dashboard/starred/toggleStarredTest";
-import { GetCandidateStarredTestResponse } from "@/utils/api/types";
+import { fetchCandidateTestList } from "@/app/actions/dashboard/testList";
+import { GetCandidateTestResponse } from "@/utils/api/types";
+import { useUser } from "@/contexts/UserContext";
 
 export default function Index() {
+  const { currentGroupId, groupSelected } = useUser();
   const [loaded, setLoaded] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [testList, setTestList] = useState<GetCandidateStarredTestResponse[]>(
-    []
-  );
+  const [allTests, setAllTests] = useState<GetCandidateTestResponse[]>([]);
+  const [starredIds, setStarredIds] = useState<number[]>([]);
 
-  const fetchStarredList = async () => {
+  const loadData = async () => {
+    setLoaded(false);
     try {
-      const res = await fetchCandidateStarredTestList();
-      const { data, status } = res || {} as any;
-      if (status === 200 && Array.isArray(data)) {
-        setTestList(data);
+      // Fetch full candidate test list (same as dashboard)
+      const testsRes = await fetchCandidateTestList(Number(currentGroupId), {
+        useGroupEndpoint: !!groupSelected,
+      });
+      if (testsRes.status === 200 && Array.isArray(testsRes.data)) {
+        setAllTests(testsRes.data);
       } else {
-        setTestList([]);
+        setAllTests([]);
       }
-    } catch (e) {
-      setTestList([]);
-    } finally {
-      setLoaded(true);
+    } catch {
+      setAllTests([]);
     }
+    try {
+      const ids = await listStarredTestsIdsAction();
+      setStarredIds(ids);
+    } catch {
+      setStarredIds([]);
+    }
+    setLoaded(true);
   };
 
-  // Load the test list once on mount
   useEffect(() => {
-    fetchStarredList();
-  }, []);
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentGroupId, groupSelected]);
 
-  // Derive the filtered test list based on the current tab and search query
-  const filteredTestList = (testList || []).filter((test) => {
-    const name = (test as any)?.testName ?? "";
-    return String(name).toLowerCase().includes(searchQuery.toLowerCase());
-  });
+  // Filter client-side: only tests whose id is in starredIds and match search
+  const filteredTestList = useMemo(
+    () =>
+      allTests
+        .filter((t) => starredIds.includes(t.testId))
+        .filter((t) =>
+          t.testName.toLowerCase().includes(searchQuery.toLowerCase())
+        ),
+    [allTests, starredIds, searchQuery]
+  );
 
   if (!loaded) {
     return <Loader />;
@@ -61,19 +75,25 @@ export default function Index() {
       <div>
         {filteredTestList.length > 0 ? (
           <div className="w-full grid grid-cols-1 lg:grid lg:grid-cols-4 gap-4">
-            {filteredTestList.map((test, idx) => (
-              <div key={`starred-${(test as any)?.testId ?? idx}`}>
+            {filteredTestList.map((test) => (
+              <div key={`starred-${test.testId}`}>
                 <TestCards
-                  id={String((test as any)?.testId ?? "")}
-                  name={String((test as any)?.testName ?? "Untitled Test")}
-                  // startDateTimeString={test.startDateTimeString}
-                  // endDateTimeString={test.endDateTimeString}
-                  // status={
-                  //   test.status as "SignedUp" | "UpNext" | "Missed" | "Done"
-                  // }
+                  id={test.testId.toString()}
+                  name={test.testName}
+                  startDateTimeString={test.testStartDate}
+                  endDateTimeString={test.testEndDate}
+                  status={test.testCandidateRegistrationStatus}
                   bookmarked={true}
-                  registrationId={(test as any)?.testRegistrationId || 0}
-                  onToggleStar={async () => { await fetchStarredList(); }}
+                  registrationId={test.testRegistrationId}
+                  onToggleStar={async (testId, nowStarred) => {
+                    setStarredIds((prev) =>
+                      nowStarred
+                        ? prev.includes(testId)
+                          ? prev
+                          : [...prev, testId]
+                        : prev.filter((id) => id !== testId)
+                    );
+                  }}
                 />
               </div>
             ))}
