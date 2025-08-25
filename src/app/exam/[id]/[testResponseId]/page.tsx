@@ -8,7 +8,6 @@ import {
   SectionsMetaDataInterface,
 } from "@/utils/api/types";
 import Loader from "@/components/Loader";
-import { fetchQuestionByIdAction } from "@/app/actions/exam/questions/getQuestionById";
 import ScrollToggleButton from "@/components/ScrollToggleButton";
 import { getUserAction } from "@/app/actions/getUser";
 import { fetchTestMetaDataAction } from "@/app/actions/exam/questions/getTestMetaData";
@@ -27,6 +26,7 @@ import QuestionArea from "./_components/AssessmentArea/QuestionArea/_components/
 import AnswerArea from "./_components/AssessmentArea/QuestionArea/_components/AnswerArea";
 import AssessmentFooter from "./_components/AssessmentArea/_components/Footer";
 import SubmitSectionModal from "./_components/SubmitSectionModal";
+import { fetchSessionQuestionByIdAction } from "@/app/actions/exam/session/getSessionQuestionById";
 
 export default function ExamPage() {
   const { id, testResponseId } = useParams();
@@ -42,7 +42,10 @@ export default function ExamPage() {
   const router = useRouter();
 
   const fetchQuestionById = async (questionId: number) => {
-    const res = await fetchQuestionByIdAction(questionId);
+    const res = await fetchSessionQuestionByIdAction(
+      questionId,
+      Number(testResponseId)
+    );
     const { data, status } = res;
     if (status === 200) {
       setQuestion(data!);
@@ -57,13 +60,10 @@ export default function ExamPage() {
 
   const cancelSubmitSectionModalSubmit = () => setSubmitSectionModal(false);
 
-  useEffect(() => {
-    console.log({ id, testResponseId });
-  }, [id, testResponseId]);
-
   const handleNextQuestion = async () => {
-    console.log({ question });
-    console.log("USER ANSWER: ", question?.options.answer);
+    if (!question?.options.answer) {
+      return toast.error("Provide An Answer");
+    }
 
     const valid = validateResponse();
 
@@ -89,8 +89,8 @@ export default function ExamPage() {
           } else {
             setSubmitSectionModal(true);
           }
+          fetchTestMetaData();
         } else {
-          console.log(response.errorMessage);
           toast.error("Something Went Wrong");
         }
       } else {
@@ -101,11 +101,9 @@ export default function ExamPage() {
     }
   };
 
-  useEffect(() => {
-    console.log({ question });
-  }, [question]);
-
   const clearResponse = async () => {
+    if (!validateResponse()) return;
+    let nextAnswerSerialized: string;
     switch (question!.questionsMeta.questionTypeName) {
       case QUESTION_TYPES.SINGLE_MCQ:
         setQuestion((prev) => {
@@ -121,6 +119,7 @@ export default function ExamPage() {
             },
           };
         });
+        nextAnswerSerialized = JSON.stringify([]);
         break;
       case QUESTION_TYPES.MULTIPLE_MCQ:
         setQuestion((prev) => {
@@ -136,6 +135,7 @@ export default function ExamPage() {
             },
           };
         });
+        nextAnswerSerialized = JSON.stringify([]);
         break;
       case QUESTION_TYPES.MATCH_PAIRS_SINGLE:
         setQuestion((prev) => {
@@ -151,6 +151,7 @@ export default function ExamPage() {
             },
           };
         });
+        nextAnswerSerialized = JSON.stringify([]);
         break;
       case QUESTION_TYPES.MATCH_PAIRS_MULTIPLE:
         setQuestion((prev) => {
@@ -163,6 +164,7 @@ export default function ExamPage() {
           JSON.parse(question!.options.options)[0].map(() => {
             emptyArr.push([]);
           });
+          nextAnswerSerialized = JSON.stringify(emptyArr);
 
           return {
             ...prev,
@@ -187,6 +189,7 @@ export default function ExamPage() {
             },
           };
         });
+        nextAnswerSerialized = JSON.stringify("");
         break;
       case QUESTION_TYPES.NUMERIC:
         setQuestion((prev) => {
@@ -202,6 +205,7 @@ export default function ExamPage() {
             },
           };
         });
+        nextAnswerSerialized = JSON.stringify("");
         break;
       case QUESTION_TYPES.TRUEFALSE:
         setQuestion((prev) => {
@@ -217,6 +221,7 @@ export default function ExamPage() {
             },
           };
         });
+        nextAnswerSerialized = JSON.stringify("");
         break;
       case QUESTION_TYPES.FILL_ANSWER:
         setQuestion((prev) => {
@@ -232,7 +237,30 @@ export default function ExamPage() {
             },
           };
         });
+        nextAnswerSerialized = JSON.stringify("");
         break;
+    }
+
+    const userName = await getUserAction();
+
+    if (userName) {
+      const response = await submitQuestionAction(
+        Number(testResponseId),
+        question?.questionId!,
+        nextAnswerSerialized!,
+        QUESTION_STATUS.UNATTEMPTED,
+        "",
+        userName
+      );
+
+      if (response.status === 200) {
+        fetchTestMetaData();
+        fetchQuestionById(question?.questionId!);
+      } else {
+        toast.error("Something Went Wrong");
+      }
+    } else {
+      toast.error("Something Went Wrong");
     }
   };
 
@@ -314,8 +342,8 @@ export default function ExamPage() {
           } else {
             setSubmitSectionModal(true);
           }
+          fetchTestMetaData();
         } else {
-          console.log(response.errorMessage);
           toast.error("Something Went Wrong");
         }
       } else {
@@ -337,8 +365,8 @@ export default function ExamPage() {
           } else {
             setSubmitSectionModal(true);
           }
+          fetchTestMetaData();
         } else {
-          console.log(response.errorMessage);
           toast.error("Something Went Wrong");
         }
       }
@@ -383,40 +411,42 @@ export default function ExamPage() {
 
   const fetchTestMetaData = async () => {
     setLoaded(false);
-    const userId = await getUserAction();
-    if (userId) {
-      const res = await fetchTestMetaDataAction(Number(id), Number(userId));
-      const { data, status } = res;
-      if (status === 200 && data) {
-        setTestMetaData(data);
-        if (!currentSection) {
-          setCurrentSection(data?.sections[0]);
-        } else {
-          const curSec = data.sections.find(
-            (sec) => sec.sectionId === currentSection.sectionId
-          );
-          setCurrentSection(curSec!);
-        }
-        setLoaded(true);
+    const res = await fetchTestMetaDataAction(
+      Number(id),
+      Number(testResponseId)
+    );
+    const { data, status } = res;
+    if (status === 200 && data) {
+      setTestMetaData(data);
+      if (!currentSection) {
+        setCurrentSection(data?.sections[0]);
+        fetchQuestionById(data?.sections[0].questions[0].questionId);
       } else {
-        setLoaded(true);
-        toast.error("Something Went Wrong");
+        const curSec = data.sections.find(
+          (sec) => sec.sectionId === currentSection.sectionId
+        );
+        setCurrentSection(curSec!);
+        // fetchQuestionById(question!.questionId);
       }
+      setLoaded(true);
+    } else {
+      setLoaded(true);
+      toast.error("Something Went Wrong");
     }
   };
 
-  useEffect(() => {
-    if (currentSection) {
-      fetchQuestionById(currentSection?.questions[0]?.questionId!);
-    }
-  }, [currentSection]);
+  // useEffect(() => {
+  //   if (currentSection) {
+  //     if (question) {
+  //       fetchQuestionById(question.questionId!);
+  //     } else {
+  //       fetchQuestionById(currentSection?.questions[0]?.questionId!);
+  //     }
+  //   }
+  // }, []);
 
-  useEffect(() => {
-    console.log({ question });
-  }, [question]);
-
-  const handleTimeout = () => {
-    // TODO: Handle timeout
+  const handleTimeout = async () => {
+    await submitTest();
   };
 
   function getCurrentSectionIndex(
@@ -475,16 +505,14 @@ export default function ExamPage() {
     const nextSection = sections[curIdx + 1];
     if (nextSection) {
       setCurrentSection(nextSection);
+      fetchQuestionById(nextSection?.questions[0]?.questionId!);
+      setCurrentIndex(0);
     }
   };
 
   useEffect(() => {
     fetchTestMetaData();
   }, []);
-
-  useEffect(() => {
-    console.log({ question });
-  }, [question]);
 
   const intervalRef = useRef<number | null>(null);
 

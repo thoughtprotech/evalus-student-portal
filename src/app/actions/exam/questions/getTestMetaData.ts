@@ -6,12 +6,12 @@ import { endpoints } from "@/utils/api/endpoints";
 
 export async function fetchTestMetaDataAction(
   testId: number,
-  userId: number
+  testResponseId: number
 ): Promise<ApiResponse<GetTestMetaDataResponse>> {
   try {
     const { data } = await apiHandler(endpoints.getTestMetaData, {
       testId,
-      userId,
+      testResponseId,
     });
 
     return {

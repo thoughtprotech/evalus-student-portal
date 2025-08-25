@@ -41,7 +41,7 @@ export default function QuestionIndex({
                 : "border-3 border-transparent"
             )}
           >
-            {q.status === "answeredMarkedForReview" && (
+            {q.status === QUESTION_STATUS.ANSWERED_TO_REVIEW && (
               <div>
                 <CheckCheck className="text-green-500 w-5 h-5 absolute -top-3 -right-4" />
               </div>

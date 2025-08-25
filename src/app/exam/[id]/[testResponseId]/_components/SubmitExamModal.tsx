@@ -230,11 +230,7 @@ export default function SubmitExamModal({
               Pending
             </div>
             <div className="mt-1 text-2xl font-semibold">
-              {totals.notAnswered +
-                totals.notVisited +
-                totals.markedForReview +
-                totals.answeredAndMarked -
-                totals.answered}
+              {totals.total - totals.answered}
             </div>
             <div className="mt-2 flex flex-wrap gap-2">
               <StatusBadge label="Not Answered" count={totals.notAnswered} />

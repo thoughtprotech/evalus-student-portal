@@ -16,6 +16,8 @@ import {
   GetQuestionOptionsRequest,
   GetQuestionOptionsResponse,
   GetQuestionTypesResponse,
+  GetSessionQuestionByIdRequest,
+  GetSessionQuestionByIdResponse,
   GetSidebarMenusRequest,
   GetSidebarMenusResponse,
   GetSpotlightResponse,
@@ -555,8 +557,15 @@ export const endpoints = {
   } as Endpoint<SubmitQuestionRequest, SubmitQuestionResponse>,
 
   getTestMetaData: {
-    path: ({testId}) => `/api/Tests/${testId}/meta-payload`,
+    path: ({ testId, testResponseId }) => `/api/Tests/${testId}/meta-payload?testResponseId=${testResponseId}`,
     method: "GET",
     type: "CLOSE",
   } as Endpoint<GetTestMetaDataRequest, GetTestMetaDataResponse>,
+
+  getSessionQuestionById: {
+    path: ({ questionId, testResponseId }) =>
+      `/api/TestSessions/${testResponseId}/question-with-response/${questionId}`,
+    method: "GET",
+    type: "CLOSE",
+  } as Endpoint<GetSessionQuestionByIdRequest, GetSessionQuestionByIdResponse>,
 };

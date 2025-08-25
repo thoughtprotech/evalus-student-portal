@@ -37,11 +37,11 @@ export interface GetQuestionListResponse {
   questionText: string;
   questionType: QuestionType;
   questionStatus:
-  | "Not Visited"
-  | "Attempted"
-  | "UnAttempted"
-  | "To Review"
-  | "Answered To Review";
+    | "Not Visited"
+    | "Attempted"
+    | "UnAttempted"
+    | "To Review"
+    | "Answered To Review";
   marks: number;
   negativeMarks: number;
   questionSectionId: number;
@@ -111,6 +111,7 @@ export interface GetQuestionByIdResponse {
 
 export interface GetTestMetaDataRequest {
   testId: number;
+  testResponseId: number;
 }
 
 export interface TestMetaDataInterface {
@@ -160,12 +161,12 @@ export interface CreateQuestionRequest {
     marks: number;
     negativeMarks: number;
     graceMarks: number;
-  // Duration of the question in seconds (time allotted or reference duration)
-  duration: number; // pass 0 if not provided
+    // Duration of the question in seconds (time allotted or reference duration)
+    duration: number; // pass 0 if not provided
     difficultyLevelId: number;
     questionTypeId: number;
-  chapterId?: number; // included for compatibility with backend payload
-  questionTypeName?: string; // optional descriptive name if backend accepts
+    chapterId?: number; // included for compatibility with backend payload
+    questionTypeName?: string; // optional descriptive name if backend accepts
     subjectId: number;
     topicId: number;
     language: string;
@@ -207,12 +208,12 @@ export interface GetCandidateTestResponse {
   testStartDate: string;
   testEndDate: string;
   testCandidateRegistrationStatus:
-  | "Registered"
-  | "Completed"
-  | "Cancelled"
-  | "In Progress"
-  | "Missed"
-  | "Up Next"; // Virtual grouping for upcoming registered tests
+    | "Registered"
+    | "Completed"
+    | "Cancelled"
+    | "In Progress"
+    | "Missed"
+    | "Up Next"; // Virtual grouping for upcoming registered tests
   testId: number;
   // Optional id from registration table if candidate already registered
   testRegistrationId: number;
@@ -394,7 +395,6 @@ export interface TestInstructionOData {
 export interface TestDifficultyLevelOData {
   TestDifficultyLevelId: number;
   TestDifficultyLevel1: string;
-
 }
 
 // OData entity for Test Templates (Step 1 - Test Template)
@@ -472,4 +472,33 @@ export interface GetInstructionsByTestIdResponse {
   createdDate: string;
   modifiedBy: string;
   modifiedDate: string;
+}
+
+export interface GetSessionQuestionByIdRequest {
+  questionId: number;
+  testResponseId: number;
+}
+
+export interface GetSessionQuestionByIdResponse {
+  questionId: number;
+  explanation: string;
+  questionsMeta: {
+    allowCandidateComments: number;
+    tags: string;
+    marks: number;
+    negativeMarks: number;
+    graceMarks: number;
+    difficultyLevelId: number;
+    questionTypeId: number;
+    questionTypeName: string;
+    subjectId: number;
+    topicId: number;
+    chapterId: number;
+    language: string;
+  };
+  question: string;
+  options: {
+    options: string;
+    answer: string;
+  };
 }

@@ -15,6 +15,7 @@ import {
   ClipboardList,
   Info,
 } from "lucide-react";
+import { TextOrHtml } from "@/components/TextOrHtml";
 
 type Props = {
   sections: SectionsMetaDataInterface[];
@@ -113,7 +114,10 @@ export default function SubmitSectionModal({
   const currentSection = useMemo(() => {
     if (!sections?.length) return undefined;
     if (currentSectionId != null) {
-      return sections.find((s) => s.sectionId === currentSectionId) ?? sections[sections.length - 1];
+      return (
+        sections.find((s) => s.sectionId === currentSectionId) ??
+        sections[sections.length - 1]
+      );
     }
     return sections[sections.length - 1];
   }, [sections, currentSectionId]);
@@ -202,7 +206,9 @@ export default function SubmitSectionModal({
               <Bookmark className="h-4 w-4" />
               Marked
             </div>
-            <div className="text-indigo-800 text-sm">{counts.markedForReview}</div>
+            <div className="text-indigo-800 text-sm">
+              {counts.markedForReview}
+            </div>
           </div>
 
           <div className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2">
@@ -224,7 +230,7 @@ export default function SubmitSectionModal({
               Unresolved in this section
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {unresolved.map((q) => {
+              {unresolved.map((q, i) => {
                 const tone =
                   q.status === QUESTION_STATUS.UNATTEMPTED
                     ? "text-amber-700 bg-white ring-amber-200"
@@ -245,12 +251,11 @@ export default function SubmitSectionModal({
                     className="flex items-start justify-between gap-3 rounded-md border border-gray-200 bg-white p-3"
                   >
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <ClipboardList className="h-3.5 w-3.5" />
-                        Q{q.questionId}
-                      </div>
-                      <div className="truncate text-sm font-medium text-gray-900">
-                        {q.questionText}
+                      {/* <div className="flex items-center gap-2 text-xs text-gray-500"> */}
+                        {/* <ClipboardList className="h-3.5 w-3.5" />Q */}
+                      {/* </div> */}
+                      <div className="truncate text-sm font-medium text-gray-900 overflow-hidden h-10">
+                        <TextOrHtml content={q.questionText} />
                       </div>
                     </div>
                     <span
@@ -265,7 +270,8 @@ export default function SubmitSectionModal({
               })}
             </div>
             <p className="mt-2 text-xs text-amber-700">
-              Review these before submitting if changes are needed. You cannot return to this section later.
+              Review these before submitting if changes are needed. You cannot
+              return to this section later.
             </p>
           </div>
         ) : (
