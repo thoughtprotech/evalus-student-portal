@@ -7,7 +7,8 @@ import { fetchCandidatesAction, deleteCandidateAction, type CandidateRow } from 
 import PageHeader from "@/components/PageHeader";
 import Link from "next/link";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import Loader from "@/components/Loader";
+import Loader from "@/components/Loader"; // legacy spinner (still used for fallback cases)
+import GridOverlayLoader from "@/components/GridOverlayLoader";
 import Toast from "@/components/Toast";
 import PaginationControls from "@/components/PaginationControls";
 
@@ -495,10 +496,8 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
                 </div>
             )}
 
-            <div className="flex-1 min-h-0">
-                {loading ? (
-                    <Loader />
-                ) : rows.length === 0 ? (
+            <div className="flex-1 min-h-0 relative">
+                {rows.length === 0 && !loading ? (
                     <div className="bg-white shadow rounded-md border border-gray-300 p-8 h-full overflow-auto">
                         <div className="text-center">
                             <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -554,14 +553,13 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
                             stopEditingWhenCellsLoseFocus={true}
                             theme="legacy"
                         />
-                        {loading && (
-                            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
-                                <Loader />
-                                <p className="mt-2 text-sm text-gray-600">Loading candidates...</p>
-                            </div>
-                        )}
+                                                {loading && <GridOverlayLoader message="Loading candidates..." />}
                     </div>
                 )}
+                                {loading && rows.length === 0 && (
+                                    // For first load ensure height is reserved (grid container already handles). Overlay covers.
+                                    <></>
+                                )}
             </div>
 
             <style jsx global>{`

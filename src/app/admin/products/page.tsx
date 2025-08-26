@@ -6,7 +6,7 @@ import { fetchProductsAction, deleteProductAction, type ProductDto } from "@/app
 import PageHeader from "@/components/PageHeader";
 import Link from "next/link";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import Loader from "@/components/Loader";
+import GridOverlayLoader from "@/components/GridOverlayLoader";
 import Toast from "@/components/Toast";
 import PaginationControls from "@/components/PaginationControls";
 
@@ -180,10 +180,8 @@ function ProductsGrid({ query, onClearQuery }: { query: string; onClearQuery?: (
         </div>
       )}
 
-      <div className="flex-1 min-h-0">
-        {loading ? (
-          <Loader />
-        ) : rows.length === 0 ? (
+      <div className="flex-1 min-h-0 relative">
+        {rows.length === 0 && !loading ? (
           <div className="bg-white shadow rounded-md border border-gray-300 p-8 h-full overflow-auto">
             <div className="text-center">
               <Box className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -214,6 +212,7 @@ function ProductsGrid({ query, onClearQuery }: { query: string; onClearQuery?: (
               stopEditingWhenCellsLoseFocus={true}
               theme="legacy"
             />
+            {loading && <GridOverlayLoader message="Loading products..." />}
           </div>
         )}
       </div>

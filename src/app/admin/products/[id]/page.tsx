@@ -5,7 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { fetchProductByIdAction, updateProductAction, ProductDto } from "@/app/actions/admin/products";
 import Loader from "@/components/Loader";
 import Link from "next/link";
-import { ArrowLeft, Package, Loader2 } from "lucide-react";
+import { ArrowLeft, Package } from "lucide-react";
+import EditPageLoader from "@/components/EditPageLoader";
 import toast from "react-hot-toast";
 
 export default function EditProductPage() {
@@ -79,9 +80,7 @@ export default function EditProductPage() {
     setSaving(false);
   };
 
-  if (loading) {
-    return <div className="p-6 text-sm text-gray-600 flex items-center gap-2"><Loader2 className="animate-spin w-4 h-4"/> Loading...</div>;
-  }
+  if (loading) return <EditPageLoader message="Loading product..." />;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -98,7 +97,18 @@ export default function EditProductPage() {
         </div>
       </div>
       <div className="w-[85%] mx-auto px-6 py-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 space-y-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 space-y-6 relative">
+          {saving && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-sm rounded-lg">
+              <div className="flex flex-col items-center gap-3">
+                <div className="relative">
+                  <div className="absolute -inset-3 bg-gradient-to-r from-indigo-200 via-blue-200 to-indigo-200 opacity-30 blur-xl animate-pulse rounded-full" />
+                  <Package className="relative w-8 h-8 text-green-600 animate-pulse" />
+                </div>
+                <p className="text-xs font-medium text-gray-600">Saving...</p>
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Product Name *</label>
