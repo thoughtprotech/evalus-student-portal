@@ -24,6 +24,7 @@ export type Step1CreateTestDetailsProps = {
   formRef?: React.RefObject<HTMLFormElement | null>;
   infoTitle?: string;
   infoDetail?: string;
+  registerValidator?: (fn: () => boolean) => void;
 };
 
 // using shared ImportantInstructions component
@@ -36,6 +37,7 @@ export default function Step1CreateTestDetails({
   formRef,
   infoTitle,
   infoDetail,
+  registerValidator,
 }: Step1CreateTestDetailsProps) {
   const localFormRef = useRef<HTMLFormElement | null>(null);
   const refToUse = formRef ?? localFormRef;
@@ -61,6 +63,9 @@ export default function Step1CreateTestDetails({
   const [previewOpen, setPreviewOpen] = useState(false);
   const [hasAttachments, setHasAttachments] = useState(false);
   const { draft, setDraft } = useTestDraft();
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  // Keep latest validator without re-registering on every state change
+  const validateRef = useRef<() => boolean>(() => true);
 
   const genGuid = () =>
     "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
@@ -69,15 +74,22 @@ export default function Step1CreateTestDetails({
       return v.toString(16);
     });
 
-  // Initialize default values and fetch templates
+  // Initialize default values and fetch templates (no draft updates here)
   useEffect(() => {
-    setCode((prev) => {
-      if (prev) return prev;
-      const g = genGuid();
-      // Persist to draft when auto-generating for the first time
-      setDraft((d: any) => ({ ...d, TestCode: g }));
-      return g;
-    });
+    if (!code) {
+      // In edit mode, prefer draft.TestCode if present
+      if (draft?.TestCode) {
+  const c = String(draft.TestCode);
+  setCode(c);
+  // Ensure it's in draft as well
+  setDraft((d: any) => ({ ...d, TestCode: c }));
+      } else {
+  const g = genGuid();
+  setCode(g);
+  // Persist generated code to draft so it's sent on save
+  setDraft((d: any) => ({ ...d, TestCode: g }));
+      }
+    }
     (async () => {
       const res = await apiHandler(endpoints.getTestTemplatesOData, null as any);
       if (!res.error && res.data) {
@@ -92,15 +104,20 @@ export default function Step1CreateTestDetails({
             const def = list.find((t) => t.TestTemplateName?.toLowerCase() === "default");
             const selected = def ?? list[0];
             setTemplateKey(String(selected.TestTemplateId));
-            // Also set on draft if absent
-            if (!draftTemplateId) {
-              setDraft((d: any) => ({ ...d, TestTemplateId: Number(selected.TestTemplateId) }));
-            }
           }
         }
       }
     })();
   }, []);
+
+  // Keep draft.TestCode in sync if local code state changes for any reason
+  useEffect(() => {
+    if (code && String(draft?.TestCode ?? "") !== String(code)) {
+      setDraft((d: any) => ({ ...d, TestCode: code }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code]);
+  
 
   // Hydrate from shared draft on first load
   useEffect(() => {
@@ -122,6 +139,33 @@ export default function Step1CreateTestDetails({
   if (typeof draft.AllowAttachments === 'boolean') setHasAttachments(draft.AllowAttachments);
     }
   }, [draft]);
+
+  // Inline validation similar to Steps 4 & 5
+  const validate = () => {
+    const errs: Record<string, string> = {};
+  if (!name.trim()) errs.name = "Test Name is required";
+  if (!typeId) errs.typeId = "Test Type is required";
+  if (!categoryId) errs.categoryId = "Category is required";
+  if (!difficultyLevelId) errs.difficultyLevelId = "Difficulty Level is required";
+  if (!primaryInstructionId) errs.primaryInstructionId = "Primary Instruction is required";
+  if (duration === "" || Number(duration) <= 0) errs.duration = "Duration (mins) must be a positive number";
+  if (totalQuestions === "" || Number(totalQuestions) <= 0) errs.totalQuestions = "Total Questions must be a positive number";
+  if (totalMarks === "" || Number(totalMarks) <= 0) errs.totalMarks = "Total Marks must be a positive number";
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  // Update the validator ref whenever inputs change
+  useEffect(() => {
+    validateRef.current = () => validate();
+  }, [name, typeId, categoryId, difficultyLevelId, primaryInstructionId, duration, totalQuestions, totalMarks]);
+
+  // Register the validator once; it will call the latest validate via ref
+  useEffect(() => {
+    if (registerValidator) {
+      registerValidator(() => validateRef.current());
+    }
+  }, [registerValidator]);
 
   useEffect(() => {
     function updateHeight() {
@@ -154,10 +198,11 @@ export default function Step1CreateTestDetails({
               <input
                 className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                 value={name}
-                onChange={(e) => { const v = e.target.value; setName(v); setDraft((d: any) => ({ ...d, TestName: v })); }}
+                onChange={(e) => { const v = e.target.value; setName(v); setErrors((e)=>({ ...e, name: "" })); setDraft((d: any) => ({ ...d, TestName: v })); }}
                 placeholder="Enter test name"
-                required
+                aria-invalid={!!errors.name}
               />
+              {errors.name && <div className="mt-1 text-xs text-red-600 font-bold">{errors.name}</div>}
             </div>
             <div className="md:col-span-2 grid grid-cols-1 gap-4">
               {/* Test Type and Test Code row (no regenerate) */}
@@ -167,10 +212,10 @@ export default function Step1CreateTestDetails({
                     Test Type <span className="text-red-600">*</span>
                   </label>
                   <select
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm font-normal focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white"
+                    className={`w-full border rounded-lg px-3 py-2.5 text-sm font-normal focus:ring-2 transition-colors bg-white ${errors.typeId ? "border-red-400 focus:ring-red-500 focus:border-red-500" : "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"}`}
                     value={typeId}
-                    onChange={(e) => { const v = e.target.value; setTypeId(v); setDraft((d: any) => ({ ...d, TestTypeId: v ? Number(v) : null })); }}
-                    required
+                    onChange={(e) => { const v = e.target.value; setTypeId(v); setErrors((e)=>({ ...e, typeId: "" })); setDraft((d: any) => ({ ...d, TestTypeId: v ? Number(v) : null })); }}
+                    aria-invalid={!!errors.typeId}
                   >
                     <option value="">Select type</option>
                     {testTypes?.map((t) => (
@@ -179,6 +224,7 @@ export default function Step1CreateTestDetails({
                       </option>
                     ))}
                   </select>
+                  {errors.typeId && <div className="mt-1 text-xs text-red-600 font-bold">{errors.typeId}</div>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-800 mb-1">
@@ -189,7 +235,7 @@ export default function Step1CreateTestDetails({
                     value={code}
                     readOnly
                     placeholder="Auto-generated code"
-                    required
+                    aria-invalid={false}
                   />
                 </div>
               </div>
@@ -199,10 +245,10 @@ export default function Step1CreateTestDetails({
                 Category <span className="text-red-600">*</span>
               </label>
               <select
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm font-normal focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white"
+                className={`w-full border rounded-lg px-3 py-2.5 text-sm font-normal focus:ring-2 transition-colors bg-white ${errors.categoryId ? "border-red-400 focus:ring-red-500 focus:border-red-500" : "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"}`}
                 value={categoryId}
-                onChange={(e) => { const v = e.target.value; setCategoryId(v); setDraft((d: any) => ({ ...d, TestCategoryId: v ? Number(v) : null })); }}
-                required
+                onChange={(e) => { const v = e.target.value; setCategoryId(v); setErrors((e)=>({ ...e, categoryId: "" })); setDraft((d: any) => ({ ...d, TestCategoryId: v ? Number(v) : null })); }}
+                aria-invalid={!!errors.categoryId}
               >
                 <option value="">Select category</option>
                 {categories?.map((c) => (
@@ -214,16 +260,17 @@ export default function Step1CreateTestDetails({
                   </option>
                 ))}
               </select>
+              {errors.categoryId && <div className="mt-1 text-xs text-red-600 font-bold">{errors.categoryId}</div>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-800 mb-1">
                 Difficulty Level <span className="text-red-600">*</span>
               </label>
               <select
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm font-normal focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white"
+                className={`w-full border rounded-lg px-3 py-2.5 text-sm font-normal focus:ring-2 transition-colors bg-white ${errors.difficultyLevelId ? "border-red-400 focus:ring-red-500 focus:border-red-500" : "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"}`}
                 value={difficultyLevelId}
-                onChange={(e) => { const v = e.target.value; setDifficultyLevelId(v); setDraft((d: any) => ({ ...d, TestDifficultyLevelId: v ? Number(v) : null })); }}
-                required
+                onChange={(e) => { const v = e.target.value; setDifficultyLevelId(v); setErrors((e)=>({ ...e, difficultyLevelId: "" })); setDraft((d: any) => ({ ...d, TestDifficultyLevelId: v ? Number(v) : null })); }}
+                aria-invalid={!!errors.difficultyLevelId}
               >
                 <option value="">Select difficulty</option>
                 {difficultyLevels?.map((d) => (
@@ -235,6 +282,7 @@ export default function Step1CreateTestDetails({
                   </option>
                 ))}
               </select>
+              {errors.difficultyLevelId && <div className="mt-1 text-xs text-red-600 font-bold">{errors.difficultyLevelId}</div>}
             </div>
             {/* Instructions Row - next row with Primary and Secondary */}
             <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -243,11 +291,12 @@ export default function Step1CreateTestDetails({
                   Primary Instruction <span className="text-red-600">*</span>
                 </label>
                 <select
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm font-normal focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white"
+                  className={`w-full border rounded-lg px-3 py-2.5 text-sm font-normal focus:ring-2 transition-colors bg-white ${errors.primaryInstructionId ? "border-red-400 focus:ring-red-500 focus:border-red-500" : "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"}`}
                   value={primaryInstructionId}
                   onChange={(e) => {
                     const v = e.target.value;
                     setPrimaryInstructionId(v);
+                    setErrors((e)=>({ ...e, primaryInstructionId: "" }));
                     setDraft((d: any) => {
                       const arr = Array.isArray(d.TestAssignedInstructions) ? d.TestAssignedInstructions.slice() : [{}];
                       arr[0] = {
@@ -257,7 +306,7 @@ export default function Step1CreateTestDetails({
                       return { ...d, TestAssignedInstructions: arr };
                     });
                   }}
-                  required
+                  aria-invalid={!!errors.primaryInstructionId}
                 >
                   <option value="">Select instruction</option>
                   {instructions?.map((i) => (
@@ -266,6 +315,7 @@ export default function Step1CreateTestDetails({
                     </option>
                   ))}
                 </select>
+                {errors.primaryInstructionId && <div className="mt-1 text-xs text-red-600 font-bold">{errors.primaryInstructionId}</div>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-800 mb-1">
@@ -310,12 +360,13 @@ export default function Step1CreateTestDetails({
                       </label>
                       <input
                         type="number"
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                        className={`w-full rounded-lg border px-3 py-2.5 text-sm bg-white focus:ring-2 transition ${errors.duration ? "border-red-400 focus:ring-red-500 focus:border-red-500" : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"}`}
                         value={duration}
-                        onChange={(e) => { const v = e.target.value === "" ? "" : Number(e.target.value); setDuration(v as any); setDraft((d: any) => ({ ...d, TestDurationMinutes: v === "" ? null : Number(v) })); }}
+                        onChange={(e) => { const v = e.target.value === "" ? "" : Number(e.target.value); setDuration(v as any); setErrors((e)=>({ ...e, duration: "" })); setDraft((d: any) => ({ ...d, TestDurationMinutes: v === "" ? null : Number(v) })); }}
                         placeholder="e.g., 60"
-                        required
+                        aria-invalid={!!errors.duration}
                       />
+                      {errors.duration && <div className="mt-1 text-xs text-red-600 font-bold">{errors.duration}</div>}
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -343,12 +394,13 @@ export default function Step1CreateTestDetails({
                       </label>
                       <input
                         type="number"
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                        className={`w-full rounded-lg border px-3 py-2.5 text-sm bg-white focus:ring-2 transition ${errors.totalQuestions ? "border-red-400 focus:ring-red-500 focus:border-red-500" : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"}`}
                         value={totalQuestions}
-                        onChange={(e) => { const v = e.target.value === "" ? "" : Number(e.target.value); setTotalQuestions(v as any); setDraft((d: any) => ({ ...d, TotalQuestions: v === "" ? null : Number(v) })); }}
+                        onChange={(e) => { const v = e.target.value === "" ? "" : Number(e.target.value); setTotalQuestions(v as any); setErrors((e)=>({ ...e, totalQuestions: "" })); setDraft((d: any) => ({ ...d, TotalQuestions: v === "" ? null : Number(v) })); }}
                         placeholder="e.g., 50"
-                        required
+                        aria-invalid={!!errors.totalQuestions}
                       />
+                      {errors.totalQuestions && <div className="mt-1 text-xs text-red-600 font-bold">{errors.totalQuestions}</div>}
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -356,12 +408,13 @@ export default function Step1CreateTestDetails({
                       </label>
                       <input
                         type="number"
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                        className={`w-full rounded-lg border px-3 py-2.5 text-sm bg-white focus:ring-2 transition ${errors.totalMarks ? "border-red-400 focus:ring-red-500 focus:border-red-500" : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"}`}
                         value={totalMarks}
-                        onChange={(e) => { const v = e.target.value === "" ? "" : Number(e.target.value); setTotalMarks(v as any); setDraft((d: any) => ({ ...d, TotalMarks: v === "" ? null : Number(v) })); }}
+                        onChange={(e) => { const v = e.target.value === "" ? "" : Number(e.target.value); setTotalMarks(v as any); setErrors((e)=>({ ...e, totalMarks: "" })); setDraft((d: any) => ({ ...d, TotalMarks: v === "" ? null : Number(v) })); }}
                         placeholder="e.g., 100"
-                        required
+                        aria-invalid={!!errors.totalMarks}
                       />
+                      {errors.totalMarks && <div className="mt-1 text-xs text-red-600 font-bold">{errors.totalMarks}</div>}
                     </div>
                   </div>
                 </div>
@@ -397,7 +450,7 @@ export default function Step1CreateTestDetails({
                     <div key={t.TestTemplateId} className={`border rounded-lg overflow-hidden shadow-sm transition-all duration-150 w-full bg-white flex flex-col items-center ${templateKey === String(t.TestTemplateId) ? "ring-2 ring-blue-500 border-blue-400" : "border-gray-200 hover:border-blue-300"}`}>
                       <div className="w-full flex flex-col items-center">
                         <div className="w-full flex items-center justify-center gap-1 mb-2 mt-1 rounded bg-blue-50/60 px-1 py-0.5 shadow-sm">
-              <input
+                          <input
                             type="checkbox"
                             checked={templateKey === String(t.TestTemplateId)}
                             onChange={() => {

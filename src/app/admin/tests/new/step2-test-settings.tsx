@@ -11,20 +11,7 @@ const fromUlong = (v: any): boolean => v === 1 || v === "1" || v === true;
 
 const toNumberOrNull = (v: string): number | null => (v.trim() === "" ? null : Number(v));
 
-function toLocalDateTimeInputValue(iso?: string | null): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function toIsoFromLocal(local: string): string | null {
-  if (!local || local.trim() === "") return null;
-  const d = new Date(local);
-  if (isNaN(d.getTime())) return null;
-  return d.toISOString();
-}
+// Schedule handling moved to Step 4; local date/time helpers no longer needed here.
 
 export default function Step2TestSettings() {
   const { draft, setDraft } = useTestDraft();
@@ -64,14 +51,9 @@ export default function Step2TestSettings() {
   const [automaticRankCalculation, setAutomaticRankCalculation] = useState(false);
   const [allowDuplicateRank, setAllowDuplicateRank] = useState(false);
   const [skipRankForDuplicateTank, setSkipRankForDuplicateTank] = useState(false);
-  const [allowTestPauseResume, setAllowTestPauseResume] = useState(false);
-  const [detailedReportOnCompletion, setDetailedReportOnCompletion] = useState(false);
-  const [negativeScoreZeroes, setNegativeScoreZeroes] = useState(false);
+  // Removed: Allow Test Pause/Resume, Detailed Test Report on Completion, Treat Negative Score as Zero
 
-  // Schedule & extra time
-  const [tentativeStart, setTentativeStart] = useState<string>("");
-  const [tentativeEnd, setTentativeEnd] = useState<string>("");
-  const [testAdditionalTime, setTestAdditionalTime] = useState<string>("");
+  // Schedule removed from Step 2
 
   // Hydrate from draft
   useEffect(() => {
@@ -105,13 +87,9 @@ export default function Step2TestSettings() {
     setAutomaticRankCalculation(fromUlong(draft.AutomaticRankCalculation));
     setAllowDuplicateRank(fromUlong(draft.AllowDuplicateRank));
     setSkipRankForDuplicateTank(fromUlong(draft.SkipRankForDuplicateTank));
-    setAllowTestPauseResume(fromUlong(draft.AllowTestPauseResume));
-    setDetailedReportOnCompletion(fromUlong(draft.DetailedTestReportOnTestCompletion));
-    setNegativeScoreZeroes(fromUlong(draft.NegativeScoreZeroes));
+  // Removed fields hydration
 
-    setTentativeStart(toLocalDateTimeInputValue(draft.TentativeTestStartDate));
-    setTentativeEnd(toLocalDateTimeInputValue(draft.TentativeTestEndDate));
-    setTestAdditionalTime(draft.TestAdditionalTime != null ? String(draft.TestAdditionalTime) : "");
+  // Schedule hydration removed; handled in Step 4
   }, [draft]);
 
   return (
@@ -146,7 +124,7 @@ export default function Step2TestSettings() {
                 right={{ label: "Continuous", value: false }}
                 size="sm"
                 equalWidth
-                segmentWidthClass="w-28"
+                segmentWidthClass="w-24"
               />
             </div>
             <div className="flex items-center justify-between gap-3">
@@ -210,8 +188,9 @@ export default function Step2TestSettings() {
       {/* Time Limits */}
       <section className="border rounded-lg bg-white shadow-sm">
         <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Time Limits</div>
-        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="space-y-3">
+        <div className="p-4 space-y-4 text-sm">
+          {/* Row 1: Min/Max Test Time */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-gray-800 mb-1">Minimum Test Time (mins)</label>
               <input
@@ -228,7 +207,7 @@ export default function Step2TestSettings() {
               />
             </div>
             <div>
-              <label className="block text-gray-800 mb-1">Maximum Test Time Per (mins)</label>
+              <label className="block text-gray-800 mb-1">Maximum Test Time (mins)</label>
               <input
                 type="number"
                 min={1}
@@ -242,6 +221,10 @@ export default function Step2TestSettings() {
                 placeholder="e.g., 120"
               />
             </div>
+          </div>
+
+          {/* Row 2: Min/Max Time per Question */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-gray-800 mb-1">Minimum Time per Question (secs)</label>
               <input
@@ -257,8 +240,6 @@ export default function Step2TestSettings() {
                 placeholder="e.g., 30"
               />
             </div>
-          </div>
-          <div className="space-y-3">
             <div>
               <label className="block text-gray-800 mb-1">Maximum Time per Question (secs)</label>
               <input
@@ -274,6 +255,10 @@ export default function Step2TestSettings() {
                 placeholder="e.g., 120"
               />
             </div>
+          </div>
+
+          {/* Row 3: Min/Max Time per Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-gray-800 mb-1">Minimum Time per Section (mins)</label>
               <input
@@ -416,70 +401,11 @@ export default function Step2TestSettings() {
               <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={skipRankForDuplicateTank} onChange={(v) => { setSkipRankForDuplicateTank(v); setDraft((d: any) => ({ ...d, SkipRankForDuplicateTank: toUlong(v) })); }} />
             </label>
           </div>
-          <div className="space-y-3">
-            <label className="flex items-center justify-between gap-3">
-              <span className="text-gray-800">Allow Test Pause/Resume</span>
-              <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={allowTestPauseResume} onChange={(v) => { setAllowTestPauseResume(v); setDraft((d: any) => ({ ...d, AllowTestPauseResume: toUlong(v) })); }} />
-            </label>
-            <label className="flex items-center justify-between gap-3">
-              <span className="text-gray-800">Detailed Test Report on Completion</span>
-              <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={detailedReportOnCompletion} onChange={(v) => { setDetailedReportOnCompletion(v); setDraft((d: any) => ({ ...d, DetailedTestReportOnTestCompletion: toUlong(v) })); }} />
-            </label>
-            <label className="flex items-center justify-between gap-3">
-              <span className="text-gray-800">Treat Negative Score as Zero</span>
-              <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={negativeScoreZeroes} onChange={(v) => { setNegativeScoreZeroes(v); setDraft((d: any) => ({ ...d, NegativeScoreZeroes: toUlong(v) })); }} />
-            </label>
-          </div>
+          {/* Right column removed per requirements */}
         </div>
       </section>
 
-      {/* Schedule */}
-      <section className="border rounded-lg bg-white shadow-sm">
-        <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Schedule</div>
-        <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div>
-            <label className="block text-gray-800 mb-1">Tentative Test Start</label>
-            <input
-              type="datetime-local"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              value={tentativeStart}
-              onChange={(e) => {
-                const v = e.target.value;
-                setTentativeStart(v);
-                setDraft((d: any) => ({ ...d, TentativeTestStartDate: toIsoFromLocal(v) }));
-              }}
-            />
-          </div>
-          <div>
-            <label className="block text-gray-800 mb-1">Tentative Test End</label>
-            <input
-              type="datetime-local"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              value={tentativeEnd}
-              onChange={(e) => {
-                const v = e.target.value;
-                setTentativeEnd(v);
-                setDraft((d: any) => ({ ...d, TentativeTestEndDate: toIsoFromLocal(v) }));
-              }}
-            />
-          </div>
-          <div>
-            <label className="block text-gray-800 mb-1">Additional Time (mins)</label>
-            <input
-              type="number"
-              min={0}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              value={testAdditionalTime}
-              onChange={(e) => {
-                const v = e.target.value;
-                setTestAdditionalTime(v);
-                setDraft((d: any) => ({ ...d, TestAdditionalTime: v.trim() === "" ? null : Number(v) }));
-              }}
-              placeholder="e.g., 5"
-            />
-          </div>
-        </div>
-      </section>
+  {/* Schedule moved to Step 4 */}
     </div>
   );
 }

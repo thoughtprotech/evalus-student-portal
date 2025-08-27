@@ -32,6 +32,7 @@ export default function Step3AddQuestions() {
   const [markTo, setMarkTo] = useState<number | "">("");
   const [markMarks, setMarkMarks] = useState<number | "">("");
   const [markNegMarks, setMarkNegMarks] = useState<number | "">("");
+  const [markDuration, setMarkDuration] = useState<number | "">("");
 
   const [sections, setSections] = useState<TestSection[]>([]);
   const [delSelected, setDelSelected] = useState<Record<number, boolean>>({});
@@ -71,7 +72,9 @@ export default function Step3AddQuestions() {
           ? data!.questionIds!.length
           : (toAdd.length || 0);
         setSelectedCount((prev) => (newCount > 0 ? newCount : prev));
-        sessionStorage.removeItem("admin:newTest:selectedQuestions");
+  sessionStorage.removeItem("admin:newTest:selectedQuestions");
+  // We are back in the wizard; allow cleanup on future exits
+  sessionStorage.removeItem("admin:newTest:suppressClear");
       }
     } catch {
       // ignore parse errors
@@ -141,8 +144,9 @@ export default function Step3AddQuestions() {
     const start = Math.min(assignFrom as number, assignTo as number);
     const end = Math.max(assignFrom as number, assignTo as number);
     const hasSection = assignSectionId !== "";
-    const hasMarks = markMarks !== "" || markNegMarks !== "";
-    if (!hasSection && !hasMarks) return; // nothing to update
+  const hasMarks = markMarks !== "" || markNegMarks !== "";
+  const hasDuration = markDuration !== "";
+  if (!hasSection && !hasMarks && !hasDuration) return; // nothing to update
     if (markMarks !== "" && markNegMarks !== "" && Number(markNegMarks) > Number(markMarks)) {
       setToast({ message: "Negative Marks should not be greater than Marks.", type: "error" });
       return;
@@ -158,6 +162,7 @@ export default function Step3AddQuestions() {
           ...(hasSection ? { TestSectionId: assignSectionId } : {}),
           ...(markMarks !== "" ? { Marks: Number(markMarks) } : {}),
           ...(markNegMarks !== "" ? { NegativeMarks: Number(markNegMarks) } : {}),
+      ...(hasDuration ? { Duration: Number(markDuration) } : {}),
         };
       });
       return { ...d, testQuestions: updated };
@@ -166,6 +171,7 @@ export default function Step3AddQuestions() {
   // clear inputs but keep section selection to allow repeated applies if desired
     setMarkMarks("");
     setMarkNegMarks("");
+    setMarkDuration("");
   setAssignFrom("");
   setAssignTo("");
   };
@@ -176,6 +182,8 @@ export default function Step3AddQuestions() {
         ? (draft.testQuestions as any[]).map((q: any) => Number(q.TestQuestionId)).filter(Boolean)
         : [];
       sessionStorage.setItem("admin:newTest:preselectedIds", JSON.stringify(ids));
+  // Prevent wizard unmount cleanup while we jump to the selection sub-page
+  sessionStorage.setItem("admin:newTest:suppressClear", "1");
     } catch {}
     router.push("/admin/tests/new/questions/select");
   };
@@ -199,8 +207,8 @@ export default function Step3AddQuestions() {
         )}
 
         {total > 0 && (
-          <div className={selectionFromBank ? "lg:col-span-3" : "lg:col-span-4 flex justify-center"}>
-            <div className={selectionFromBank ? "w-full" : "w-full max-w-[1100px]"}>
+          <div className="lg:col-span-3">
+            <div className="w-full">
               <div className="rounded-lg border bg-white shadow-sm">
                 <div className="bg-blue-600 text-white px-4 py-2 text-base font-semibold rounded-t-lg flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">Selected Questions</div>
@@ -239,6 +247,10 @@ export default function Step3AddQuestions() {
                       <div className="flex flex-col">
                         <label className="text-xs text-gray-600">Negative Marks</label>
                         <input type="number" placeholder="--" value={markNegMarks as any} onChange={(e) => setMarkNegMarks(e.target.value === "" ? "" : Number(e.target.value))} className="border rounded px-2 py-1 text-sm w-28" />
+                      </div>
+                      <div className="flex flex-col">
+                        <label className="text-xs text-gray-600">Duration</label>
+                        <input type="number" placeholder="--" value={markDuration as any} onChange={(e) => setMarkDuration(e.target.value === "" ? "" : Number(e.target.value))} className="border rounded px-2 py-1 text-sm w-28" />
                       </div>
                       <div className="ml-auto">
                         <button onClick={applyBulkUpdate} className="rounded bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2">Apply</button>
@@ -313,6 +325,7 @@ export default function Step3AddQuestions() {
                         <th className="px-4 py-2 border-b text-left">Question</th>
                         <th className="px-4 py-2 border-b w-28 text-left">Marks</th>
                         <th className="px-4 py-2 border-b w-36 text-left">Negative Marks</th>
+                        <th className="px-4 py-2 border-b w-28 text-left">Duration</th>
                         <th className="px-4 py-2 border-b w-40 text-left">Test Section</th>
                       </tr>
                     </thead>
@@ -331,6 +344,7 @@ export default function Step3AddQuestions() {
                             <td className="px-4 py-2 border-b">{r?.Question?.Questionoptions?.[0]?.QuestionText ?? "-"}</td>
                             <td className="px-4 py-2 border-b">{Number(r?.Marks ?? 0)}</td>
                             <td className="px-4 py-2 border-b">{Number(r?.NegativeMarks ?? 0)}</td>
+                            <td className="px-4 py-2 border-b">{Number(r?.Duration ?? 0)}</td>
                             <td className="px-4 py-2 border-b">{r?.TestSectionId ? (sections.find(s => s.TestSectionId === r.TestSectionId)?.TestSectionName ?? r.TestSectionId) : '-'}</td>
                           </tr>
                         ))
@@ -347,26 +361,26 @@ export default function Step3AddQuestions() {
         )}
 
     {/* Default cards; show instructions only when total === 0 */}
-    {(total === 0 || (total > 0 && !selectionFromBank)) && (
+  {total === 0 && (
           <>
-    <div className={total === 0 ? "lg:col-span-3" : "lg:col-span-4"}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-                <div className="rounded-md border bg-gray-50 flex flex-col shadow-sm p-2">
-                  <div className="p-3 text-center flex-1 flex flex-col items-center">
-                    <MousePointerClick className="mx-auto mb-2 h-8 w-8 text-gray-400" strokeWidth={1.5} />
+  <div className="lg:col-span-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3">
+                <div className="rounded border bg-gray-50 flex flex-col shadow-sm p-1.5">
+                  <div className="p-2 text-center flex-1 flex flex-col items-center">
+                    <MousePointerClick className="mx-auto mb-1.5 h-6 w-6 text-gray-400" strokeWidth={1.5} />
                     <p className="text-xs text-gray-600">Directly add questions from the question bank.</p>
                   </div>
-                  <div className="px-4 pb-4 mt-auto">
-                    <button onClick={handleSelectQuestions} className="w-full rounded-md bg-green-600 hover:bg-green-700 text-white py-1 text-sm">Select Question</button>
+                  <div className="px-3 pb-3 mt-auto">
+                    <button onClick={handleSelectQuestions} className="w-full rounded-md bg-green-600 hover:bg-green-700 text-white py-1 text-xs">Select Question</button>
                   </div>
                 </div>
-                <div className="rounded-md border bg-gray-50 flex flex-col shadow-sm p-2">
-                  <div className="p-3 text-center flex-1 flex flex-col items-center">
-                    <FilePlus2 className="mx-auto mb-2 h-8 w-8 text-gray-400" strokeWidth={1.5} />
+                <div className="rounded border bg-gray-50 flex flex-col shadow-sm p-1.5">
+                  <div className="p-2 text-center flex-1 flex flex-col items-center">
+                    <FilePlus2 className="mx-auto mb-1.5 h-6 w-6 text-gray-400" strokeWidth={1.5} />
                     <p className="text-xs text-gray-600">Create and add new questions.</p>
                   </div>
-                  <div className="px-4 pb-4 mt-auto">
-                    <button onClick={handleAddQuestions} className="w-full rounded-md bg-green-600 hover:bg-green-700 text-white py-1 text-sm">Add Questions</button>
+                  <div className="px-3 pb-3 mt-auto">
+                    <button onClick={handleAddQuestions} className="w-full rounded-md bg-green-600 hover:bg-green-700 text-white py-1 text-xs">Add Questions</button>
                   </div>
                 </div>
               </div>
@@ -381,27 +395,26 @@ export default function Step3AddQuestions() {
             )}
           </>
         )}
-
-        {/* Right panel actions only on immediate return from selection */}
-  {total > 0 && selectionFromBank && (
-          <div className="lg:col-span-1 space-y-4">
-            <div className="grid grid-cols-1 gap-4">
-              <div className="rounded-md border bg-gray-50 flex flex-col shadow-sm p-2">
-                <div className="p-3 text-center flex-1 flex flex-col items-center">
-                  <MousePointerClick className="mx-auto mb-2 h-8 w-8 text-gray-400" strokeWidth={1.5} />
+    {/* Right panel actions when there are questions */}
+  {total > 0 && (
+          <div className="lg:col-span-1 space-y-2">
+            <div className="grid grid-cols-1 gap-2">
+              <div className="rounded border bg-gray-50 flex flex-col shadow-sm p-1.5">
+                <div className="p-2 text-center flex-1 flex flex-col items-center">
+                  <MousePointerClick className="mx-auto mb-1.5 h-6 w-6 text-gray-400" strokeWidth={1.5} />
                   <p className="text-xs text-gray-600">Directly add questions from the question bank.</p>
                 </div>
-                <div className="px-4 pb-4 mt-auto">
-                  <button onClick={handleSelectQuestions} className="w-full rounded-md bg-green-600 hover:bg-green-700 text-white py-1 text-sm">Select Question</button>
+                <div className="px-3 pb-3 mt-auto">
+                  <button onClick={handleSelectQuestions} className="w-full rounded-md bg-green-600 hover:bg-green-700 text-white py-1 text-xs">Select Question</button>
                 </div>
               </div>
-              <div className="rounded-md border bg-gray-50 flex flex-col shadow-sm p-2">
-                <div className="p-3 text-center flex-1 flex flex-col items-center">
-                  <FilePlus2 className="mx-auto mb-2 h-8 w-8 text-gray-400" strokeWidth={1.5} />
+              <div className="rounded border bg-gray-50 flex flex-col shadow-sm p-1.5">
+                <div className="p-2 text-center flex-1 flex flex-col items-center">
+                  <FilePlus2 className="mx-auto mb-1.5 h-6 w-6 text-gray-400" strokeWidth={1.5} />
                   <p className="text-xs text-gray-600">Create and add new questions.</p>
                 </div>
-                <div className="px-4 pb-4 mt-auto">
-                  <button onClick={handleAddQuestions} className="w-full rounded-md bg-green-600 hover:bg-green-700 text-white py-1 text-sm">Add Questions</button>
+                <div className="px-3 pb-3 mt-auto">
+                  <button onClick={handleAddQuestions} className="w-full rounded-md bg-green-600 hover:bg-green-700 text-white py-1 text-xs">Add Questions</button>
                 </div>
               </div>
             </div>

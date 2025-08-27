@@ -294,6 +294,27 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<null, any>,
 
+  // Create Test (Step 5 Save)
+  createTest: {
+    method: "POST",
+    path: () => `/api/Tests`,
+    type: "CLOSE",
+  } as Endpoint<any, any>,
+
+  // Update Test (Edit Save)
+  updateTest: {
+    method: "PUT",
+    path: ({ id }: { id: number | string }) => `/api/Tests/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number | string } & any, any>,
+
+  // Get Test by Id (Edit mode prefill)
+  getTestById: {
+    method: "GET",
+    path: ({ id }: { id: number | string }) => `/api/Tests/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number | string }, any>,
+
   // OData lists for Admin Test creation
   getTestTypes: {
     method: "GET",
@@ -385,6 +406,13 @@ export const endpoints = {
     type: "OPEN",
   } as Endpoint<{ parentId: number }, any[]>,
 
+  // OData - Candidate Group Tree for Step 5 Assign
+  getCandidateGroupTreeOData: {
+    method: "GET",
+    path: () => `/Odata/CandidateGroups/GetCandidateGroupTree`,
+    type: "OPEN",
+  } as Endpoint<null, any[]>,
+
   getQuestionsByQuery: {
     method: "GET",
     path: ({ query }) => `/Odata/Questions${query}`,
@@ -399,6 +427,7 @@ export const endpoints = {
       subjectIds,
       questionTypeId,
       difficultyId,
+      tags,
       top = 15,
       skip = 0,
     }) => {
@@ -415,6 +444,13 @@ export const endpoints = {
       if (questionTypeId) parts.push(`QuestionTypeId eq ${questionTypeId}`);
       if (difficultyId)
         parts.push(`QuestionDifficultyLevelId eq ${difficultyId}`);
+      // Optional tags filter (matches any of the selected tags)
+      if (Array.isArray(tags) && tags.length > 0) {
+        const tagConds = tags
+          .filter((t) => typeof t === "string" && t.trim().length > 0)
+          .map((t) => `contains(QuestionTags,'${String(t).replace(/'/g, "''")}')`);
+        if (tagConds.length > 0) parts.push(`(${tagConds.join(" or ")})`);
+      }
       const filter = encodeURIComponent(parts.join(" and "));
       // Encode $expand value so inner $select is represented as %24select (matches working browser URL)
       const expand = encodeURIComponent(
@@ -432,6 +468,7 @@ export const endpoints = {
       subjectIds: number[];
       questionTypeId: number;
       difficultyId?: number;
+      tags?: string[];
       top?: number;
       skip?: number;
     },
@@ -440,6 +477,37 @@ export const endpoints = {
       value: any[];
     }
   >,
+
+  // OData - Distinct Batch Numbers for filter
+  getDistinctBatchNumbersOData: {
+    method: "GET",
+    path: () => `/Odata/Questions/GetDistinctBatchNumbers`,
+    type: "OPEN",
+  } as Endpoint<null, import("./types").ODataList<any>>,
+
+  // OData - Distinct Question Tags for filter
+  getDistinctQuestionTagsOData: {
+    method: "GET",
+    path: () => `/Odata/QuestionTags/GetDistinctQuestionTags`,
+    type: "OPEN",
+  } as Endpoint<null, import("./types").ODataList<any>>,
+
+  // OData - Questions by Batch Number with pagination
+  getQuestionsByBatchNumberOData: {
+    method: "GET",
+    path: ({ batchNumber, top = 15, skip = 0 }: { batchNumber: string; top?: number; skip?: number }) => {
+      const bn = (batchNumber ?? "").replace(/'/g, "''");
+      const filter = encodeURIComponent(`IsActive eq 1 and BatchNumber eq '${bn}'`);
+      const expand = encodeURIComponent(
+        "Questionoptions($select=QuestionText),Questiondifficultylevel($select=QuestionDifficultylevel1)"
+      );
+      const select = encodeURIComponent(
+        "QuestionId,Marks,NegativeMarks,GraceMarks,Language,SubjectId,QuestionTypeId,QuestionDifficultyLevelId"
+      );
+      return `/api/odata/Questions?$count=true&$top=${top}&$skip=${skip}&$filter=${filter}&$expand=${expand}&$select=${select}`;
+    },
+    type: "OPEN",
+  } as Endpoint<{ batchNumber: string; top?: number; skip?: number }, { "@odata.count"?: number; value: any[] }>,
 
   // Admin Questions (server actions moved here)
   getAdminQuestions: {
@@ -502,6 +570,13 @@ export const endpoints = {
     },
     type: "OPEN",
   } as Endpoint<{ query?: string }, any[]>,
+
+  // OData - Active Test Products for Step 5 Assign (dropdown)
+  getActiveTestProductsOData: {
+    method: "GET",
+    path: () => `/Odata/TestProducts?$filter=IsActive eq 1&$select=ProductId,ProductName`,
+    type: "OPEN",
+  } as Endpoint<null, import('./types').ODataList<{ ProductId: number; ProductName: string }>>,
 
   // OData - Test Sections (for Step 3 bulk assignment)
   getTestSectionsOData: {

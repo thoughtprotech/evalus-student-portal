@@ -50,6 +50,13 @@ export default function Navbar({ username }: NavbarProps) {
   const handleLogout = async () => {
     const res = await logoutAction();
     if (res.status === 200) {
+      try {
+        sessionStorage.removeItem("admin:newTest:model");
+        sessionStorage.removeItem("admin:newTest:inWizard");
+        sessionStorage.removeItem("admin:newTest:suppressClear");
+        sessionStorage.removeItem("admin:newTest:preselectedIds");
+        sessionStorage.removeItem("admin:newTest:selectedQuestions");
+      } catch {}
       router.push("/");
     }
   };
