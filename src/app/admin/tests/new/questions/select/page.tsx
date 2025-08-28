@@ -5,6 +5,7 @@ import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
 import { useRouter, useSearchParams } from "next/navigation";
 import PaginationControls from "@/components/PaginationControls";
+import { TextOrHtml } from "@/components/TextOrHtml";
 
 type Language = { Language1: string };
 type Subject = { SubjectId: number; SubjectName: string };
@@ -636,7 +637,9 @@ export default function SelectQuestionsPage() {
                           />
                         </td>
                         <td className="px-4 py-2 border-b">{(page - 1) * pageSize + idx + 1}</td>
-                        <td className="px-4 py-2 border-b">{getQuestionText(r)}</td>
+                        <td className="px-4 py-2 border-b">
+                          <TextOrHtml content={getQuestionText(r)} />
+                        </td>
                         <td className="px-4 py-2 border-b">{r.Questiondifficultylevel?.QuestionDifficultylevel1 ?? "-"}</td>
                         <td className="px-4 py-2 border-b">{r.Marks ?? 0}</td>
                         <td className="px-4 py-2 border-b">{r.NegativeMarks ?? 0}</td>

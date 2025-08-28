@@ -9,6 +9,7 @@ import { MousePointerClick, FilePlus2, Trash2, FileInput } from "lucide-react";
 import PaginationControls from "@/components/PaginationControls";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
+import { TextOrHtml } from "@/components/TextOrHtml";
 
 type TestSection = { TestSectionId: number; TestSectionName: string };
 
@@ -347,7 +348,9 @@ export default function Step3AddQuestions({ editMode, testId }: { editMode?: boo
                               <input type="checkbox" checked={!!delSelected[r.TestQuestionId]} onChange={()=> setDelSelected(prev=> ({...prev, [r.TestQuestionId]: !prev[r.TestQuestionId]}))} />
                             </td>
                             <td className="px-4 py-2 border-b">{(page - 1) * pageSize + idx + 1}</td>
-                            <td className="px-4 py-2 border-b">{r?.Question?.Questionoptions?.[0]?.QuestionText ?? "-"}</td>
+                            <td className="px-4 py-2 border-b">
+                              <TextOrHtml content={r?.Question?.Questionoptions?.[0]?.QuestionText ?? "-"} />
+                            </td>
                             <td className="px-4 py-2 border-b">{Number(r?.Marks ?? 0)}</td>
                             <td className="px-4 py-2 border-b">{Number(r?.NegativeMarks ?? 0)}</td>
                             <td className="px-4 py-2 border-b">{Number(r?.Duration ?? 0)}</td>
