@@ -308,6 +308,13 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<{ id: number | string } & any, any>,
 
+  // Publish Test (Admin)
+  publishTest: {
+    method: "POST",
+    path: ({ id }: { id: number | string }) => `http://localhost:5000/api/Tests/${id}/publish`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number | string }, any>,
+
   // Get Test by Id (Edit mode prefill)
   getTestById: {
     method: "GET",

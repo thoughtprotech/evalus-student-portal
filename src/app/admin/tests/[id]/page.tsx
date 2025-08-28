@@ -27,6 +27,9 @@ function normalizeTestToDraft(test: any): any {
   d.TestStatus = src.TestStatus ?? src.testStatus ?? "New";
   d.TestTypeId = src.TestTypeId ?? src.testTypeId ?? null;
   d.TestDifficultyLevelId = src.TestDifficultyLevelId ?? src.testDifficultyLevelId ?? null;
+  // Totals: prefer values provided by the model
+  d.TotalQuestions = src.TotalQuestions ?? src.totalQuestions ?? null;
+  d.TotalMarks = src.TotalMarks ?? src.totalMarks ?? null;
   // booleans/numbers
   const allow = src.AllowAttachments ?? src.allowAttachments;
   d.AllowAttachments = allow === 1 || allow === true;
@@ -125,6 +128,16 @@ function normalizeTestToDraft(test: any): any {
       };
     })
     .filter((x) => x.TestQuestionId > 0);
+
+  // Derive totals for Step 1 pre-population only if not provided by API
+  if (!("TotalQuestions" in d) || d.TotalQuestions == null) {
+    d.TotalQuestions = Array.isArray(d.testQuestions) ? d.testQuestions.length : 0;
+  }
+  if (!("TotalMarks" in d) || d.TotalMarks == null) {
+    d.TotalMarks = Array.isArray(d.testQuestions)
+      ? d.testQuestions.reduce((sum: number, q: any) => sum + (Number(q?.Marks ?? 0) || 0), 0)
+      : 0;
+  }
 
   // Normalize status text
   if (typeof d.TestStatus === "string") {

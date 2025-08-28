@@ -13,7 +13,9 @@ import PageUnderConstruction from "@/components/PageUnderConstruction";
 import { TabsContent, TabsList, TabsRoot } from "@/components/Tabs";
 import Link from "next/link";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { Trash2, PlusCircle } from "lucide-react";
+import { apiHandler } from "@/utils/api/client";
+import { endpoints } from "@/utils/api/endpoints";
+import { Trash2, PlusCircle, Rocket } from "lucide-react";
 import Loader from "@/components/Loader";
 import PaginationControls from "@/components/PaginationControls";
 import Toast from "@/components/Toast";
@@ -37,7 +39,7 @@ function NameCellRenderer(props: { value: string; data: TestRow }) {
   return (
     <Link
       className="text-blue-600 hover:underline"
-      href={`/admin/tests/${props.data.id}`}
+  href={`/admin/tests/edit/${props.data.id}`}
       title={props.value}
     >
       {props.value}
@@ -67,6 +69,22 @@ function IsActiveCellRenderer(props: { value: number | boolean }) {
       {isActive ? 'Active' : 'Inactive'}
     </span>
   );
+}
+
+function TestStatusCellRenderer(props: { value?: string }) {
+  const v = (props.value || '').toString();
+  const c = v.toLowerCase();
+  const cls =
+    c === 'published'
+      ? 'bg-green-100 text-green-800'
+      : c === 'new'
+      ? 'bg-sky-100 text-sky-800'
+      : c === 'on hold' || c === 'onhold'
+      ? 'bg-amber-100 text-amber-800'
+      : c === 'cancelled' || c === 'canceled'
+      ? 'bg-red-100 text-red-800'
+      : 'bg-gray-100 text-gray-800';
+  return <span className={`px-2 py-1 rounded-full text-xs font-medium ${cls}`}>{v || '-'}</span>;
 }
 
 function LevelCellRenderer(props: { value: string }) {
@@ -107,6 +125,11 @@ function TestsGrid({
   const [deleting, setDeleting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<TestRow | null>(null);
+  const [publishConfirmOpen, setPublishConfirmOpen] = useState(false);
+  const [pendingPublish, setPendingPublish] = useState<TestRow | null>(null);
+  const [publishing, setPublishing] = useState(false);
+  // Track current selection so toolbar buttons can enable/disable reactively
+  const [selectedRow, setSelectedRow] = useState<TestRow | null>(null);
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error" | "info" | "warning";
@@ -175,15 +198,15 @@ function TestsGrid({
         width: 180,
       },
       {
-        field: "status",
-        headerName: "Status",
-        headerTooltip: "Is Active",
+        field: "testStatus",
+        headerName: "Test Status",
+        headerTooltip: "Test Status",
         sortable: true,
         filter: "agTextColumnFilter",
         filterParams: { buttons: ["apply", "reset", "clear"] },
         cellDataType: "text",
-        cellRenderer: IsActiveCellRenderer,
-        width: 120,
+        cellRenderer: TestStatusCellRenderer,
+        width: 140,
       },
       {
         field: "questions",
@@ -269,7 +292,8 @@ function TestsGrid({
       candidates: "TestAssignments@odata.count",
       category: "TestCategory/TestCategoryName",
       template: "TestTemplate/TestTemplateName",
-      code: "TestCode",
+  code: "TestCode",
+  testStatus: "TestStatus",
     };
     const orderBy = sort
       ? `${fieldMap[sort.colId] ?? "TestStartDate"} ${sort.sort}`
@@ -426,7 +450,8 @@ function TestsGrid({
       ? dateExpr("TestStartDate", fm.startDate)
       : null;
     const fmEnd = fm.endDate ? dateExpr("TestEndDate", fm.endDate) : null;
-    const fmStatus = fm.status ? booleanExpr("IsActive", fm.status) : null;
+  const fmStatus = fm.status ? booleanExpr("IsActive", fm.status) : null;
+  const fmTestStatus = fm.testStatus ? textExpr("TestStatus", fm.testStatus) : null;
     const fmQuestions = fm.questions
       ? numberExpr("TestQuestions@odata.count", fm.questions)
       : null;
@@ -446,7 +471,8 @@ function TestsGrid({
     if (fmName) filters.push(fmName);
     if (fmStart) filters.push(fmStart);
     if (fmEnd) filters.push(fmEnd);
-    if (fmStatus) filters.push(fmStatus);
+  if (fmStatus) filters.push(fmStatus);
+  if (fmTestStatus) filters.push(fmTestStatus);
     if (fmQuestions) filters.push(fmQuestions);
     if (fmLevel) filters.push(fmLevel);
     if (fmCandidates) filters.push(fmCandidates);
@@ -465,7 +491,9 @@ function TestsGrid({
     // Only apply if this is the latest request
     if (reqId === lastReqIdRef.current) {
       if (res.status === 200 && res.data) {
-        setRows(res.data.rows.slice());
+  setRows(res.data.rows.slice());
+  // Clear selection when data refreshes
+  setSelectedRow(null);
         setTotal(res.data.total);
       }
       setLoading(false);
@@ -495,11 +523,11 @@ function TestsGrid({
       style={{ width: "100%", height: "100%" }}
     >
       <div className="mb-3 flex items-center justify-between gap-3 flex-none">
-        <div className="flex items-center gap-3 flex-wrap">
-          {/* Actions: New and Delete */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Actions: New, Publish and Delete */}
           <Link href="/admin/tests/new">
             <button
-              className="inline-flex items-center justify-center gap-2 w-32 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 w-28 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700 cursor-pointer"
               title="Create new test"
             >
               <PlusCircle className="w-4 h-4" /> New
@@ -507,10 +535,33 @@ function TestsGrid({
           </Link>
           <button
             onClick={() => {
-              const api = gridApiRef.current;
-              if (!api) return;
-              const selected = api.getSelectedRows?.() as TestRow[];
-              const row = selected && selected[0];
+              const row = selectedRow;
+              if (!row) return;
+              const hasStart = !!(row.startDate && String(row.startDate).trim());
+              const hasEnd = !!(row.endDate && String(row.endDate).trim());
+              if (!hasStart || !hasEnd) {
+                const missing = [!hasStart ? "Start Date" : null, !hasEnd ? "End Date" : null]
+                  .filter(Boolean)
+                  .join(" and ");
+                setToast({
+                  message: `Please update ${missing} before publishing.`,
+                  type: "warning",
+                });
+                return;
+              }
+              // Open confirmation modal for publishing
+              setPendingPublish(row);
+              setPublishConfirmOpen(true);
+            }}
+            disabled={!selectedRow || String(selectedRow.testStatus ?? "").toLowerCase() !== "new"}
+            className="inline-flex items-center justify-center gap-2 w-28 px-3 py-2 rounded-md bg-emerald-600 text-white text-sm shadow hover:bg-emerald-700 disabled:opacity-50 cursor-pointer"
+            title="Publish selected test"
+          >
+            <Rocket className="w-4 h-4" /> Publish
+          </button>
+          <button
+            onClick={() => {
+              const row = selectedRow;
               if (!row) {
                 setToast({
                   message: "Please select a test to delete.",
@@ -521,8 +572,8 @@ function TestsGrid({
               setPendingDelete(row);
               setConfirmOpen(true);
             }}
-            disabled={deleting}
-            className="inline-flex items-center justify-center gap-2 w-32 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50 cursor-pointer"
+            disabled={deleting || !selectedRow}
+            className="inline-flex items-center justify-center gap-2 w-28 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50 cursor-pointer"
             title="Delete selected test"
           >
             <Trash2 className="w-4 h-4" /> {deleting ? "Deleting..." : "Delete"}
@@ -606,6 +657,7 @@ function TestsGrid({
                 startDate: "Start Date",
                 endDate: "End Date",
                 status: "Status",
+                testStatus: "Test Status",
                 questions: "Questions",
                 level: "Level",
                 candidates: "Candidates",
@@ -702,6 +754,11 @@ function TestsGrid({
               rowData={rows}
               onGridReady={onGridReady}
               onSortChanged={onSortChanged}
+              onSelectionChanged={() => {
+                const api = gridApiRef.current as any;
+                const selected = (api?.getSelectedRows?.() as TestRow[]) || [];
+                setSelectedRow(selected[0] || null);
+              }}
               onFilterChanged={() => {
                 const fm = (
                   gridApiRef.current as any
@@ -779,6 +836,8 @@ function TestsGrid({
         }
         isOpen={confirmOpen}
         variant="danger"
+  className="max-w-md"
+  messageClassName="text-xs"
         confirmText={deleting ? "Deleting..." : "Delete"}
         cancelText="Cancel"
         onCancel={() => {
@@ -801,6 +860,46 @@ function TestsGrid({
           } else {
             setToast({
               message: res.message || "Delete failed",
+              type: "error",
+            });
+          }
+        }}
+      />
+
+      {/* Publish confirmation */}
+      <ConfirmationModal
+        title="Confirm Publish"
+        message={
+          publishConfirmOpen && pendingPublish
+            ? `Do you want to Publish "${pendingPublish.name}" with Start Date - ${formatDate(
+                pendingPublish.startDate
+              )} and End Date - ${formatDate(pendingPublish.endDate)}?`
+            : ""
+        }
+        isOpen={publishConfirmOpen}
+        variant="default"
+        className="max-w-md"
+        messageClassName="text-sm"
+        confirmText={publishing ? "Publishing..." : "Yes, Publish"}
+        cancelText="Cancel"
+        confirmDisabled={publishing}
+        onCancel={() => {
+          setPublishConfirmOpen(false);
+          setPendingPublish(null);
+        }}
+        onConfirm={async () => {
+          if (!pendingPublish) return;
+          setPublishing(true);
+          const res = await apiHandler(endpoints.publishTest, { id: pendingPublish.id });
+          setPublishing(false);
+          setPublishConfirmOpen(false);
+          setPendingPublish(null);
+          if (res.status >= 200 && res.status < 300 && !res.error) {
+            setToast({ message: "Test published successfully.", type: "success" });
+            fetchPage();
+          } else {
+            setToast({
+              message: res.errorMessage || res.message || "Publish failed",
               type: "error",
             });
           }

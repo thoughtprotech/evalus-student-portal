@@ -139,6 +139,13 @@ export default function TestSteps({
   // Normalize API test payload into the draft shape expected by the wizard (client-side fallback)
   const normalizeTestToDraft = (test: any): any => {
     const d: any = { ...(test || {}) };
+    // Prefer model-provided totals first (both PascalCase and camelCase), do not override unless missing
+    if (d.TotalQuestions == null) {
+      d.TotalQuestions = (test && (test.TotalQuestions ?? test.totalQuestions)) ?? null;
+    }
+    if (d.TotalMarks == null) {
+      d.TotalMarks = (test && (test.TotalMarks ?? test.totalMarks)) ?? null;
+    }
     if (typeof d.TestStatus === "string") {
       const s = d.TestStatus.toLowerCase();
       d.TestStatus = s === "published" ? "Published" : s === "new" ? "New" : d.TestStatus;
@@ -179,7 +186,7 @@ export default function TestSteps({
       d.SkipRankForDuplicateTank = pick(s0.SkipRankForDuplicateTank, s0.skipRankForDuplicateTank);
     }
     const tq: any[] = Array.isArray(d.TestQuestions ?? d.testQuestions) ? (d.TestQuestions ?? d.testQuestions) : [];
-    d.testQuestions = tq
+  d.testQuestions = tq
       .map((q: any) => {
         const qObj = q?.Question ?? q?.question ?? null;
         let Question: any = null;
@@ -204,6 +211,15 @@ export default function TestSteps({
         };
       })
       .filter((q) => q.TestQuestionId > 0);
+    // Derive totals for Step 1 pre-population if missing
+    if (!('TotalQuestions' in d) || d.TotalQuestions == null) {
+      d.TotalQuestions = Array.isArray(d.testQuestions) ? d.testQuestions.length : 0;
+    }
+    if (!('TotalMarks' in d) || d.TotalMarks == null) {
+      d.TotalMarks = Array.isArray(d.testQuestions)
+        ? d.testQuestions.reduce((sum: number, q: any) => sum + (Number(q?.Marks ?? 0) || 0), 0)
+        : 0;
+    }
     return d;
   };
 
@@ -438,10 +454,17 @@ export default function TestSteps({
         // Remove client-only fields
         delete (payload as any).testQuestions;
 
-        const isEdit = !!editMode && !!testId;
+  // Consider it edit if explicit flags are set OR if the draft carries a TestId
+        const isEdit = (!!editMode && !!testId) || !!(draft as any)?.TestId;
+        const updateId: number | undefined = (testId as number | undefined) ?? ((draft as any)?.TestId as number | undefined);
+        if (isEdit && !(updateId && updateId > 0)) {
+          setToast({ message: "Cannot update: missing TestId.", type: "error" });
+          setSaving(false);
+          return;
+        }
         const res = await apiHandler(
           isEdit ? endpoints.updateTest : endpoints.createTest,
-          (isEdit ? { id: testId as number, ...payload } : payload) as any
+          (isEdit ? { id: updateId as number, ...payload } : payload) as any
         );
         if ((res as any)?.error) {
           const data = (res as any)?.data;
@@ -578,9 +601,9 @@ export default function TestSteps({
           </StepSection>
         )}
 
-        {current === 2 && (
+    {current === 2 && (
           <StepSection>
-            <Step3AddQuestions />
+      <Step3AddQuestions editMode={!!editMode} testId={testId} />
           </StepSection>
         )}
 

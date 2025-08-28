@@ -14,6 +14,7 @@ interface ConfirmationModalProps {
   confirmText?: string;
   cancelText?: string;
   confirmDisabled?: boolean;
+  messageClassName?: string;
 }
 
 export default function ConfirmationModal({
@@ -28,13 +29,14 @@ export default function ConfirmationModal({
   confirmText = "Confirm",
   cancelText = "Cancel",
   confirmDisabled = false,
+  messageClassName,
 }: ConfirmationModalProps) {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/40 bg-opacity-40 flex items-center justify-center z-50 p-4">
       <div
-        className={`bg-white w-full rounded-2xl shadow-2xl p-6 sm:p-7 ${
+  className={`bg-white w-full max-w-lg rounded-2xl shadow-2xl p-5 sm:p-6 ${
           className || ""
         }`}
         role="dialog"
@@ -68,7 +70,7 @@ export default function ConfirmationModal({
                 {title}
               </h2>
             </div>
-            <p className="mt-2 text-sm text-gray-600">{message}</p>
+            <p className={`mt-2 text-sm text-gray-600 ${messageClassName || ""}`}>{message}</p>
           </div>
         </div>
         {children ? (

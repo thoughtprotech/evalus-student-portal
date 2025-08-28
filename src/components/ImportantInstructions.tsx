@@ -13,8 +13,8 @@ export type Props = {
 export default function ImportantInstructions({
   title = "Important Instructions",
   detail = "This will help in making a test by adding questions, amending parameters, assigning of tests and sharing reports symmetrically with the candidates.",
-  linkHref = "#",
-  linkText = "Read more",
+  linkHref = "",
+  linkText = "",
   variant = "plain",
 }: Props) {
   return (

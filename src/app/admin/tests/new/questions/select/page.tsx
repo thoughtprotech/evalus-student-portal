@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import PaginationControls from "@/components/PaginationControls";
 
 type Language = { Language1: string };
@@ -23,6 +23,7 @@ type QuestionRow = {
 
 export default function SelectQuestionsPage() {
   const router = useRouter();
+  const search = useSearchParams();
 
   // Filters
   const [language, setLanguage] = useState<string>("");
@@ -564,7 +565,9 @@ export default function SelectQuestionsPage() {
                     const ids = Object.keys(selected).filter(k=> selected[Number(k)]).map(Number);
                     sessionStorage.setItem("admin:newTest:preselectedIds", JSON.stringify(ids));
                   } catch {}
-                  router.push("/admin/tests/new?step=3")
+                  const id = search?.get("id");
+                  const isEdit = search?.get("edit") === "1" && id;
+                  router.push(isEdit ? `/admin/tests/edit/${id}?step=3` : "/admin/tests/new?step=3")
                 }}>
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                   Back to Test

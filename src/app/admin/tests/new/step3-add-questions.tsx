@@ -5,14 +5,14 @@ import Toast, { type ToastType } from "@/components/Toast";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTestDraft } from "@/contexts/TestDraftContext";
-import { MousePointerClick, FilePlus2, Trash2 } from "lucide-react";
+import { MousePointerClick, FilePlus2, Trash2, FileInput } from "lucide-react";
 import PaginationControls from "@/components/PaginationControls";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
 
 type TestSection = { TestSectionId: number; TestSectionName: string };
 
-export default function Step3AddQuestions() {
+export default function Step3AddQuestions({ editMode, testId }: { editMode?: boolean; testId?: number }) {
   const router = useRouter();
   const search = useSearchParams();
   const { draft, setDraft } = useTestDraft();
@@ -185,9 +185,15 @@ export default function Step3AddQuestions() {
   // Prevent wizard unmount cleanup while we jump to the selection sub-page
   sessionStorage.setItem("admin:newTest:suppressClear", "1");
     } catch {}
-    router.push("/admin/tests/new/questions/select");
+  const base = "/admin/tests/new/questions/select";
+  const url = editMode && testId ? `${base}?edit=1&id=${encodeURIComponent(String(testId))}` : base;
+  router.push(url);
   };
   const handleAddQuestions = () => router.push("/admin/questions/new");
+  const handleImportQuestions = () => {
+    // Placeholder – will be linked to import route later
+    setToast({ message: "Import from Word parsing coming soon.", type: "info" });
+  };
 
   return (
     <div className="w-full pb-32">
@@ -364,7 +370,7 @@ export default function Step3AddQuestions() {
   {total === 0 && (
           <>
   <div className="lg:col-span-3">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 <div className="rounded border bg-gray-50 flex flex-col shadow-sm p-1.5">
                   <div className="p-2 text-center flex-1 flex flex-col items-center">
                     <MousePointerClick className="mx-auto mb-1.5 h-6 w-6 text-gray-400" strokeWidth={1.5} />
@@ -381,6 +387,15 @@ export default function Step3AddQuestions() {
                   </div>
                   <div className="px-3 pb-3 mt-auto">
                     <button onClick={handleAddQuestions} className="w-full rounded-md bg-green-600 hover:bg-green-700 text-white py-1 text-xs">Add Questions</button>
+                  </div>
+                </div>
+                <div className="rounded border bg-gray-50 flex flex-col shadow-sm p-1.5">
+                  <div className="p-2 text-center flex-1 flex flex-col items-center">
+                    <FileInput className="mx-auto mb-1.5 h-6 w-6 text-gray-400" strokeWidth={1.5} />
+                    <p className="text-xs text-gray-600">It is for importing questions from word parsing.</p>
+                  </div>
+                  <div className="px-3 pb-3 mt-auto">
+                    <button onClick={handleImportQuestions} className="w-full rounded-md bg-green-600 hover:bg-green-700 text-white py-1 text-xs">Import Questions</button>
                   </div>
                 </div>
               </div>
@@ -415,6 +430,15 @@ export default function Step3AddQuestions() {
                 </div>
                 <div className="px-3 pb-3 mt-auto">
                   <button onClick={handleAddQuestions} className="w-full rounded-md bg-green-600 hover:bg-green-700 text-white py-1 text-xs">Add Questions</button>
+                </div>
+              </div>
+              <div className="rounded border bg-gray-50 flex flex-col shadow-sm p-1.5">
+                <div className="p-2 text-center flex-1 flex flex-col items-center">
+                  <FileInput className="mx-auto mb-1.5 h-6 w-6 text-gray-400" strokeWidth={1.5} />
+                  <p className="text-xs text-gray-600">It is for importing questions from word parsing.</p>
+                </div>
+                <div className="px-3 pb-3 mt-auto">
+                  <button onClick={handleImportQuestions} className="w-full rounded-md bg-green-600 hover:bg-green-700 text-white py-1 text-xs">Import Questions</button>
                 </div>
               </div>
             </div>
