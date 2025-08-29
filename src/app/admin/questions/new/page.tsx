@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import RichTextEditor from "@/components/RichTextEditor";
 import { QUESTION_TYPES } from "@/utils/constants";
 import QuestionOptionsInput from "./_components/QuestionOptionsInput";
@@ -28,7 +28,16 @@ import { fetchWriteUpsAction } from "@/app/actions/dashboard/spotlight/fetchWrit
 import { fetchDifficultyLevelsAction } from "@/app/actions/dashboard/questions/fetchDifficultyLevels";
 import ConfirmationModal from "@/components/ConfirmationModal";
 
-export default function Index() {
+// Default export wraps the inner page with Suspense so useSearchParams is within a boundary
+export default function NewQuestionPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-gray-600">Loading…</div>}>
+      <NewQuestionPageInner />
+    </Suspense>
+  );
+}
+
+function NewQuestionPageInner() {
   const [question, setQuestion] = useState<string>("");
   const [questionsMeta, setQuestionsMeta] = useState<{
     tags: string;
