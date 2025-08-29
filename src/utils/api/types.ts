@@ -521,3 +521,16 @@ export interface GetSessionQuestionByIdResponse {
     answer: string;
   };
 }
+
+// Published Documents Tree (OData function import)
+export interface PublishedDocumentTreeItem {
+  folderId: number;
+  publishedDocumentFolderName: string;
+  path: string; // e.g., "Current Affairs/Subfolder" (if nested)
+  level: number; // depth in tree (0 = root folder)
+  documentId: number;
+  documentName: string;
+  documentUrl: string | null; // may be blank or null; build absolute when displaying
+  validFrom: string; // ISO
+  validTo: string; // ISO
+}

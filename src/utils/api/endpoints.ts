@@ -673,5 +673,12 @@ export const endpoints = {
         path: () => `/api/Role`,
             type: "CLOSE",
   } as Endpoint<null, any[]>,
+      // OData - Published Documents Tree
+      getPublishedDocumentsTree: {
+        method: "GET",
+        // Absolute or relative? We'll use relative so apiHandler prefixes API_BASE_URL
+        path: () => `/odata/PublishedDocuments/GetDocumentsTree()`,
+        type: "OPEN",
+      } as Endpoint<null, import('./types').PublishedDocumentTreeItem[]>,
     
 };
