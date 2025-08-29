@@ -66,6 +66,8 @@ export default function Step1CreateTestDetails({
   const [errors, setErrors] = useState<Record<string, string>>({});
   // Keep latest validator without re-registering on every state change
   const validateRef = useRef<() => boolean>(() => true);
+  // Strict Mode guard to avoid duplicate template fetch in dev double-mount
+  const fetchedTemplatesOnce = useRef(false);
 
   const genGuid = () =>
     "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
@@ -91,6 +93,8 @@ export default function Step1CreateTestDetails({
       }
     }
     (async () => {
+      if (fetchedTemplatesOnce.current) return;
+      fetchedTemplatesOnce.current = true;
       const res = await apiHandler(endpoints.getTestTemplatesOData, null as any);
       if (!res.error && res.data) {
         const list = ((res.data as any).value ?? []) as TestTemplateOData[];

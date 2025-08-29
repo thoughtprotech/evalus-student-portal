@@ -365,7 +365,7 @@ export const endpoints = {
   getTestTemplatesOData: {
     method: "GET",
     path: () =>
-      `/Odata/TestTemplates?$filter=IsActive eq 1&$select=TestTemplateId,TestTemplateName,TestHtmlpreview,TestTemplateThumbNail`,
+      `/api/odata/TestTemplates?$filter=IsActive eq 1&$select=TestTemplateId,TestTemplateName,TestHtmlpreview,TestTemplateThumbNail`,
     type: "OPEN",
   } as Endpoint<
     null,
