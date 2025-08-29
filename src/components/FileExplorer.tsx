@@ -29,6 +29,9 @@ export function openOrDownloadDocument(
   url: string,
   forceDownload: boolean = false
 ): void {
+  if (!url || url.trim() === "") {
+    return; // No action when URL missing
+  }
   // Simple check to see if this is a PDF
   const isPdf = url.trim().toLowerCase().endsWith(".pdf");
 
@@ -71,11 +74,12 @@ const TreeNode: React.FC<{ node: FileNode; level?: number }> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const hasChildren = node.type === "folder" && node.children?.length;
+  const isFileWithoutUrl = node.type === "file" && (!node.url || node.url.trim() === "");
 
   const toggle = (node: FileNode) => {
     if (hasChildren) {
       setIsOpen((open) => !open);
-    } else {
+    } else if (!isFileWithoutUrl) {
       openOrDownloadDocument(node.url!);
     }
   };
@@ -84,11 +88,13 @@ const TreeNode: React.FC<{ node: FileNode; level?: number }> = ({
     <div>
       <div
         onClick={() => toggle(node)}
+        title={isFileWithoutUrl ? "No Document URL" : node.name}
         className={`
-          flex items-center gap-3 cursor-pointer p-2 rounded-md
+          flex items-center gap-3 p-2 rounded-md
           transition-colors duration-150
-          ${hasChildren ? "hover:bg-gray-100" : "hover:bg-gray-100"}
+          ${hasChildren || !isFileWithoutUrl ? "cursor-pointer hover:bg-gray-100" : "cursor-not-allowed bg-gray-50"}
           ${level > 0 ? "ml-2" : ""}
+          ${isFileWithoutUrl ? "opacity-60" : ""}
         `}
       >
         {/* Expand/Collapse Arrow */}
@@ -135,6 +141,11 @@ const TreeNode: React.FC<{ node: FileNode; level?: number }> = ({
                 <h1 className="select-none truncate font-medium text-gray-600 text-sm">
                   {node.uploadDate}
                 </h1>
+                {isFileWithoutUrl && (
+                  <span className="text-xs font-semibold text-gray-500 bg-gray-200 px-1 rounded-sm">
+                    No URL
+                  </span>
+                )}
               </div>
             )}
           </div>
