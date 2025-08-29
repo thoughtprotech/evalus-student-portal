@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -22,7 +22,7 @@ type QuestionRow = {
   Duration?: number;
 };
 
-export default function SelectQuestionsPage() {
+function SelectQuestionsPageInner() {
   const router = useRouter();
   const search = useSearchParams();
 
@@ -657,6 +657,14 @@ export default function SelectQuestionsPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function SelectQuestionsPage() {
+  return (
+    <Suspense fallback={<div className="w-[90%] mx-auto px-6 pt-8 pb-0">Loading…</div>}>
+      <SelectQuestionsPageInner />
+    </Suspense>
   );
 }
 
