@@ -190,7 +190,16 @@ export default function Step3AddQuestions({ editMode, testId }: { editMode?: boo
   const url = editMode && testId ? `${base}?edit=1&id=${encodeURIComponent(String(testId))}` : base;
   router.push(url);
   };
-  const handleAddQuestions = () => router.push("/admin/questions/new");
+  const handleAddQuestions = () => {
+    try {
+      // Prevent wizard unmount cleanup while we jump to the question creation page
+      sessionStorage.setItem("admin:newTest:suppressClear", "1");
+    } catch {}
+    const returnPath = (editMode && testId)
+      ? `/admin/tests/edit/${encodeURIComponent(String(testId))}?step=3`
+      : "/admin/tests/new?step=3";
+    router.push(`/admin/questions/new?returnTo=${encodeURIComponent(returnPath)}`);
+  };
   const handleImportQuestions = () => {
     // Placeholder – will be linked to import route later
     setToast({ message: "Import from Word parsing coming soon.", type: "info" });

@@ -17,6 +17,7 @@ import {
 } from "@/utils/api/types";
 import { ArrowLeft, HelpCircle, Filter, Smartphone, Monitor } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { fetchSubjectsAction } from "@/app/actions/dashboard/questions/fetchSubjects";
 import { fetchQuestionTypesAction } from "@/app/actions/dashboard/questions/fetchQuestionTypes";
 import { fetchTopicsAction } from "@/app/actions/dashboard/questions/fetchTopics";
@@ -90,6 +91,8 @@ export default function Index() {
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
 
   const router = useRouter();
+  const search = useSearchParams();
+  const returnTo = search?.get("returnTo") || "";
 
   const fetchQuestionTypes = async () => {
     const res = await fetchQuestionTypesAction();
@@ -261,7 +264,10 @@ export default function Index() {
     return () => t && clearTimeout(t);
   }, [isDifficultyLoading]);
 
-  const submitQuestion = async (showModal: boolean = true): Promise<{ success: boolean }> => {
+  const submitQuestion = async (
+    opts: { showModal?: boolean; redirectBack?: boolean } = {}
+  ): Promise<{ success: boolean }> => {
+    const { showModal = true, redirectBack = true } = opts;
     try {
       // Detect current question type label
       const currentType = questionTypes.find(
@@ -580,7 +586,7 @@ export default function Index() {
       };
 
       // Step 1: Create the question
-      const res = await createQuestionAction(payload);
+  const res = await createQuestionAction(payload);
       const { data, status, error, errorMessage, message } = res;
 
       // Check for success more broadly
@@ -588,9 +594,65 @@ export default function Index() {
 
       if (isQuestionCreated) {
         // Success! The API creates both question and options in one call
-        if (showModal) {
+        try {
+          // If backend returns created entity or ID, capture it for Step 3
+          const createdId = (data as any)?.questionId || (data as any)?.QuestionId || (data as any)?.id;
+          if (createdId) {
+            const payload = {
+              questionIds: [Number(createdId)],
+              testQuestions: [
+                {
+                  TestId: 0,
+                  TestQuestionId: Number(createdId),
+                  Marks: Number(questionsMeta.marks || 0),
+                  NegativeMarks: Number(questionsMeta.negativeMarks || 0),
+                  GraceMarks: Number(questionsMeta.graceMarks || 0),
+                  Duration: Number(questionsMeta.duration || 0),
+                  Question: {
+                    Questionoptions: [
+                      { QuestionText: (question || "").toString() }
+                    ],
+                  },
+                },
+              ],
+            };
+            // Merge with any existing selections made in new/select page
+            const existing = sessionStorage.getItem("admin:newTest:selectedQuestions");
+            if (existing) {
+              try {
+                const ex = JSON.parse(existing);
+                const ids: number[] = Array.isArray(ex?.questionIds) ? ex.questionIds : [];
+                const tq: any[] = Array.isArray(ex?.testQuestions) ? ex.testQuestions : [];
+                const mergedIds = Array.from(new Set([...(ids || []), payload.questionIds[0]]));
+                const map = new Map<number, any>();
+                for (const q of tq) map.set(Number(q.TestQuestionId), q);
+                map.set(Number(createdId), payload.testQuestions[0]);
+                sessionStorage.setItem("admin:newTest:selectedQuestions", JSON.stringify({
+                  questionIds: mergedIds,
+                  testQuestions: Array.from(map.values()),
+                }));
+              } catch {
+                sessionStorage.setItem("admin:newTest:selectedQuestions", JSON.stringify(payload));
+              }
+            } else {
+              sessionStorage.setItem("admin:newTest:selectedQuestions", JSON.stringify(payload));
+            }
+            // Ensure wizard doesn't clear while navigating back
+            sessionStorage.setItem("admin:newTest:suppressClear", "1");
+          }
+        } catch {}
+
+        // If we came from Test (returnTo present):
+        // - When saving a single question (Save Question), show modal and let user click "Go Test" to navigate back.
+        // - When Save & New, do not redirect; stay on page for creating next.
+        if (returnTo && redirectBack) {
+          // Show modal; confirm will navigate to returnTo
           setShowSuccessModal(true);
+          return { success: true };
         }
+
+        // Default behavior: show modal when requested, else just succeed silently
+        if (showModal) setShowSuccessModal(true);
         return { success: true };
       } else {
         // Extract detailed error message from API response if available
@@ -627,7 +689,7 @@ export default function Index() {
 
     setIsSaving(true);
 
-    const result = await submitQuestion(true); // true means show modal
+  const result = await submitQuestion({ showModal: true, redirectBack: true });
 
     setIsSaving(false);
   };
@@ -640,7 +702,7 @@ export default function Index() {
 
     setIsSaving(true);
 
-    const result = await submitQuestion(false); // false means don't show modal
+  const result = await submitQuestion({ showModal: false, redirectBack: false });
 
     if (result.success) {
       // Show success toast instead of modal
@@ -685,7 +747,7 @@ export default function Index() {
         <div className="w-[85%] mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Link href="/admin/questions" className="text-gray-500 hover:text-gray-700 transition-colors">
+              <Link href={returnTo || "/admin/questions"} className="text-gray-500 hover:text-gray-700 transition-colors">
                 <ArrowLeft className="w-5 h-5" />
               </Link>
               <div className="flex items-center gap-2">
@@ -696,9 +758,15 @@ export default function Index() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Link href="/admin/questions" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                Back to Questions
-              </Link>
+              {returnTo ? (
+                <Link href={returnTo} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  Back to Test
+                </Link>
+              ) : (
+                <Link href="/admin/questions" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  Back to Questions
+                </Link>
+              )}
               {/* Action Buttons in Header */}
               <div className="flex items-center gap-3">
                 <button
@@ -1410,14 +1478,18 @@ export default function Index() {
         isOpen={showSuccessModal}
         onConfirm={() => {
           setShowSuccessModal(false);
-          router.push("/admin/questions");
+          if (returnTo) {
+            router.push(returnTo);
+          } else {
+            router.push("/admin/questions");
+          }
         }}
         onCancel={() => {
           // Do nothing - this button won't be shown with our CSS modification
         }}
         title="Question Created Successfully! 🎉"
         message="Your question has been successfully created and saved to the database."
-        confirmText="Go to Questions"
+        confirmText={returnTo ? "Go Test" : "Go to Questions"}
         cancelText=""
         variant="success"
         className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200"

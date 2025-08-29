@@ -40,6 +40,15 @@ function NameCellRenderer(props: { value: string; data: TestRow }) {
     <Link
       className="text-blue-600 hover:underline"
   href={`/admin/tests/edit/${props.data.id}`}
+      onClick={() => {
+        try {
+          sessionStorage.removeItem("admin:newTest:model");
+          sessionStorage.removeItem("admin:newTest:inWizard");
+          sessionStorage.removeItem("admin:newTest:suppressClear");
+          sessionStorage.removeItem("admin:newTest:preselectedIds");
+          sessionStorage.removeItem("admin:newTest:selectedQuestions");
+        } catch {}
+      }}
       title={props.value}
     >
       {props.value}
@@ -529,6 +538,15 @@ function TestsGrid({
             <button
               className="inline-flex items-center justify-center gap-2 w-28 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700 cursor-pointer"
               title="Create new test"
+              onClick={() => {
+                try {
+                  sessionStorage.removeItem("admin:newTest:model");
+                  sessionStorage.removeItem("admin:newTest:inWizard");
+                  sessionStorage.removeItem("admin:newTest:suppressClear");
+                  sessionStorage.removeItem("admin:newTest:preselectedIds");
+                  sessionStorage.removeItem("admin:newTest:selectedQuestions");
+                } catch {}
+              }}
             >
               <PlusCircle className="w-4 h-4" /> New
             </button>

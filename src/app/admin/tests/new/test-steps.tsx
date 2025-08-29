@@ -484,6 +484,8 @@ export default function TestSteps({
           sessionStorage.removeItem("admin:newTest:model");
           sessionStorage.removeItem("admin:newTest:preselectedIds");
           sessionStorage.removeItem("admin:newTest:selectedQuestions");
+          sessionStorage.removeItem("admin:newTest:suppressClear");
+          sessionStorage.removeItem("admin:newTest:inWizard");
         } catch {}
         // Navigate back to grid after a short delay to allow the toast to be seen
   setTimeout(() => {
