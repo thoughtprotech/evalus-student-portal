@@ -375,7 +375,7 @@ export const endpoints = {
   // Select Questions page endpoints
   getLanguagesOData: {
     method: "GET",
-  path: () => `/Odata/Languages?$select=Language1`,
+  path: () => `/api/odata/Languages?$select=Language1`,
     type: "OPEN",
   } as Endpoint<null, import("./types").ODataList<{ Language1: string }>>,
 
@@ -488,14 +488,14 @@ export const endpoints = {
   // OData - Distinct Batch Numbers for filter
   getDistinctBatchNumbersOData: {
     method: "GET",
-  path: () => `/Odata/Questions/GetDistinctBatchNumbers`,
+  path: () => `/api/odata/Questions/GetDistinctBatchNumbers`,
     type: "OPEN",
   } as Endpoint<null, import("./types").ODataList<any>>,
 
   // OData - Distinct Question Tags for filter
   getDistinctQuestionTagsOData: {
     method: "GET",
-  path: () => `/Odata/QuestionTags/GetDistinctQuestionTags`,
+  path: () => `/api/odata/QuestionTags/GetDistinctQuestionTags`,
     type: "OPEN",
   } as Endpoint<null, import("./types").ODataList<any>>,
 
@@ -588,7 +588,7 @@ export const endpoints = {
   // OData - Test Sections (for Step 3 bulk assignment)
   getTestSectionsOData: {
     method: "GET",
-  path: () => `/Odata/TestSections?$select=TestSectionId,TestSectionName`,
+  path: () => `/api/odata/TestSections?$select=TestSectionId,TestSectionName`,
     type: "OPEN",
   } as Endpoint<
     null,

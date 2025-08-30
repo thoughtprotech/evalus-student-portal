@@ -55,17 +55,40 @@ function createApiClient() {
     if (isAbsolute) {
       fullUrl = pathOnly;
     } else if (typeof pathOnly === 'string' && pathOnly.startsWith('/api/odata')) {
-      // Only proxy OData through Next.js internal API
+      // OData: browser -> Next internal proxy; server -> backend directly
       if (typeof window === 'undefined') {
-        // Server-side: need absolute URL
-        fullUrl = `${env.NEXTAUTH_URL}${pathOnly}`;
+        fullUrl = `${env.API_BASE_URL}${pathOnly.replace(/^\/api\/odata/, '/Odata')}`;
       } else {
-        // Browser: relative is fine (same-origin)
-        fullUrl = pathOnly;
+        fullUrl = pathOnly; // same-origin to Next API
+      }
+    } else if (typeof pathOnly === 'string' && pathOnly.startsWith('/Odata')) {
+      // Normalize '/Odata' paths: browser via Next proxy; server direct to backend
+      const suffix = pathOnly.slice('/Odata'.length); // keep leading '/'
+      if (typeof window === 'undefined') {
+        fullUrl = `${env.API_BASE_URL}/Odata${suffix}`;
+      } else {
+        fullUrl = `/api/odata${suffix}`;
+      }
+    } else if (typeof pathOnly === 'string' && pathOnly.startsWith('/odata')) {
+      // Normalize lowercase '/odata' as well
+      const suffix = pathOnly.slice('/odata'.length);
+      if (typeof window === 'undefined') {
+        fullUrl = `${env.API_BASE_URL}/Odata${suffix}`;
+      } else {
+        fullUrl = `/api/odata${suffix}`;
+      }
+    } else if (typeof pathOnly === 'string' && pathOnly.startsWith('/api/')) {
+      // Non-OData backend API calls: in the browser, route via Next.js proxy to avoid CORS/localhost issues
+      if (typeof window === 'undefined') {
+        // Server-side can talk to backend directly
+        fullUrl = `${env.API_BASE_URL}${pathOnly}`;
+      } else {
+        // Browser: use the proxy endpoint which forwards to API_BASE_URL
+        fullUrl = `/api/proxy${pathOnly}`;
       }
     } else {
-      // All other relative paths (including /api/* meant for backend) – prefix with API_BASE_URL
-      fullUrl = `${env.API_BASE_URL}${pathOnly}`;
+      // Any other relative path – assume same-origin
+      fullUrl = pathOnly;
     }
 
     logger("request:start", {
