@@ -85,7 +85,8 @@ export default function NewSubjectPage() {
         } as any);
         setSaving(false);
         if (res.status >= 200 && res.status < 300) {
-            setToast({ message: 'Subject created', type: 'success' });
+            // Show success modal only (no toast per requirement)
+            setToast(null);
             setShowSuccessModal(true);
         } else {
             setToast({ message: res.message || 'Failed to create subject', type: 'error' });
