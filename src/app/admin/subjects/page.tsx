@@ -50,6 +50,11 @@ function StatusCell(props: { value: number }) {
     return <span className={`px-2 py-1 rounded-full text-xs font-medium ${act ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{act ? 'Active' : 'Inactive'}</span>;
 }
 
+function LanguageCell(props: { value: string }) {
+    if (!props.value) return null;
+    return <span className="inline-block px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">{props.value}</span>;
+}
+
 export default function SubjectsPage() {
     const [query, setQuery] = useState("");
         const [rows, setRows] = useState<SubjectRow[]>([]); // full fetched list
@@ -80,12 +85,11 @@ export default function SubjectsPage() {
     };
 
     const columnDefs = useMemo<ColDef<SubjectRow>[]>(() => [
-        { field: 'name', headerName: 'Subject', flex: 1, minWidth: 160, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer },
-        { field: 'questionCount', headerName: 'Question Count', width: 130, sortable: true, filter: 'agNumberColumnFilter', valueFormatter: p => p.value ?? 0 },
-        { field: 'language', headerName: 'Lang', width: 90, sortable: true, filter: 'agTextColumnFilter' },
-        { field: 'isActive', headerName: 'Status', width: 100, sortable: true, filter: 'agTextColumnFilter', valueGetter: p => (Number(p.data?.isActive) === 1 ? 'Active' : 'Inactive') },
-        { field: 'createdDate', headerName: 'Created', width: 140, sortable: true, valueFormatter: p => formatDate(p.value) },
-        { field: 'modifiedDate', headerName: 'Updated', width: 170, sortable: true, valueFormatter: p => formatDate(p.value) },
+        { field: 'name', headerName: 'Subject', width: 300, minWidth: 200, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer },
+        { field: 'language', headerName: 'Language', width: 120, sortable: true, filter: 'agTextColumnFilter', cellRenderer: LanguageCell },
+        { field: 'isActive', headerName: 'Status', width: 110, sortable: true, filter: 'agTextColumnFilter', cellRenderer: StatusCell },
+        { field: 'createdDate', headerName: 'Created', width: 120, sortable: true, valueFormatter: p => formatDate(p.value) },
+        { field: 'modifiedDate', headerName: 'Updated', width: 140, sortable: true, valueFormatter: p => formatDate(p.value) },
         { field: 'id', hide: true },
     ], [showFilters]);
 
@@ -98,7 +102,6 @@ export default function SubjectsPage() {
             if (!cfg) return;
             const map: Record<string, string> = {
                 name: 'SubjectName',
-                questionCount: 'QuestionCount',
                 language: 'Language',
                 isActive: 'IsActive',
                 createdDate: 'CreatedDate',
@@ -138,7 +141,6 @@ export default function SubjectsPage() {
         const sort = sortModelRef.current?.[0];
         const sortFieldMap: Record<string, string> = {
             name: 'SubjectName',
-            questionCount: 'QuestionCount',
             language: 'Language',
             isActive: 'IsActive',
             createdDate: 'CreatedDate',
@@ -149,22 +151,8 @@ export default function SubjectsPage() {
             // Fetch a large upper bound to allow hierarchy building locally
             const res = await fetchSubjectsODataAction({ top: 2000, skip: 0, orderBy, filter });
         if (res.status === 200 && res.data) {
-                // Build parent->children map to compute aggregate question counts
+                // Build hierarchy support (without question count aggregation)
                 const list = res.data.rows.slice();
-                const children: Record<number, SubjectRow[]> = {};
-                list.forEach(r => { (children[r.parentId] ||= []).push(r); });
-                // Aggregate question counts (node's own + descendants)
-                const sumCache: Record<number, number> = {};
-                const sum = (id: number): number => {
-                    if (sumCache[id] !== undefined) return sumCache[id];
-                    const node = list.find(r => r.id === id); if (!node) return 0;
-                    const kids = children[id] || [];
-                    const my = Number(node.questionCount) || 0;
-                    if (!kids.length) { sumCache[id] = my; return my; }
-                    const totalKids = kids.reduce((acc, k) => acc + sum(k.id), 0);
-                    const totalSum = my + totalKids; sumCache[id] = totalSum; return totalSum;
-                };
-                list.forEach(r => { r.questionCount = sum(r.id); });
                 setRows(list);
         } else {
             setToast({ message: res.message || 'Failed to fetch subjects', type: 'error' });
