@@ -308,6 +308,10 @@ export default function ExamPage() {
         break;
     }
 
+    if (!question?.options.answer) {
+      return false;
+    }
+
     return true;
   };
 
