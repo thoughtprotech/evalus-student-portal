@@ -58,9 +58,9 @@ function LanguageCell(props: { value: string }) {
 
 export default function SubjectsPage() {
     const [query, setQuery] = useState("");
-        const [rows, setRows] = useState<SubjectRow[]>([]); // full fetched list
-        const [flatVisible, setFlatVisible] = useState<SubjectRow[]>([]); // flattened according to expansion
-        const [total, setTotal] = useState(0); // total visible (flatVisible length)
+    const [rows, setRows] = useState<SubjectRow[]>([]); // full fetched list
+    const [flatVisible, setFlatVisible] = useState<SubjectRow[]>([]); // flattened according to expansion
+    const [total, setTotal] = useState(0); // total visible (flatVisible length)
     const [loading, setLoading] = useState(false);
     const [toast, setToast] = useState<{ message: string; type: any } | null>(null);
     const gridApiRef = useRef<GridApi | null>(null);
@@ -92,12 +92,12 @@ export default function SubjectsPage() {
     };
 
     const columnDefs = useMemo<ColDef<SubjectRow>[]>(() => [
-        { field: 'name', headerName: 'Subject', minWidth: 260, flex: 2, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer },
-        { field: 'type', headerName: 'Type', minWidth: 130, flex: 0.8, sortable: true, filter: 'agTextColumnFilter' },
-        { field: 'language', headerName: 'Language', minWidth: 120, flex: 0.7, sortable: true, filter: 'agTextColumnFilter', cellRenderer: LanguageCell },
-        { field: 'isActive', headerName: 'Status', minWidth: 110, flex: 0.6, sortable: true, filter: 'agTextColumnFilter', cellRenderer: StatusCell },
-        { field: 'createdDate', headerName: 'Created', minWidth: 130, flex: 0.8, sortable: true, valueFormatter: p => formatDate(p.value) },
-        { field: 'modifiedDate', headerName: 'Updated', minWidth: 150, flex: 0.9, sortable: true, valueFormatter: p => formatDate(p.value) },
+        { field: 'name', headerName: 'Subject', width: 400, minWidth: 320, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer },
+        { field: 'type', headerName: 'Type', width: 220, minWidth: 120, sortable: true, filter: 'agTextColumnFilter' },
+        { field: 'language', headerName: 'Language', width: 220, minWidth: 110, sortable: true, filter: 'agTextColumnFilter', cellRenderer: LanguageCell },
+        { field: 'isActive', headerName: 'Status', width: 220, minWidth: 110, sortable: true, filter: 'agTextColumnFilter', cellRenderer: StatusCell },
+        { field: 'createdDate', headerName: 'Created', width: 420, minWidth: 120, sortable: true, valueFormatter: p => formatDate(p.value) },
+        { field: 'modifiedDate', headerName: 'Updated', width: 820, minWidth: 180, sortable: true, valueFormatter: p => formatDate(p.value) },
         { field: 'id', hide: true },
     ], [showFilters]);
 
@@ -121,8 +121,8 @@ export default function SubjectsPage() {
                 const value = cfg.filter.replace(/'/g, "''");
                 if (field === 'isActive') {
                     const v = value.toLowerCase();
-                    if (['active','1','true'].includes(v)) { filters.push(`${serverField} eq 1`); return; }
-                    if (['inactive','0','false'].includes(v)) { filters.push(`${serverField} eq 0`); return; }
+                    if (['active', '1', 'true'].includes(v)) { filters.push(`${serverField} eq 1`); return; }
+                    if (['inactive', '0', 'false'].includes(v)) { filters.push(`${serverField} eq 0`); return; }
                 }
                 switch (cfg.type) {
                     case 'startsWith': filters.push(`startswith(${serverField},'${value}')`); break;
@@ -134,8 +134,8 @@ export default function SubjectsPage() {
                 const value = String(cfg.filter).replace(/'/g, "''");
                 if (field === 'isActive') {
                     const v = value.toLowerCase();
-                    if (['active','1','true'].includes(v)) { filters.push(`${serverField} eq 1`); return; }
-                    if (['inactive','0','false'].includes(v)) { filters.push(`${serverField} eq 0`); return; }
+                    if (['active', '1', 'true'].includes(v)) { filters.push(`${serverField} eq 1`); return; }
+                    if (['inactive', '0', 'false'].includes(v)) { filters.push(`${serverField} eq 0`); return; }
                 }
                 filters.push(`contains(${serverField},'${value}')`);
             }
@@ -144,8 +144,8 @@ export default function SubjectsPage() {
         return filters.length ? filters.join(' and ') : undefined;
     };
 
-        // Fetch large dataset (server paging disabled for hierarchy) and then paginate client-side
-        const fetchPage = async () => {
+    // Fetch large dataset (server paging disabled for hierarchy) and then paginate client-side
+    const fetchPage = async () => {
         // Capture current rendered height to prevent jump while reloading
         if (gridShellRef.current) {
             const h = gridShellRef.current.offsetHeight;
@@ -165,12 +165,12 @@ export default function SubjectsPage() {
         };
         const orderBy = sort ? `${sortFieldMap[sort.colId] || 'SubjectName'} ${sort.sort}` : 'SubjectName asc';
         const filter = buildServerFilter();
-            // Fetch a large upper bound to allow hierarchy building locally
-            const res = await fetchSubjectsODataAction({ top: 2000, skip: 0, orderBy, filter });
+        // Fetch a large upper bound to allow hierarchy building locally
+        const res = await fetchSubjectsODataAction({ top: 2000, skip: 0, orderBy, filter });
         if (res.status === 200 && res.data) {
-                // Build hierarchy support (without question count aggregation)
-                const list = res.data.rows.slice();
-                setRows(list);
+            // Build hierarchy support (without question count aggregation)
+            const list = res.data.rows.slice();
+            setRows(list);
         } else {
             setToast({ message: res.message || 'Failed to fetch subjects', type: 'error' });
         }
@@ -186,44 +186,44 @@ export default function SubjectsPage() {
         } else finalize();
     };
 
-        useEffect(() => { fetchPage(); }, [query]); // fetch on search/filter changes only
+    useEffect(() => { fetchPage(); }, [query]); // fetch on search/filter changes only
 
-        // Expanded state (persist across paging)
-            const [expanded, setExpanded] = useState<Set<number>>(new Set());
-            const toggle = (id: number) => {
-                setExpanded(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
-                // Force grid to refresh cell renderers quickly (next tick to allow state update)
-                setTimeout(() => { try { gridApiRef.current?.refreshCells({ force: true }); } catch {} }, 0);
-            };
+    // Expanded state (persist across paging)
+    const [expanded, setExpanded] = useState<Set<number>>(new Set());
+    const toggle = (id: number) => {
+        setExpanded(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+        // Force grid to refresh cell renderers quickly (next tick to allow state update)
+        setTimeout(() => { try { gridApiRef.current?.refreshCells({ force: true }); } catch { } }, 0);
+    };
 
-        // Rebuild flattened visible list when rows or expansion changes
-            useEffect(() => {
-                const byId: Record<number, SubjectRow> = Object.fromEntries(rows.map(r => [r.id, r]));
-                const kids: Record<number, SubjectRow[]> = {};
-                rows.forEach(r => { (kids[r.parentId] ||= []).push(r); });
-                const depth = (id: number, guard = 0): number => { const n = byId[id]; if (!n || !n.parentId || !byId[n.parentId] || guard > 50) return 0; return 1 + depth(n.parentId, guard + 1); };
-                const out: SubjectRow[] = [];
-                const walk = (nodes: SubjectRow[]) => {
-                    nodes.sort((a,b)=>a.name.localeCompare(b.name));
-                    for (const n of nodes) {
-                        const meta: any = n; // mutate minimal meta for renderer
-                        meta._depth = depth(n.id);
-                        meta._hasChildren = !!kids[n.id]?.length;
-                        meta._expanded = expanded.has(n.id);
-                        meta._toggle = (id:number)=>toggle(id);
-                        out.push(n);
-                        if (expanded.has(n.id)) walk(kids[n.id] || []);
-                    }
-                };
-                walk(kids[0] || []); // roots parentId=0
-                setFlatVisible(out);
-                setTotal(out.length);
-                const maxPage = Math.max(1, Math.ceil(out.length / pageSize));
-                if (page > maxPage) setPage(1);
-            }, [rows, expanded, page, pageSize]);
+    // Rebuild flattened visible list when rows or expansion changes
+    useEffect(() => {
+        const byId: Record<number, SubjectRow> = Object.fromEntries(rows.map(r => [r.id, r]));
+        const kids: Record<number, SubjectRow[]> = {};
+        rows.forEach(r => { (kids[r.parentId] ||= []).push(r); });
+        const depth = (id: number, guard = 0): number => { const n = byId[id]; if (!n || !n.parentId || !byId[n.parentId] || guard > 50) return 0; return 1 + depth(n.parentId, guard + 1); };
+        const out: SubjectRow[] = [];
+        const walk = (nodes: SubjectRow[]) => {
+            nodes.sort((a, b) => a.name.localeCompare(b.name));
+            for (const n of nodes) {
+                const meta: any = n; // mutate minimal meta for renderer
+                meta._depth = depth(n.id);
+                meta._hasChildren = !!kids[n.id]?.length;
+                meta._expanded = expanded.has(n.id);
+                meta._toggle = (id: number) => toggle(id);
+                out.push(n);
+                if (expanded.has(n.id)) walk(kids[n.id] || []);
+            }
+        };
+        walk(kids[0] || []); // roots parentId=0
+        setFlatVisible(out);
+        setTotal(out.length);
+        const maxPage = Math.max(1, Math.ceil(out.length / pageSize));
+        if (page > maxPage) setPage(1);
+    }, [rows, expanded, page, pageSize]);
 
-        // Slice page for grid
-        const pagedRows = useMemo(() => flatVisible.slice((page - 1) * pageSize, (page - 1) * pageSize + pageSize), [flatVisible, page, pageSize]);
+    // Slice page for grid
+    const pagedRows = useMemo(() => flatVisible.slice((page - 1) * pageSize, (page - 1) * pageSize + pageSize), [flatVisible, page, pageSize]);
 
     const onSortChanged = () => {
         sortModelRef.current = (gridApiRef.current as any)?.getSortModel?.() || [];
@@ -256,34 +256,20 @@ export default function SubjectsPage() {
                         }} className="inline-flex items-center gap-2 w-32 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50"><Trash2 className="w-4 h-4" /> Delete</button>
                         {selectedCount > 0 && <span className="text-sm text-gray-600 bg-blue-50 px-2 py-1 rounded">{selectedCount} selected</span>}
                     </div>
-                      <PaginationControls page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={(s)=>{ setPageSize(s); setPage(1); }} pageSizeOptions={[15,25,50]} showTotalCount />
+                    <PaginationControls page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} pageSizeOptions={[15, 25, 50]} showTotalCount />
                     <div className="flex items-center gap-2">
                         <button onClick={() => setShowFilters(v => !v)} className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm ${showFilters ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}><Filter className="w-4 h-4" /> {showFilters ? 'Hide Filters' : 'Show Filters'}</button>
-                        <button onClick={() => { filterModelRef.current = {}; gridApiRef.current?.setFilterModel?.(null); setPage(1); fetchPage(); }} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50" disabled={!query && Object.keys(filterModelRef.current||{}).length===0}><XCircle className="w-4 h-4" /> Clear Filters</button>
+                        <button onClick={() => { filterModelRef.current = {}; gridApiRef.current?.setFilterModel?.(null); setPage(1); fetchPage(); }} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50" disabled={!query && Object.keys(filterModelRef.current || {}).length === 0}><XCircle className="w-4 h-4" /> Clear Filters</button>
                     </div>
                 </div>
-                <div ref={gridShellRef} className="ag-theme-alpine ag-theme-evalus w-full flex-1 min-h-0 relative overflow-auto" style={frozenHeight && loading ? { minHeight: frozenHeight } : undefined}>
+                <div ref={gridShellRef} className="ag-theme-alpine ag-theme-evalus w-full flex-1 min-h-0 relative" style={frozenHeight && loading ? { minHeight: frozenHeight } : undefined}>
                     <AgGridReact<SubjectRow>
                         columnDefs={columnDefs}
                         defaultColDef={defaultColDef}
                         rowData={pagedRows}
                         getRowId={p => String(p.data.id)}
-                        onGridReady={e => {
-                            gridApiRef.current = e.api;
-                            if (!sizedRef.current) {
-                                try { e.api.sizeColumnsToFit(); } catch {}
-                                sizedRef.current = true;
-                            }
-                            // Debounced resize handler to refit columns without constant shifting
-                            let resizeTimer: any = null;
-                            const handler = () => {
-                                if (resizeTimer) clearTimeout(resizeTimer);
-                                resizeTimer = setTimeout(()=>{ try { e.api.sizeColumnsToFit(); } catch {} }, 150);
-                            };
-                            window.addEventListener('resize', handler);
-                            (e.api as any).__resizeHandler = handler;
-                        }}
-                        onFirstDataRendered={e=>{ try { e.api.sizeColumnsToFit(); } catch {} }}
+                        onGridReady={e => { gridApiRef.current = e.api; }}
+                        onFirstDataRendered={() => { /* fixed widths -> nothing to auto size */ }}
                         rowSelection={{ mode: 'multiRow', checkboxes: true }}
                         selectionColumnDef={{ pinned: 'left', width: 44 }}
                         onSelectionChanged={() => setSelectedCount(gridApiRef.current?.getSelectedRows()?.length || 0)}
