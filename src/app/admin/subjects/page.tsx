@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import { PlusCircle, Trash2, BookOpen, Filter, XCircle } from "lucide-react";
+import GridOverlayLoader from "@/components/GridOverlayLoader";
 import Toast from "@/components/Toast";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { AgGridReact } from "ag-grid-react";
@@ -73,6 +74,12 @@ export default function SubjectsPage() {
     const sortModelRef = useRef<any[]>([]);
     const filterModelRef = useRef<any>({});
     const filterDebounceRef = useRef<any>(null);
+    const firstLoadRef = useRef(true);
+    const sizedRef = useRef(false);
+    const gridShellRef = useRef<HTMLDivElement | null>(null);
+    const [frozenHeight, setFrozenHeight] = useState<number | null>(null);
+    const activeFetchRef = useRef(0);
+    const MIN_LOADER_MS = 900; // increased minimum loader visible time (ms) for smoother UX
 
     const formatDate = (val?: string | number) => {
         if (!val) return "";
@@ -137,6 +144,13 @@ export default function SubjectsPage() {
 
         // Fetch large dataset (server paging disabled for hierarchy) and then paginate client-side
         const fetchPage = async () => {
+        // Capture current rendered height to prevent jump while reloading
+        if (gridShellRef.current) {
+            const h = gridShellRef.current.offsetHeight;
+            if (h > 0) setFrozenHeight(h);
+        }
+        const fetchId = ++activeFetchRef.current;
+        const startTs = performance.now();
         setLoading(true);
         const sort = sortModelRef.current?.[0];
         const sortFieldMap: Record<string, string> = {
@@ -157,7 +171,16 @@ export default function SubjectsPage() {
         } else {
             setToast({ message: res.message || 'Failed to fetch subjects', type: 'error' });
         }
-        setLoading(false);
+        const elapsed = performance.now() - startTs;
+        const finalize = () => {
+            // Ignore stale fetches
+            if (fetchId !== activeFetchRef.current) return;
+            setLoading(false);
+            if (firstLoadRef.current) firstLoadRef.current = false;
+        };
+        if (elapsed < MIN_LOADER_MS) {
+            setTimeout(finalize, MIN_LOADER_MS - elapsed);
+        } else finalize();
     };
 
         useEffect(() => { fetchPage(); }, [query]); // fetch on search/filter changes only
@@ -236,7 +259,7 @@ export default function SubjectsPage() {
                         <button onClick={() => { filterModelRef.current = {}; gridApiRef.current?.setFilterModel?.(null); setPage(1); fetchPage(); }} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50" disabled={!query && Object.keys(filterModelRef.current||{}).length===0}><XCircle className="w-4 h-4" /> Clear Filters</button>
                     </div>
                 </div>
-                <div className="ag-theme-alpine ag-theme-evalus w-full flex-1 min-h-0 relative">
+                <div ref={gridShellRef} className="ag-theme-alpine ag-theme-evalus w-full flex-1 min-h-0 relative" style={frozenHeight && loading ? { minHeight: frozenHeight } : undefined}>
                     <AgGridReact<SubjectRow>
                         columnDefs={columnDefs}
                         defaultColDef={defaultColDef}
@@ -244,12 +267,14 @@ export default function SubjectsPage() {
                         getRowId={p => String(p.data.id)}
                         onGridReady={e => {
                             gridApiRef.current = e.api;
-                            requestAnimationFrame(()=>{ try { e.api.sizeColumnsToFit(); } catch {} });
+                            if (!sizedRef.current) {
+                                requestAnimationFrame(()=>{ try { e.api.sizeColumnsToFit(); sizedRef.current = true; } catch {} });
+                            }
                             const handler = () => { try { e.api.sizeColumnsToFit(); } catch {} };
                             window.addEventListener('resize', handler);
                             (e.api as any).__resizeHandler = handler;
                         }}
-                        onFirstDataRendered={()=>{ try { gridApiRef.current?.sizeColumnsToFit(); } catch {} }}
+                        onFirstDataRendered={()=>{ /* prevent re-fitting on subsequent data loads to avoid width jumps */ }}
                         rowSelection={{ mode: 'multiRow', checkboxes: true }}
                         selectionColumnDef={{ pinned: 'left', width: 44 }}
                         onSelectionChanged={() => setSelectedCount(gridApiRef.current?.getSelectedRows()?.length || 0)}
@@ -262,13 +287,14 @@ export default function SubjectsPage() {
                             filterDebounceRef.current = setTimeout(() => { setPage(1); fetchPage(); }, 300);
                         }}
                         theme="legacy"
+                        animateRows
                     />
-                                {loading && (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white/70 backdrop-blur-sm text-sm text-gray-700">
-                                        <div className="w-10 h-10 rounded-full border-4 border-indigo-200 border-t-transparent animate-spin" />
-                                        <span className="font-medium">Loading subjects…</span>
-                                    </div>
-                                )}
+                    {loading && (
+                        <GridOverlayLoader
+                            message={firstLoadRef.current ? "Loading subjects..." : "Refreshing..."}
+                            backdropClassName={`${firstLoadRef.current ? 'bg-white/80' : 'bg-white/60'} backdrop-blur-md pointer-events-none`}
+                        />
+                    )}
                 </div>
                 <ConfirmationModal isOpen={confirmOpen} title="Confirm Delete" message={pendingDelete.length === 1 ? `Delete subject "${pendingDelete[0].name}"?` : `Delete ${pendingDelete.length} subjects?`} confirmText={deleting ? 'Deleting…' : 'Delete'} variant="danger" onCancel={() => { setConfirmOpen(false); setPendingDelete([]); }} onConfirm={async () => {
                     if (!pendingDelete.length) return; setDeleting(true);
