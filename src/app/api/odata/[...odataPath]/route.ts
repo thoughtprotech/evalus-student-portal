@@ -4,8 +4,11 @@ import { env } from "@/utils/env";
 export async function GET(req: NextRequest, { params }: { params: { odataPath: string[] } }) {
   const path = params.odataPath?.join("/") ?? "";
   const url = new URL(req.url);
-  const search = url.search || url.searchParams.toString();
-  const target = `${env.API_BASE_URL}/odata/${path}${search}`;
+  // Preserve the original query string; if missing leading '?', add it
+  const rawSearch = url.search || url.searchParams.toString();
+  const search = rawSearch ? (rawSearch.startsWith("?") ? rawSearch : `?${rawSearch}`) : "";
+  // Some backends are case-sensitive about the 'Odata' segment – match expected casing
+  const target = `${env.API_BASE_URL}/Odata/${path}${search}`;
 
   try {
     const res = await fetch(target, {
