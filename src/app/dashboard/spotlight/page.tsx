@@ -6,8 +6,16 @@ import SearchBar from "@/components/SearchBar";
 import { GetSpotlightResponse } from "@/utils/api/types";
 import { useEffect, useState } from "react";
 
-function daysAgo(dateStr: string): string {
-  const date = new Date(dateStr);
+function formatDaysAgo(fromDateStr: string, addedDay?: number): string {
+  // Prefer server-provided addedDay (number of days since addedDate) if present
+  if (typeof addedDay === "number" && !Number.isNaN(addedDay)) {
+    if (addedDay === 0) return "Today";
+    if (addedDay === 1) return "Yesterday";
+    return `${addedDay} days ago`;
+  }
+  // Fallback: derive from date (kept for backward compatibility)
+  const date = new Date(fromDateStr);
+  if (isNaN(date.getTime())) return "";
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -75,7 +83,7 @@ export default function AnnouncementsPage() {
                     </h2>
                     <div className="flex gap-2 items-center">
                       <span className="text-sm text-gray-500">
-                        {daysAgo(announcement.validFrom)}
+                        {formatDaysAgo(announcement.addedDate, announcement.addedDay)}
                       </span>
                     </div>
                   </div>

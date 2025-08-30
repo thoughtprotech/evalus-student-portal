@@ -277,6 +277,9 @@ export interface GetSpotlightResponse {
   addedDate: string;
   validFrom: string;
   validTo: string;
+  // Number of days since the spotlight was added (provided by API payload)
+  // Some backends may omit this; in that case UI will fallback to a client-side diff.
+  addedDay?: number;
 }
 
 export interface GetSidebarMenusRequest {
