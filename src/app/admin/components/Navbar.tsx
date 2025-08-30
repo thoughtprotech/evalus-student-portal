@@ -1,7 +1,7 @@
 // components/Navbar.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { logoutAction } from "@/app/actions/authentication/logout";
@@ -84,22 +84,7 @@ export default function Navbar({ username }: NavbarProps) {
         {navItems.filter(n => n.label !== 'Subjects').map(({ label, path, Icon }) => {
           if (label === 'Questions') {
             const isActive = pathname.startsWith('/admin/questions') || pathname.startsWith('/admin/subjects');
-            return (
-              <div key={path} className="relative group">
-                <Link
-                  href={path}
-                  className={`flex items-center space-x-1 px-3 py-2 rounded-md transition ${isActive ? 'bg-indigo-100 text-indigo-700' : 'text-gray-700 hover:text-indigo-700 hover:bg-indigo-100'
-                    }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="text-sm font-medium">Questions</span>
-                </Link>
-                <div className="absolute left-0 top-full hidden group-hover:block bg-white border border-gray-200 rounded-md shadow-md mt-1 min-w-[170px] z-30">
-                  <Link href="/admin/questions" className={`block px-4 py-2 text-sm hover:bg-indigo-50 ${pathname.startsWith('/admin/questions') && !pathname.startsWith('/admin/subjects') ? 'text-indigo-700' : 'text-gray-700'}`}>Questions</Link>
-                  <Link href="/admin/subjects" className={`block px-4 py-2 text-sm hover:bg-indigo-50 ${pathname.startsWith('/admin/subjects') ? 'text-indigo-700' : 'text-gray-700'}`}>Subjects</Link>
-                </div>
-              </div>
-            );
+            return <QuestionsSubmenu key={path} Icon={Icon} isActive={isActive} pathname={pathname} basePath={path} />;
           }
           const isActive = pathname === path;
           return (
@@ -180,9 +165,54 @@ export default function Navbar({ username }: NavbarProps) {
                 </Link>
               );
             })}
+            {/* Inline grouping for mobile (explicit) */}
+            <div className="border-t border-gray-200">
+              <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">Content</p>
+              <Link href="/admin/questions" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/questions') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Questions</Link>
+              <Link href="/admin/subjects" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/subjects') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Subjects</Link>
+            </div>
           </div>
         </nav>
       )}
     </header>
   );
 }
+
+interface QuestionsSubmenuProps { Icon: React.ComponentType<any>; isActive: boolean; pathname: string; basePath: string; }
+function QuestionsSubmenu({ Icon, isActive, pathname, basePath }: QuestionsSubmenuProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+  // Close on outside click / escape
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => { if (open && ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    window.addEventListener('mousedown', onClick);
+    window.addEventListener('keyup', onKey);
+    return () => { window.removeEventListener('mousedown', onClick); window.removeEventListener('keyup', onKey); };
+  }, [open]);
+  // Auto close when navigating away
+  useEffect(() => { setOpen(false); }, [pathname]);
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen(o => !o)}
+        onKeyDown={e => { if (e.key === 'ArrowDown') { e.preventDefault(); setOpen(true); } }}
+        className={`flex items-center space-x-1 px-3 py-2 rounded-md transition focus:outline-none focus:ring-2 focus:ring-indigo-400 ${isActive ? 'bg-indigo-100 text-indigo-700' : 'text-gray-700 hover:text-indigo-700 hover:bg-indigo-100'}`}
+      >
+        <Icon className="w-5 h-5" />
+        <span className="text-sm font-medium">Questions</span>
+        <svg className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+      </button>
+      {open && (
+        <div role="menu" aria-label="Questions submenu" className="absolute left-0 top-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 min-w-[190px] z-30 p-1 animate-fade-in">
+          <Link role="menuitem" href="/admin/questions" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/questions') && !pathname.startsWith('/admin/subjects') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Questions</Link>
+          <Link role="menuitem" href="/admin/subjects" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/subjects') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Subjects</Link>
+        </div>
+      )}
+    </div>
+  );
+}
+

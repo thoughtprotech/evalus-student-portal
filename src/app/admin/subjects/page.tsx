@@ -291,12 +291,55 @@ export default function SubjectsPage() {
                         />
                     )}
                 </div>
-                <ConfirmationModal isOpen={confirmOpen} title="Confirm Delete" message={pendingDelete.length === 1 ? `Delete subject "${pendingDelete[0].name}"?` : `Delete ${pendingDelete.length} subjects?`} confirmText={deleting ? 'Deleting…' : 'Delete'} variant="danger" onCancel={() => { setConfirmOpen(false); setPendingDelete([]); }} onConfirm={async () => {
-                    if (!pendingDelete.length) return; setDeleting(true);
-                    for (const s of pendingDelete) { await deleteSubjectAction(s.id); }
-                    fetchPage();
-                    setDeleting(false); setConfirmOpen(false); setPendingDelete([]); setToast({ message: 'Deleted', type: 'success' });
-                }} />
+                <ConfirmationModal
+                    isOpen={confirmOpen}
+                    title="Confirm Delete"
+                    message={(function () {
+                        if (!pendingDelete.length) return 'No subjects selected.';
+                        // Compute cascade counts for preview
+                        const all = new Set<number>();
+                        const byParent: Record<number, SubjectRow[]> = {};
+                        rows.forEach(r => { (byParent[r.parentId] ||= []).push(r); });
+                        const collect = (id: number) => {
+                            if (all.has(id)) return; all.add(id);
+                            (byParent[id] || []).forEach(c => collect(c.id));
+                        };
+                        pendingDelete.forEach(r => collect(r.id));
+                        const extra = all.size - pendingDelete.length;
+                        if (extra > 0) return `Delete ${pendingDelete.length} selected subject(s) and ${extra} descendant item(s)? (Total: ${all.size})`;
+                        return pendingDelete.length === 1 ? `Delete subject "${pendingDelete[0].name}"?` : `Delete ${pendingDelete.length} subject(s)?`;
+                    })()}
+                    confirmText={deleting ? 'Deleting…' : 'Delete'}
+                    variant="danger"
+                    onCancel={() => { setConfirmOpen(false); setPendingDelete([]); }}
+                    onConfirm={async () => {
+                        if (!pendingDelete.length) return; setDeleting(true);
+                        try {
+                            // Build children index
+                            const byParent: Record<number, SubjectRow[]> = {};
+                            rows.forEach(r => { (byParent[r.parentId] ||= []).push(r); });
+                            const all = new Map<number, { row: SubjectRow; depth: number }>();
+                            const collect = (row: SubjectRow, depth: number) => {
+                                if (all.has(row.id)) { // keep deepest depth if different
+                                    const existing = all.get(row.id)!;
+                                    if (depth > existing.depth) existing.depth = depth;
+                                } else all.set(row.id, { row, depth });
+                                (byParent[row.id] || []).forEach(child => collect(child, depth + 1));
+                            };
+                            pendingDelete.forEach(r => collect(r, 0));
+                            // Delete deepest first to avoid FK issues
+                            const toDelete = Array.from(all.values()).sort((a, b) => b.depth - a.depth);
+                            for (const { row } of toDelete) {
+                                await deleteSubjectAction(row.id);
+                            }
+                            setToast({ message: `Deleted ${toDelete.length} item(s)`, type: 'success' });
+                        } catch (e: any) {
+                            setToast({ message: 'Delete failed', type: 'error' });
+                        }
+                        fetchPage();
+                        setDeleting(false); setConfirmOpen(false); setPendingDelete([]);
+                    }}
+                />
             </div>
             <div className="fixed top-4 right-4 z-50 space-y-2">{toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}</div>
         </div>
