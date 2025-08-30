@@ -17,25 +17,17 @@ import PaginationControls from "@/components/PaginationControls";
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 // Hierarchy context for expand/collapse (client-side tree simulation)
-interface HierarchyContext {
-    toggle: (id: number) => void;
-    expanded: Set<number>;
-    hasChildren: (id: number) => boolean;
-    depth: (id: number) => number;
-}
-let hierarchyCtx: HierarchyContext; // populated when rows set
-
 function NameCellRenderer(props: { value: string; data: SubjectRow }) {
-    const row = props.data;
-    const depth = hierarchyCtx?.depth(row.id) || 0;
-    const hasKids = hierarchyCtx?.hasChildren(row.id);
-    const expanded = hierarchyCtx?.expanded.has(row.id);
+    const row: any = props.data;
+    const depth = row._depth || 0;
+    const hasKids = !!row._hasChildren;
+    const expanded = !!row._expanded;
     return (
         <div className="flex items-center" style={{ paddingLeft: depth * 16 }}>
             {hasKids && (
                 <button
                     type="button"
-                    onClick={() => hierarchyCtx?.toggle(row.id)}
+                    onClick={() => row._toggle?.(row.id)}
                     className="w-5 h-5 flex items-center justify-center mr-1 text-gray-700 border border-gray-300 rounded text-[10px] leading-none font-semibold bg-white hover:bg-indigo-50"
                     aria-label={expanded ? "Collapse" : "Expand"}
                 >
@@ -92,8 +84,8 @@ export default function SubjectsPage() {
         { field: 'questionCount', headerName: 'Question Count', width: 130, sortable: true, filter: 'agNumberColumnFilter', valueFormatter: p => p.value ?? 0 },
         { field: 'language', headerName: 'Lang', width: 90, sortable: true, filter: 'agTextColumnFilter' },
         { field: 'isActive', headerName: 'Status', width: 100, sortable: true, filter: 'agTextColumnFilter', valueGetter: p => (Number(p.data?.isActive) === 1 ? 'Active' : 'Inactive') },
-        { field: 'createdDate', headerName: 'Created', width: 130, sortable: true, valueFormatter: p => formatDate(p.value) },
-        { field: 'modifiedDate', headerName: 'Updated', width: 130, sortable: true, valueFormatter: p => formatDate(p.value) },
+        { field: 'createdDate', headerName: 'Created', width: 140, sortable: true, valueFormatter: p => formatDate(p.value) },
+        { field: 'modifiedDate', headerName: 'Updated', width: 170, sortable: true, valueFormatter: p => formatDate(p.value) },
         { field: 'id', hide: true },
     ], [showFilters]);
 
@@ -183,32 +175,38 @@ export default function SubjectsPage() {
         useEffect(() => { fetchPage(); }, [query]); // fetch on search/filter changes only
 
         // Expanded state (persist across paging)
-        const [expanded, setExpanded] = useState<Set<number>>(new Set());
-        const toggle = (id: number) => setExpanded(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+            const [expanded, setExpanded] = useState<Set<number>>(new Set());
+            const toggle = (id: number) => {
+                setExpanded(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+                // Force grid to refresh cell renderers quickly (next tick to allow state update)
+                setTimeout(() => { try { gridApiRef.current?.refreshCells({ force: true }); } catch {} }, 0);
+            };
 
         // Rebuild flattened visible list when rows or expansion changes
-        useEffect(() => {
-            const byId: Record<number, SubjectRow> = Object.fromEntries(rows.map(r => [r.id, r]));
-            const kids: Record<number, SubjectRow[]> = {};
-            rows.forEach(r => { (kids[r.parentId] ||= []).push(r); });
-            const depth = (id: number, guard = 0): number => { const n = byId[id]; if (!n || !n.parentId || !byId[n.parentId] || guard > 50) return 0; return 1 + depth(n.parentId, guard + 1); };
-            const hasChildren = (id: number) => !!kids[id]?.length;
-            hierarchyCtx = { toggle, expanded, hasChildren, depth };
-            const out: SubjectRow[] = [];
-            const walk = (nodes: SubjectRow[]) => {
-                nodes.sort((a,b)=>a.name.localeCompare(b.name));
-                for (const n of nodes) {
-                    out.push(n);
-                    if (expanded.has(n.id)) walk(kids[n.id] || []);
-                }
-            };
-            walk(kids[0] || []); // roots
-            setFlatVisible(out);
-            setTotal(out.length);
-            // If current page beyond new total, shift back
-            const maxPage = Math.max(1, Math.ceil(out.length / pageSize));
-            if (page > maxPage) setPage(1);
-        }, [rows, expanded, page, pageSize]);
+            useEffect(() => {
+                const byId: Record<number, SubjectRow> = Object.fromEntries(rows.map(r => [r.id, r]));
+                const kids: Record<number, SubjectRow[]> = {};
+                rows.forEach(r => { (kids[r.parentId] ||= []).push(r); });
+                const depth = (id: number, guard = 0): number => { const n = byId[id]; if (!n || !n.parentId || !byId[n.parentId] || guard > 50) return 0; return 1 + depth(n.parentId, guard + 1); };
+                const out: SubjectRow[] = [];
+                const walk = (nodes: SubjectRow[]) => {
+                    nodes.sort((a,b)=>a.name.localeCompare(b.name));
+                    for (const n of nodes) {
+                        const meta: any = n; // mutate minimal meta for renderer
+                        meta._depth = depth(n.id);
+                        meta._hasChildren = !!kids[n.id]?.length;
+                        meta._expanded = expanded.has(n.id);
+                        meta._toggle = (id:number)=>toggle(id);
+                        out.push(n);
+                        if (expanded.has(n.id)) walk(kids[n.id] || []);
+                    }
+                };
+                walk(kids[0] || []); // roots parentId=0
+                setFlatVisible(out);
+                setTotal(out.length);
+                const maxPage = Math.max(1, Math.ceil(out.length / pageSize));
+                if (page > maxPage) setPage(1);
+            }, [rows, expanded, page, pageSize]);
 
         // Slice page for grid
         const pagedRows = useMemo(() => flatVisible.slice((page - 1) * pageSize, (page - 1) * pageSize + pageSize), [flatVisible, page, pageSize]);
@@ -277,7 +275,12 @@ export default function SubjectsPage() {
                         }}
                         theme="legacy"
                     />
-                    {loading && <div className="absolute inset-0 flex items-center justify-center bg-white/60 text-sm">Loading…</div>}
+                                {loading && (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white/70 backdrop-blur-sm text-sm text-gray-700">
+                                        <div className="w-10 h-10 rounded-full border-4 border-indigo-200 border-t-transparent animate-spin" />
+                                        <span className="font-medium">Loading subjects…</span>
+                                    </div>
+                                )}
                 </div>
                 <ConfirmationModal isOpen={confirmOpen} title="Confirm Delete" message={pendingDelete.length === 1 ? `Delete subject "${pendingDelete[0].name}"?` : `Delete ${pendingDelete.length} subjects?`} confirmText={deleting ? 'Deleting…' : 'Delete'} variant="danger" onCancel={() => { setConfirmOpen(false); setPendingDelete([]); }} onConfirm={async () => {
                     if (!pendingDelete.length) return; setDeleting(true);
