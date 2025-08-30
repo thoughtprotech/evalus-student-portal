@@ -19,6 +19,7 @@ import {
   X,
   Settings,
   BarcodeIcon,
+  BookOpen,
 } from "lucide-react";
 
 interface NavItem {
@@ -29,14 +30,17 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "Dashboard", path: "/admin", Icon: LayoutDashboard },
-  { label: "Questions", path: "/admin/questions", Icon: HelpCircle }, 
+  { label: "Questions", path: "/admin/questions", Icon: HelpCircle },
+  { label: "Subjects", path: "/admin/subjects", Icon: BookOpen },
   { label: "Tests", path: "/admin/tests", Icon: ClipboardList },
   { label: "Products", path: "/admin/products", Icon: Box },
   { label: "Candidates", path: "/admin/candidates", Icon: User },
-  // { label: "Companies", path: "/admin/companies", Icon: BarcodeIcon, hidden: true },
   { label: "Reports", path: "/admin/reports", Icon: BarChart2 },
   { label: "Settings", path: "/admin/settings", Icon: Settings },
 ];
+
+// Group Questions + Subjects under a dropdown style for desktop
+const hasSubMenu = (label: string) => label === 'Questions';
 
 interface NavbarProps {
   username: string;
@@ -56,7 +60,7 @@ export default function Navbar({ username }: NavbarProps) {
         sessionStorage.removeItem("admin:newTest:suppressClear");
         sessionStorage.removeItem("admin:newTest:preselectedIds");
         sessionStorage.removeItem("admin:newTest:selectedQuestions");
-      } catch {}
+      } catch { }
       router.push("/");
     }
   };
@@ -77,17 +81,33 @@ export default function Navbar({ username }: NavbarProps) {
 
       {/* Desktop Nav */}
       <nav className="hidden md:flex items-center space-x-6">
-        {navItems.map(({ label, path, Icon }) => {
+        {navItems.filter(n => n.label !== 'Subjects').map(({ label, path, Icon }) => {
+          if (label === 'Questions') {
+            const isActive = pathname.startsWith('/admin/questions') || pathname.startsWith('/admin/subjects');
+            return (
+              <div key={path} className="relative group">
+                <Link
+                  href={path}
+                  className={`flex items-center space-x-1 px-3 py-2 rounded-md transition ${isActive ? 'bg-indigo-100 text-indigo-700' : 'text-gray-700 hover:text-indigo-700 hover:bg-indigo-100'
+                    }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="text-sm font-medium">Questions</span>
+                </Link>
+                <div className="absolute left-0 top-full hidden group-hover:block bg-white border border-gray-200 rounded-md shadow-md mt-1 min-w-[170px] z-30">
+                  <Link href="/admin/questions" className={`block px-4 py-2 text-sm hover:bg-indigo-50 ${pathname.startsWith('/admin/questions') && !pathname.startsWith('/admin/subjects') ? 'text-indigo-700' : 'text-gray-700'}`}>Questions</Link>
+                  <Link href="/admin/subjects" className={`block px-4 py-2 text-sm hover:bg-indigo-50 ${pathname.startsWith('/admin/subjects') ? 'text-indigo-700' : 'text-gray-700'}`}>Subjects</Link>
+                </div>
+              </div>
+            );
+          }
           const isActive = pathname === path;
           return (
             <Link
               key={path}
               href={path}
-              className={`flex items-center space-x-1 px-3 py-2 rounded-md transition ${
-                isActive
-                  ? "bg-indigo-100 text-indigo-700"
-                  : "text-gray-700 hover:text-indigo-700 hover:bg-indigo-100"
-              }`}
+              className={`flex items-center space-x-1 px-3 py-2 rounded-md transition ${isActive ? 'bg-indigo-100 text-indigo-700' : 'text-gray-700 hover:text-indigo-700 hover:bg-indigo-100'
+                }`}
             >
               <Icon className="w-5 h-5" />
               <span className="text-sm font-medium">{label}</span>
@@ -150,11 +170,10 @@ export default function Navbar({ username }: NavbarProps) {
                   key={path}
                   href={path}
                   onClick={() => setMenuOpen(false)}
-                  className={`flex items-center space-x-2 px-4 py-3 transition ${
-                    isActive
+                  className={`flex items-center space-x-2 px-4 py-3 transition ${isActive
                       ? "bg-indigo-100 text-indigo-700"
                       : "text-gray-700 hover:bg-indigo-50"
-                  }`}
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span className="text-base font-medium">{label}</span>

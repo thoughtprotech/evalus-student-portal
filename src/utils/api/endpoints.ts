@@ -136,7 +136,7 @@ export const endpoints = {
     method: "GET",
     // OData function import style endpoint returning tests grouped by status for a candidate
     path: ({ username }: { username: string }) =>
-  `/Odata/Tests/StudentDashboard(username=${encodeURIComponent(username)})`,
+      `/Odata/Tests/StudentDashboard(username=${encodeURIComponent(username)})`,
 
     type: "CLOSE",
   } as Endpoint<{ username: string }, GetCandidateTestResponse[]>,
@@ -197,6 +197,24 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<null, GetSubjectsResponse[]>,
 
+  createSubject: {
+    method: "POST",
+    path: () => `/api/Subjects`,
+    type: "CLOSE",
+  } as Endpoint<import('./types').CreateSubjectRequest, null>,
+
+  updateSubject: {
+    method: "PUT",
+    path: ({ subjectId }: { subjectId: number }) => `/api/Subjects/${subjectId}`,
+    type: "CLOSE",
+  } as Endpoint<import('./types').UpdateSubjectRequest, null>,
+
+  deleteSubject: {
+    method: "DELETE",
+    path: ({ subjectId }: { subjectId: number }) => `/api/Subjects/${subjectId}`,
+    type: "CLOSE",
+  } as Endpoint<{ subjectId: number }, null>,
+
   getTopics: {
     method: "GET",
     path: ({ subjectId }) => `/api/Subjects/${subjectId}/topics`,
@@ -235,7 +253,7 @@ export const endpoints = {
     path: ({ language }) => {
       // Escape single quotes per OData rules by doubling them
       const lang = (language ?? "").replace(/'/g, "''");
-  const base = `/Odata/QuestionDifficultyLevels?$select=QuestionDifficultylevelId,QuestionDifficultylevel1,Language,IsActive`;
+      const base = `/Odata/QuestionDifficultyLevels?$select=QuestionDifficultylevelId,QuestionDifficultylevel1,Language,IsActive`;
       const filter = lang
         ? `&$filter=Language eq '${lang}' and IsActive eq 1`
         : `&$filter=IsActive eq 1`;
@@ -258,7 +276,7 @@ export const endpoints = {
     method: "GET",
     // query should include leading ?params already: e.g., ?$top=25&$skip=0...
     path: ({ query }) =>
-  `/Odata/Tests${query ? (query.startsWith("?") ? query : `?${query}`) : ""
+      `/Odata/Tests${query ? (query.startsWith("?") ? query : `?${query}`) : ""
       }`,
     type: "OPEN",
   } as Endpoint<
@@ -311,7 +329,7 @@ export const endpoints = {
   // Publish Test (Admin)
   publishTest: {
     method: "POST",
-  path: ({ id }: { id: number | string }) => `/api/Tests/${id}/publish`,
+    path: ({ id }: { id: number | string }) => `/api/Tests/${id}/publish`,
     type: "CLOSE",
   } as Endpoint<{ id: number | string }, any>,
 
@@ -325,7 +343,7 @@ export const endpoints = {
   // OData lists for Admin Test creation
   getTestTypes: {
     method: "GET",
-  path: () => `/Odata/TestTypes?$select=TestTypeId,TestType1`,
+    path: () => `/Odata/TestTypes?$select=TestTypeId,TestType1`,
     type: "OPEN",
   } as Endpoint<
     null,
@@ -334,7 +352,7 @@ export const endpoints = {
 
   getTestCategories: {
     method: "GET",
-  path: () => `/Odata/TestCategories?$select=TestCategoryId,TestCategoryName`,
+    path: () => `/Odata/TestCategories?$select=TestCategoryId,TestCategoryName`,
     type: "OPEN",
   } as Endpoint<
     null,
@@ -344,7 +362,7 @@ export const endpoints = {
   getTestInstructions: {
     method: "GET",
     path: () =>
-  `/Odata/TestInstructions?$select=TestInstructionId,TestInstructionName`,
+      `/Odata/TestInstructions?$select=TestInstructionId,TestInstructionName`,
     type: "OPEN",
   } as Endpoint<
     null,
@@ -354,7 +372,7 @@ export const endpoints = {
   getTestDifficultyLevelsOData: {
     method: "GET",
     path: () =>
-  `/Odata/TestDifficultyLevels?$select=TestDifficultyLevelId,TestDifficultyLevel1`,
+      `/Odata/TestDifficultyLevels?$select=TestDifficultyLevelId,TestDifficultyLevel1`,
     type: "OPEN",
   } as Endpoint<
     null,
@@ -375,7 +393,7 @@ export const endpoints = {
   // Select Questions page endpoints
   getLanguagesOData: {
     method: "GET",
-  path: () => `/api/odata/Languages?$select=Language1`,
+    path: () => `/api/odata/Languages?$select=Language1`,
     type: "OPEN",
   } as Endpoint<null, import("./types").ODataList<{ Language1: string }>>,
 
@@ -383,7 +401,7 @@ export const endpoints = {
     method: "GET",
     path: ({ language }) => {
       const lang = (language ?? "").replace(/'/g, "''");
-  return `/Odata/Subjects?$filter=Language eq '${lang}' and ParentId eq 0&$select=SubjectId,SubjectName`;
+      return `/Odata/Subjects?$filter=Language eq '${lang}' and ParentId eq 0&$select=SubjectId,SubjectName`;
     },
     type: "OPEN",
   } as Endpoint<
@@ -395,7 +413,7 @@ export const endpoints = {
     method: "GET",
     path: ({ language }) => {
       const lang = (language ?? "").replace(/'/g, "''");
-  return `/Odata/QuestionTypes?$filter=Language eq '${lang}'&$select=QuestionTypeId,QuestionType1`;
+      return `/Odata/QuestionTypes?$filter=Language eq '${lang}'&$select=QuestionTypeId,QuestionType1`;
     },
     type: "OPEN",
   } as Endpoint<
@@ -409,20 +427,27 @@ export const endpoints = {
   getSubjectTree: {
     method: "GET",
     path: ({ parentId }) =>
-  `/Odata/Subjects/GetSubjectTree(ParentId=${parentId})`,
+      `/Odata/Subjects/GetSubjectTree(ParentId=${parentId})`,
     type: "OPEN",
   } as Endpoint<{ parentId: number }, any[]>,
+
+  // Generic Subjects OData listing with dynamic query (server-side filtering/pagination)
+  listSubjectsOData: {
+    method: "GET",
+    path: ({ query }) => `/Odata/Subjects${query || ''}`,
+    type: "OPEN",
+  } as Endpoint<{ query?: string }, { '@odata.count'?: number; value: any[] }>,
 
   // OData - Candidate Group Tree for Step 5 Assign
   getCandidateGroupTreeOData: {
     method: "GET",
-  path: () => `/api/odata/CandidateGroups/GetCandidateGroupTree`,
+    path: () => `/api/odata/CandidateGroups/GetCandidateGroupTree`,
     type: "OPEN",
   } as Endpoint<null, any[]>,
 
   getQuestionsByQuery: {
     method: "GET",
-  path: ({ query }) => `/Odata/Questions${query}`,
+    path: ({ query }) => `/Odata/Questions${query}`,
     type: "OPEN",
   } as Endpoint<{ query?: string }, { value: any[] }>,
 
@@ -488,14 +513,14 @@ export const endpoints = {
   // OData - Distinct Batch Numbers for filter
   getDistinctBatchNumbersOData: {
     method: "GET",
-  path: () => `/api/odata/Questions/GetDistinctBatchNumbers`,
+    path: () => `/api/odata/Questions/GetDistinctBatchNumbers`,
     type: "OPEN",
   } as Endpoint<null, import("./types").ODataList<any>>,
 
   // OData - Distinct Question Tags for filter
   getDistinctQuestionTagsOData: {
     method: "GET",
-  path: () => `/api/odata/QuestionTags/GetDistinctQuestionTags`,
+    path: () => `/api/odata/QuestionTags/GetDistinctQuestionTags`,
     type: "OPEN",
   } as Endpoint<null, import("./types").ODataList<any>>,
 
@@ -521,7 +546,7 @@ export const endpoints = {
     method: "GET",
     // Use your specific API endpoint for getting questions by language
     path: ({ query }) =>
-  `/Odata/Questions/GetAllQuestionsByLanguage(language=English)${query ? (query.startsWith("?") ? query : `?${query}`) : ""
+      `/Odata/Questions/GetAllQuestionsByLanguage(language=English)${query ? (query.startsWith("?") ? query : `?${query}`) : ""
       }`,
     type: "OPEN",
   } as Endpoint<import("./types").GetQuestionsODataRequest, any[]>,
@@ -581,14 +606,14 @@ export const endpoints = {
   // OData - Active Test Products for Step 5 Assign (dropdown)
   getActiveTestProductsOData: {
     method: "GET",
-  path: () => `/api/odata/TestProducts?$filter=IsActive eq 1&$select=ProductId,ProductName`,
+    path: () => `/api/odata/TestProducts?$filter=IsActive eq 1&$select=ProductId,ProductName`,
     type: "OPEN",
   } as Endpoint<null, import('./types').ODataList<{ ProductId: number; ProductName: string }>>,
 
   // OData - Test Sections (for Step 3 bulk assignment)
   getTestSectionsOData: {
     method: "GET",
-  path: () => `/api/odata/TestSections?$select=TestSectionId,TestSectionName`,
+    path: () => `/api/odata/TestSections?$select=TestSectionId,TestSectionName`,
     type: "OPEN",
   } as Endpoint<
     null,
@@ -666,19 +691,19 @@ export const endpoints = {
       `/api/TestSessions/${testResponseId}/question-with-response/${questionId}`,
     method: "GET",
     type: "CLOSE",
-    } as Endpoint<GetSessionQuestionByIdRequest, GetSessionQuestionByIdResponse>,
+  } as Endpoint<GetSessionQuestionByIdRequest, GetSessionQuestionByIdResponse>,
 
-    getAdminRoles:  {
-        method: "GET",
-        path: () => `/api/Role`,
-            type: "CLOSE",
+  getAdminRoles: {
+    method: "GET",
+    path: () => `/api/Role`,
+    type: "CLOSE",
   } as Endpoint<null, any[]>,
-      // OData - Published Documents Tree
-      getPublishedDocumentsTree: {
-        method: "GET",
-        // Absolute or relative? We'll use relative so apiHandler prefixes API_BASE_URL
-        path: () => `/odata/PublishedDocuments/GetDocumentsTree()`,
-        type: "OPEN",
-      } as Endpoint<null, import('./types').PublishedDocumentTreeItem[]>,
-    
+  // OData - Published Documents Tree
+  getPublishedDocumentsTree: {
+    method: "GET",
+    // Absolute or relative? We'll use relative so apiHandler prefixes API_BASE_URL
+    path: () => `/odata/PublishedDocuments/GetDocumentsTree()`,
+    type: "OPEN",
+  } as Endpoint<null, import('./types').PublishedDocumentTreeItem[]>,
+
 };

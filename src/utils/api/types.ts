@@ -307,6 +307,19 @@ export interface GetSubjectsResponse {
   modifiedDate: string;
 }
 
+// Subject CRUD payloads (admin)
+export interface CreateSubjectRequest {
+  subjectName: string;
+  subjectType: string; // Subject | Chapter | Topic | Sub Topic
+  parentId: number; // 0 for root subjects
+  language: string;
+  isActive: number; // 1 active, 0 inactive
+}
+
+export interface UpdateSubjectRequest extends CreateSubjectRequest {
+  subjectId: number;
+}
+
 export interface GetTopicsRequest {
   subjectId: number;
 }
