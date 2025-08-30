@@ -92,11 +92,12 @@ export default function SubjectsPage() {
     };
 
     const columnDefs = useMemo<ColDef<SubjectRow>[]>(() => [
-        { field: 'name', headerName: 'Subject', width: 300, minWidth: 200, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer },
-        { field: 'language', headerName: 'Language', width: 120, sortable: true, filter: 'agTextColumnFilter', cellRenderer: LanguageCell },
-        { field: 'isActive', headerName: 'Status', width: 110, sortable: true, filter: 'agTextColumnFilter', cellRenderer: StatusCell },
-        { field: 'createdDate', headerName: 'Created', width: 120, sortable: true, valueFormatter: p => formatDate(p.value) },
-        { field: 'modifiedDate', headerName: 'Updated', width: 140, sortable: true, valueFormatter: p => formatDate(p.value) },
+        { field: 'name', headerName: 'Subject', minWidth: 260, flex: 2, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer },
+        { field: 'type', headerName: 'Type', minWidth: 130, flex: 0.8, sortable: true, filter: 'agTextColumnFilter' },
+        { field: 'language', headerName: 'Language', minWidth: 120, flex: 0.7, sortable: true, filter: 'agTextColumnFilter', cellRenderer: LanguageCell },
+        { field: 'isActive', headerName: 'Status', minWidth: 110, flex: 0.6, sortable: true, filter: 'agTextColumnFilter', cellRenderer: StatusCell },
+        { field: 'createdDate', headerName: 'Created', minWidth: 130, flex: 0.8, sortable: true, valueFormatter: p => formatDate(p.value) },
+        { field: 'modifiedDate', headerName: 'Updated', minWidth: 150, flex: 0.9, sortable: true, valueFormatter: p => formatDate(p.value) },
         { field: 'id', hide: true },
     ], [showFilters]);
 
@@ -109,6 +110,7 @@ export default function SubjectsPage() {
             if (!cfg) return;
             const map: Record<string, string> = {
                 name: 'SubjectName',
+                type: 'SubjectType',
                 language: 'Language',
                 isActive: 'IsActive',
                 createdDate: 'CreatedDate',
@@ -155,6 +157,7 @@ export default function SubjectsPage() {
         const sort = sortModelRef.current?.[0];
         const sortFieldMap: Record<string, string> = {
             name: 'SubjectName',
+            type: 'SubjectType',
             language: 'Language',
             isActive: 'IsActive',
             createdDate: 'CreatedDate',
@@ -259,7 +262,7 @@ export default function SubjectsPage() {
                         <button onClick={() => { filterModelRef.current = {}; gridApiRef.current?.setFilterModel?.(null); setPage(1); fetchPage(); }} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50" disabled={!query && Object.keys(filterModelRef.current||{}).length===0}><XCircle className="w-4 h-4" /> Clear Filters</button>
                     </div>
                 </div>
-                <div ref={gridShellRef} className="ag-theme-alpine ag-theme-evalus w-full flex-1 min-h-0 relative" style={frozenHeight && loading ? { minHeight: frozenHeight } : undefined}>
+                <div ref={gridShellRef} className="ag-theme-alpine ag-theme-evalus w-full flex-1 min-h-0 relative overflow-auto" style={frozenHeight && loading ? { minHeight: frozenHeight } : undefined}>
                     <AgGridReact<SubjectRow>
                         columnDefs={columnDefs}
                         defaultColDef={defaultColDef}
@@ -268,13 +271,19 @@ export default function SubjectsPage() {
                         onGridReady={e => {
                             gridApiRef.current = e.api;
                             if (!sizedRef.current) {
-                                requestAnimationFrame(()=>{ try { e.api.sizeColumnsToFit(); sizedRef.current = true; } catch {} });
+                                try { e.api.sizeColumnsToFit(); } catch {}
+                                sizedRef.current = true;
                             }
-                            const handler = () => { try { e.api.sizeColumnsToFit(); } catch {} };
+                            // Debounced resize handler to refit columns without constant shifting
+                            let resizeTimer: any = null;
+                            const handler = () => {
+                                if (resizeTimer) clearTimeout(resizeTimer);
+                                resizeTimer = setTimeout(()=>{ try { e.api.sizeColumnsToFit(); } catch {} }, 150);
+                            };
                             window.addEventListener('resize', handler);
                             (e.api as any).__resizeHandler = handler;
                         }}
-                        onFirstDataRendered={()=>{ /* prevent re-fitting on subsequent data loads to avoid width jumps */ }}
+                        onFirstDataRendered={e=>{ try { e.api.sizeColumnsToFit(); } catch {} }}
                         rowSelection={{ mode: 'multiRow', checkboxes: true }}
                         selectionColumnDef={{ pinned: 'left', width: 44 }}
                         onSelectionChanged={() => setSelectedCount(gridApiRef.current?.getSelectedRows()?.length || 0)}
