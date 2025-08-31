@@ -38,7 +38,7 @@ export default function NewTestInstructionPage(){
 
   return <div className="p-4 bg-gray-50 h-full flex flex-col">
     <div className="flex-1 overflow-auto">
-      <div className="max-w-4xl mx-auto bg-white shadow rounded-lg p-6 space-y-6">
+  <div className="max-w-6xl mx-auto bg-white shadow rounded-lg p-6 space-y-6">
         <div className="flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
             <Link href="/admin/test-instructions" className="inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline"><ArrowLeft className="w-4 h-4"/> Back</Link>
@@ -57,7 +57,13 @@ export default function NewTestInstructionPage(){
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Instruction<span className="text-red-500"> *</span></label>
-            <RichTextEditor initialContent={instruction} onChange={setInstruction} placeholder="Enter instruction details" />
+            <RichTextEditor
+              initialContent={instruction}
+              onChange={setInstruction}
+              placeholder="Enter instruction details"
+              minHeight={400}
+              className="resize-y"
+            />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
