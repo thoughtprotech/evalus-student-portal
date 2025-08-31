@@ -61,25 +61,92 @@ export async function fetchTestInstructionsAction(params: FetchTestInstructionsP
   }
 }
 
-export async function createTestInstructionAction(payload: { testInstructionName: string; testInstruction1: string; language: string; isActive: number; }): Promise<ApiResponse<null>> {
+/**
+ * Create Test Instruction (sends full payload expected by API including metadata fields)
+ */
+export async function createTestInstructionAction(payload: {
+  testInstructionName: string;
+  testInstruction1: string;
+  language: string;
+  isActive: number; // 1 | 0
+  createdBy?: string;
+  modifiedBy?: string;
+  createdDate?: string; // ISO
+  modifiedDate?: string; // ISO
+}): Promise<ApiResponse<null>> {
   try {
-    const res = await apiHandler(endpoints.createTestInstruction, {
+    const nowIso = new Date().toISOString();
+    const body: any = {
+      // Maintain both PascalCase & camelCase keys for backend flexibility
+      TestInstructionId: 0,
+      testInstructionId: 0,
       TestInstructionName: payload.testInstructionName,
+      testInstructionName: payload.testInstructionName,
       TestInstruction1: payload.testInstruction1,
+      testInstruction1: payload.testInstruction1,
       Language: payload.language,
+      language: payload.language,
       IsActive: payload.isActive,
-    } as any);
+      isActive: payload.isActive,
+      CreatedBy: payload.createdBy ?? '',
+      createdBy: payload.createdBy ?? '',
+      CreatedDate: payload.createdDate ?? nowIso,
+      createdDate: payload.createdDate ?? nowIso,
+      ModifiedBy: payload.modifiedBy ?? payload.createdBy ?? '',
+      modifiedBy: payload.modifiedBy ?? payload.createdBy ?? '',
+      ModifiedDate: payload.modifiedDate ?? nowIso,
+      modifiedDate: payload.modifiedDate ?? nowIso,
+    };
+    const res = await apiHandler(endpoints.createTestInstruction, body);
     if (res.error) return { status: res.status, error: true, message: res.message };
     return { status: 200, message: 'Created' };
-  } catch (e: any) { return { status: 500, error: true, message: 'Failed to create', errorMessage: e?.message }; }
+  } catch (e: any) {
+    return { status: 500, error: true, message: 'Failed to create', errorMessage: e?.message };
+  }
 }
 
-export async function updateTestInstructionAction(id: number, payload: { testInstructionName: string; testInstruction1: string; language: string; isActive: number; }): Promise<ApiResponse<null>> {
+/**
+ * Update Test Instruction (sends full payload; preserves created metadata if supplied)
+ */
+export async function updateTestInstructionAction(id: number, payload: {
+  testInstructionName: string;
+  testInstruction1: string;
+  language: string;
+  isActive: number;
+  createdBy?: string;
+  createdDate?: string;
+  modifiedBy?: string;
+  modifiedDate?: string;
+}): Promise<ApiResponse<null>> {
   try {
-    const res = await apiHandler(endpoints.updateTestInstruction, { id, TestInstructionName: payload.testInstructionName, TestInstruction1: payload.testInstruction1, Language: payload.language, IsActive: payload.isActive } as any);
+    const nowIso = new Date().toISOString();
+    const body: any = {
+      id,
+      TestInstructionId: id,
+      testInstructionId: id,
+      TestInstructionName: payload.testInstructionName,
+      testInstructionName: payload.testInstructionName,
+      TestInstruction1: payload.testInstruction1,
+      testInstruction1: payload.testInstruction1,
+      Language: payload.language,
+      language: payload.language,
+      IsActive: payload.isActive,
+      isActive: payload.isActive,
+      CreatedBy: payload.createdBy ?? '',
+      createdBy: payload.createdBy ?? '',
+      CreatedDate: payload.createdDate ?? '',
+      createdDate: payload.createdDate ?? '',
+      ModifiedBy: payload.modifiedBy ?? payload.createdBy ?? '',
+      modifiedBy: payload.modifiedBy ?? payload.createdBy ?? '',
+      ModifiedDate: payload.modifiedDate ?? nowIso,
+      modifiedDate: payload.modifiedDate ?? nowIso,
+    };
+    const res = await apiHandler(endpoints.updateTestInstruction, body);
     if (res.error) return { status: res.status, error: true, message: res.message };
     return { status: 200, message: 'Updated' };
-  } catch (e: any) { return { status: 500, error: true, message: 'Failed to update', errorMessage: e?.message }; }
+  } catch (e: any) {
+    return { status: 500, error: true, message: 'Failed to update', errorMessage: e?.message };
+  }
 }
 
 export async function deleteTestInstructionAction(id: number): Promise<ApiResponse<null>> {
