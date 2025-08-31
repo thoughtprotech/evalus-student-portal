@@ -96,8 +96,9 @@ export default function SubjectsPage() {
         { field: 'type', headerName: 'Type', width: 220, minWidth: 120, sortable: true, filter: 'agTextColumnFilter' },
         { field: 'language', headerName: 'Language', width: 220, minWidth: 110, sortable: true, filter: 'agTextColumnFilter', cellRenderer: LanguageCell },
         { field: 'isActive', headerName: 'Status', width: 220, minWidth: 110, sortable: true, filter: 'agTextColumnFilter', cellRenderer: StatusCell },
-        { field: 'createdDate', headerName: 'Created', width: 420, minWidth: 120, sortable: true, valueFormatter: p => formatDate(p.value) },
-        { field: 'modifiedDate', headerName: 'Updated', width: 820, minWidth: 180, sortable: true, valueFormatter: p => formatDate(p.value) },
+        { field: 'createdBy', headerName: 'Created By', width: 300, minWidth: 140, sortable: true, filter: 'agTextColumnFilter' },
+        { field: 'createdDate', headerName: 'Created Date', width: 220, minWidth: 140, sortable: true, valueFormatter: p => formatDate(p.value) },
+        { field: 'modifiedDate', headerName: 'Updated Date', width: 720, minWidth: 160, sortable: true, valueFormatter: p => formatDate(p.value) },
         { field: 'id', hide: true },
     ], [showFilters]);
 
