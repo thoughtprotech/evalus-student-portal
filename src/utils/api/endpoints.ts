@@ -368,6 +368,34 @@ export const endpoints = {
     null,
     import("./types").ODataList<import("./types").TestInstructionOData>
   >,
+  // Admin Test Instructions full OData listing (supports dynamic query string built in action)
+  getAdminTestInstructions: {
+    method: "GET",
+    path: ({ query }) => `/Odata/TestInstructions${query ? (query.startsWith("?") ? query : `?${query}`) : ""}`,
+    type: "OPEN",
+  } as Endpoint<{ query?: string }, { '@odata.count'?: number; value: any[] }>,
+
+  // Test Instructions CRUD (assumed REST endpoints similar to other entities)
+  createTestInstruction: {
+    method: "POST",
+    path: () => `/api/TestInstructions`,
+    type: "CLOSE",
+  } as Endpoint<any, any>,
+  updateTestInstruction: {
+    method: "PUT",
+    path: ({ id }: { id: number }) => `/api/TestInstructions/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number } & any, any>,
+  getTestInstructionById: {
+    method: "GET",
+    path: ({ id }: { id: number }) => `/api/TestInstructions/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number }, any>,
+  deleteTestInstruction: {
+    method: "DELETE",
+    path: ({ id }: { id: number }) => `/api/TestInstructions/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number }, null>,
 
   getTestDifficultyLevelsOData: {
     method: "GET",

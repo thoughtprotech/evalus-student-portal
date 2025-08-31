@@ -20,6 +20,7 @@ import {
   Settings,
   BarcodeIcon,
   BookOpen,
+  BookOpenText,
 } from "lucide-react";
 
 interface NavItem {
@@ -85,6 +86,10 @@ export default function Navbar({ username }: NavbarProps) {
           if (label === 'Questions') {
             const isActive = pathname.startsWith('/admin/questions') || pathname.startsWith('/admin/subjects');
             return <QuestionsSubmenu key={path} Icon={Icon} isActive={isActive} pathname={pathname} basePath={path} />;
+          }
+          if (label === 'Tests') {
+            const isActive = pathname.startsWith('/admin/tests') || pathname.startsWith('/admin/test-instructions');
+            return <TestsSubmenu key={path} Icon={Icon} isActive={isActive} pathname={pathname} basePath={path} />;
           }
           const isActive = pathname === path;
           return (
@@ -165,6 +170,8 @@ export default function Navbar({ username }: NavbarProps) {
                 </Link>
               );
             })}
+                <Link href="/admin/tests" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/tests') && !pathname.startsWith('/admin/test-instructions') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Tests</Link>
+                <Link href="/admin/test-instructions" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/test-instructions') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Instructions</Link>
             {/* Inline grouping for mobile (explicit) */}
             <div className="border-t border-gray-200">
               <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">Content</p>
@@ -210,6 +217,34 @@ function QuestionsSubmenu({ Icon, isActive, pathname, basePath }: QuestionsSubme
         <div role="menu" aria-label="Questions submenu" className="absolute left-0 top-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 min-w-[190px] z-30 p-1 animate-fade-in">
           <Link role="menuitem" href="/admin/questions" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/questions') && !pathname.startsWith('/admin/subjects') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Questions</Link>
           <Link role="menuitem" href="/admin/subjects" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/subjects') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Subjects</Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface TestsSubmenuProps { Icon: React.ComponentType<any>; isActive: boolean; pathname: string; basePath: string; }
+function TestsSubmenu({ Icon, isActive, pathname, basePath }: TestsSubmenuProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => { if (open && ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    window.addEventListener('mousedown', onClick); window.addEventListener('keyup', onKey);
+    return () => { window.removeEventListener('mousedown', onClick); window.removeEventListener('keyup', onKey); };
+  }, [open]);
+  useEffect(()=>{ setOpen(false); }, [pathname]);
+  return (
+    <div ref={ref} className="relative">
+      <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={()=>setOpen(o=>!o)} onKeyDown={e=>{ if(e.key==='ArrowDown'){ e.preventDefault(); setOpen(true);} }} className={`flex items-center space-x-1 px-3 py-2 rounded-md transition focus:outline-none focus:ring-2 focus:ring-indigo-400 ${isActive ? 'bg-indigo-100 text-indigo-700' : 'text-gray-700 hover:text-indigo-700 hover:bg-indigo-100'}`}>
+        <Icon className="w-5 h-5" />
+        <span className="text-sm font-medium">Tests</span>
+        <svg className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+      </button>
+      {open && (
+        <div role="menu" aria-label="Tests submenu" className="absolute left-0 top-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 min-w-[210px] z-30 p-1 animate-fade-in">
+          <Link role="menuitem" href="/admin/tests" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/tests') && !pathname.startsWith('/admin/test-instructions') ? 'bg-indigo-50 text-indigo-700':'text-gray-700 hover:bg-indigo-50'}`}>Tests</Link>
+          <Link role="menuitem" href="/admin/test-instructions" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/test-instructions') ? 'bg-indigo-50 text-indigo-700':'text-gray-700 hover:bg-indigo-50'}`}>Test Instructions</Link>
         </div>
       )}
     </div>
