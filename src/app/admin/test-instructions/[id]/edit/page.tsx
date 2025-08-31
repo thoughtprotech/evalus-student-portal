@@ -9,6 +9,7 @@ import { getTestInstructionByIdAction, updateTestInstructionAction } from "@/app
 import { ArrowLeft, Save, BookOpenText } from "lucide-react";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import Toast from "@/components/Toast";
+import TestInstructionEditSkeleton from "../TestInstructionEditSkeleton";
 import { useUser } from "@/contexts/UserContext";
 
 export default function EditTestInstructionPage(){
@@ -75,7 +76,7 @@ export default function EditTestInstructionPage(){
       </div>
     </div>
     <div className="fixed top-4 right-4 z-50 space-y-2">{toast && <Toast message={toast.message} type={toast.type} onClose={()=>setToast(null)} />}</div>
-    <ConfirmationModal
+  <ConfirmationModal
       isOpen={showSuccessModal}
       variant="success"
       title="Test Instruction Updated Successfully!"
@@ -85,5 +86,6 @@ export default function EditTestInstructionPage(){
       onConfirm={()=>{ setShowSuccessModal(false); router.push('/admin/test-instructions'); }}
       onCancel={()=>setShowSuccessModal(false)}
     />
+  {loading && <TestInstructionEditSkeleton />}
   </div>;
 }
