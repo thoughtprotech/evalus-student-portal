@@ -3,13 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
-import { BookOpenText, PlusCircle, Trash2, Filter, XCircle, PenLine } from "lucide-react";
+import { BookOpenText, PlusCircle, Trash2, Filter, XCircle } from "lucide-react";
 import { AgGridReact } from "ag-grid-react";
 import type { ColDef, GridApi, GridReadyEvent, SortModelItem } from "ag-grid-community";
 import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { fetchTestInstructionsAction, deleteTestInstructionAction, type TestInstructionRow } from "@/app/actions/admin/testInstructions";
+import { stripHtmlTags } from "@/utils/stripHtmlTags";
 import PaginationControls from "@/components/PaginationControls";
 import Loader from "@/components/Loader";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -43,7 +44,8 @@ export default function TestInstructionsPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
   const [showFilters, setShowFilters] = useState(false);
-  const [selected, setSelected] = useState<TestInstructionRow | null>(null);
+  const [selectedRows, setSelectedRows] = useState<TestInstructionRow[]>([]);
+  const [selectedCount, setSelectedCount] = useState(0);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: any } | null>(null);
@@ -56,8 +58,12 @@ export default function TestInstructionsPage() {
 
   const columnDefs = useMemo<ColDef<TestInstructionRow>[]>(() => [
     { headerName: 'S.No.', valueGetter: (p:any) => (p?.node?.rowIndex ?? 0)+1 + (page-1)*pageSize, width: 90, pinned: 'left', sortable: false, filter: false, resizable:false, cellClass:'no-right-border', headerClass:'no-right-border' },
-    { field: 'name', headerName: 'Name', width: 280, cellRenderer: NameCellRenderer, filter: 'agTextColumnFilter', sortable: true, tooltipField: 'name', cellClass:'no-left-border', headerClass:'no-left-border' },
-    { field: 'instruction', headerName: 'Instruction', flex: 1, minWidth: 320, filter: 'agTextColumnFilter', sortable: true, tooltipField: 'instruction' },
+    { field: 'name', headerName: 'Name', width: 300, cellRenderer: NameCellRenderer, filter: 'agTextColumnFilter', sortable: true, tooltipField: 'name', cellClass:'no-left-border', headerClass:'no-left-border' },
+    { field: 'instruction', headerName: 'Instruction', flex: 1, minWidth: 340, filter: 'agTextColumnFilter', sortable: true, valueFormatter: p => {
+        const txt = stripHtmlTags(p.value || '').trim();
+        if(!txt) return '';
+        return txt.length > 140 ? txt.slice(0,137)+'…' : txt;
+      }, tooltipValueGetter: p => stripHtmlTags(p.data?.instruction||'') },
     { field: 'language', headerName: 'Language', width: 160, filter: 'agTextColumnFilter', sortable: true },
     { field: 'isActive', headerName: 'Status', width: 120, filter: 'agTextColumnFilter', sortable: true, cellRenderer: StatusCell },
     { field: 'createdBy', headerName: 'Created By', width: 160, filter: 'agTextColumnFilter', sortable: true },
@@ -89,7 +95,7 @@ export default function TestInstructionsPage() {
     const filter = filters.length ? Array.from(new Set(filters)).join(' and ') : undefined;
     const res = await fetchTestInstructionsAction({ top: pageSize, skip: (page-1)*pageSize, orderBy, filter });
     if (reqId === lastReqRef.current) {
-      if (res.status === 200 && res.data) { setRows(res.data.rows.slice()); setTotal(res.data.total); setSelected(null); }
+  if (res.status === 200 && res.data) { setRows(res.data.rows.slice()); setTotal(res.data.total); setSelectedRows([]); setSelectedCount(0); }
       setLoading(false);
     }
   }, [page, pageSize, query]);
@@ -102,12 +108,11 @@ export default function TestInstructionsPage() {
     <div className="sticky top-0 z-20 bg-gray-50 pt-2 pb-3 flex-none">
       <PageHeader icon={<BookOpenText className="w-6 h-6 text-indigo-600" />} title="Test Instructions" showSearch searchValue={query} onSearch={v=>setQuery(v)} />
     </div>
-    <div className="bg-white shadow rounded-lg p-2 flex-1 min-h-0 overflow-hidden flex flex-col">
+  <div className="bg-white shadow rounded-lg p-2 flex-1 min-h-0 overflow-hidden flex flex-col">
       <div className="mb-3 flex items-center justify-between gap-3 flex-none">
         <div className="flex items-center gap-2 flex-wrap">
-          <Link href="/admin/test-instructions/new"><button className="inline-flex items-center gap-2 w-32 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700"><PlusCircle className="w-4 h-4"/> New</button></Link>
-          <button disabled={!selected || deleting} onClick={()=>{ if(!selected){ setToast({ message:'Select a record to delete', type:'info'}); return;} setConfirmOpen(true); }} className="inline-flex items-center gap-2 w-32 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50"><Trash2 className="w-4 h-4"/> Delete</button>
-          {selected && <Link href={`/admin/test-instructions/${selected.id}/edit`} className="inline-flex items-center gap-2 w-32 px-3 py-2 rounded-md bg-emerald-600 text-white text-sm shadow hover:bg-emerald-700"><PenLine className="w-4 h-4"/> Edit</Link>}
+          <Link href="/admin/test-instructions/new"><button className="inline-flex items-center gap-2 w-40 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700"><PlusCircle className="w-4 h-4"/> New</button></Link>
+          <button disabled={selectedCount===0 || deleting} onClick={()=>{ if(selectedCount===0){ setToast({ message:'Select records to delete', type:'info'}); return;} setConfirmOpen(true); }} className="inline-flex items-center gap-2 w-40 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50"><Trash2 className="w-4 h-4"/> {deleting? 'Deleting...':'Delete'}{selectedCount>0 && !deleting && <span className="ml-1">({selectedCount})</span>}</button>
         </div>
         <PaginationControls page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={s=>{ setPageSize(s); setPage(1); }} pageSizeOptions={[15,25,50,100]} showTotalCount />
         <div className="flex items-center gap-2">
@@ -121,17 +126,17 @@ export default function TestInstructionsPage() {
         {Object.entries(filterModelRef.current).map(([key]) => <button key={key} onClick={()=>{ const api = gridApiRef.current as any; const fm={...(filterModelRef.current||{})}; delete fm[key]; filterModelRef.current=fm; api?.setFilterModel?.(fm); setPage(1); }} className="text-xs inline-flex items-center gap-2 rounded-full bg-gray-100 text-gray-700 px-3 py-1 hover:bg-gray-200">{key}<span className="text-gray-500">✕</span></button>)}
         <button onClick={()=>{ const api = gridApiRef.current as any; const hasSearch = !!query; filterModelRef.current={}; if(hasSearch) skipNextFilterFetchRef.current=true; api?.setFilterModel?.(null); setPage(1); if(hasSearch) setQuery(''); }} className="text-xs inline-flex items-center gap-2 rounded-full border border-gray-300 text-gray-700 px-3 py-1 hover:bg-gray-50">Clear all</button>
       </div>}
-      <div className="flex-1 min-h-0">
-        {loading ? <Loader/> : <div className="h-full min-h-0">
+      <div className="flex-1 min-h-0 ag-theme-alpine ag-theme-evalus flex flex-col">
+        {loading ? <Loader/> : <div className="h-full min-h-0 flex flex-col">
           <AgGridReact<TestInstructionRow>
             columnDefs={columnDefs}
             defaultColDef={defaultColDef}
             rowData={rows}
             onGridReady={onGridReady}
             onSortChanged={onSortChanged}
-            onSelectionChanged={()=>{ const api = gridApiRef.current as any; const sel = (api?.getSelectedRows?.() as TestInstructionRow[])||[]; setSelected(sel[0]||null); }}
+            onSelectionChanged={()=>{ const api = gridApiRef.current as any; const sel = (api?.getSelectedRows?.() as TestInstructionRow[])||[]; setSelectedRows(sel); setSelectedCount(sel.length); }}
             onFilterChanged={()=>{ const fm = (gridApiRef.current as any)?.getFilterModel?.(); filterModelRef.current = fm || {}; if(skipNextFilterFetchRef.current){ skipNextFilterFetchRef.current=false; return;} if(filterDebounceRef.current) clearTimeout(filterDebounceRef.current); filterDebounceRef.current=setTimeout(()=>{ if(page===1) fetchPage(); else setPage(1); },300); }}
-            rowSelection={{ mode:'singleRow', checkboxes:true }}
+            rowSelection={{ mode:'multiRow', checkboxes:true, enableClickSelection:true }}
             selectionColumnDef={{ pinned:'left', width:44, headerName:'', resizable:false, cellClass:'no-right-border', headerClass:'no-right-border', suppressMovable:true }}
             animateRows headerHeight={36} rowHeight={32} tooltipShowDelay={300} theme="legacy"
           />
@@ -142,7 +147,7 @@ export default function TestInstructionsPage() {
         .ag-theme-alpine.ag-theme-evalus .ag-center-cols-container .ag-row .ag-cell.no-left-border, .ag-theme-alpine.ag-theme-evalus .ag-header-row .ag-header-cell.no-left-border{border-left:none!important;}
         .ag-theme-alpine.ag-theme-evalus .ag-header-cell.no-right-border .ag-header-cell-resize, .ag-theme-alpine.ag-theme-evalus .ag-header-cell.no-left-border .ag-header-cell-resize{display:none!important;}
       `}</style>
-      <ConfirmationModal isOpen={confirmOpen} title="Confirm Delete" variant="danger" confirmText={deleting? 'Deleting...':'Delete'} cancelText="Cancel" message={selected?`Delete instruction \"${selected.name}\"? This cannot be undone.`:''} onCancel={()=>{ setConfirmOpen(false); }} onConfirm={async()=>{ if(!selected) return; setDeleting(true); const res = await deleteTestInstructionAction(selected.id); setDeleting(false); setConfirmOpen(false); if(res.status===200){ setToast({ message:'Deleted successfully', type:'success'}); fetchPage(); } else { setToast({ message: res.message || 'Delete failed', type:'error'}); } }} />
+  <ConfirmationModal isOpen={confirmOpen} title="Confirm Delete" variant="danger" confirmText={deleting? 'Deleting...':'Delete'} cancelText="Cancel" message={selectedCount>0? (selectedCount===1?`Delete instruction \"${selectedRows[0].name}\"? This cannot be undone.`:`Delete ${selectedCount} instructions? This cannot be undone.`):''} onCancel={()=>{ setConfirmOpen(false); }} onConfirm={async()=>{ if(selectedCount===0) return; setDeleting(true); try { const promises = selectedRows.map(r=>deleteTestInstructionAction(r.id)); const results = await Promise.all(promises); const failed = results.filter(r=>r.status!==200); if(failed.length===0){ setToast({ message: selectedCount===1? 'Deleted successfully':'Deleted selected instructions', type:'success'}); } else { setToast({ message: failed.length+ ' deletions failed', type:'error'}); } } finally { setDeleting(false); setConfirmOpen(false); fetchPage(); } }} />
     </div>
     <div className="fixed top-4 right-4 z-50 space-y-2">{toast && <Toast message={toast.message} type={toast.type} onClose={()=>setToast(null)} />}</div>
   </div>;
