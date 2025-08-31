@@ -78,9 +78,6 @@ export default function EditTestInstructionPage(){
                 <option value={0}>Inactive</option>
               </select>
             </div>
-            <div className="text-xs text-gray-500 flex flex-col justify-end space-y-1">
-              {createdDate && <span>Created: {new Date(createdDate).toLocaleString()} {createdBy && `by ${createdBy}`}</span>}
-            </div>
           </div>
         </div>}
   {/* Footer buttons removed (moved to header) */}
