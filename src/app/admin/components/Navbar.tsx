@@ -189,6 +189,7 @@ interface QuestionsSubmenuProps { Icon: React.ComponentType<any>; isActive: bool
 function QuestionsSubmenu({ Icon, isActive, pathname, basePath }: QuestionsSubmenuProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
+  const hoverTimeoutRef = useRef<any>(null);
   // Close on outside click / escape
   useEffect(() => {
     const onClick = (e: MouseEvent) => { if (open && ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
@@ -199,8 +200,17 @@ function QuestionsSubmenu({ Icon, isActive, pathname, basePath }: QuestionsSubme
   }, [open]);
   // Auto close when navigating away
   useEffect(() => { setOpen(false); }, [pathname]);
+  const handleMouseEnter = () => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    setOpen(true);
+  };
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    // small delay to allow moving into submenu without flicker
+    hoverTimeoutRef.current = setTimeout(() => setOpen(false), 120);
+  };
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
       <button
         type="button"
         aria-haspopup="menu"
@@ -227,6 +237,7 @@ interface TestsSubmenuProps { Icon: React.ComponentType<any>; isActive: boolean;
 function TestsSubmenu({ Icon, isActive, pathname, basePath }: TestsSubmenuProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
+  const hoverTimeoutRef = useRef<any>(null);
   useEffect(() => {
     const onClick = (e: MouseEvent) => { if (open && ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
@@ -234,8 +245,16 @@ function TestsSubmenu({ Icon, isActive, pathname, basePath }: TestsSubmenuProps)
     return () => { window.removeEventListener('mousedown', onClick); window.removeEventListener('keyup', onKey); };
   }, [open]);
   useEffect(()=>{ setOpen(false); }, [pathname]);
+  const handleMouseEnter = () => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    setOpen(true);
+  };
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    hoverTimeoutRef.current = setTimeout(() => setOpen(false), 120);
+  };
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
       <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={()=>setOpen(o=>!o)} onKeyDown={e=>{ if(e.key==='ArrowDown'){ e.preventDefault(); setOpen(true);} }} className={`flex items-center space-x-1 px-3 py-2 rounded-md transition focus:outline-none focus:ring-2 focus:ring-indigo-400 ${isActive ? 'bg-indigo-100 text-indigo-700' : 'text-gray-700 hover:text-indigo-700 hover:bg-indigo-100'}`}>
         <Icon className="w-5 h-5" />
         <span className="text-sm font-medium">Tests</span>
