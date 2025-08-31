@@ -9,6 +9,7 @@ import { ArrowLeft, UserPlus2 } from "lucide-react";
 import { createCandidateAction } from "@/app/actions/dashboard/candidates/createCandidate";
 import { fetchCompaniesAction } from "@/app/actions/admin/companies";
 import { fetchCandidatesAction } from "@/app/actions/admin/candidates";
+import { fetchRolesAction } from "@/app/actions/admin/roles";
 
 // Indian States (sample, add more as needed)
 const STATES = [
@@ -28,9 +29,9 @@ const CANDIDATE_GROUPS = [
 ];
 
 // Add this to your list of roles (replace with your actual roles if needed)
-const ROLES = [
-  { value: "candidate", display: "Candidate" },
-  { value: "admin", display: "Admin" }
+const ROLES1 = [
+  { value: "candidate", display: "Candidate123" },
+  { value: "admin", display: "Admin123" }
 ];
 
 export default function AddCandidatePage() {
@@ -62,7 +63,8 @@ export default function AddCandidatePage() {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [companies, setCompanies] = useState<{id:number; name:string}[]>([]);
+  const [companies, setCompanies] = useState<{ id: number; name: string }[]>([]);
+  const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
   const [groups, setGroups] = useState<{id:number; name:string}[]>([]);
   const [userPhotoPreview, setUserPhotoPreview] = useState<string | null>(null);
   const userPhotoInputRef = useRef<HTMLInputElement>(null);
@@ -210,13 +212,18 @@ export default function AddCandidatePage() {
   useEffect(() => {
     (async () => {
       try {
-        const [compRes, candRes] = await Promise.all([
+        const [compRes, candRes,rolesRes] = await Promise.all([
           fetchCompaniesAction({ top: 100, skip: 0 }),
-          fetchCandidatesAction({ top: 200, skip: 0 })
+            fetchCandidatesAction({ top: 200, skip: 0 }),
+            fetchRolesAction({ top: 200, skip: 0 })
         ]);
         if (compRes.data?.rows) {
           setCompanies(compRes.data.rows.map(r => ({ id: r.id, name: r.companyName })));
-        }
+          }
+
+          if (rolesRes.data?.rows) {    
+              setRoles(rolesRes.data.rows.map((r:any) => ({ id: r.name, name: r.name })));
+          }
         // Derive groups placeholder (unique candidateGroup values)
         if (candRes.data?.rows) {
           const map = new Map<string, number>();
@@ -570,9 +577,9 @@ export default function AddCandidatePage() {
                     onChange={handleUserLoginChange}
                   >
                     <option value="">Select role</option>
-                    {ROLES.map((role) => (
-                      <option key={role.value} value={role.value}>
-                        {role.display}
+                                      {roles.map((role) => (
+                                          <option key={role.id} value={role.id}>
+                                              {role.name}
                       </option>
                     ))}
                   </select>
