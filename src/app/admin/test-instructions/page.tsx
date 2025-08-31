@@ -57,8 +57,7 @@ export default function TestInstructionsPage() {
   const lastReqRef = useRef(0);
 
   const columnDefs = useMemo<ColDef<TestInstructionRow>[]>(() => [
-    { headerName: 'S.No.', valueGetter: (p:any) => (p?.node?.rowIndex ?? 0)+1 + (page-1)*pageSize, width: 90, pinned: 'left', sortable: false, filter: false, resizable:false, cellClass:'no-right-border', headerClass:'no-right-border' },
-    { field: 'name', headerName: 'Name', width: 300, cellRenderer: NameCellRenderer, filter: 'agTextColumnFilter', sortable: true, tooltipField: 'name', cellClass:'no-left-border', headerClass:'no-left-border' },
+    { field: 'name', headerName: 'Name', width: 300, cellRenderer: NameCellRenderer, filter: 'agTextColumnFilter', sortable: true, tooltipField: 'name' },
     { field: 'instruction', headerName: 'Instruction', flex: 1, minWidth: 340, filter: 'agTextColumnFilter', sortable: true, valueFormatter: p => {
         const txt = stripHtmlTags(p.value || '').trim();
         if(!txt) return '';
@@ -70,7 +69,7 @@ export default function TestInstructionsPage() {
     { field: 'createdDate', headerName: 'Created Date', width: 160, sortable: true, valueFormatter: p=>formatDate(p.value) },
     { field: 'modifiedDate', headerName: 'Updated Date', width: 160, sortable: true, valueFormatter: p=>formatDate(p.value) },
     { field: 'id', hide: true }
-  ], [page, pageSize, showFilters]);
+  ], [showFilters]);
 
   const defaultColDef = useMemo<ColDef>(() => ({ resizable: true, sortable: true, filter: true, floatingFilter: showFilters }), [showFilters]);
 

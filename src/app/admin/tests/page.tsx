@@ -152,21 +152,7 @@ function TestsGrid({
 
   const columnDefs = useMemo<ColDef<TestRow>[]>(
     () => [
-      // Checkbox selection column will be injected automatically and shown first when rowSelection.checkboxes = true
-      {
-        headerName: "S.No.",
-        valueGetter: (p: any) => {
-          const idx = (p?.node?.rowIndex ?? 0) as number;
-          return idx + 1 + (page - 1) * pageSize;
-        },
-        width: 90,
-        pinned: "left",
-        sortable: false,
-        filter: false,
-        resizable: false,
-        cellClass: "no-right-border",
-        headerClass: "no-right-border",
-      },
+      // S.No. column removed per requirement. Checkbox selection column appears automatically when enabled.
       {
         field: "name",
         headerName: "Test Name",
