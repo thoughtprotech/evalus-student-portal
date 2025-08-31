@@ -50,10 +50,10 @@ export async function fetchTestInstructionsAction(params: FetchTestInstructionsP
       instruction: it.TestInstruction1,
       language: it.Language ?? '',
       isActive: Number(it.IsActive) === 1 ? 1 : 0,
-      createdBy: it.CreatedBy,
-      createdDate: it.CreatedDate,
-      modifiedBy: it.ModifiedBy,
-      modifiedDate: it.ModifiedDate,
+  createdBy: it.CreatedBy ?? it.createdBy,
+  createdDate: it.CreatedDate ?? it.createdDate,
+  modifiedBy: it.ModifiedBy ?? it.modifiedBy,
+  modifiedDate: it.ModifiedDate ?? it.modifiedDate,
     })) : [];
     return { status: 200, data: { rows, total }, message: 'Fetched instructions' };
   } catch (e: any) {
