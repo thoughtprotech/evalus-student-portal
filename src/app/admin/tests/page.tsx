@@ -290,9 +290,10 @@ function TestsGrid({
   code: "TestCode",
   testStatus: "TestStatus",
     };
+    // Default order: latest modified/created first
     const orderBy = sort
-      ? `${fieldMap[sort.colId] ?? "TestStartDate"} ${sort.sort}`
-      : "TestStartDate desc";
+      ? `${fieldMap[sort.colId] ?? "ModifiedDate"} ${sort.sort}`
+      : "ModifiedDate desc";
     const filters: string[] = [];
     const search = (query ?? "").trim();
     if (search)

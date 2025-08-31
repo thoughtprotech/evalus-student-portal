@@ -164,7 +164,7 @@ export default function SubjectsPage() {
             createdDate: 'CreatedDate',
             modifiedDate: 'ModifiedDate'
         };
-        const orderBy = sort ? `${sortFieldMap[sort.colId] || 'SubjectName'} ${sort.sort}` : 'SubjectName asc';
+    const orderBy = sort ? `${sortFieldMap[sort.colId] || 'CreatedDate'} ${sort.sort}` : 'CreatedDate desc';
         const filter = buildServerFilter();
         // Fetch a large upper bound to allow hierarchy building locally
         const res = await fetchSubjectsODataAction({ top: 2000, skip: 0, orderBy, filter });

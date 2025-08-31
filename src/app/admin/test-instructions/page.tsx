@@ -80,7 +80,8 @@ export default function TestInstructionsPage() {
     setLoading(true);
     const sort = sortModelRef.current?.[0];
     const fieldMap: Record<string,string> = { name:'TestInstructionName', instruction:'TestInstruction1', language:'Language', isActive:'IsActive', createdDate:'CreatedDate', modifiedDate:'ModifiedDate', createdBy:'CreatedBy' };
-    const orderBy = sort ? `${fieldMap[sort.colId] ?? 'CreatedDate'} ${sort.sort}` : 'CreatedDate desc';
+  // Default newest updated first
+  const orderBy = sort ? `${fieldMap[sort.colId] ?? 'ModifiedDate'} ${sort.sort}` : 'ModifiedDate desc';
     const filters: string[] = [];
     const search = query.trim();
     if (search) filters.push(`contains(TestInstructionName,'${search.replace(/'/g,"''")}')`);

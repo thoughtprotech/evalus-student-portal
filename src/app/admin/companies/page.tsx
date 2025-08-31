@@ -336,7 +336,7 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
       createdBy: "createdBy",
        modifiedBy: "modifiedBy",
     };
-    const orderBy = sort ? `${fieldMap[sort.colId] ?? "companyId"} ${sort.sort}` : "companyId desc";
+  const orderBy = sort ? `${fieldMap[sort.colId] ?? "modifiedDate"} ${sort.sort}` : "modifiedDate desc";
     
     // Build filter from both global search and column filters
     const filters: string[] = [];

@@ -260,9 +260,11 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
             country: 'country',
             candidateGroup: 'candidateGroupName',
             notes: 'notes',
-            isActive: 'isActive'
+            isActive: 'isActive',
+            modifiedDate: 'modifiedDate',
+            createdDate: 'createdDate'
         };
-        const orderBy = sort ? `${fieldMap[sort.colId] ?? 'candidateRegistrationId'} ${sort.sort}` : 'candidateRegistrationId desc';
+        const orderBy = sort ? `${fieldMap[sort.colId] ?? 'modifiedDate'} ${sort.sort}` : 'modifiedDate desc';
 
         const filters: string[] = [];
         const search = (query ?? '').trim();
