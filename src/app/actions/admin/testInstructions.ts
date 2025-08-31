@@ -119,7 +119,7 @@ export async function updateTestInstructionAction(id: number, payload: {
   modifiedDate?: string;
 }): Promise<ApiResponse<null>> {
   try {
-    const nowIso = new Date().toISOString();
+    const nowIso = new Date().toISOString(); // used only if we need a client-side fallback
     const body: any = {
       id,
       TestInstructionId: id,
@@ -135,8 +135,6 @@ export async function updateTestInstructionAction(id: number, payload: {
       // Modified audit fields always sent
       ModifiedBy: payload.modifiedBy ?? payload.createdBy ?? '',
       modifiedBy: payload.modifiedBy ?? payload.createdBy ?? '',
-      ModifiedDate: payload.modifiedDate ?? nowIso,
-      modifiedDate: payload.modifiedDate ?? nowIso,
     };
     // Only include CreatedBy/CreatedDate if provided so we don't overwrite existing values with blanks on the server
     if (payload.createdBy !== undefined) {
@@ -146,6 +144,11 @@ export async function updateTestInstructionAction(id: number, payload: {
     if (payload.createdDate !== undefined) {
       body.CreatedDate = payload.createdDate;
       body.createdDate = payload.createdDate;
+    }
+    // Only send ModifiedDate if caller explicitly provides; otherwise let server assign true current timestamp
+    if (payload.modifiedDate) {
+      body.ModifiedDate = payload.modifiedDate;
+      body.modifiedDate = payload.modifiedDate;
     }
     const res = await apiHandler(endpoints.updateTestInstruction, body);
     if (res.error) return { status: res.status, error: true, message: res.message };

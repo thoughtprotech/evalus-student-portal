@@ -291,7 +291,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
       updatedAt: "modifiedDate",
       createdBy: "createdBy",
     };
-    const orderBy = sort ? `${fieldMap[sort.colId] ?? "questionId"} ${sort.sort}` : "questionId desc";
+  const orderBy = sort ? `${fieldMap[sort.colId] ?? "modifiedDate"} ${sort.sort}` : "modifiedDate desc";
 
     // Build filter from both global search and column filters
     const filters: string[] = [];
