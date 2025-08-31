@@ -29,7 +29,10 @@ export interface RichTextEditorProps {
   initialContent?: string;
   onChange?: (content: string) => void;
   placeholder?: string;
-  returnPlainText?: boolean; // New prop to control output format
+  returnPlainText?: boolean; // Control output format (HTML vs plain text)
+  minHeight?: number | string; // Minimum editor content height (px if number)
+  height?: number | string; // Fixed height (px if number) – overrides minHeight when provided
+  className?: string; // Optional extra classes for outer wrapper
 }
 
 export default function RichTextEditor({
@@ -37,6 +40,9 @@ export default function RichTextEditor({
   onChange,
   placeholder = "Start typing...",
   returnPlainText = false, // Default to HTML for backward compatibility
+  minHeight = 200,
+  height,
+  className = "",
 }: RichTextEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -107,8 +113,12 @@ export default function RichTextEditor({
     .split(/\s+/)
     .filter((w) => w.length > 0).length;
 
+  // Compute style object for editor content area
+  const resolvedMinHeight = height ? undefined : (typeof minHeight === 'number' ? `${minHeight}px` : minHeight);
+  const resolvedHeight = height ? (typeof height === 'number' ? `${height}px` : height) : undefined;
+
   return (
-    <div className="flex flex-col h-full border border-gray-300 rounded-xl">
+    <div className={`flex flex-col h-full border border-gray-300 rounded-xl ${className}`.trim()}>
       <style jsx>{`
         /* Ensure embedded images (including large base64 data URIs) scale nicely */
         .editor-content img { max-width: 100%; height: auto; display: inline-block; }
@@ -211,7 +221,12 @@ export default function RichTextEditor({
       <div className="flex-1 overflow-auto">
         <EditorContent
           editor={editor}
-          className="min-h-[200px] h-full focus:outline-none focus:ring-0 max-w-full editor-content prose prose-sm"
+          className="h-full focus:outline-none focus:ring-0 max-w-full editor-content prose prose-sm"
+          // Inline style allows dynamic sizing without needing Tailwind arbitrary class generation
+          style={{
+            minHeight: resolvedMinHeight,
+            height: resolvedHeight,
+          }}
         />
       </div>
     </div>
