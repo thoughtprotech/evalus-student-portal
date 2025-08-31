@@ -21,16 +21,18 @@ export default function EditTestInstructionPage(){
   const [language,setLanguage]=useState("");
   const [languages,setLanguages]=useState<any[]>([]);
   const [status,setStatus]=useState(1);
+  const [createdBy,setCreatedBy]=useState<string | undefined>();
+  const [createdDate,setCreatedDate]=useState<string | undefined>();
   const [saving,setSaving]=useState(false);
   const [toast,setToast]=useState<{message:string;type:any}|null>(null);
   const router = useRouter();
   const [showSuccessModal,setShowSuccessModal]=useState(false);
   const { username } = useUser();
 
-  useEffect(()=>{ (async()=>{ const langRes = await fetchLanguagesAction(); if(langRes.status===200 && langRes.data) setLanguages(langRes.data); const rec = await getTestInstructionByIdAction(recordId); if(rec.status===200 && rec.data){ setName(rec.data.name); setInstruction(rec.data.instruction); setLanguage(rec.data.language); setStatus(rec.data.isActive); } else { setToast({ message: rec.message || 'Failed to load', type:'error'}); } setLoading(false); })(); },[recordId]);
+  useEffect(()=>{ (async()=>{ const langRes = await fetchLanguagesAction(); if(langRes.status===200 && langRes.data) setLanguages(langRes.data); const rec = await getTestInstructionByIdAction(recordId); if(rec.status===200 && rec.data){ setName(rec.data.name); setInstruction(rec.data.instruction); setLanguage(rec.data.language); setStatus(rec.data.isActive); setCreatedBy(rec.data.createdBy); setCreatedDate(rec.data.createdDate); } else { setToast({ message: rec.message || 'Failed to load', type:'error'}); } setLoading(false); })(); },[recordId]);
 
   const canSave = name.trim().length>0 && language.trim().length>0 && instruction.trim().length>0;
-  const save = async ()=>{ if(!canSave) { setToast({ message:'Fill all required fields', type:'warning'}); return; } setSaving(true); const res = await updateTestInstructionAction(recordId, { testInstructionName:name.trim(), testInstruction1: instruction, language, isActive: status, modifiedBy: username || 'Admin' }); setSaving(false); if(res.status===200){ setToast(null); setShowSuccessModal(true); } else setToast({ message: res.message || 'Update failed', type:'error'}); };
+  const save = async ()=>{ if(!canSave) { setToast({ message:'Fill all required fields', type:'warning'}); return; } setSaving(true); const res = await updateTestInstructionAction(recordId, { testInstructionName:name.trim(), testInstruction1: instruction, language, isActive: status, modifiedBy: username || 'Admin', createdBy, createdDate }); setSaving(false); if(res.status===200){ setToast(null); setShowSuccessModal(true); } else setToast({ message: res.message || 'Update failed', type:'error'}); };
 
   return <div className="p-4 bg-gray-50 h-full flex flex-col">
     <div className="flex-1 overflow-auto">
@@ -75,6 +77,9 @@ export default function EditTestInstructionPage(){
                 <option value={1}>Active</option>
                 <option value={0}>Inactive</option>
               </select>
+            </div>
+            <div className="text-xs text-gray-500 flex flex-col justify-end space-y-1">
+              {createdDate && <span>Created: {new Date(createdDate).toLocaleString()} {createdBy && `by ${createdBy}`}</span>}
             </div>
           </div>
         </div>}

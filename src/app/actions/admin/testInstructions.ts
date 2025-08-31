@@ -132,15 +132,21 @@ export async function updateTestInstructionAction(id: number, payload: {
       language: payload.language,
       IsActive: payload.isActive,
       isActive: payload.isActive,
-      CreatedBy: payload.createdBy ?? '',
-      createdBy: payload.createdBy ?? '',
-      CreatedDate: payload.createdDate ?? '',
-      createdDate: payload.createdDate ?? '',
+      // Modified audit fields always sent
       ModifiedBy: payload.modifiedBy ?? payload.createdBy ?? '',
       modifiedBy: payload.modifiedBy ?? payload.createdBy ?? '',
       ModifiedDate: payload.modifiedDate ?? nowIso,
       modifiedDate: payload.modifiedDate ?? nowIso,
     };
+    // Only include CreatedBy/CreatedDate if provided so we don't overwrite existing values with blanks on the server
+    if (payload.createdBy !== undefined) {
+      body.CreatedBy = payload.createdBy;
+      body.createdBy = payload.createdBy;
+    }
+    if (payload.createdDate !== undefined) {
+      body.CreatedDate = payload.createdDate;
+      body.createdDate = payload.createdDate;
+    }
     const res = await apiHandler(endpoints.updateTestInstruction, body);
     if (res.error) return { status: res.status, error: true, message: res.message };
     return { status: 200, message: 'Updated' };
