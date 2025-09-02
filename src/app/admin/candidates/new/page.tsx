@@ -52,7 +52,16 @@ export default function AddCandidatePage() {
     notes: "",
     companyId: "", // store as string in form, convert later
     candidateGroupIds: [] as string[], // multi-select values as strings
-    isActive: true,
+      isActive: true,
+      userLogin: [
+          {
+              userName: "",
+              password: "",
+              displayName: "",
+              role: "",
+              userPhoto: null as File | null,
+          }
+      ]
   });
   const [userLogin, setUserLogin] = useState({
     userName: "",
@@ -61,6 +70,7 @@ export default function AddCandidatePage() {
     role: "",
     userPhoto: null as File | null,
   });
+
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [companies, setCompanies] = useState<{ id: number; name: string }[]>([]);
@@ -70,13 +80,38 @@ export default function AddCandidatePage() {
   const userPhotoInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
+  /*
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
+  */
 
+    const handleInputChange = (
+        e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+        index?: number // optional index for userLogin
+    ) => {
+        const { name, value } = e.target;
+
+        setForm((prev) => {
+            // If we are updating a userLogin field
+            if (typeof index === "number") {
+                return {
+                    ...prev,
+                    userLogin: prev.userLogin.map((u, i) =>
+                        i === index ? { ...u, [name]: value } : u
+                    ),
+                };
+            }
+
+            // Otherwise update top-level form field
+            return { ...prev, [name]: value };
+        });
+    };
+
+/*
   const handleUserLoginChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -87,6 +122,32 @@ export default function AddCandidatePage() {
     }));
   };
 
+  */
+
+    const handleUserLoginChange = (
+        e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+        index: number
+    ) => {
+        const { name, value, type } = e.target;
+
+        setForm((prev) => ({
+            ...prev,
+            userLogin: prev.userLogin.map((u, i) =>
+                i === index
+                    ? {
+                        ...u,
+                        [name]:
+                            type === "file"
+                                ? (e.target as HTMLInputElement).files?.[0] ?? null
+                                : value,
+                    }
+                    : u
+            ),
+        }));
+    };
+
+
+/*
   // For file input (user photo)
   const handleUserPhotoChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -97,6 +158,33 @@ export default function AddCandidatePage() {
       setUserPhotoPreview(URL.createObjectURL(e.target.files[0]));
     }
   };
+  */
+
+    const handleUserPhotoChange = (e: ChangeEvent<HTMLInputElement>, index: number) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+
+            // update userLogin[index].userPhoto
+            setForm((prev) => ({
+                ...prev,
+                userLogin: prev.userLogin.map((u, i) =>
+                    i === index ? { ...u, userPhoto: file } : u
+                ),
+            }));
+
+            // if you only need one preview
+            setUserPhotoPreview(URL.createObjectURL(file));
+
+            // 👉 if you want previews per user (array), use state like:
+            // setUserPhotoPreview((prev) => {
+            //   const updated = [...prev];
+            //   updated[index] = URL.createObjectURL(file);
+            //   return updated;
+            // });
+        }
+    };
+
+
 
   const validate = () => {
     if (!form.firstName.trim()) {
@@ -143,7 +231,16 @@ export default function AddCandidatePage() {
       notes: form.notes.trim(),
       companyId: form.companyId ? Number(form.companyId) : 0,
       candidateGroupIds: form.candidateGroupIds.map((id) => Number(id)),
-      isActive: form.isActive ? 1 : 0,
+        isActive: form.isActive ? 1 : 0,
+        userLogin: [
+            {
+                userName: form.userLogin[0].userName,
+                password: form.userLogin[0].password,
+                displayName: form.userLogin[0].displayName,
+                role: form.userLogin[0].role,
+                userPhoto: form.userLogin[0].userPhoto,
+            }
+        ]
     };
 
     const res = await createCandidateAction(payload);
@@ -178,7 +275,16 @@ export default function AddCandidatePage() {
       notes: form.notes.trim(),
       companyId: form.companyId ? Number(form.companyId) : 0,
       candidateGroupIds: form.candidateGroupIds.map((id) => Number(id)),
-      isActive: form.isActive ? 1 : 0,
+        isActive: form.isActive ? 1 : 0,
+        userLogin: [
+            {
+                userName: form.userLogin[0].userName,
+                password: form.userLogin[0].password,
+                displayName: form.userLogin[0].displayName,
+                role: form.userLogin[0].role,
+                userPhoto: form.userLogin[0].userPhoto,
+            }
+        ]
     };
 
     const res = await createCandidateAction(payload);
@@ -201,7 +307,16 @@ export default function AddCandidatePage() {
         notes: "",
         companyId: "",
         candidateGroupIds: [],
-        isActive: true,
+          isActive: true,
+          userLogin: [
+              {
+                  userName: "",
+                  password: "",
+                  displayName: "",
+                  role: "",
+                  userPhoto: null as File | null,
+              }
+          ]
       });
     } else {
       toast.error(errorMessage || "Failed to create candidate");
@@ -534,8 +649,8 @@ export default function AddCandidatePage() {
                     name="userName"
                     className={inputCls}
                     placeholder="Enter user name"
-                    value={userLogin.userName}
-                    onChange={handleUserLoginChange}
+                    value={form.userLogin[0].userName}
+                    onChange={(e) => handleUserLoginChange(e, 0)}
                   />
                 </div>
                 <div>
@@ -547,8 +662,8 @@ export default function AddCandidatePage() {
                     name="password"
                     className={inputCls}
                     placeholder="Enter password"
-                    value={userLogin.password}
-                    onChange={handleUserLoginChange}
+                    value={form.userLogin[0].password}
+                    onChange={(e) => handleUserLoginChange(e, 0)}
                   />
                 </div>
               </div>
@@ -562,8 +677,8 @@ export default function AddCandidatePage() {
                     name="displayName"
                     className={inputCls}
                     placeholder="Enter display name"
-                    value={userLogin.displayName}
-                    onChange={handleUserLoginChange}
+                    value={form.userLogin[0].displayName}
+                    onChange={(e) => handleUserLoginChange(e, 0)}
                   />
                 </div>
                 <div>
@@ -573,8 +688,8 @@ export default function AddCandidatePage() {
                   <select
                     name="role"
                     className={selectCls}
-                    value={userLogin.role}
-                    onChange={handleUserLoginChange}
+                    value={form.userLogin[0].role}
+                    onChange={(e) => handleUserLoginChange(e, 0)}
                   >
                     <option value="">Select role</option>
                                       {roles.map((role) => (
@@ -595,7 +710,7 @@ export default function AddCandidatePage() {
                   accept="image/*"
                   ref={userPhotoInputRef}
                   className={inputCls}
-                  onChange={handleUserPhotoChange}
+                  onChange={(e) => handleUserPhotoChange(e,0)}
                 />
                 {userPhotoPreview && (
                   <div className="mt-2">

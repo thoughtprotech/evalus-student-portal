@@ -29,6 +29,7 @@ export async function createCandidateAction(
     createdDate?: string;
     modifiedBy?: string;
     modifiedDate?: string;
+    userLogin?: any[]; // <-- Added here
   }
 ): Promise<ApiResponse<null>> {
   try {
@@ -54,7 +55,8 @@ export async function createCandidateAction(
       companyId: typeof payload.companyId === 'number' ? payload.companyId : 0,
       candidateGroupIds: Array.isArray(payload.candidateGroupIds) && payload.candidateGroupIds.length > 0
         ? payload.candidateGroupIds
-        : (payload.candidateGroup ? [0] : []) // fallback; replace logic if mapping candidateGroup name to id
+            : (payload.candidateGroup ? [0] : []), // fallback; replace logic if mapping candidateGroup name to id,
+       userLogin: payload.userLogin
     };
 
     const { status, error, data, errorMessage, message } = await apiHandler(
