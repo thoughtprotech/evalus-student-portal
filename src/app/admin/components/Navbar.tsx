@@ -84,7 +84,7 @@ export default function Navbar({ username }: NavbarProps) {
       <nav className="hidden md:flex items-center space-x-6">
         {navItems.filter(n => n.label !== 'Subjects').map(({ label, path, Icon }) => {
           if (label === 'Questions') {
-            const isActive = pathname.startsWith('/admin/questions') || pathname.startsWith('/admin/subjects');
+            const isActive = pathname.startsWith('/admin/questions') || pathname.startsWith('/admin/subjects') || pathname.startsWith('/admin/write-ups');
             return <QuestionsSubmenu key={path} Icon={Icon} isActive={isActive} pathname={pathname} basePath={path} />;
           }
           if (label === 'Tests') {
@@ -176,6 +176,7 @@ export default function Navbar({ username }: NavbarProps) {
             <div className="border-t border-gray-200">
               <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">Content</p>
               <Link href="/admin/questions" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/questions') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Questions</Link>
+              <Link href="/admin/write-ups" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/write-ups') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>WriteUps</Link>
               <Link href="/admin/subjects" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/subjects') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Subjects</Link>
             </div>
           </div>
@@ -225,7 +226,8 @@ function QuestionsSubmenu({ Icon, isActive, pathname, basePath }: QuestionsSubme
       </button>
       {open && (
         <div role="menu" aria-label="Questions submenu" className="absolute left-0 top-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 min-w-[190px] z-30 p-1 animate-fade-in">
-          <Link role="menuitem" href="/admin/questions" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/questions') && !pathname.startsWith('/admin/subjects') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Questions</Link>
+          <Link role="menuitem" href="/admin/questions" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/questions') && !pathname.startsWith('/admin/subjects') && !pathname.startsWith('/admin/write-ups') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Questions</Link>
+          <Link role="menuitem" href="/admin/write-ups" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/write-ups') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>WriteUps</Link>
           <Link role="menuitem" href="/admin/subjects" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/subjects') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Subjects</Link>
         </div>
       )}

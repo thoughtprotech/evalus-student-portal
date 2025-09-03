@@ -235,6 +235,35 @@ export const endpoints = {
     type: "OPEN",
   } as Endpoint<null, import("./types").ODataList<GetWriteUpsResponse>>,
 
+  // Admin WriteUps full OData listing (supports dynamic query string like Test Instructions)
+  getAdminWriteUps: {
+    method: "GET",
+    path: ({ query }) => `/Odata/Writeups${query ? (query.startsWith("?") ? query : `?${query}`) : ""}`,
+    type: "OPEN",
+  } as Endpoint<{ query?: string }, { '@odata.count'?: number; value: any[] }>,
+
+  // WriteUps CRUD
+  createWriteUp: {
+    method: "POST",
+    path: () => `/api/Writeups`,
+    type: "CLOSE",
+  } as Endpoint<any, any>,
+  updateWriteUp: {
+    method: "PUT",
+    path: ({ id }: { id: number }) => `/api/Writeups/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number } & any, any>,
+  getWriteUpById: {
+    method: "GET",
+    path: ({ id }: { id: number }) => `/api/Writeups/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number }, any>,
+  deleteWriteUp: {
+    method: "DELETE",
+    path: ({ id }: { id: number }) => `/api/Writeups/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number }, null>,
+
   getLanguages: {
     method: "GET",
     path: () => `/api/Languages`,
