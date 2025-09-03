@@ -12,7 +12,8 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 import { fetchWriteUpsAction, deleteWriteUpAction, type WriteUpRow } from "@/app/actions/admin/writeUps";
 import { stripHtmlTags } from "@/utils/stripHtmlTags";
 import PaginationControls from "@/components/PaginationControls";
-import Loader from "@/components/Loader";
+import Loader from "@/components/Loader"; // general loader (maybe unused now)
+import GridOverlayLoader from "@/components/GridOverlayLoader";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import Toast from "@/components/Toast";
 
@@ -129,8 +130,8 @@ export default function WriteUpsPage() {
         {Object.entries(filterModelRef.current).map(([key]) => <button key={key} onClick={()=>{ const api = gridApiRef.current as any; const fm={...(filterModelRef.current||{})}; delete fm[key]; filterModelRef.current=fm; api?.setFilterModel?.(fm); setPage(1); }} className="text-xs inline-flex items-center gap-2 rounded-full bg-gray-100 text-gray-700 px-3 py-1 hover:bg-gray-200">{key}<span className="text-gray-500">✕</span></button>)}
         <button onClick={()=>{ const api = gridApiRef.current as any; const hasSearch = !!query; filterModelRef.current={}; if(hasSearch) skipNextFilterFetchRef.current=true; api?.setFilterModel?.(null); setPage(1); if(hasSearch) setQuery(''); }} className="text-xs inline-flex items-center gap-2 rounded-full border border-gray-300 text-gray-700 px-3 py-1 hover:bg-gray-50">Clear all</button>
       </div>}
-      <div className="flex-1 min-h-0 ag-theme-alpine ag-theme-evalus flex flex-col">
-        {loading ? <Loader/> : <div className="h-full min-h-0 flex flex-col">
+      <div className="relative flex-1 min-h-0 ag-theme-alpine ag-theme-evalus flex flex-col">
+        <div className={`h-full min-h-0 flex flex-col ${loading ? 'aria-busy' : ''}`}>        
           <AgGridReact<WriteUpRow>
             columnDefs={columnDefs}
             defaultColDef={defaultColDef}
@@ -143,8 +144,8 @@ export default function WriteUpsPage() {
             selectionColumnDef={{ pinned:'left', width:44, headerName:'', resizable:false, cellClass:'no-right-border', headerClass:'no-right-border', suppressMovable:true }}
             animateRows headerHeight={36} rowHeight={32} tooltipShowDelay={300} theme="legacy"
           />
-          {loading && <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center z-10"><Loader/></div>}
-        </div>}
+        </div>
+  {loading && <GridOverlayLoader message="Loading write-ups..." />}
       </div>
       <style jsx global>{`
         .ag-theme-alpine.ag-theme-evalus .ag-cell.no-right-border, .ag-theme-alpine.ag-theme-evalus .ag-header-cell.no-right-border{border-right:none!important;}
