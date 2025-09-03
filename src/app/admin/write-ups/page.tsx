@@ -55,6 +55,7 @@ export default function WriteUpsPage() {
   const filterDebounceRef = useRef<any>(null);
   const skipNextFilterFetchRef = useRef(false);
   const lastReqRef = useRef(0);
+  const silentFetchRef = useRef(false);
 
   const columnDefs = useMemo<ColDef<WriteUpRow>[]>(() => [
     { field: 'name', headerName: 'Name', width: 300, cellRenderer: NameCellRenderer, filter: 'agTextColumnFilter', sortable: true, tooltipField: 'name' },
@@ -75,9 +76,12 @@ export default function WriteUpsPage() {
 
   const onGridReady = useCallback((e: GridReadyEvent) => { gridApiRef.current = e.api; }, []);
 
-  const fetchPage = useCallback(async () => {
+  const fetchPage = useCallback(async (opts?: { silent?: boolean }) => {
     const reqId = ++lastReqRef.current;
-    setLoading(true);
+    const silent = opts?.silent || silentFetchRef.current;
+    // reset ref flag immediately so subsequent calls behave normally
+    silentFetchRef.current = false;
+    if (!silent) setLoading(true);
     const sort = sortModelRef.current?.[0];
     const fieldMap: Record<string,string> = { name:'WriteUpName', writeup:'WriteUp1', language:'Language', isActive:'IsActive', createdDate:'CreatedDate', modifiedDate:'ModifiedDate', createdBy:'CreatedBy' };
     const orderBy = sort ? `${fieldMap[sort.colId] ?? 'ModifiedDate'} ${sort.sort}` : 'ModifiedDate desc';
@@ -95,7 +99,7 @@ export default function WriteUpsPage() {
     const res = await fetchWriteUpsAction({ top: pageSize, skip: (page-1)*pageSize, orderBy, filter });
     if (reqId === lastReqRef.current) {
       if (res.status === 200 && res.data) { setRows(res.data.rows.slice()); setTotal(res.data.total); setSelectedRows([]); setSelectedCount(0); }
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [page, pageSize, query]);
 
@@ -134,11 +138,12 @@ export default function WriteUpsPage() {
             onGridReady={onGridReady}
             onSortChanged={onSortChanged}
             onSelectionChanged={()=>{ const api = gridApiRef.current as any; const sel = (api?.getSelectedRows?.() as WriteUpRow[])||[]; setSelectedRows(sel); setSelectedCount(sel.length); }}
-            onFilterChanged={()=>{ const fm = (gridApiRef.current as any)?.getFilterModel?.(); filterModelRef.current = fm || {}; if(skipNextFilterFetchRef.current){ skipNextFilterFetchRef.current=false; return;} if(filterDebounceRef.current) clearTimeout(filterDebounceRef.current); filterDebounceRef.current=setTimeout(()=>{ if(page===1) fetchPage(); else setPage(1); },300); }}
+            onFilterChanged={()=>{ const fm = (gridApiRef.current as any)?.getFilterModel?.(); filterModelRef.current = fm || {}; if(skipNextFilterFetchRef.current){ skipNextFilterFetchRef.current=false; return;} if(filterDebounceRef.current) clearTimeout(filterDebounceRef.current); filterDebounceRef.current=setTimeout(()=>{ if(page===1){ silentFetchRef.current = true; fetchPage({ silent: true }); } else setPage(1); },500); }}
             rowSelection={{ mode:'multiRow', checkboxes:true, enableClickSelection:true }}
             selectionColumnDef={{ pinned:'left', width:44, headerName:'', resizable:false, cellClass:'no-right-border', headerClass:'no-right-border', suppressMovable:true }}
             animateRows headerHeight={36} rowHeight={32} tooltipShowDelay={300} theme="legacy"
           />
+          {loading && <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center z-10"><Loader/></div>}
         </div>}
       </div>
       <style jsx global>{`
