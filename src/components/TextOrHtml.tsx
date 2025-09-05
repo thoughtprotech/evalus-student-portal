@@ -8,10 +8,14 @@ import parse, {
 
 interface TextOrHtmlProps {
   content: string;
+  className?: string;
+  inheritColor?: boolean; // when true, do not force a text color; inherit from parent (e.g., link)
+  unstyled?: boolean;     // when true, avoid prose/extra styling wrappers
 }
 
-export function TextOrHtml({ content }: TextOrHtmlProps) {
+export function TextOrHtml({ content, className = "", inheritColor = false, unstyled = false }: TextOrHtmlProps) {
   const containsHtml = /<\/?[a-z][\s\S]*>/i.test(content);
+  const style = inheritColor ? { color: "inherit" as const } : undefined;
 
   if (containsHtml) {
     const options: HTMLReactParserOptions = {
@@ -32,16 +36,19 @@ export function TextOrHtml({ content }: TextOrHtmlProps) {
       },
     };
 
-    return (
-      <div className="editor-content prose prose-sm whitespace-pre-wrap max-w-full">
-        {parse(content, options)}
-      </div>
-    );
+    if (unstyled) {
+      // Render inline so parent link color applies cleanly
+      return <span className={`whitespace-pre-wrap max-w-full ${className}`.trim()} style={style}>{parse(content, options)}</span>;
+    }
+    const wrapperClass = `editor-content prose prose-sm whitespace-pre-wrap max-w-full ${className}`.trim();
+    return <div className={wrapperClass} style={style}>{parse(content, options)}</div>;
   }
 
-  return (
-    <div className="whitespace-pre-wrap text-gray-800 max-w-full">
-      {content}
-    </div>
-  );
+  const plainClass = unstyled
+    ? `whitespace-pre-wrap max-w-full ${className}`.trim()
+    : `whitespace-pre-wrap text-gray-800 max-w-full ${className}`.trim();
+  if (unstyled) {
+    return <span className={plainClass} style={style}>{content}</span>;
+  }
+  return <div className={plainClass} style={style}>{content}</div>;
 }

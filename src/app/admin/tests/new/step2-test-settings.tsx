@@ -60,7 +60,8 @@ export default function Step2TestSettings() {
     if (!draft) return;
     setGroupBySubjects(fromUlong(draft.GroupQuestionsBySubjects));
     setNumberBySections(fromUlong(draft.QuestionNumberingBySections));
-    setRandomizeByTopics(fromUlong(draft.RandomizeQuestionByTopics));
+  // Force Randomize by Topics off regardless of draft value
+  setRandomizeByTopics(false);
     setRandomizeAnswerOptions(fromUlong(draft.RandomizeAnswerOptionsByQuestions));
     setAttemptAll(fromUlong(draft.AttemptAllQuestions));
     setDisplayMarks(fromUlong(draft.DisplayMarksDuringTest));
@@ -91,6 +92,14 @@ export default function Step2TestSettings() {
 
   // Schedule hydration removed; handled in Step 4
   }, [draft]);
+
+  // Enforce: ensure draft.RandomizeQuestionByTopics is 0 (false) after hydration
+  useEffect(() => {
+    if (!draft) return;
+    if (draft.RandomizeQuestionByTopics !== 0) {
+      setDraft((d: any) => ({ ...(d || {}), RandomizeQuestionByTopics: 0 }));
+    }
+  }, [draft?.RandomizeQuestionByTopics, setDraft]);
 
   return (
     <div className="space-y-4">
@@ -127,19 +136,7 @@ export default function Step2TestSettings() {
                 segmentWidthClass="w-24"
               />
             </div>
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-gray-800">Randomize Questions by Topics</span>
-              <YesNoToggle
-                className="shrink-0"
-                size="sm"
-                segmentWidthClass="w-10 h-5 text-xs"
-                value={randomizeByTopics}
-                onChange={(v) => {
-                  setRandomizeByTopics(v);
-                  setDraft((d: any) => ({ ...d, RandomizeQuestionByTopics: toUlong(v) }));
-                }}
-              />
-            </div>
+            {/* Randomize Questions by Topics hidden and forced off */}
             <div className="flex items-center justify-between gap-3">
               <span className="text-gray-800">Randomize Answer Options by Questions</span>
               <YesNoToggle

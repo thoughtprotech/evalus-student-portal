@@ -2,10 +2,11 @@
 
 import ImportantInstructions from "@/components/ImportantInstructions";
 import Toast, { type ToastType } from "@/components/Toast";
+import ConfirmationModal from "@/components/ConfirmationModal";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTestDraft } from "@/contexts/TestDraftContext";
-import { MousePointerClick, FilePlus2, Trash2, FileInput } from "lucide-react";
+import { MousePointerClick, FilePlus2, MinusCircle, FileInput } from "lucide-react";
 import PaginationControls from "@/components/PaginationControls";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
@@ -13,7 +14,7 @@ import { TextOrHtml } from "@/components/TextOrHtml";
 
 type TestSection = { TestSectionId: number; TestSectionName: string };
 
-export default function Step3AddQuestions({ editMode, testId }: { editMode?: boolean; testId?: number }) {
+export default function Step3AddQuestions({ editMode, testId, registerValidator }: { editMode?: boolean; testId?: number; registerValidator?: (fn: () => boolean) => void }) {
   const router = useRouter();
   const search = useSearchParams();
   const { draft, setDraft } = useTestDraft();
@@ -38,6 +39,10 @@ export default function Step3AddQuestions({ editMode, testId }: { editMode?: boo
   const [sections, setSections] = useState<TestSection[]>([]);
   const [delSelected, setDelSelected] = useState<Record<number, boolean>>({});
   const [toast, setToast] = useState<{ message: string; type?: ToastType } | null>(null);
+  // Confirm editing when test is Published
+  const [confirmEditHref, setConfirmEditHref] = useState<string | null>(null);
+  // Inline validation map per question id
+  const [invalidMap, setInvalidMap] = useState<Record<number, string[]>>({});
 
   // Fetch sections once
   useEffect(() => {
@@ -80,6 +85,63 @@ export default function Step3AddQuestions({ editMode, testId }: { editMode?: boo
     } catch {
       // ignore parse errors
     }
+    // If returning from Edit Question with an explicit updatedQuestionId, refresh only that row
+    const updatedIdParam = search?.get("updatedQuestionId");
+    const updatedId = updatedIdParam ? Number(updatedIdParam) : 0;
+    if (updatedId > 0) {
+      (async () => {
+        try {
+          // Ensure the question exists in current draft before calling API
+          const exists = Array.isArray(draft?.testQuestions) && (draft!.testQuestions as any[]).some(q => Number(q?.TestQuestionId) === updatedId);
+          if (!exists) return;
+          const res = await apiHandler(endpoints.getQuestionById, { questionId: updatedId } as any);
+          const resp: any = res?.data || {};
+          const meta = resp?.questionsMeta || {};
+          const marks = Number(resp?.marks ?? meta?.marks ?? 0);
+          const neg = Number(resp?.negativeMarks ?? meta?.negativeMarks ?? 0);
+          const dur = Number(meta?.duration ?? resp?.duration ?? resp?.questionDuration ?? 0);
+          // Consider multiple possible fields for question text
+          const fetchedText = resp?.questionText
+            ?? resp?.question
+            ?? resp?.Questionoptions?.[0]?.QuestionText
+            ?? resp?.Question?.Questionoptions?.[0]?.QuestionText;
+          setDraft((d) => {
+            const qs: any[] = Array.isArray(d.testQuestions) ? d.testQuestions : [];
+            const updated = qs.map((q: any) => {
+              if (Number(q?.TestQuestionId) !== updatedId) return q;
+              const existingText = q?.Question?.Questionoptions?.[0]?.QuestionText;
+              const effectiveText = (typeof fetchedText === 'string' && fetchedText.trim() !== '')
+                ? fetchedText
+                : (existingText ?? "-");
+              return {
+                ...q,
+                Marks: Number.isFinite(marks) ? marks : (q?.Marks ?? 0),
+                NegativeMarks: Number.isFinite(neg) ? neg : (q?.NegativeMarks ?? 0),
+                Duration: Number.isFinite(dur) ? dur : (q?.Duration ?? 0),
+                Question: {
+                  ...(q?.Question || {}),
+                  Questionoptions: [{ QuestionText: effectiveText }],
+                },
+              };
+            });
+            return { ...d, testQuestions: updated };
+          });
+          setToast({ message: "Question updated.", type: "success" });
+        } catch {
+          // Ignore refresh errors and keep existing data
+        } finally {
+          // Clean the URL param to avoid re-fetching on further nav
+          try {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("updatedQuestionId");
+            // Preserve other params (like step=3)
+            router.replace(url.pathname + (url.search || "") + (url.hash || ""));
+          } catch {
+            /* noop */
+          }
+        }
+      })();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search?.toString()]);
 
@@ -95,6 +157,71 @@ export default function Step3AddQuestions({ editMode, testId }: { editMode?: boo
     const start = (page - 1) * pageSize;
     return rows.slice(start, start + pageSize);
   }, [rows, page, pageSize]);
+
+  // Build validation state when rows change
+  useEffect(() => {
+    const next: Record<number, string[]> = {};
+    for (const q of rows as any[]) {
+      const id = Number(q?.TestQuestionId);
+      if (!id) continue;
+      const errs: string[] = [];
+      // Treat empty as 0; only validate non-negative and relationship
+  const marks = Number(q?.Marks === "" ? 0 : (q?.Marks ?? 0));
+  const neg = Number(q?.NegativeMarks === "" ? 0 : (q?.NegativeMarks ?? 0));
+  const dur = Number(q?.Duration === "" ? 0 : (q?.Duration ?? 0));
+      if (!Number.isFinite(marks) || marks < 0) errs.push("Marks must be a non-negative number");
+      if (!Number.isFinite(neg) || neg < 0) errs.push("Negative Marks must be non-negative");
+      if (neg > marks) errs.push("Negative Marks cannot exceed Marks");
+      if (!Number.isFinite(dur) || dur < 0) errs.push("Duration must be non-negative");
+      if (errs.length) next[id] = errs;
+    }
+    setInvalidMap(next);
+  }, [rows]);
+
+  // Register validator with parent to block navigating away when invalid
+  useEffect(() => {
+    if (!registerValidator) return;
+    const fn = () => {
+      const hasInvalid = Object.keys(invalidMap).length > 0;
+      if (hasInvalid) {
+        // Build a concise error summary: show up to first 3 rows with issues
+        try {
+          const firstThree = Object.entries(invalidMap).slice(0, 3);
+          const lines = firstThree.map(([id, errs]) => {
+            // Find the 1-based row index for display
+            const idx = rows.findIndex((q: any) => Number(q?.TestQuestionId) === Number(id));
+            const rowNum = idx >= 0 ? idx + 1 : id;
+            const brief = (errs as string[]).slice(0, 2).join("; ");
+            return `Row ${rowNum}: ${brief}`;
+          });
+          const extra = Object.keys(invalidMap).length > 3 ? " …" : "";
+          const msg = `Fix inline errors before navigating.\n${lines.join("\n")}${extra}`;
+          setToast({ message: msg, type: "error" });
+        } catch {
+          setToast({ message: "Fix inline errors in Step 3 before navigating.", type: "error" });
+        }
+        return false;
+      }
+      return true;
+    };
+    registerValidator(fn);
+  }, [invalidMap, registerValidator]);
+
+  // Recalculate totals when questions change (keeps Step 1 totals consistent)
+  useEffect(() => {
+    setDraft((d) => {
+      const qs: any[] = Array.isArray(d.testQuestions) ? d.testQuestions : [];
+      const totalQ = qs.length;
+      const totalMarks = qs.reduce((sum, q) => {
+        const v = q?.Marks === "" ? 0 : (q?.Marks ?? 0);
+        return sum + (Number(v) || 0);
+      }, 0);
+      // Avoid unnecessary state updates
+      if (d.TotalQuestions === totalQ && d.TotalMarks === totalMarks) return d;
+      return { ...d, TotalQuestions: totalQ, TotalMarks: totalMarks };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows]);
 
   const applyAssignSection = () => {
     if (!assignFrom || !assignTo || !assignSectionId) return;
@@ -207,6 +334,29 @@ export default function Step3AddQuestions({ editMode, testId }: { editMode?: boo
 
   return (
     <div className="w-full pb-32">
+      {/* Confirm before editing when TestStatus is Published */}
+      <ConfirmationModal
+        isOpen={!!confirmEditHref}
+        title="Edit Published Test?"
+        message="This test is published. Editing a question may affect ongoing or scheduled exams. Do you want to continue to the question editor?"
+        variant="danger"
+        confirmText="Proceed to Edit"
+        cancelText="Cancel"
+        onCancel={() => setConfirmEditHref(null)}
+        onConfirm={() => {
+          const href = confirmEditHref;
+          setConfirmEditHref(null);
+          try { sessionStorage.setItem("admin:newTest:suppressClear", "1"); } catch {}
+          if (href) {
+            try {
+              // Prefer full navigation to avoid stuck transitional states
+              window.location.assign(href);
+            } catch {
+              router.push(href);
+            }
+          }
+        }}
+      />
       {/* Toast positioned top-right */}
       {toast && (
         <div className="fixed top-4 right-4 z-50">
@@ -297,8 +447,8 @@ export default function Step3AddQuestions({ editMode, testId }: { editMode?: boo
                         disabled={Object.values(delSelected).every(v=> !v)}
                         className="flex items-center gap-2 rounded bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1 disabled:opacity-50"
                       >
-                        <Trash2 className="w-4 h-4" />
-                        <span>Delete</span>
+                        <MinusCircle className="w-4 h-4" />
+                        <span>Rmove</span>
                       </button>
                     </div>
                     <div className="justify-self-center">
@@ -358,12 +508,146 @@ export default function Step3AddQuestions({ editMode, testId }: { editMode?: boo
                             </td>
                             <td className="px-4 py-2 border-b">{(page - 1) * pageSize + idx + 1}</td>
                             <td className="px-4 py-2 border-b">
-                              <TextOrHtml content={r?.Question?.Questionoptions?.[0]?.QuestionText ?? "-"} />
+                              {(() => {
+                                const qid = Number(r?.TestQuestionId);
+                                const qtext = r?.Question?.Questionoptions?.[0]?.QuestionText ?? "-";
+                                if (!qid || qid <= 0) {
+                                  return <TextOrHtml content={qtext} />;
+                                }
+                                const base = editMode && testId
+                                  ? `/admin/tests/edit/${encodeURIComponent(String(testId))}?step=3`
+                                  : "/admin/tests/new?step=3";
+                                const href = `/admin/questions/${encodeURIComponent(String(qid))}/edit?returnTo=${encodeURIComponent(base)}`;
+                                const isPublished = String((draft as any)?.TestStatus || "").trim().toLowerCase() === "published";
+                                return (
+                                  <a
+                                    href={href}
+                                    className="text-blue-600 visited:text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+                                    onClick={async (e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      try {
+                                        // First, check if question is in use via OData function
+                                        const res = await apiHandler(endpoints.isQuestionInUse, { testQuestionId: qid } as any);
+                                        const data: any = res?.data;
+                                        // Accept either boolean or object with a boolean field
+                                        const inUse = typeof data === 'boolean'
+                                          ? data
+                                          : (data?.value ?? data?.InUse ?? data?.isInUse ?? false);
+                                        if (inUse) {
+                                          setToast({ message: "This question is already in use and cannot be edited.", type: "warning" });
+                                          return;
+                                        }
+                                      } catch {
+                                        // If the check fails, be safe and block with a message
+                                        setToast({ message: "Unable to verify question usage. Please try again later.", type: "error" });
+                                        return;
+                                      }
+
+                                      // Next, gate editing when test is Published
+                                      if (isPublished) {
+                                        setConfirmEditHref(href);
+                                        return;
+                                      }
+                                      try { sessionStorage.setItem("admin:newTest:suppressClear", "1"); } catch {}
+                                      try {
+                                        window.location.assign(href);
+                                      } catch {
+                                        router.push(href);
+                                      }
+                                    }}
+                                    title="Edit question"
+                                  >
+                                    <TextOrHtml content={qtext} inheritColor unstyled />
+                                  </a>
+                                );
+                              })()}
                             </td>
-                            <td className="px-4 py-2 border-b">{Number(r?.Marks ?? 0)}</td>
-                            <td className="px-4 py-2 border-b">{Number(r?.NegativeMarks ?? 0)}</td>
-                            <td className="px-4 py-2 border-b">{Number(r?.Duration ?? 0)}</td>
-                            <td className="px-4 py-2 border-b">{r?.TestSectionId ? (sections.find(s => s.TestSectionId === r.TestSectionId)?.TestSectionName ?? r.TestSectionId) : '-'}</td>
+                            <td className="px-4 py-2 border-b">
+                              <input
+                                type="number"
+                                min={0}
+                                className={`border rounded px-2 py-1 text-sm w-24 ${invalidMap[r?.TestQuestionId]?.some(e=> e.toLowerCase().includes('non-negative')) ? 'border-red-500' : ''}`}
+                                value={(r?.Marks === "" ? "" : (r?.Marks ?? 0)) as any}
+                                onChange={(e) => {
+                                  const valStr = e.target.value;
+                                  setDraft((d) => {
+                                    const qs = Array.isArray(d.testQuestions) ? d.testQuestions : [];
+                                    const updated = qs.map((q: any) =>
+                                      Number(q.TestQuestionId) === Number(r.TestQuestionId)
+                                        ? { ...q, Marks: valStr === "" ? "" : Number(valStr) }
+                                        : q
+                                    );
+                                    return { ...d, testQuestions: updated };
+                                  });
+                                }}
+                              />
+                            </td>
+                            <td className="px-4 py-2 border-b">
+                              <input
+                                type="number"
+                                min={0}
+                                className={`border rounded px-2 py-1 text-sm w-28 ${invalidMap[r?.TestQuestionId]?.some(e=> e.toLowerCase().includes('negative marks') || e.toLowerCase().includes('exceed')) ? 'border-red-500' : ''}`}
+                                value={(r?.NegativeMarks === "" ? "" : (r?.NegativeMarks ?? 0)) as any}
+                                onChange={(e) => {
+                                  const valStr = e.target.value;
+                                  setDraft((d) => {
+                                    const qs = Array.isArray(d.testQuestions) ? d.testQuestions : [];
+                                    const updated = qs.map((q: any) =>
+                                      Number(q.TestQuestionId) === Number(r.TestQuestionId)
+                                        ? { ...q, NegativeMarks: valStr === "" ? "" : Number(valStr) }
+                                        : q
+                                    );
+                                    return { ...d, testQuestions: updated };
+                                  });
+                                }}
+                              />
+                            </td>
+                            <td className="px-4 py-2 border-b">
+                              <input
+                                type="number"
+                                min={0}
+                                className={`border rounded px-2 py-1 text-sm w-28 ${invalidMap[r?.TestQuestionId]?.some(e=> e.toLowerCase().includes('duration')) ? 'border-red-500' : ''}`}
+                                value={(r?.Duration === "" ? "" : (r?.Duration ?? 0)) as any}
+                                onChange={(e) => {
+                                  const valStr = e.target.value;
+                                  setDraft((d) => {
+                                    const qs = Array.isArray(d.testQuestions) ? d.testQuestions : [];
+                                    const updated = qs.map((q: any) =>
+                                      Number(q.TestQuestionId) === Number(r.TestQuestionId)
+                                        ? { ...q, Duration: valStr === "" ? "" : Number(valStr) }
+                                        : q
+                                    );
+                                    return { ...d, testQuestions: updated };
+                                  });
+                                }}
+                              />
+                            </td>
+                            <td className="px-4 py-2 border-b">
+                              <select
+                                className="border rounded px-2 py-1 text-sm w-40"
+                                value={(r?.TestSectionId as any) ?? ""}
+                                onChange={(e) => {
+                                  const val = e.target.value ? Number(e.target.value) : "";
+                                  setDraft((d) => {
+                                    const qs = Array.isArray(d.testQuestions) ? d.testQuestions : [];
+                                    const updated = qs.map((q: any) =>
+                                      Number(q.TestQuestionId) === Number(r.TestQuestionId)
+                                        ? { ...q, TestSectionId: val === "" ? undefined : val }
+                                        : q
+                                    );
+                                    return { ...d, testQuestions: updated };
+                                  });
+                                }}
+                              >
+                                <option value="">Select Section</option>
+                                {sections.map((s) => (
+                                  <option key={s.TestSectionId} value={s.TestSectionId}>
+                                    {s.TestSectionName}
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
                           </tr>
                         ))
                       )}

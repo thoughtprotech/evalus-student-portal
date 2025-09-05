@@ -63,14 +63,12 @@ export default function Step4Publish({ registerValidator }: Props) {
       let ok = true;
       setStartError(null);
       setEndError(null);
-      const now = Date.now();
       if (!startAt) { setStartError("Start date/time is required."); ok = false; }
       if (!endAt) { setEndError("End date/time is required."); ok = false; }
       const s = startAt ? new Date(startAt).getTime() : NaN;
       const e = endAt ? new Date(endAt).getTime() : NaN;
       if (startAt) {
         if (isNaN(s)) { setStartError("Invalid start date/time."); ok = false; }
-        else if (s < now) { setStartError("Start date/time cannot be in the past."); ok = false; }
       }
       if (startAt && endAt) {
         if (!isNaN(s) && !isNaN(e) && e <= s) { setEndError("End date/time must be later than start date/time."); ok = false; }
@@ -113,13 +111,10 @@ export default function Step4Publish({ registerValidator }: Props) {
                     setStartAt(v);
                     setDraft((d: any) => ({ ...d, TestStartDate: toIsoFromLocal(v) }));
                     // field-level validation
-                    if (!v) {
-                      setStartError("Start date/time is required.");
-                    } else {
+                    if (!v) { setStartError("Start date/time is required."); }
+                    else {
                       const s = new Date(v).getTime();
-                      const now = Date.now();
                       if (isNaN(s)) setStartError("Invalid start date/time.");
-                      else if (s < now) setStartError("Start date/time cannot be in the past.");
                       else setStartError(null);
                     }
                     // also ensure end > start if end exists

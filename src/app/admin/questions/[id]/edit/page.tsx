@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import RichTextEditor from "@/components/RichTextEditor";
@@ -22,7 +22,9 @@ import QuestionEditSkeleton from "./QuestionEditSkeleton";
 export default function EditQuestionPage() {
 	const params = useParams();
 	const router = useRouter();
+	const search = useSearchParams();
 	const id = Number(params?.id);
+	const returnTo = search?.get("returnTo") || "";
 
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
@@ -82,7 +84,13 @@ export default function EditQuestionPage() {
 	}, [allLanguageSubjects]);
 
 	useEffect(() => {
-		if (!id) return;
+		if (!id) {
+			// Invalid id – stop spinner and navigate back
+			setLoading(false);
+			toast.error("Invalid question id");
+			if (returnTo) router.push(returnTo); else router.push("/admin/questions");
+			return;
+		}
 		let cancelled = false;
 		(async () => {
 			setLoading(true);
@@ -115,7 +123,7 @@ export default function EditQuestionPage() {
 				const videoWeb = (q as any).videoSolutionWeburl ?? (q as any).videoSolURL ?? "";
 				const videoMobile = (q as any).videoSolutionMobileurl ?? (q as any).videoSolMobileURL ?? "";
 				setQuestion(questionText || "");
-				setQuestionHeader(q.headerText || (q as any).questionsMeta?.headerText || "");
+				setQuestionHeader((q as any).headerText || (q as any).questionsMeta?.headerText || "");
 				setExplanation(explanationText || "");
 				setVideoSolWebURL(videoWeb || "");
 				setVideoSolMobileURL(videoMobile || "");
@@ -255,6 +263,11 @@ export default function EditQuestionPage() {
 			duration: questionsMeta.duration || 0,
 			Duration: questionsMeta.duration || 0,
 		};
+
+		const navigateBack = () => {
+			if (returnTo) router.push(returnTo);
+			else router.push("/admin/questions");
+		};
 	};
 
 	const handleUpdate = async () => {
@@ -275,14 +288,14 @@ export default function EditQuestionPage() {
 				<div className="w-[85%] mx-auto px-6 py-4">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
-							<Link href="/admin/questions" className="text-gray-500 hover:text-gray-700 transition-colors"><ArrowLeft className="w-5 h-5" /></Link>
+							<Link href={returnTo || "/admin/questions"} className="text-gray-500 hover:text-gray-700 transition-colors"><ArrowLeft className="w-5 h-5" /></Link>
 							<div className="flex items-center gap-2">
 								<div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center"><HelpCircle className="w-4 h-4 text-indigo-600" /></div>
 								<h1 className="text-2xl font-semibold text-gray-900">Edit Question</h1>
 							</div>
 						</div>
 						<div className="flex items-center gap-4">
-							<Link href="/admin/questions" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Cancel</Link>
+							<Link href={returnTo || "/admin/questions"} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Cancel</Link>
 							<div className="flex items-center gap-3">
 								<button onClick={handleUpdate} disabled={saving} className={`px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-colors ${saving ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}>{saving ? 'Updating...' : 'Update Question'}</button>
 							</div>
@@ -427,7 +440,30 @@ export default function EditQuestionPage() {
 					</div>
 				</div>
 			</div>
-			<ConfirmationModal isOpen={showSuccessModal} onConfirm={() => { setShowSuccessModal(false); router.push('/admin/questions'); }} onCancel={() => setShowSuccessModal(false)} title="Question Updated Successfully!" message="Your changes have been saved." confirmText="Go to Questions" cancelText="" variant="success" />
+			<ConfirmationModal
+				isOpen={showSuccessModal}
+				onConfirm={() => {
+					setShowSuccessModal(false);
+					if (returnTo) {
+						try {
+							const url = new URL(returnTo, window.location.origin);
+							url.searchParams.set('updatedQuestionId', String(id));
+							router.push(url.pathname + (url.search || '') + (url.hash || ''));
+						} catch {
+							// If URL parsing fails, fallback to appending param directly
+							router.push(returnTo + (returnTo.includes('?') ? '&' : '?') + `updatedQuestionId=${encodeURIComponent(String(id))}`);
+						}
+					} else {
+						router.push('/admin/questions');
+					}
+				}}
+				onCancel={() => setShowSuccessModal(false)}
+				title="Question Updated Successfully!"
+				message="Your changes have been saved."
+				confirmText={returnTo ? 'Back to Test' : 'Go to Questions'}
+				cancelText=""
+				variant="success"
+			/>
 			{loading && <QuestionEditSkeleton />}
 		</div>
 	);

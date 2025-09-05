@@ -385,16 +385,17 @@ function SelectQuestionsPageInner() {
     setSelectedCount(selectedIds.length);
     const mapById: Record<number, QuestionRow> = {};
     rows.forEach(r => { mapById[r.QuestionId] = r; });
-    const payload = selectedIds.map((id) => {
+  const payload = selectedIds.map((id) => {
       const row = mapById[id];
       const marks = marksById[id] ?? { Marks: 0, NegativeMarks: 0, GraceMarks: 0 };
       const questionText = qTextCache[id] ?? row?.Questionoptions?.[0]?.QuestionText ?? "";
       return {
         TestId: 0,
         TestQuestionId: id,
-        Marks: Number(marks.Marks ?? 0),
-        NegativeMarks: Number(marks.NegativeMarks ?? 0),
-        GraceMarks: Number(marks.GraceMarks ?? 0),
+  // Treat empty as 0 for numeric fields per requirement
+  Marks: Number(marks.Marks ?? 0),
+  NegativeMarks: Number(marks.NegativeMarks ?? 0),
+  GraceMarks: Number(marks.GraceMarks ?? 0),
   Duration: Number(row?.Duration ?? 0),
         Question: {
           Questionoptions: [

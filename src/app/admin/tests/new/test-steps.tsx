@@ -67,6 +67,7 @@ export default function TestSteps({
   const step4ValidatorRef = useRef<(() => boolean) | null>(null);
   const step5ValidatorRef = useRef<(() => boolean) | null>(null);
   const step1ValidatorRef = useRef<(() => boolean) | null>(null);
+  const step3ValidatorRef = useRef<(() => boolean) | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -199,13 +200,14 @@ export default function TestSteps({
             : [];
           Question = { Questionoptions: normOpts };
         }
+        const toNumOrUndef = (v: any) => (v === null || v === undefined || v === "") ? undefined : Number(v);
         return {
           TestQuestionId: Number(
             q?.TestQuestionId ?? q?.testQuestionId ?? q?.QuestionId ?? q?.Question?.QuestionId ?? q?.QuestionID ?? q?.questionId ?? 0
           ),
           Marks: Number(q?.Marks ?? q?.marks ?? 0),
           NegativeMarks: Number(q?.NegativeMarks ?? q?.negativeMarks ?? 0),
-          Duration: q?.Duration != null ? Number(q.Duration) : q?.duration != null ? Number(q.duration) : undefined,
+          Duration: Number(q?.Duration ?? q?.duration ?? 0),
           TestSectionId: q?.TestSectionId != null ? Number(q.TestSectionId) : q?.testSectionId != null ? Number(q.testSectionId) : undefined,
           Question,
         };
@@ -261,6 +263,10 @@ export default function TestSteps({
 
   const handleBack = () => {
   // If we are on Step 4 (index 3), prevent navigating back if invalid
+  if (current === 2 && step3ValidatorRef.current) {
+    const ok3 = step3ValidatorRef.current();
+    if (!ok3) return;
+  }
   if (current === 3 && step4ValidatorRef.current) {
     const ok = step4ValidatorRef.current();
     if (!ok) return;
@@ -279,6 +285,10 @@ export default function TestSteps({
     if (current === 0 && step1ValidatorRef.current) {
       const ok = step1ValidatorRef.current();
       if (!ok) return;
+    }
+    if (current === 2 && step3ValidatorRef.current) {
+      const ok3 = step3ValidatorRef.current();
+      if (!ok3) return;
     }
     if (current === 3 && step4ValidatorRef.current) {
       const ok = step4ValidatorRef.current();
@@ -341,7 +351,7 @@ export default function TestSteps({
         const rows: any[] = Array.isArray((draft as any)?.testQuestions)
           ? (draft as any).testQuestions
           : [];
-        const toNum = (v: any) => (v === null || v === undefined || v === "" ? null : Number(v));
+  const toNum = (v: any) => (v === null || v === undefined || v === "" ? null : Number(v));
         const testQuestions = rows.map((r: any, idx: number) => ({
           TestQuestionId: toNum(
             r?.TestQuestionId ??
@@ -351,20 +361,22 @@ export default function TestSteps({
             r?.QuestionID ??
             r?.questionId
           ),
-          Marks: toNum(r?.Marks) ?? 0,
-          NegativeMarks: toNum(r?.NegativeMarks) ?? 0,
+          // Treat empty as 0 for numeric fields per requirement
+          Marks: Number(r?.Marks ?? 0),
+          NegativeMarks: Number(r?.NegativeMarks ?? 0),
           TestSectionId: toNum(r?.TestSectionId),
-          Duration: toNum(r?.Duration),
+          Duration: Number(r?.Duration ?? 0),
           TestQuestionSequenceNo: idx + 1,
           Question: null, // ensure server ignores nested question validation
         }));
 
-        // Validate QuestionId presence and positivity before posting
+        // Validate QuestionId presence and positivity, and required inline fields
         if (testQuestions.some((q: any) => !q.TestQuestionId || q.TestQuestionId <= 0)) {
           setToast({ message: "Some selected questions are invalid (missing TestQuestionId). Please review Step 3 and reselect.", type: "error" });
           setSaving(false);
           return;
         }
+  // Empty values are allowed and treated as 0; only negative or inconsistent values are prevented earlier in Step 3
 
         // Build TestSettings[0] from Step 2 fields
         const d2: any = draft ?? {};
@@ -373,7 +385,7 @@ export default function TestSteps({
           // Booleans/toggles -> always 0/1
           GroupQuestionsBySubjects: toUlong(d2.GroupQuestionsBySubjects),
           QuestionNumberingBySections: toUlong(d2.QuestionNumberingBySections),
-          RandomizeQuestionByTopics: toUlong(d2.RandomizeQuestionByTopics),
+          RandomizeQuestionByTopics: toUlong(d2.RandomizeQuestionByTopics ?? 0),
           RandomizeAnswerOptionsByQuestions: toUlong(d2.RandomizeAnswerOptionsByQuestions),
           AttemptAllQuestions: toUlong(d2.AttemptAllQuestions),
           DisplayMarksDuringTest: toUlong(d2.DisplayMarksDuringTest),
@@ -410,6 +422,9 @@ export default function TestSteps({
               : "New",
           TestQuestions: testQuestions,
           TestSettings: [settings0],
+          // Persist independent selections from Step 5 so server can accept either-or
+          SelectedCandidateGroupIds: Array.isArray((draft as any)?.SelectedCandidateGroupIds) ? (draft as any).SelectedCandidateGroupIds : [],
+          SelectedProductIds: Array.isArray((draft as any)?.SelectedProductIds) ? (draft as any).SelectedProductIds : [],
         };
         // Ensure TestCode is always present (fallback if Step 1 sync was missed)
         if (!payload.TestCode) {
@@ -513,6 +528,11 @@ export default function TestSteps({
   const handleStepChange = (idx: number) => {
     // Allow moving back freely
     if (idx <= current) {
+      // Validate Step 3 as well when navigating away via step icons
+      if (current === 2 && step3ValidatorRef.current) {
+        const ok = step3ValidatorRef.current();
+        if (!ok) return;
+      }
       // If leaving Step 4 backward, still validate to keep UX consistent
       if (current === 3 && step4ValidatorRef.current) {
         const ok = step4ValidatorRef.current();
@@ -528,6 +548,11 @@ export default function TestSteps({
     // Moving forward: enforce validation for Step 1
     if (current === 0 && step1ValidatorRef.current) {
       const ok = step1ValidatorRef.current();
+      if (!ok) return;
+    }
+    // Moving forward from Step 3 must also pass validation
+    if (current === 2 && step3ValidatorRef.current) {
+      const ok = step3ValidatorRef.current();
       if (!ok) return;
     }
     if (current === 3 && step4ValidatorRef.current) {
@@ -605,7 +630,7 @@ export default function TestSteps({
 
     {current === 2 && (
           <StepSection>
-      <Step3AddQuestions editMode={!!editMode} testId={testId} />
+      <Step3AddQuestions editMode={!!editMode} testId={testId} registerValidator={(fn) => { step3ValidatorRef.current = fn; }} />
           </StepSection>
         )}
 

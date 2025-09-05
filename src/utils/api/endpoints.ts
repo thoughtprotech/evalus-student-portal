@@ -598,6 +598,14 @@ export const endpoints = {
     type: "OPEN",
   } as Endpoint<{ batchNumber: string; top?: number; skip?: number }, { "@odata.count"?: number; value: any[] }>,
 
+  // OData - Check if a Question is in use (pre-edit guard)
+  isQuestionInUse: {
+    method: "GET",
+    // Exact OData function signature requested
+    path: ({ testQuestionId }: { testQuestionId: number }) => `/odata/Questions/IsQuestionInUse(testQuestionId=${testQuestionId})`,
+    type: "OPEN",
+  } as Endpoint<{ testQuestionId: number }, any>,
+
   // Admin Questions (server actions moved here)
   getAdminQuestions: {
     method: "GET",
