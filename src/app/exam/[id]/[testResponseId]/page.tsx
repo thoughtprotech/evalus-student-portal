@@ -8,29 +8,23 @@ import {
   SectionsMetaDataInterface,
 } from "@/utils/api/types";
 import Loader from "@/components/Loader";
-import ScrollToggleButton from "@/components/ScrollToggleButton";
 import { getUserAction } from "@/app/actions/getUser";
 import { fetchTestMetaDataAction } from "@/app/actions/exam/questions/getTestMetaData";
 import toast from "react-hot-toast";
-import Header from "./_components/Header/Header";
-import Sidebar from "./_components/Sidebar/Sidebar";
-import SubmitExamModal from "./_components/SubmitExamModal";
 import { endCandidateSessionAction } from "@/app/actions/exam/session/endCandidateSession";
 import { QUESTION_STATUS, QUESTION_TYPES } from "@/utils/constants";
 import { submitQuestionAction } from "@/app/actions/exam/session/submitQuestion";
 import { signalRClient } from "@/utils/signalR/signalrClient";
 import { LogLevel } from "@microsoft/signalr";
 import { sendHeartbeatAck } from "@/utils/signalR/calls/heartbeat";
-import AssessmentAreaHeader from "./_components/AssessmentArea/_components/Header";
-import QuestionArea from "./_components/AssessmentArea/QuestionArea/_components/QuestionArea";
-import AnswerArea from "./_components/AssessmentArea/QuestionArea/_components/AnswerArea";
-import AssessmentFooter from "./_components/AssessmentArea/_components/Footer";
-import SubmitSectionModal from "./_components/SubmitSectionModal";
 import { fetchSessionQuestionByIdAction } from "@/app/actions/exam/session/getSessionQuestionById";
+import DefaultTemplate from "./templates/default/page";
+import SSCTemplate from "./templates/ssc/page";
 
 export default function ExamPage() {
   const { id, testResponseId } = useParams();
   const [loaded, setLoaded] = useState<boolean>(false);
+  const [template] = useState<"DEFAULT" | "SSC">("SSC");
 
   const [question, setQuestion] = useState<GetQuestionByIdResponse>();
   const [showModal, setShowModal] = useState(false);
@@ -98,6 +92,37 @@ export default function ExamPage() {
       }
     } else {
       toast.error("Provide An Answer");
+    }
+  };
+
+  const handlePreviousQuestion = async () => {
+    const userName = await getUserAction();
+    if (!currentSection?.questions[currentIndex - 1]) {
+      return;
+    }
+
+    if (userName) {
+      const response = await submitQuestionAction(
+        Number(testResponseId),
+        question?.questionId!,
+        question?.options.answer!,
+        QUESTION_STATUS.ATTEMPTED,
+        "",
+        userName
+      );
+
+      if (response.status === 200) {
+        fetchQuestionById(
+          currentSection?.questions[currentIndex - 1].questionId!
+        );
+        setCurrentIndex(currentIndex - 1);
+
+        fetchTestMetaData();
+      } else {
+        toast.error("Something Went Wrong");
+      }
+    } else {
+      toast.error("Something Went Wrong");
     }
   };
 
@@ -414,7 +439,7 @@ export default function ExamPage() {
     useState<GetTestMetaDataResponse | null>(null);
 
   const fetchTestMetaData = async () => {
-    setLoaded(false);
+    // setLoaded(false);
     const res = await fetchTestMetaDataAction(
       Number(id),
       Number(testResponseId)
@@ -596,91 +621,63 @@ export default function ExamPage() {
   }
 
   return (
-    <div className="w-full h-full flex flex-col bg-gray-100 overflow-hidden">
-      {/* Header */}
-      {testMetaData && (
-        <Header
-          data={testMetaData!}
-          onTestTimeUp={handleTimeout}
-          onSectionTimeUp={handleSectionTimeout}
-          durationMs={Math.max(
-            0,
-            Math.floor(Number(testMetaData?.testMeta.testDuration)) * 60_000
-          )}
-          currentSectionId={currentSection!}
+    <div className="w-full h-full">
+      {template === "DEFAULT" ? (
+        <DefaultTemplate
+          cancelSubmit={cancelSubmit}
+          cancelSubmitSectionModalSubmit={cancelSubmitSectionModalSubmit}
+          clearResponse={clearResponse}
+          currentIndex={currentIndex}
+          currentSection={currentSection}
+          goToNextSection={goToNextSection}
+          handleJumpTo={handleJumpTo}
+          handleNextQuestion={handleNextQuestion}
+          handleSectionTimeout={handleSectionTimeout}
+          handleSubmit={handleSubmit}
+          handleTimeout={handleTimeout}
+          loaded={loaded}
+          question={question}
           setCurrentSection={setCurrentSection}
+          setQuestion={setQuestion}
+          setSidebarOpen={setSidebarOpen}
+          setSubmitSectionModal={setSubmitSectionModal}
+          showModal={showModal}
+          showSubmitSectionModal={showSubmitSectionModal}
+          sidebarOpen={sidebarOpen}
+          submitTest={submitTest}
+          testMetaData={testMetaData}
+          toggleMarkForReview={toggleMarkForReview}
+          errorMessage={errorMessage}
+        />
+      ) : (
+        <SSCTemplate
+          cancelSubmit={cancelSubmit}
+          cancelSubmitSectionModalSubmit={cancelSubmitSectionModalSubmit}
+          clearResponse={clearResponse}
+          currentIndex={currentIndex}
+          currentSection={currentSection}
+          goToNextSection={goToNextSection}
+          handleJumpTo={handleJumpTo}
+          handleNextQuestion={handleNextQuestion}
+          handleSectionTimeout={handleSectionTimeout}
+          handleSubmit={handleSubmit}
+          handleTimeout={handleTimeout}
+          loaded={loaded}
+          question={question}
+          setCurrentSection={setCurrentSection}
+          setQuestion={setQuestion}
+          setSidebarOpen={setSidebarOpen}
+          setSubmitSectionModal={setSubmitSectionModal}
+          showModal={showModal}
+          showSubmitSectionModal={showSubmitSectionModal}
+          sidebarOpen={sidebarOpen}
+          submitTest={submitTest}
+          testMetaData={testMetaData}
+          toggleMarkForReview={toggleMarkForReview}
+          errorMessage={errorMessage}
+          handlePreviousQuestion={handlePreviousQuestion}
         />
       )}
-
-      {/* Test Area */}
-      <div className="w-full h-full overflow-auto flex flex-row pb-9">
-        {/* Main */}
-        <main className="w-full flex-1 p-2 flex flex-col gap-2 relative overflow-y-auto">
-          <div className="w-full h-full">
-            {question && (
-              <div className="w-full h-full bg-white rounded-md shadow-md border border-gray-300 flex flex-col justify-between flex-1">
-                <div className="w-full h-full overflow-hidden border-b border-b-gray-300 px-4 py-2">
-                  <AssessmentAreaHeader
-                    question={question}
-                    currentIndex={currentIndex}
-                  />
-                  <div className="w-full h-full flex gap-5 pt-2">
-                    <div className="relative w-3/4 h-full border-r border-r-gray-300">
-                      <QuestionArea question={question} />
-                    </div>
-                    {errorMessage && (
-                      <div className="mb-4 text-sm text-red-600 font-medium">
-                        {errorMessage}
-                      </div>
-                    )}
-                    <div className="relative w-1/4">
-                      <AnswerArea
-                        question={question}
-                        setQuestion={setQuestion}
-                      />
-                      <ScrollToggleButton containerSelector="#answerBox" />
-                    </div>
-                  </div>
-                </div>
-                <AssessmentFooter
-                  clearResponse={clearResponse}
-                  handleNextQuestion={handleNextQuestion}
-                  toggleMarkForReview={toggleMarkForReview}
-                />
-              </div>
-            )}
-          </div>
-        </main>
-
-        {/* Sidebar */}
-        <Sidebar
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-          questionsMeta={currentSection?.questions!}
-          handleSubmit={handleSubmit}
-          handleJumpTo={handleJumpTo}
-          currentIndex={currentIndex}
-        />
-      </div>
-
-      {/* Modals */}
-      <SubmitExamModal
-        sections={testMetaData?.sections!}
-        showModal={showModal}
-        confirmSubmit={submitTest}
-        cancelSubmit={cancelSubmit}
-      />
-
-      <SubmitSectionModal
-        sections={testMetaData?.sections!}
-        showModal={showSubmitSectionModal}
-        confirmSubmit={() => {
-          goToNextSection();
-          setSubmitSectionModal(false);
-        }}
-        cancelSubmit={cancelSubmitSectionModalSubmit}
-        currentSectionId={currentSection?.sectionId}
-      />
     </div>
   );
 }

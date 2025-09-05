@@ -36,7 +36,7 @@ export default function ConfirmationModal({
   return (
     <div className="fixed inset-0 bg-black/40 bg-opacity-40 flex items-center justify-center z-50 p-4">
       <div
-  className={`bg-white w-full max-w-lg rounded-2xl shadow-2xl p-5 sm:p-6 ${
+  className={`bg-white w-full rounded-2xl shadow-2xl p-5 sm:p-6 ${
           className || ""
         }`}
         role="dialog"

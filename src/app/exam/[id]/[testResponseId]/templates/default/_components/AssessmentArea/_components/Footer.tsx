@@ -10,7 +10,7 @@ export default function AssessmentFooter({
   clearResponse: any;
 }) {
   return (
-    <div className="flex flex-col md:flex md:flex-row items-center justify-between bg-gray-100 px-4 py-2">
+    <div className="flex flex-col md:flex md:flex-row items-center justify-between px-4 py-2">
       <div className="w-full flex gap-3">
         <button
           onClick={toggleMarkForReview}
