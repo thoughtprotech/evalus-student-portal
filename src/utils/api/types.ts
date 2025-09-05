@@ -124,6 +124,7 @@ export interface TestMetaDataInterface {
     primaryInstruction: string;
     secondaryInstruction: string;
   };
+  testTemplateId?: number;
 }
 
 export interface QuestionsMetaDataInterface {

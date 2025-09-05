@@ -12,7 +12,11 @@ import { getUserAction } from "@/app/actions/getUser";
 import { fetchTestMetaDataAction } from "@/app/actions/exam/questions/getTestMetaData";
 import toast from "react-hot-toast";
 import { endCandidateSessionAction } from "@/app/actions/exam/session/endCandidateSession";
-import { QUESTION_STATUS, QUESTION_TYPES } from "@/utils/constants";
+import {
+  QUESTION_STATUS,
+  QUESTION_TYPES,
+  TEST_TEMPLATE_MAPPING,
+} from "@/utils/constants";
 import { submitQuestionAction } from "@/app/actions/exam/session/submitQuestion";
 import { signalRClient } from "@/utils/signalR/signalrClient";
 import { LogLevel } from "@microsoft/signalr";
@@ -24,7 +28,7 @@ import SSCTemplate from "./templates/ssc/page";
 export default function ExamPage() {
   const { id, testResponseId } = useParams();
   const [loaded, setLoaded] = useState<boolean>(false);
-  const [template] = useState<"DEFAULT" | "SSC">("SSC");
+  const [template, setTemplate] = useState<number | null>();
 
   const [question, setQuestion] = useState<GetQuestionByIdResponse>();
   const [showModal, setShowModal] = useState(false);
@@ -446,6 +450,12 @@ export default function ExamPage() {
     );
     const { data, status } = res;
     if (status === 200 && data) {
+      const templateId: number | undefined = data.testMeta.testTemplateId;
+      if (!template) {
+        setTemplate(null);
+      } else {
+        setTemplate(templateId);
+      }
       setTestMetaData(data);
       if (!currentSection) {
         setCurrentSection(data?.sections[0]);
@@ -622,34 +632,7 @@ export default function ExamPage() {
 
   return (
     <div className="w-full h-full">
-      {template === "DEFAULT" ? (
-        <DefaultTemplate
-          cancelSubmit={cancelSubmit}
-          cancelSubmitSectionModalSubmit={cancelSubmitSectionModalSubmit}
-          clearResponse={clearResponse}
-          currentIndex={currentIndex}
-          currentSection={currentSection}
-          goToNextSection={goToNextSection}
-          handleJumpTo={handleJumpTo}
-          handleNextQuestion={handleNextQuestion}
-          handleSectionTimeout={handleSectionTimeout}
-          handleSubmit={handleSubmit}
-          handleTimeout={handleTimeout}
-          loaded={loaded}
-          question={question}
-          setCurrentSection={setCurrentSection}
-          setQuestion={setQuestion}
-          setSidebarOpen={setSidebarOpen}
-          setSubmitSectionModal={setSubmitSectionModal}
-          showModal={showModal}
-          showSubmitSectionModal={showSubmitSectionModal}
-          sidebarOpen={sidebarOpen}
-          submitTest={submitTest}
-          testMetaData={testMetaData}
-          toggleMarkForReview={toggleMarkForReview}
-          errorMessage={errorMessage}
-        />
-      ) : (
+      {template === TEST_TEMPLATE_MAPPING.SSC ? (
         <SSCTemplate
           cancelSubmit={cancelSubmit}
           cancelSubmitSectionModalSubmit={cancelSubmitSectionModalSubmit}
@@ -676,6 +659,33 @@ export default function ExamPage() {
           toggleMarkForReview={toggleMarkForReview}
           errorMessage={errorMessage}
           handlePreviousQuestion={handlePreviousQuestion}
+        />
+      ) : (
+        <DefaultTemplate
+          cancelSubmit={cancelSubmit}
+          cancelSubmitSectionModalSubmit={cancelSubmitSectionModalSubmit}
+          clearResponse={clearResponse}
+          currentIndex={currentIndex}
+          currentSection={currentSection}
+          goToNextSection={goToNextSection}
+          handleJumpTo={handleJumpTo}
+          handleNextQuestion={handleNextQuestion}
+          handleSectionTimeout={handleSectionTimeout}
+          handleSubmit={handleSubmit}
+          handleTimeout={handleTimeout}
+          loaded={loaded}
+          question={question}
+          setCurrentSection={setCurrentSection}
+          setQuestion={setQuestion}
+          setSidebarOpen={setSidebarOpen}
+          setSubmitSectionModal={setSubmitSectionModal}
+          showModal={showModal}
+          showSubmitSectionModal={showSubmitSectionModal}
+          sidebarOpen={sidebarOpen}
+          submitTest={submitTest}
+          testMetaData={testMetaData}
+          toggleMarkForReview={toggleMarkForReview}
+          errorMessage={errorMessage}
         />
       )}
     </div>

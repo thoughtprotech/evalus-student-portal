@@ -37,3 +37,15 @@ export const QUESTION_STATUS: {
   TO_REVIEW: "Marked For Review",
   ANSWERED_TO_REVIEW: "Answered And Marked For Review",
 };
+
+export const TEST_TEMPLATE_MAPPING = {
+  Default: 0,
+  Banking: 4,
+  Railways: 5,
+  Cat: 6,
+  CSIR: 7,
+  SSC: 8,
+  GATE: 9,
+  IIT: 10,
+  MBA: 11,
+};
