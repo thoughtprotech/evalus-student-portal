@@ -16,6 +16,7 @@ import {
   CheckSquare,
   Info,
 } from "lucide-react";
+import { TextOrHtml } from "@/components/TextOrHtml";
 
 export interface InstructionData {
   title: string;
@@ -147,7 +148,7 @@ export default function ExamStartPage() {
                             {i + 1}
                           </span>
                           <p className="text-gray-800 text-[13px] leading-5">
-                            {line}
+                            <TextOrHtml content={line} />
                           </p>
                         </li>
                       ))}
