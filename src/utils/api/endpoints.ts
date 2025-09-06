@@ -1,4 +1,5 @@
 import {
+  AdminDashboardAnallyticsResponse,
   CreateQuestionRequest,
   Endpoint,
   GetCandidateStarredTestRequest,
@@ -820,5 +821,11 @@ export const endpoints = {
     path: () => `/odata/PublishedDocuments/GetDocumentsTree()`,
     type: "OPEN",
   } as Endpoint<null, import('./types').PublishedDocumentTreeItem[]>,
+
+  getAdminDashboardAnalytics: {
+    method: "GET",
+    path: () => `/api/TestAdminDashboard/adminDashboard/analytics`,
+    type: "CLOSE",
+  } as Endpoint<null, AdminDashboardAnallyticsResponse>,
 
 };

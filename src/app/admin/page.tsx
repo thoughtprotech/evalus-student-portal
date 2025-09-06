@@ -1,39 +1,30 @@
 "use client";
 
-import { JSX, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 import {
   UserCheck,
   ClipboardList,
   HelpCircle,
   Activity,
   BarChart2,
-  PieChart as PieIcon,
-  TrendingUp,
-  ListChecks,
-  PlusCircle,
-  Edit2,
   CheckCircle,
+  Edit2,
+  PlusCircle,
   RotateCcw,
-  LineChartIcon,
 } from "lucide-react";
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
-  PieChart,
-  Pie,
-  Cell,
-  AreaChart,
-  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
   LabelList,
 } from "recharts";
+import { fetchAdminAnalyticsAction } from "../actions/admin/dashboard/getAdminDashboardAnalytics";
+import { AdminDashboardAnallyticsResponse } from "@/utils/api/types";
+import toast from "react-hot-toast";
 
 interface StatCard {
   title: string;
@@ -42,126 +33,127 @@ interface StatCard {
   color: string;
 }
 
-const statCards: StatCard[] = [
-  {
-    title: "Total Candidates",
-    statistic: 128,
-    Icon: UserCheck,
-    color: "text-green-500 bg-green-100",
-  },
-  {
-    title: "Total Tests",
-    statistic: 42,
-    Icon: ClipboardList,
-    color: "text-blue-500 bg-blue-100",
-  },
-  {
-    title: "Total Questions",
-    statistic: 1200,
-    Icon: HelpCircle,
-    color: "text-yellow-500 bg-yellow-100",
-  },
-  {
-    title: "Total Attempts",
-    statistic: 576,
-    Icon: Activity,
-    color: "text-red-500 bg-red-100",
-  },
-  {
-    title: "Avg. Score",
-    statistic: "78%",
-    Icon: TrendingUp,
-    color: "text-indigo-500 bg-indigo-100",
-  },
-  {
-    title: "Pass Rate",
-    statistic: "65%",
-    Icon: ListChecks,
-    color: "text-teal-500 bg-teal-100",
-  },
-];
-
-const candidateTrend = [
-  { month: "Jan", count: 12 },
-  { month: "Feb", count: 24 },
-  { month: "Mar", count: 48 },
-  { month: "Apr", count: 80 },
-  { month: "May", count: 128 },
-  { month: "Jun", count: 18 },
-  { month: "Jul", count: 108 },
-  { month: "Aug", count: 38 },
-  { month: "Sep", count: 56 },
-  { month: "Oct", count: 40 },
-  { month: "Nov", count: 50 },
-  { month: "Dec", count: 60 },
-];
-
-const testTrend = [
-  { month: "Jan", tests: 4 },
-  { month: "Feb", tests: 8 },
-  { month: "Mar", tests: 16 },
-  { month: "Apr", tests: 32 },
-  { month: "May", tests: 42 },
-];
-
-
-const avgScoreTrend = [
-  { month: "Jan", avg: 62 },
-  { month: "Feb", avg: 68 },
-  { month: "Mar", avg: 72 },
-  { month: "Apr", avg: 75 },
-  { month: "May", avg: 78 },
-];
-
-const recentActivity = [
-  {
-    time: "10:05 AM",
-    desc: "Alice took Test C (82%)",
-    icon: CheckCircle,
-    color: "bg-green-100 text-green-600",
-  },
-  {
-    time: "9:45 AM",
-    desc: "New question added to Test B",
-    icon: Edit2,
-    color: "bg-yellow-100 text-yellow-600",
-  },
-  {
-    time: "9:30 AM",
-    desc: "Bob registered",
-    icon: PlusCircle,
-    color: "bg-blue-100 text-blue-600",
-  },
-  {
-    time: "9:15 AM",
-    desc: "Charlie completed Test A (55%)",
-    icon: CheckCircle,
-    color: "bg-indigo-100 text-indigo-600",
-  },
-  {
-    time: "9:00 AM",
-    desc: "Diana in progress",
-    icon: RotateCcw,
-    color: "bg-purple-100 text-purple-600",
-  },
-];
-
 const TABS = [
   { key: "candidates", label: "Candidates", Icon: BarChart2 },
   { key: "questions", label: "Questions", Icon: BarChart2 },
-  { key: "tests", label: "Tests", Icon: LineChartIcon },
-  { key: "avgScore", label: "Avg. Score Trend", Icon: TrendingUp },
+  { key: "tests", label: "Tests", Icon: BarChart2 },
+  { key: "attempts", label: "Attempts", Icon: BarChart2 },
 ];
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<string>("candidates");
-  const COLORS = ["#10B981", "#EF4444"];
+  const [data, setData] = useState<
+    AdminDashboardAnallyticsResponse | undefined
+  >();
+
+  const statCards: StatCard[] = [
+    {
+      title: "Total Candidates",
+      statistic: data?.totalcandidates ?? 0,
+      Icon: UserCheck,
+      color: "text-green-500 bg-green-100",
+    },
+    {
+      title: "Total Tests",
+      statistic: data?.totaltest ?? 0,
+      Icon: ClipboardList,
+      color: "text-blue-500 bg-blue-100",
+    },
+    {
+      title: "Total Questions",
+      statistic: data?.totalquestions ?? 0,
+      Icon: HelpCircle,
+      color: "text-yellow-500 bg-yellow-100",
+    },
+    {
+      title: "Total Attempts",
+      statistic: data?.totalattempts ?? 0,
+      Icon: Activity,
+      color: "text-red-500 bg-red-100",
+    },
+  ];
+
+  // Transform graph data to recharts compatible format with short month labels
+  const transformGraphData = (
+    graphData?: { count: number; monthYear: string }[]
+  ): { month: string; count: number }[] => {
+    if (!graphData) return [];
+    return graphData.map(({ count, monthYear }) => {
+      const dateParts = monthYear.split("-");
+      const monthNum = parseInt(dateParts[1], 10);
+      const monthShort =
+        [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ][monthNum - 1] ?? monthYear;
+      return { month: monthShort, count };
+    });
+  };
+
+
+  const recentActivity = [
+    {
+      time: "10:05 AM",
+      desc: "Alice took Test C (82%)",
+      icon: CheckCircle,
+      color: "bg-green-100 text-green-600",
+    },
+    {
+      time: "9:45 AM",
+      desc: "New question added to Test B",
+      icon: Edit2,
+      color: "bg-yellow-100 text-yellow-600",
+    },
+    {
+      time: "9:30 AM",
+      desc: "Bob registered",
+      icon: PlusCircle,
+      color: "bg-blue-100 text-blue-600",
+    },
+    {
+      time: "9:15 AM",
+      desc: "Charlie completed Test A (55%)",
+      icon: CheckCircle,
+      color: "bg-indigo-100 text-indigo-600",
+    },
+    {
+      time: "9:00 AM",
+      desc: "Diana in progress",
+      icon: RotateCcw,
+      color: "bg-purple-100 text-purple-600",
+    },
+  ];
+
+  const fetchAdminAnalyticsData = async () => {
+    const res = await fetchAdminAnalyticsAction();
+
+    if (res.status === 200) {
+      setData(res.data);
+    } else {
+      toast.error("Something Went Wrong");
+    }
+  };
+
+  useEffect(() => {
+    fetchAdminAnalyticsData();
+  }, []);
 
   let chartElement: JSX.Element = <></>;
+
   switch (activeTab) {
     case "candidates":
       chartElement = (
-        <BarChart data={candidateTrend}>
+        <BarChart data={transformGraphData(data?.candidatesGraph)}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="month" />
           <YAxis />
@@ -172,28 +164,10 @@ export default function AdminDashboard() {
         </BarChart>
       );
       break;
+
     case "tests":
       chartElement = (
-        <LineChart data={testTrend}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="month" />
-          <YAxis />
-          <Tooltip />
-          <Line
-            type="monotone"
-            dataKey="tests"
-            stroke="#10B981"
-            strokeWidth={2}
-            dot={{ r: 4 }}
-          >
-            <LabelList dataKey="tests" position="top" />
-          </Line>
-        </LineChart>
-      );
-      break;
-    case "questions":
-      chartElement = (
-        <BarChart data={candidateTrend}>
+        <BarChart data={transformGraphData(data?.testsGraph)}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="month" />
           <YAxis />
@@ -204,32 +178,31 @@ export default function AdminDashboard() {
         </BarChart>
       );
       break;
-    case "avgScore":
+
+    case "questions":
       chartElement = (
-        <AreaChart
-          data={avgScoreTrend}
-          margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
-        >
-          <defs>
-            <linearGradient id="colorAvg" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#6366F1" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
-            </linearGradient>
-          </defs>
+        <BarChart data={transformGraphData(data?.questionsGraph)}>
+          <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="month" />
           <YAxis />
-          <CartesianGrid strokeDasharray="3 3" />
           <Tooltip />
-          <Area
-            type="monotone"
-            dataKey="avg"
-            stroke="#6366F1"
-            strokeWidth={2}
-            fill="url(#colorAvg)"
-          >
-            <LabelList dataKey="avg" position="top" />
-          </Area>
-        </AreaChart>
+          <Bar dataKey="count" fill="#3B82F6" barSize={64}>
+            <LabelList dataKey="count" position="top" />
+          </Bar>
+        </BarChart>
+      );
+      break;
+
+    case "attempts":
+      chartElement = (
+        <BarChart data={transformGraphData(data?.attemptsGraph)}>
+          <XAxis dataKey="month" />
+          <YAxis />
+          <Tooltip />
+          <Bar dataKey="count" fill="#3B82F6" barSize={64}>
+            <LabelList dataKey="count" position="top" />
+          </Bar>
+        </BarChart>
       );
       break;
   }
@@ -237,7 +210,7 @@ export default function AdminDashboard() {
   return (
     <div className="w-full h-full flex flex-col gap-4 p-4 bg-gray-50">
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6">
         {statCards.map(({ title, statistic, Icon, color }) => (
           <div
             key={title}
