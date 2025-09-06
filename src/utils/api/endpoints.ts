@@ -276,6 +276,31 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<null, GetDifficultyLevelsResponse[]>,
 
+  // CRUD for Question Difficulty Levels
+  createQuestionDifficultyLevel: {
+    method: "POST",
+    path: () => `/api/QuestionDifficultyLevels`,
+    type: "CLOSE",
+  } as Endpoint<Partial<GetDifficultyLevelsResponse>, any>,
+
+  updateQuestionDifficultyLevel: {
+    method: "PUT",
+    path: ({ questionDifficultylevelId }: { questionDifficultylevelId: number }) => `/api/QuestionDifficultyLevels/${questionDifficultylevelId}`,
+    type: "CLOSE",
+  } as Endpoint<{ questionDifficultylevelId: number } & Partial<GetDifficultyLevelsResponse>, any>,
+
+  deleteQuestionDifficultyLevel: {
+    method: "DELETE",
+    path: ({ questionDifficultylevelId }: { questionDifficultylevelId: number }) => `/api/QuestionDifficultyLevels/${questionDifficultylevelId}`,
+    type: "CLOSE",
+  } as Endpoint<{ questionDifficultylevelId: number }, null>,
+
+  getQuestionDifficultyLevelById: {
+    method: "GET",
+    path: ({ questionDifficultylevelId }: { questionDifficultylevelId: number }) => `/api/QuestionDifficultyLevels/${questionDifficultylevelId}`,
+    type: "CLOSE",
+  } as Endpoint<{ questionDifficultylevelId: number }, GetDifficultyLevelsResponse>,
+
   // OData - Question Difficulty Levels filtered by language
   getQuestionDifficultyLevelsOData: {
     method: "GET",

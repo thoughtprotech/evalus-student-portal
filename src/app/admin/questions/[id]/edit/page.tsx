@@ -275,7 +275,7 @@ export default function EditQuestionPage() {
 		const payload = buildPayload();
 		if (!payload) return; setSaving(true); const res = await updateQuestionAction(id, payload); setSaving(false);
 		if (res.error) { toast.error(res.errorMessage || "Update failed"); }
-		else { toast.success("Question updated"); setShowSuccessModal(true); }
+		else { setShowSuccessModal(true); }
 	};
 
 	// Keep page mounted; show an overlay loader to match test page style.
