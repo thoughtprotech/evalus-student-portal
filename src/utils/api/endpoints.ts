@@ -461,6 +461,31 @@ export const endpoints = {
     import("./types").ODataList<import("./types").TestDifficultyLevelOData>
   >,
 
+  // CRUD for Test Difficulty Levels
+  createTestDifficultyLevel: {
+    method: "POST",
+    path: () => `/api/TestDifficultyLevels`,
+    type: "CLOSE",
+  } as Endpoint<any, any>,
+
+  updateTestDifficultyLevel: {
+    method: "PUT",
+    path: ({ id }: { id: number }) => `/api/TestDifficultyLevels/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number } & any, any>,
+
+  getTestDifficultyLevelById: {
+    method: "GET",
+    path: ({ id }: { id: number }) => `/api/TestDifficultyLevels/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number }, any>,
+
+  deleteTestDifficultyLevel: {
+    method: "DELETE",
+    path: ({ id }: { id: number }) => `/api/TestDifficultyLevels/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number }, null>,
+
   // OData - Test Templates for Step 1 template picker
   getTestTemplatesOData: {
     method: "GET",
