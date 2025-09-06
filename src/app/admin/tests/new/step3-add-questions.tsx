@@ -448,7 +448,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                         className="flex items-center gap-2 rounded bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1 disabled:opacity-50"
                       >
                         <MinusCircle className="w-4 h-4" />
-                        <span>Rmove</span>
+                        <span>Remove</span>
                       </button>
                     </div>
                     <div className="justify-self-center">
