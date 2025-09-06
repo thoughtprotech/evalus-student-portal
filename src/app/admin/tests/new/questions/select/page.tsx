@@ -156,8 +156,11 @@ function SelectQuestionsPageInner() {
     const out: TopicOption[] = [];
     const walk = (nodes: SubjectTreeNode[], depth = 0) => {
       for (const n of nodes) {
-        const prefix = depth > 0 ? `${"  ".repeat(Math.max(0, depth - 1))}↳ ` : "";
-        out.push({ id: n.subjectId, label: `${prefix}${n.name}` });
+        // Indent using non-breaking spaces so browsers render the hierarchy inside <option>.
+        // 3 nbsp per depth chosen for clearer separation.
+        const indent = depth > 0 ? "\u00A0".repeat(depth * 3) : "";
+        const marker = depth > 0 ? "↳ " : "";
+        out.push({ id: n.subjectId, label: `${indent}${marker}${n.name}` });
         if (n.children?.length) walk(n.children, depth + 1);
       }
     };

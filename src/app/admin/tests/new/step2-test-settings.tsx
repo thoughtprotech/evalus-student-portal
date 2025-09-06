@@ -130,7 +130,7 @@ export default function Step2TestSettings() {
                   setDraft((d: any) => ({ ...d, QuestionNumberingBySections: toUlong(v) }));
                 }}
                 left={{ label: "By Section", value: true }}
-                right={{ label: "Continuous", value: false }}
+                right={{ label: "By Test", value: false }}
                 size="sm"
                 equalWidth
                 segmentWidthClass="w-24"
