@@ -484,15 +484,7 @@ function NewQuestionPageInner() {
         return { success: false };
       }
 
-      if (questionsMeta.chapterId === 0) {
-        toast.error("Chapter Is Required");
-        return { success: false };
-      }
-
-      if (questionsMeta.topicId === 0) {
-        toast.error("Topic Is Required");
-        return { success: false };
-      }
+  // Chapter and Topic are optional
 
       if (questionsMeta.languageId === "") {
         toast.error("Language Is Required");
@@ -561,7 +553,7 @@ function NewQuestionPageInner() {
       // For now, backend createQuestion supports a single field. Prefer Web URL; fallback to Mobile.
       const selectedSingleVideoUrl = cleanVideoUrlWeb || cleanVideoUrlMobile;
 
-      const payload: CreateQuestionRequest = {
+  const payload: CreateQuestionRequest = {
         explanation: explanation.trim(), // Save HTML as-is
         ...(selectedSingleVideoUrl && { videoSolURL: selectedSingleVideoUrl }), // Only include if not empty
         ...(cleanVideoUrlMobile && { videoSolMobileURL: cleanVideoUrlMobile }), // Only include if not empty
@@ -575,10 +567,11 @@ function NewQuestionPageInner() {
           difficultyLevelId: questionsMeta.difficulty,
           questionTypeId: questionsMeta.questionType,
           questionTypeName: currentType || undefined,
+          // Chapter/Topic optional; Topic should fallback to Subject when not selected
           chapterId: questionsMeta.chapterId || 0,
-          // Backend expects SubjectID column; pass the most specific choice.
-          subjectId: questionsMeta.topicId || questionsMeta.subjectId,
-          topicId: questionsMeta.topicId,
+          topicId: questionsMeta.topicId || questionsMeta.subjectId || 0,
+          // Backend uses SubjectID as most-specific node: use Topic when present; else Subject
+          subjectId: questionsMeta.topicId ? questionsMeta.topicId : questionsMeta.subjectId,
           language: questionsMeta.languageId,
           writeUpId: questionsMeta.writeUpId ?? null,
           headerText: questionHeader,
@@ -912,13 +905,13 @@ function NewQuestionPageInner() {
                   </div>
                 </div>
 
-                {/* Chapter Selection */}
+        {/* Chapter Selection (Optional) */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
-                    Chapter <span className="text-red-500">*</span>
+          Chapter <span className="text-gray-400 text-xs font-normal">(Optional)</span>
                   </label>
                   <select
-                    required
+                    
                     value={questionsMeta?.chapterId || ''}
                     onChange={(e) => {
                       const newChapterId = Number(e.target.value);
@@ -948,14 +941,14 @@ function NewQuestionPageInner() {
                   )}
                 </div>
 
-                {/* Topic Selection */}
+        {/* Topic Selection (Optional) */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
-                    Topic <span className="text-red-500">*</span>
+          Topic <span className="text-gray-400 text-xs font-normal">(Optional)</span>
                   </label>
                   <div>
                     <select
-                      required
+                      
                       value={questionsMeta?.topicId || ''}
                       onChange={(e) => {
                         setQuestionsMeta((prev) => ({ ...prev, topicId: Number(e.target.value), questionType: 0 }));
@@ -1006,7 +999,7 @@ function NewQuestionPageInner() {
                     onChange={(e) => {
                       setQuestionsMeta((prev) => ({ ...prev, questionType: Number(e.target.value) }));
                     }}
-                    disabled={!questionsMeta.topicId}
+                    disabled={!questionsMeta.subjectId}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
                   >
                     <option value="">Select type</option>
@@ -1022,8 +1015,8 @@ function NewQuestionPageInner() {
                   {questionTypes.length === 0 && (
                     <p className="text-xs text-amber-600">Loading question types...</p>
                   )}
-                  {!questionsMeta.topicId && (
-                    <p className="text-xs text-gray-500">Select a topic to enable question type selection</p>
+                  {!questionsMeta.subjectId && (
+                    <p className="text-xs text-gray-500">Select a subject to enable question type selection</p>
                   )}
                 </div>
 
@@ -1260,7 +1253,7 @@ function NewQuestionPageInner() {
                       <span className="text-sm font-semibold text-gray-900">Configuration Progress</span>
                     </div>
                     <span className="text-sm text-gray-600 font-medium">
-                      {[questionsMeta.languageId, questionsMeta.subjectId, questionsMeta.chapterId, questionsMeta.topicId, questionsMeta.questionType, questionsMeta.difficulty].filter(Boolean).length}/6 Complete
+                      {[questionsMeta.languageId, questionsMeta.subjectId, questionsMeta.questionType, questionsMeta.difficulty].filter(Boolean).length}/4 Complete
                     </span>
                   </div>
                 </div>
@@ -1271,7 +1264,7 @@ function NewQuestionPageInner() {
                       <div
                         className="bg-gradient-to-r from-indigo-500 to-blue-600 h-2 rounded-full transition-all duration-500 ease-out"
                         style={{
-                          width: `${([questionsMeta.languageId, questionsMeta.subjectId, questionsMeta.chapterId, questionsMeta.topicId, questionsMeta.questionType, questionsMeta.difficulty].filter(Boolean).length / 6) * 100}%`
+                          width: `${([questionsMeta.languageId, questionsMeta.subjectId, questionsMeta.questionType, questionsMeta.difficulty].filter(Boolean).length / 4) * 100}%`
                         }}
                       />
                     </div>
@@ -1296,14 +1289,14 @@ function NewQuestionPageInner() {
                         <div className={`w-3 h-3 rounded-full ${questionsMeta.chapterId ? 'bg-green-500' : 'bg-gray-300'}`}>
                           {!!questionsMeta.chapterId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
                         </div>
-                        <span className="font-medium">Chapter</span>
+                        <span className="font-medium">Chapter (Optional)</span>
                       </div>
 
                       <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.topicId ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
                         <div className={`w-3 h-3 rounded-full ${questionsMeta.topicId ? 'bg-green-500' : 'bg-gray-300'}`}>
                           {!!questionsMeta.topicId && <span className="text-white text-xs block w-full text-center leading-3">✓</span>}
                         </div>
-                        <span className="font-medium">Topic</span>
+                        <span className="font-medium">Topic (Optional)</span>
                       </div>
 
                       <div className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${questionsMeta.questionType ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>

@@ -229,7 +229,8 @@ export default function EditQuestionPage() {
 		if (!currentTypeLabel) { toast.error("Question Type required"); return null; }
 		if (!question.trim()) { toast.error("Question is required"); return null; }
 		if (!questionsMeta.languageId) { toast.error("Language is required"); return null; }
-		if (!questionsMeta.subjectId || !questionsMeta.chapterId || !questionsMeta.topicId) { toast.error("Subject hierarchy incomplete"); return null; }
+		// Only Subject is required; Chapter/Topic are optional
+		if (!questionsMeta.subjectId) { toast.error("Subject is required"); return null; }
 		if (!questionsMeta.difficulty) { toast.error("Difficulty required"); return null; }
 		if (!questionsMeta.marks) { toast.error("Marks required"); return null; }
 		let optionsStr = ""; let answerStr = ""; const qo = questionOptions;
@@ -259,8 +260,10 @@ export default function EditQuestionPage() {
 				questionTypeId: questionsMeta.questionType,
 					questionTypeName: currentTypeLabel || undefined,
 					chapterId: questionsMeta.chapterId || 0,
-				subjectId: questionsMeta.topicId || questionsMeta.subjectId,
-				topicId: questionsMeta.topicId,
+				// Backend expects SubjectID as the most specific node: use Topic when selected; else Subject
+				subjectId: questionsMeta.topicId ? questionsMeta.topicId : questionsMeta.subjectId,
+				// TopicId should be the selected Topic, or fall back to Subject when no Topic chosen
+				topicId: questionsMeta.topicId || questionsMeta.subjectId || 0,
 				language: questionsMeta.languageId,
 				writeUpId: questionsMeta.writeUpId,
 				headerText: questionHeader,
@@ -289,7 +292,7 @@ export default function EditQuestionPage() {
 
 	// Keep page mounted; show an overlay loader to match test page style.
 
-	const completedCount = [questionsMeta.languageId, questionsMeta.subjectId, questionsMeta.chapterId, questionsMeta.topicId, questionsMeta.questionType, questionsMeta.difficulty].filter(Boolean).length;
+	const completedCount = [questionsMeta.languageId, questionsMeta.subjectId, questionsMeta.questionType, questionsMeta.difficulty].filter(Boolean).length;
 
 	return (
 		<div className="min-h-screen bg-gray-50 relative">
@@ -353,11 +356,11 @@ export default function EditQuestionPage() {
 									<select value={questionsMeta.subjectId || ''} onChange={(e) => { const sid = Number(e.target.value); setChapters(buildChapters(sid)); setQuestionsMeta(p => ({ ...p, subjectId: sid, chapterId: 0, topicId: 0 })); }} disabled={!questionsMeta.languageId} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-50 disabled:text-gray-500"><option value="">Select subject</option>{subjects.map(s => <option key={s.subjectId} value={s.subjectId}>{s.subjectName}</option>)}</select>
 								</div>
 								<div className="space-y-2">
-									<label className="block text-sm font-medium text-gray-700">Chapter <span className="text-red-500">*</span></label>
+									<label className="block text-sm font-medium text-gray-700">Chapter <span className="text-gray-400 text-xs font-normal">(Optional)</span></label>
 									<select value={questionsMeta.chapterId || ''} onChange={(e) => { const cid = Number(e.target.value); const t = buildTopicsForChapter(cid); setTopics(t); setQuestionsMeta(p => ({ ...p, chapterId: cid, topicId: 0 })); }} disabled={!questionsMeta.subjectId} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-50 disabled:text-gray-500"><option value="">Select chapter</option>{chapters.map(c => <option key={c.subjectId} value={c.subjectId}>{c.subjectName}</option>)}</select>
 								</div>
 								<div className="space-y-2">
-									<label className="block text-sm font-medium text-gray-700">Topic <span className="text-red-500">*</span></label>
+									<label className="block text-sm font-medium text-gray-700">Topic <span className="text-gray-400 text-xs font-normal">(Optional)</span></label>
 									<select value={questionsMeta.topicId || ''} onChange={(e) => setQuestionsMeta(p => ({ ...p, topicId: Number(e.target.value) }))} disabled={!questionsMeta.chapterId} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-50 disabled:text-gray-500"><option value="">Select topic</option>{topics.map(t => <option key={t.topicId} value={t.topicId}>{t.topicName}</option>)}</select>
 								</div>
 								<div className="space-y-2">
@@ -417,11 +420,19 @@ export default function EditQuestionPage() {
 					<div className="col-span-12 lg:col-span-8 xl:col-span-9">
 						<div className="space-y-6">
 							<div className="bg-white rounded-lg shadow-sm border border-gray-200">
-								<div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-blue-50"><div className="flex items-center justify-between"><div className="flex items-center gap-2"><div className="w-6 h-6 bg-indigo-100 rounded-md flex items-center justify-center"><span className="text-indigo-600 text-sm font-bold">📊</span></div><span className="text-sm font-semibold text-gray-900">Configuration Progress</span></div><span className="text-sm text-gray-600 font-medium">{completedCount}/6 Complete</span></div></div>
+								<div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-blue-50"><div className="flex items-center justify-between"><div className="flex items-center gap-2"><div className="w-6 h-6 bg-indigo-100 rounded-md flex items-center justify-center"><span className="text-indigo-600 text-sm font-bold">📊</span></div><span className="text-sm font-semibold text-gray-900">Configuration Progress</span></div><span className="text-sm text-gray-600 font-medium">{completedCount}/4 Complete</span></div></div>
 								<div className="p-4"><div className="space-y-3">
 									<div className="w-full bg-gray-200 rounded-full h-2">
-										<div className="bg-gradient-to-r from-indigo-500 to-blue-600 h-2 rounded-full" style={{ width: `${(completedCount / 6) * 100}%` }} /></div>
-									<div className="grid grid-cols-3 md:grid-cols-6 gap-2">{[{ key: 'languageId', label: 'Language', value: questionsMeta.languageId }, { key: 'subjectId', label: 'Subject', value: questionsMeta.subjectId }, { key: 'chapterId', label: 'Chapter', value: questionsMeta.chapterId }, { key: 'topicId', label: 'Topic', value: questionsMeta.topicId }, { key: 'questionType', label: 'Type', value: questionsMeta.questionType }, { key: 'difficulty', label: 'Difficulty', value: questionsMeta.difficulty }].map(i => <div key={i.key} className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${i.value ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}><div className={`w-3 h-3 rounded-full ${i.value ? 'bg-green-500' : 'bg-gray-300'}`}>{i.value ? <span className="text-white text-xs block w-full text-center leading-3">✓</span> : null}</div><span className="font-medium">{i.label}</span></div>)}</div></div></div>
+										<div className="bg-gradient-to-r from-indigo-500 to-blue-600 h-2 rounded-full" style={{ width: `${(completedCount / 4) * 100}%` }} /></div>
+									<div className="grid grid-cols-3 md:grid-cols-6 gap-2">{[
+										{ key: 'languageId', label: 'Language', value: questionsMeta.languageId },
+										{ key: 'subjectId', label: 'Subject', value: questionsMeta.subjectId },
+										{ key: 'chapterId', label: 'Chapter (Optional)', value: questionsMeta.chapterId },
+										{ key: 'topicId', label: 'Topic (Optional)', value: questionsMeta.topicId },
+										{ key: 'questionType', label: 'Type', value: questionsMeta.questionType },
+										{ key: 'difficulty', label: 'Difficulty', value: questionsMeta.difficulty }
+									].map(i => <div key={i.key} className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${i.value ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}><div className={`w-3 h-3 rounded-full ${i.value ? 'bg-green-500' : 'bg-gray-300'}`}>{i.value ? <span className="text-white text-xs block w-full text-center leading-3">✓</span> : null}</div><span className="font-medium">{i.label}</span></div>)}
+									</div></div></div>
 							</div>
 							<div className="bg-white rounded-lg shadow-sm border border-gray-200">
 								<div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
