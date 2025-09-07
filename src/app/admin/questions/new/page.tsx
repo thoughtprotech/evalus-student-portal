@@ -39,6 +39,7 @@ export default function NewQuestionPage() {
 
 function NewQuestionPageInner() {
   const [question, setQuestion] = useState<string>("");
+  const [batchNo, setBatchNo] = useState<string>("");
   const [questionsMeta, setQuestionsMeta] = useState<{
     tags: string;
     marks: number;
@@ -564,6 +565,7 @@ function NewQuestionPageInner() {
         explanation: explanation.trim(), // Save HTML as-is
         ...(selectedSingleVideoUrl && { videoSolURL: selectedSingleVideoUrl }), // Only include if not empty
         ...(cleanVideoUrlMobile && { videoSolMobileURL: cleanVideoUrlMobile }), // Only include if not empty
+  ...(batchNo?.trim() ? { batchNo: batchNo.trim(), ...( { BatchNo: batchNo.trim(), BatchNumber: batchNo.trim() } as any) } : {}),
         questionsMeta: {
           tags: questionsMeta.tags,
           marks: questionsMeta.marks,
@@ -721,6 +723,7 @@ function NewQuestionPageInner() {
       setQuestion("");
       setExplanation("");
       setQuestionHeader("");
+  setBatchNo("");
       setVideoSolWebURL("");
       setVideoSolMobileURL("");
       setQuestionOptions(undefined);
@@ -1182,6 +1185,15 @@ function NewQuestionPageInner() {
                   </h3>
 
                   <div className="space-y-3">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-medium text-gray-600">Batch No</label>
+                      <input
+                        placeholder="Enter batch number (optional)"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        value={batchNo}
+                        onChange={(e) => setBatchNo(e.target.value)}
+                      />
+                    </div>
                     <div className="space-y-1">
                       <label className="block text-xs font-medium text-gray-600">Tags</label>
                       <input

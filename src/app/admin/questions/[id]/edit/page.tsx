@@ -40,6 +40,7 @@ export default function EditQuestionPage() {
 	const [difficultyLevels, setDifficultyLevels] = useState<GetDifficultyLevelsResponse[]>([]);
 
 	const [question, setQuestion] = useState("");
+	const [batchNo, setBatchNo] = useState<string>("");
 	const [questionHeader, setQuestionHeader] = useState("");
 	const [explanation, setExplanation] = useState("");
 	const [videoSolWebURL, setVideoSolWebURL] = useState("");
@@ -146,6 +147,12 @@ export default function EditQuestionPage() {
 					allowComments: (q as any).allowCandidateComments === 1 || (q as any).allowComments === 1 || (q as any).questionsMeta?.allowCandidateComments === 1 ? 1 : 0,
 				}));
 				setQuestionStatus((q as any).isActive === 0 ? 0 : 1);
+				{
+					const qq: any = q as any;
+					const meta: any = qq.questionsMeta ?? {};
+					const bn = qq.batchNo ?? qq.BatchNo ?? qq.BatchNumber ?? qq.batchno ?? qq.batchnumber ?? meta.batchNo ?? meta.BatchNo ?? meta.BatchNumber ?? meta.batchno ?? meta.batchnumber ?? "";
+					setBatchNo(typeof bn === 'string' ? bn : String(bn ?? ""));
+				}
 
 				try {
 					// Handle options coming either as raw JSON strings or already structured inside q.options
@@ -241,6 +248,7 @@ export default function EditQuestionPage() {
 			explanation: explanation.trim(),
 			videoSolURL: videoSolWebURL || videoSolMobileURL || undefined,
 			videoSolMobileURL: videoSolMobileURL || undefined,
+			...(batchNo?.trim() ? { batchNo: batchNo.trim(), BatchNo: batchNo.trim(), BatchNumber: batchNo.trim() } : {}),
 			questionsMeta: {
 				tags: questionsMeta.tags,
 				marks: questionsMeta.marks,
@@ -257,6 +265,7 @@ export default function EditQuestionPage() {
 				writeUpId: questionsMeta.writeUpId,
 				headerText: questionHeader,
 				allowCandidateComments: questionsMeta.allowComments,
+				...(batchNo?.trim() ? { batchNo: batchNo.trim(), BatchNo: batchNo.trim(), BatchNumber: batchNo.trim() } : {}),
 			},
 			options: { options: optionsStr, answer: answerStr },
 			isActive: questionStatus,
@@ -389,6 +398,7 @@ export default function EditQuestionPage() {
 								<div className="space-y-4 pt-4 border-t border-gray-200">
 									<h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2"><div className="w-4 h-4 bg-purple-100 rounded flex items-center justify-center"><span className="text-purple-600 text-xs font-bold">+</span></div>Additional Options</h3>
 									<div className="space-y-3">
+										<div className="space-y-1"><label className="block text-xs font-medium text-gray-600">Batch No</label><input value={batchNo} onChange={(e) => setBatchNo(e.target.value)} placeholder="Enter batch number (optional)" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" /></div>
 										<div className="space-y-1"><label className="block text-xs font-medium text-gray-600">Tags</label><input value={questionsMeta.tags} onChange={(e) => setQuestionsMeta(p => ({ ...p, tags: e.target.value }))} placeholder="Add tags (comma separated)" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" /></div>
 										<div className="space-y-1">
 											<label className="block text-xs font-medium text-gray-600">Question Status</label>

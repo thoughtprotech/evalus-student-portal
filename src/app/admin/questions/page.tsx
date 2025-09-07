@@ -140,6 +140,16 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         headerClass: 'no-left-border'
       },
       {
+        field: "batchNo",
+        headerName: "Batch No",
+        headerTooltip: "Batch Number",
+        sortable: true,
+        filter: 'agTextColumnFilter',
+        filterParams: { buttons: ['apply', 'reset', 'clear'] },
+        width: 140,
+        minWidth: 120,
+      },
+      {
         field: "subject",
         headerName: "Subject",
         headerTooltip: "Subject",
@@ -282,6 +292,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
     const fieldMap: Record<string, string> = {
       id: "questionId",
       title: "questionText",
+  batchNo: "BatchNumber",
       subject: "subject",
       topic: "topic",
       level: "questionDifficultyLevel",

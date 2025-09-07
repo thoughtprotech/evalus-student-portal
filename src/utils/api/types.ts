@@ -157,6 +157,8 @@ export interface CreateQuestionRequest {
   // Audit fields (added to allow passing logged in user like Products actions)
   createdBy?: string; // server may derive if omitted
   modifiedBy?: string; // for create we'll mirror createdBy
+  // Optional batch identifier for grouping/imports
+  batchNo?: string;
   questionsMeta: {
     tags: string;
     marks: number;

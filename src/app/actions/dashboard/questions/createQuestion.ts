@@ -18,6 +18,13 @@ export async function createQuestionAction(
       ...payload,
       createdBy: payload.createdBy || auditUser,
       modifiedBy: payload.modifiedBy || auditUser,
+  // Pass through batch number if provided
+  batchNo: (payload as any).batchNo ?? (payload as any).BatchNo ?? (payload as any).BatchNumber ?? (payload as any)?.questionsMeta?.batchNo ?? undefined,
+      // Provide alternate casings too
+      ...( (payload as any)?.batchNo || (payload as any)?.BatchNo || (payload as any)?.BatchNumber ? {
+        BatchNo: (payload as any).batchNo ?? (payload as any).BatchNo ?? (payload as any).BatchNumber,
+        BatchNumber: (payload as any).batchNo ?? (payload as any).BatchNo ?? (payload as any).BatchNumber,
+      } : {} ),
       // Also include PascalCase versions (API for Questions may expect these; camelCase ignored)
       CreatedBy: (payload as any).CreatedBy || payload.createdBy || auditUser,
       ModifiedBy: (payload as any).ModifiedBy || payload.modifiedBy || auditUser,

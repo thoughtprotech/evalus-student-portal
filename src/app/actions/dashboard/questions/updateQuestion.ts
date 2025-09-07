@@ -28,10 +28,19 @@ export async function updateQuestionAction(
   const qMetaDur = (finalPayload.questionsMeta?.duration ?? finalPayload.questionsMeta?.Duration);
   if (!('duration' in finalPayload)) finalPayload.duration = qMetaDur ?? 0;
   if (!('Duration' in finalPayload)) finalPayload.Duration = finalPayload.duration;
-    const { status, error, data, errorMessage, message } = await apiHandler(
+  // Normalize and set Batch No in both casings for backend compatibility
+  const batchNoFromPayload = (payload as any)?.batchNo ?? (payload as any)?.BatchNo ?? (payload as any)?.BatchNumber ?? (payload as any)?.questionsMeta?.batchNo;
+  if (batchNoFromPayload !== undefined) {
+    finalPayload.batchNo = batchNoFromPayload;
+    (finalPayload as any).BatchNo = batchNoFromPayload;
+  (finalPayload as any).BatchNumber = batchNoFromPayload;
+  }
+  console.log('UPDATE QUESTION PAYLOAD', JSON.stringify(finalPayload));
+  const { status, error, data, errorMessage, message } = await apiHandler(
       endpoints.updateQuestion,
       finalPayload
     );
+  console.log('UPDATE QUESTION RESPONSE', { status, error, data, errorMessage, message });
 
     const isSuccess = (status >= 200 && status < 300) && !error;
 
