@@ -770,6 +770,13 @@ export const endpoints = {
     type: "OPEN",
   } as Endpoint<any, any>,
 
+  // Update existing Test Registration (e.g., reschedule without new row)
+  updateTestRegistration: {
+    method: "PUT",
+    path: ({ testRegistrationId }: { testRegistrationId: number }) => `/api/TestRegistrations/${testRegistrationId}`,
+    type: "OPEN",
+  } as Endpoint<{ testRegistrationId: number } & any, any>,
+
   submitTest: {
     path: () => `/api/TestSessions/submit`,
     method: "POST",

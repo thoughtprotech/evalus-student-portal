@@ -45,16 +45,35 @@ export async function fetchCandidateTestList(
             t.testRegistrationStatus ||
             t.type ||
             t.status;
-          if (finalStatus === "InProgress") finalStatus = "In Progress";
-          // Backend may send UpNext (camel-cased) while UI expects Up Next
-          if (finalStatus === "UpNext") finalStatus = "Up Next";
+          // Normalize common backend variants
+          if (typeof finalStatus === "string") {
+            const s = finalStatus.toLowerCase().trim();
+            if (s === "inprogress" || s === "in progress") finalStatus = "In Progress";
+            else if (s === "upnext" || s === "up next") finalStatus = "Up Next";
+            // Treat any reschedule variants as Registered for dashboard purposes
+            else if (
+              s === "rescheduled" ||
+              s === "re-scheduled" ||
+              s === "reschedule" ||
+              s === "re-schedule"
+            ) {
+              finalStatus = "Registered";
+            }
+          }
           return {
             testName: t.testName || t.TestName || t.name,
             testStartDate: t.testStartDate || t.StartDate || t.TestStartDate,
             testEndDate: t.testEndDate || t.EndDate || t.TestEndDate,
             testCandidateRegistrationStatus: finalStatus,
             testId: t.testId || t.TestId || t.id,
-            testRegistrationId: t.testRegistrationId || t.TestRegistrationId || 0,
+            testRegistrationId:
+              t.testRegistrationId ||
+              t.TestRegistrationId ||
+              t.TestRegistrationID ||
+              t.registrationId ||
+              t.RegistrationId ||
+              t.RegistrationID ||
+              0,
           } as GetCandidateTestResponse;
         });
       } else if (data && typeof data === "object") {
@@ -75,6 +94,7 @@ export async function fetchCandidateTestList(
           else if (lower === "missed") baseLabel = "Missed";
           else if (lower === "cancelled") baseLabel = "Cancelled";
           else if (lower === "upnext") baseLabel = "Up Next";
+          else if (lower === "rescheduled" || lower === "re-scheduled") baseLabel = "Registered";
 
           list.push(
             ...arr.map((t: any) => {
@@ -85,8 +105,19 @@ export async function fetchCandidateTestList(
                 t.status ||
                 baseLabel;
               let finalStatus = rawStatus;
-              if (finalStatus === "InProgress") finalStatus = "In Progress";
-              if (finalStatus === "UpNext") finalStatus = "Up Next";
+              if (typeof finalStatus === "string") {
+                const s = finalStatus.toLowerCase().trim();
+                if (s === "inprogress" || s === "in progress") finalStatus = "In Progress";
+                else if (s === "upnext" || s === "up next") finalStatus = "Up Next";
+                else if (
+                  s === "rescheduled" ||
+                  s === "re-scheduled" ||
+                  s === "reschedule" ||
+                  s === "re-schedule"
+                ) {
+                  finalStatus = "Registered";
+                }
+              }
               return {
                 testName: t.testName || t.TestName || t.name,
                 testStartDate:
@@ -94,6 +125,14 @@ export async function fetchCandidateTestList(
                 testEndDate: t.testEndDate || t.EndDate || t.TestEndDate,
                 testCandidateRegistrationStatus: finalStatus,
                 testId: t.testId || t.TestId || t.id,
+                testRegistrationId:
+                  t.testRegistrationId ||
+                  t.TestRegistrationId ||
+                  t.TestRegistrationID ||
+                  t.registrationId ||
+                  t.RegistrationId ||
+                  t.RegistrationID ||
+                  0,
               } as GetCandidateTestResponse;
             })
           );

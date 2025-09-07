@@ -15,6 +15,7 @@ import { useState } from "react";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { format, parseISO, differenceInMinutes } from "date-fns";
 import { registerTestAction } from "@/app/actions/dashboard/registerTest";
+import { rescheduleTestAction } from "@/app/actions/dashboard/rescheduleTest";
 import toast from "react-hot-toast";
 
 interface TestCardsProps {
@@ -263,11 +264,22 @@ export default function TestCards({
     try {
       setRegistering(true);
       const iso = new Date(rescheduleDate).toISOString();
-      const res = await registerTestAction({
-        testId: Number(id),
-        testDate: iso,
-        comments: rescheduleComments,
-        language: "English",
+      const regIdNum = Number(registrationId);
+      if (!Number.isFinite(regIdNum) || regIdNum <= 0) {
+        toast.error("Missing registration ID; cannot reschedule without an existing registration.");
+        return;
+      }
+      const res = await fetch(`/api/internal/test-registrations/${regIdNum}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          testRegistrationId: regIdNum,
+          testId: Number(id),
+          testDate: iso,
+          testStatus: 'Registered',
+          comments: rescheduleComments,
+          language: 'English',
+        })
       });
       if (res.ok) {
         toast.success("Test rescheduled successfully");
@@ -280,7 +292,8 @@ export default function TestCards({
           }
         }
       } else {
-        toast.error(res.errorMessage || res.message || "Reschedule failed");
+        const msg = await res.text();
+        toast.error(msg || "Reschedule failed");
       }
     } catch (e: any) {
       toast.error(e?.message || "Reschedule failed");
@@ -321,6 +334,8 @@ export default function TestCards({
 
   return (
     <div className="w-full h-full rounded-xl shadow-md p-4 border border-gray-300 bg-white flex flex-col gap-4 justify-between">
+      {/* Hidden field to bind TestRegistrationId for this card */}
+      <input type="hidden" name="testRegistrationId" value={registrationId} />
       {/* Test Title */}
       <div className="w-full border-b border-b-gray-300 pb-4">
         <h1 className="text-2xl font-bold text-gray-800 truncate text-ellipsis">
@@ -488,6 +503,8 @@ export default function TestCards({
         confirmDisabled={!rescheduleDate || isPastReschedule || registering}
       >
         <form className="space-y-5 text-left" onSubmit={(e) => e.preventDefault()}>
+          {/* Hidden field passed along with reschedule update */}
+          <input type="hidden" name="testRegistrationId" value={registrationId} />
           <div className="grid gap-2">
             <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
               <span>New Start Date & Time</span>
