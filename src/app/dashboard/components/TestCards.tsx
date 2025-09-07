@@ -104,7 +104,8 @@ export default function TestCards({
   } else if (status === "Missed") {
     linkText = "Reschedule";
     linkIcon = <RotateCcw className="w-5 h-5 ml-2" />;
-    linkHref = `/dashboard/reschedule/${encodeURIComponent(id)}`;
+  // Open reschedule modal; do not navigate
+  linkHref = `#reschedule-${encodeURIComponent(id)}`;
   } else if (status === "Completed") {
     linkText = "View Report";
     linkIcon = <ArrowRight className="w-5 h-5 ml-2" />;
@@ -204,8 +205,24 @@ export default function TestCards({
     }
   };
 
+  // Modal state and handlers for Missed -> Reschedule
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [rescheduleDate, setRescheduleDate] = useState<string>(defaultLocal());
+  const [rescheduleComments, setRescheduleComments] = useState("");
+  const [reschedTouched, setReschedTouched] = useState(false);
+
+  const onClickReschedule = (e: React.MouseEvent) => {
+    if (status === "Missed") {
+      e.preventDefault();
+      setShowRescheduleModal(true);
+    }
+  };
+
   const isPast = proposedStart
     ? new Date(proposedStart).getTime() < Date.now() - 60000
+    : true;
+  const isPastReschedule = rescheduleDate
+    ? new Date(rescheduleDate).getTime() < Date.now() - 60000
     : true;
   const [registering, setRegistering] = useState(false);
   const confirmRegistration = async () => {
@@ -235,6 +252,38 @@ export default function TestCards({
       }
     } catch (e: any) {
       toast.error(e?.message || "Registration failed");
+    } finally {
+      setRegistering(false);
+    }
+  };
+
+  const confirmReschedule = async () => {
+    setReschedTouched(true);
+    if (!rescheduleDate || isPastReschedule || registering) return;
+    try {
+      setRegistering(true);
+      const iso = new Date(rescheduleDate).toISOString();
+      const res = await registerTestAction({
+        testId: Number(id),
+        testDate: iso,
+        comments: rescheduleComments,
+        language: "English",
+      });
+      if (res.ok) {
+        toast.success("Test rescheduled successfully");
+        setShowRescheduleModal(false);
+        if (onRegistered) {
+          try {
+            await onRegistered();
+          } catch {
+            /* ignore */
+          }
+        }
+      } else {
+        toast.error(res.errorMessage || res.message || "Reschedule failed");
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Reschedule failed");
     } finally {
       setRegistering(false);
     }
@@ -354,7 +403,13 @@ export default function TestCards({
       <div className="w-full">
         <a
           href={linkHref}
-          onClick={status === "Up Next" ? onClickRegister : openInPopup}
+          onClick={
+            status === "Up Next"
+              ? onClickRegister
+              : status === "Missed"
+              ? onClickReschedule
+              : openInPopup
+          }
           className={`w-full flex items-center justify-center gap-1 px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${status && actionButtonMapping[status]
             }`}
         >
@@ -413,6 +468,55 @@ export default function TestCards({
             <textarea
               value={comments}
               onChange={(e) => setComments(e.target.value)}
+              rows={4}
+              placeholder="Any specific notes or requirements..."
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+            />
+          </div>
+        </form>
+      </ConfirmationModal>
+
+      {/* Reschedule Modal for Missed */}
+      <ConfirmationModal
+        title={`Reschedule ${name}`}
+        message="Pick a new start date/time for your test. Past dates are not allowed."
+        isOpen={showRescheduleModal}
+        onCancel={() => setShowRescheduleModal(false)}
+        onConfirm={confirmReschedule}
+        confirmText={registering ? "Rescheduling..." : "Reschedule"}
+        cancelText="Cancel"
+        confirmDisabled={!rescheduleDate || isPastReschedule || registering}
+      >
+        <form className="space-y-5 text-left" onSubmit={(e) => e.preventDefault()}>
+          <div className="grid gap-2">
+            <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+              <span>New Start Date & Time</span>
+              <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="datetime-local"
+              value={rescheduleDate}
+              min={new Date().toISOString().slice(0, 16)}
+              onChange={(e) => setRescheduleDate(e.target.value)}
+              onBlur={() => setReschedTouched(true)}
+              required
+              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${reschedTouched && (!rescheduleDate || isPastReschedule)
+                  ? "border-red-500"
+                  : "border-gray-300"
+                }`}
+            />
+            {reschedTouched && !rescheduleDate && (
+              <p className="text-xs text-red-600">Start date/time is required.</p>
+            )}
+            {reschedTouched && rescheduleDate && isPastReschedule && (
+              <p className="text-xs text-red-600">Start date/time cannot be in the past.</p>
+            )}
+          </div>
+          <div className="grid gap-2">
+            <label className="text-sm font-medium text-gray-700">Comments</label>
+            <textarea
+              value={rescheduleComments}
+              onChange={(e) => setRescheduleComments(e.target.value)}
               rows={4}
               placeholder="Any specific notes or requirements..."
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
