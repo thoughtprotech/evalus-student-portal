@@ -11,6 +11,9 @@ import {
   Edit2,
   PlusCircle,
   RotateCcw,
+  User,
+  Info,
+  Edit,
 } from "lucide-react";
 import {
   BarChart,
@@ -23,8 +26,12 @@ import {
   LabelList,
 } from "recharts";
 import { fetchAdminAnalyticsAction } from "../actions/admin/dashboard/getAdminDashboardAnalytics";
-import { AdminDashboardAnallyticsResponse } from "@/utils/api/types";
+import {
+  AdminDashboardAnallyticsResponse,
+  AdminDashboardRecentActivitiesResponse,
+} from "@/utils/api/types";
 import toast from "react-hot-toast";
+import { fetchAdminDashboardRecentActivititesAction } from "../actions/admin/dashboard/getAdminDashboardRecentActivities";
 
 interface StatCard {
   title: string;
@@ -45,6 +52,8 @@ export default function AdminDashboard() {
   const [data, setData] = useState<
     AdminDashboardAnallyticsResponse | undefined
   >();
+  const [recentActivities, setRecentActivities] =
+    useState<AdminDashboardRecentActivitiesResponse[]>();
 
   const statCards: StatCard[] = [
     {
@@ -100,40 +109,6 @@ export default function AdminDashboard() {
     });
   };
 
-
-  const recentActivity = [
-    {
-      time: "10:05 AM",
-      desc: "Alice took Test C (82%)",
-      icon: CheckCircle,
-      color: "bg-green-100 text-green-600",
-    },
-    {
-      time: "9:45 AM",
-      desc: "New question added to Test B",
-      icon: Edit2,
-      color: "bg-yellow-100 text-yellow-600",
-    },
-    {
-      time: "9:30 AM",
-      desc: "Bob registered",
-      icon: PlusCircle,
-      color: "bg-blue-100 text-blue-600",
-    },
-    {
-      time: "9:15 AM",
-      desc: "Charlie completed Test A (55%)",
-      icon: CheckCircle,
-      color: "bg-indigo-100 text-indigo-600",
-    },
-    {
-      time: "9:00 AM",
-      desc: "Diana in progress",
-      icon: RotateCcw,
-      color: "bg-purple-100 text-purple-600",
-    },
-  ];
-
   const fetchAdminAnalyticsData = async () => {
     const res = await fetchAdminAnalyticsAction();
 
@@ -144,8 +119,25 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchRecentActivities = async () => {
+    const res = await fetchAdminDashboardRecentActivititesAction();
+
+    if (res.status === 200) {
+      setRecentActivities(res.data);
+    } else {
+      toast.error("Something Went Wrong");
+    }
+  };
+
   useEffect(() => {
     fetchAdminAnalyticsData();
+    fetchRecentActivities();
+  }, []);
+
+  useEffect(() => {
+    setInterval(() => {
+      fetchRecentActivities();
+    }, 300000);
   }, []);
 
   let chartElement: JSX.Element = <></>;
@@ -258,22 +250,35 @@ export default function AdminDashboard() {
         </div>
 
         {/* Recent Activity */}
-        <div className="w-full md:w-1/4 h-full bg-white rounded-md border border-gray-300 shadow-md p-4 flex flex-col">
+        <div className="w-full md:w-1/4 h-full overflow-y-auto bg-white rounded-md border border-gray-300 shadow-md p-4 flex flex-col">
           <h3 className="text-xl font-bold text-gray-800 mb-4">
             Recent Activity
           </h3>
           <ul className="space-y-3 overflow-auto">
-            {recentActivity.map(({ time, desc, icon: Icon, color }, idx) => (
+            {recentActivities?.map((activity, idx) => (
               <li
                 key={idx}
                 className="flex items-center space-x-3 p-2 rounded-md transition border border-gray-300 shadow-md"
               >
-                <div className={`p-2 rounded-full ${color}`}>
+                {/* <div className={`p-2 rounded-full ${color}`}>
                   <Icon className="w-5 h-5" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-gray-700">{desc}</p>
-                  <span className="text-xs text-gray-500">{time}</span>
+                </div> */}
+                <div className="flex items-center gap-2">
+                  {activity.type === "candidate" ? (
+                    <div className="p-2 w-fit rounded-full bg-indigo-300/20 text-indigo-600">
+                      <User className="w-4 h-4" />
+                    </div>
+                  ) : activity.type === "question" ? (
+                    <div className="p-2 w-fit rounded-full bg-blue-300/20 text-blue-600">
+                      <Info className="w-4 h-4" />
+                    </div>
+                  ) : (
+                    <div className="p-2 w-fit rounded-full bg-yellow-300/20 text-yellow-600">
+                      <Edit className="w-4 h-4" />
+                    </div>
+                  )}
+                  <p className="text-sm text-gray-700">{activity.activity}</p>
+                  {/* <span className="text-xs text-gray-500">{time}</span> */}
                 </div>
               </li>
             ))}

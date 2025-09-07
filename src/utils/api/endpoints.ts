@@ -1,5 +1,6 @@
 import {
   AdminDashboardAnallyticsResponse,
+  AdminDashboardRecentActivitiesResponse,
   CreateQuestionRequest,
   Endpoint,
   GetCandidateStarredTestRequest,
@@ -827,5 +828,11 @@ export const endpoints = {
     path: () => `/api/TestAdminDashboard/adminDashboard/analytics`,
     type: "CLOSE",
   } as Endpoint<null, AdminDashboardAnallyticsResponse>,
+
+    getAdminDashboardRecentActivities: {
+    method: "GET",
+    path: () => `/api/TestAdminDashboard/adminDashboard/recentActivities`,
+    type: "CLOSE",
+  } as Endpoint<null, AdminDashboardRecentActivitiesResponse[]>,
 
 };

@@ -559,8 +559,13 @@ export interface AdminDashboardAnallyticsResponse {
   totaltest: number;
   totalquestions: number;
   totalattempts: number;
-  candidatesGraph: {count: number, monthYear: string}[];
-  testsGraph: {count: number, monthYear: string}[];
-  questionsGraph: {count: number, monthYear: string}[];
-  attemptsGraph: {count: number, monthYear: string}[]
+  candidatesGraph: { count: number; monthYear: string }[];
+  testsGraph: { count: number; monthYear: string }[];
+  questionsGraph: { count: number; monthYear: string }[];
+  attemptsGraph: { count: number; monthYear: string }[];
+}
+
+export interface AdminDashboardRecentActivitiesResponse {
+  activity: string;
+  type: "test" | "question" | "candidate";
 }
