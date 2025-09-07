@@ -258,8 +258,8 @@ export default function EditQuestionPage() {
 				duration: questionsMeta.duration || 0,
 				difficultyLevelId: questionsMeta.difficulty,
 				questionTypeId: questionsMeta.questionType,
-				questionTypeName: currentTypeLabel || undefined,
-				chapterId: questionsMeta.chapterId || 0,
+					questionTypeName: currentTypeLabel || undefined,
+					chapterId: questionsMeta.chapterId || 0,
 				// Backend expects SubjectID as the most specific node: use Topic when selected; else Subject
 				subjectId: questionsMeta.topicId ? questionsMeta.topicId : questionsMeta.subjectId,
 				// TopicId should be the selected Topic, or fall back to Subject when no Topic chosen
