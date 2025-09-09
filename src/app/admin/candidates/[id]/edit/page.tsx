@@ -10,9 +10,9 @@ import { fetchCandidateByIdAction, updateCandidateAction } from "@/app/actions/a
 import { fetchCompaniesAction } from "@/app/actions/admin/companies";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
+import { useUser } from "@/contexts/UserContext";
 
 interface CompanyOption { id: number; name: string; }
-interface GroupOption { id: number; name: string; }
 type GroupNode = { id: number; name: string; children?: GroupNode[] };
 
 // Add this to your list of roles (replace with your actual roles if needed)
@@ -25,16 +25,16 @@ export default function EditCandidatePage() {
   const params = useParams();
   const router = useRouter();
   const candidateId = Number(params?.id);
+  const { username } = useUser();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [companies, setCompanies] = useState<CompanyOption[]>([]);
-  // Group tree + selections for Register Test Groups
+  // Group tree + hierarchical selection state
   const [groupTree, setGroupTree] = useState<GroupNode[]>([]);
-  const [parentGroups, setParentGroups] = useState<GroupOption[]>([]);
-  const [subGroups, setSubGroups] = useState<GroupOption[]>([]);
-  const [selectedParentId, setSelectedParentId] = useState<string>("");
-  const [selectedSubIds, setSelectedSubIds] = useState<string[]>([]);
+  const [selectedGroupIds, setSelectedGroupIds] = useState<number[]>([]);
+  const [expandedMap, setExpandedMap] = useState<Record<number, boolean>>({});
+  const [idToNode, setIdToNode] = useState<Record<number, GroupNode>>({});
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -72,9 +72,9 @@ export default function EditCandidatePage() {
           apiHandler(endpoints.getCandidateGroupTreeOData, null as any),
         ]);
         if (candRes.error) throw new Error(candRes.errorMessage || candRes.message);
-        const c = candRes.data;
-        // Map candidate groups (assuming API returns candidateGroups array with ids)
-        const candidateGroupIds: number[] = c?.candidateGroupIds || c?.candidateGroups?.map((g: any) => g.candidateGroupId) || [];
+  const c = candRes.data;
+  // Map candidate groups (assuming API returns candidateGroups array with ids)
+  const candidateGroupIds: number[] = (c?.candidateGroupIds || c?.candidateGroups?.map((g: any) => g.candidateGroupId) || []).map((x: any) => Number(x)).filter((n: any) => Number.isFinite(n));
         if (compRes.data?.rows) {
           setCompanies(compRes.data.rows.map(r => ({ id: r.id, name: r.companyName })));
         }
@@ -96,32 +96,34 @@ export default function EditCandidatePage() {
             .filter(Boolean) as GroupNode[];
         const tree = Array.isArray(raw) ? norm(raw) : [];
         setGroupTree(tree);
-        setParentGroups(tree.map((g) => ({ id: g.id, name: g.name })));
+        const map: Record<number, GroupNode> = {};
+        const walkMap = (nodes: GroupNode[]) => {
+          for (const n of nodes) {
+            map[n.id] = n;
+            if (n.children?.length) walkMap(n.children);
+          }
+        };
+        walkMap(tree);
+        setIdToNode(map);
 
-        // Pre-select based on existing candidateGroupIds
+        // Pre-select exactly the candidate's existing groups
         if (Array.isArray(candidateGroupIds) && candidateGroupIds.length > 0) {
-          const childIdSet = new Set<number>();
-          const parentOf: Record<number, number> = {};
+          setSelectedGroupIds(candidateGroupIds);
+          // Expand roots by default and any ancestors of selected ids
+          const parentOf: Record<number, number | undefined> = {};
           const walk = (nodes: GroupNode[], parentId?: number) => {
             for (const n of nodes) {
-              if (parentId) parentOf[n.id] = parentId;
-              if (n.children && n.children.length) {
-                for (const c of n.children) childIdSet.add(c.id);
-                walk(n.children, n.id);
-              }
+              parentOf[n.id] = parentId;
+              if (n.children && n.children.length) walk(n.children, n.id);
             }
           };
           walk(tree);
-          // Pick first id; if it’s a child, set its parent; else treat as parent
-          const first = Number(candidateGroupIds[0]);
-          const parentId = parentOf[first] || first;
-          setSelectedParentId(String(parentId));
-          // Subgroups: any ids among candidateGroupIds that are children of selected parent
-          const parentNode = tree.find((g) => g.id === parentId);
-          const validChildIds = new Set<number>((parentNode?.children || []).map((c) => c.id));
-          const preSubs = candidateGroupIds.filter((id) => validChildIds.has(Number(id))).map(String);
-          setSelectedSubIds(preSubs);
-          setSubGroups((parentNode?.children || []).map((c) => ({ id: c.id, name: c.name })));
+          const expandSet = new Set<number>();
+          for (const id of candidateGroupIds) {
+            let cur = parentOf[id];
+            while (cur) { expandSet.add(cur); cur = parentOf[cur]; }
+          }
+          setExpandedMap((m) => ({ ...m, ...Object.fromEntries(Array.from(expandSet).map((id) => [id, true])) }));
         }
         if (mounted) {
           setForm({
@@ -158,13 +160,93 @@ export default function EditCandidatePage() {
     return () => { mounted = false; };
   }, [candidateId]);
 
-  // When parent changes, refresh subgroup options and clear selection
-  useEffect(() => {
-    const parent = groupTree.find((g) => g.id === Number(selectedParentId));
-    const children = parent?.children ?? [];
-    setSubGroups(children.map((c) => ({ id: c.id, name: c.name })));
-    setSelectedSubIds([]);
-  }, [selectedParentId, groupTree]);
+  // Helpers for hierarchical tree selection
+  const collectDescendants = (node: GroupNode): number[] => {
+    const ids: number[] = [];
+    (node.children || []).forEach((c) => {
+      ids.push(c.id, ...collectDescendants(c));
+    });
+    return ids;
+  };
+  const isNodeFullySelected = (node: GroupNode, list = selectedGroupIds) => {
+    const allIds = [node.id, ...collectDescendants(node)];
+    return allIds.every((id) => list.includes(id));
+  };
+  const isNodeIndeterminate = (node: GroupNode) => {
+    const desc = collectDescendants(node);
+    const anySelected = selectedGroupIds.includes(node.id) || desc.some((id) => selectedGroupIds.includes(id));
+    return anySelected && !isNodeFullySelected(node);
+  };
+  const normalizeSelection = (list: number[]) => {
+    const set = new Set(list);
+    const visit = (nodes: GroupNode[]) => {
+      for (const n of nodes) {
+        if (set.has(n.id) && !isNodeFullySelected(n, Array.from(set))) set.delete(n.id);
+        if (n.children?.length) visit(n.children);
+      }
+    };
+    visit(groupTree);
+    return Array.from(set);
+  };
+  const isChecked = (id: number) => {
+    const node = idToNode[id];
+    return node ? isNodeFullySelected(node) : selectedGroupIds.includes(id);
+  };
+  const toggleSelectNode = (node: GroupNode) => {
+    const allIds = [node.id, ...collectDescendants(node)];
+    setSelectedGroupIds((prev) => {
+      const currentlyAllSelected = isNodeFullySelected(node, prev);
+      const next = currentlyAllSelected
+        ? prev.filter((id) => !allIds.includes(id))
+        : Array.from(new Set([...prev, ...allIds]));
+      return normalizeSelection(next);
+    });
+  };
+
+  const toggleExpand = (id: number) =>
+    setExpandedMap((m) => ({ ...m, [id]: !m[id] }));
+
+  const TreeNode = ({ node, level }: { node: GroupNode; level: number }) => {
+    const hasChildren = (node.children || []).length > 0;
+    const expanded = expandedMap[node.id] ?? level < 1; // expand roots by default
+    const cbRef = useRef<HTMLInputElement>(null);
+    useEffect(() => {
+      if (cbRef.current) cbRef.current.indeterminate = isNodeIndeterminate(node);
+    }, [selectedGroupIds, node]);
+    return (
+      <div>
+        <div className="flex items-center gap-2 py-1" style={{ paddingLeft: level * 16 }}>
+          {hasChildren ? (
+            <button
+              type="button"
+              onClick={() => toggleExpand(node.id)}
+              className="h-5 w-5 flex items-center justify-center rounded hover:bg-gray-100 border border-gray-200 text-xs"
+              aria-label={expanded ? "Collapse" : "Expand"}
+            >
+              {expanded ? "-" : "+"}
+            </button>
+          ) : (
+            <span className="h-5 w-5" />
+          )}
+          <input
+            type="checkbox"
+            ref={cbRef}
+            checked={isChecked(node.id)}
+            onChange={() => toggleSelectNode(node)}
+            className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+          />
+          <span className="text-sm text-gray-800">{node.name}</span>
+        </div>
+        {hasChildren && expanded && (
+          <div>
+            {node.children!.map((c) => (
+              <TreeNode key={c.id} node={c} level={level + 1} />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -193,7 +275,7 @@ export default function EditCandidatePage() {
   };
 
   const validate = () => {
-    const chosenGroupIds = selectedSubIds.length > 0 ? selectedSubIds : (selectedParentId ? [selectedParentId] : []);
+  const chosenGroupIds = selectedGroupIds;
     if (!form.firstName.trim()) { toast.error("First name required"); return false; }
     if (!form.lastName.trim()) { toast.error("Last name required"); return false; }
     if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(form.email)) { toast.error("Valid email required"); return false; }
@@ -206,7 +288,7 @@ export default function EditCandidatePage() {
   const submit = async () => {
     if (!validate()) return;
     setSaving(true);
-    const chosenGroupIds = selectedSubIds.length > 0 ? selectedSubIds.map(Number) : (selectedParentId ? [Number(selectedParentId)] : []);
+  const chosenGroupIds = selectedGroupIds;
     const payload = {
       candidateId,
       firstName: form.firstName.trim(),
@@ -222,7 +304,8 @@ export default function EditCandidatePage() {
       notes: form.notes.trim(),
       isActive: form.isActive ? 1 : 0,
       companyId: Number(form.companyId),
-      candidateGroupIds: chosenGroupIds,
+  candidateGroupIds: chosenGroupIds,
+      modifiedBy: username || "system",
     };
     const res = await updateCandidateAction(payload);
     if (!res.error) {
@@ -426,49 +509,17 @@ export default function EditCandidatePage() {
           {/* --- Register Test Groups Section --- */}
           <div className="mt-8">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Register Test Groups</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Group</label>
-                <select
-                  aria-label="Candidate Group"
-                  name="parentGroup"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                  value={selectedParentId}
-                  onChange={(e) => setSelectedParentId(e.target.value)}
-                >
-                  <option value="">Select group</option>
-                  {parentGroups.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.name}
-                    </option>
-                  ))}
-                </select>
+            <div className="border border-gray-200 rounded-lg bg-white">
+              <div className="flex items-center justify-between px-3 py-2 border-b bg-gray-50 rounded-t-lg">
+                <div className="text-sm text-gray-700">Select one or more groups to register</div>
+                <div className="text-xs text-gray-500">Selected: {selectedGroupIds.length}</div>
               </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Subgroup(s)</label>
-                <select
-                  multiple
-                  aria-label="Candidate Subgroup"
-                  name="subGroup"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm h-32"
-                  value={selectedSubIds}
-                  disabled={!selectedParentId}
-                  onChange={(e) => {
-                    const opts = Array.from(e.target.selectedOptions).map((o) => o.value);
-                    setSelectedSubIds(opts);
-                  }}
-                >
-                  {selectedParentId ? null : (
-                    <option value="" disabled>
-                      Select a group first
-                    </option>
-                  )}
-                  {subGroups.map((sg) => (
-                    <option key={sg.id} value={sg.id}>
-                      {sg.name}
-                    </option>
-                  ))}
-                </select>
+              <div className="max-h-72 overflow-auto py-2">
+                {groupTree.length === 0 ? (
+                  <div className="px-4 py-8 text-sm text-gray-500">No groups available</div>
+                ) : (
+                  groupTree.map((n) => <TreeNode key={n.id} node={n} level={0} />)
+                )}
               </div>
             </div>
           </div>

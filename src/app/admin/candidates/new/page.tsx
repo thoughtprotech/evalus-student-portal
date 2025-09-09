@@ -12,6 +12,7 @@ import { fetchCandidatesAction } from "@/app/actions/admin/candidates";
 import { fetchRolesAction } from "@/app/actions/admin/roles";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
+import { useUser } from "@/contexts/UserContext";
 
 // Indian States (sample, add more as needed)
 const STATES = [
@@ -37,6 +38,7 @@ const ROLES1 = [
 ];
 
 export default function AddCandidatePage() {
+  const { username } = useUser();
   const inputCls = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition";
   const selectCls = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition";
   const textareaCls = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition";
@@ -83,6 +85,7 @@ export default function AddCandidatePage() {
   // Hierarchical selection state
   const [selectedGroupIds, setSelectedGroupIds] = useState<number[]>([]);
   const [expandedMap, setExpandedMap] = useState<Record<number, boolean>>({});
+  const [idToNode, setIdToNode] = useState<Record<number, GroupNode>>({});
   const [userPhotoPreview, setUserPhotoPreview] = useState<string | null>(null);
   const userPhotoInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -241,6 +244,8 @@ export default function AddCandidatePage() {
       notes: form.notes.trim(),
   companyId: form.companyId ? Number(form.companyId) : 0,
   candidateGroupIds: chosenGroupIds,
+  createdBy: username || "system",
+  modifiedBy: username || "system",
         isActive: form.isActive ? 1 : 0,
         userLogin: [
             {
@@ -287,6 +292,8 @@ export default function AddCandidatePage() {
       notes: form.notes.trim(),
   companyId: form.companyId ? Number(form.companyId) : 0,
   candidateGroupIds: chosenGroupIds,
+  createdBy: username || "system",
+  modifiedBy: username || "system",
         isActive: form.isActive ? 1 : 0,
         userLogin: [
             {
@@ -387,6 +394,16 @@ export default function AddCandidatePage() {
 
         const tree = Array.isArray(raw) ? norm(raw) : [];
         setGroupTree(tree);
+        // Build id->node map for fast lookups
+        const map: Record<number, GroupNode> = {};
+        const walk = (nodes: GroupNode[]) => {
+          for (const n of nodes) {
+            map[n.id] = n;
+            if (n.children?.length) walk(n.children);
+          }
+        };
+        walk(tree);
+        setIdToNode(map);
       } catch (e) {
         console.error("Init load failed", e);
       }
@@ -402,19 +419,48 @@ export default function AddCandidatePage() {
     return ids;
   };
 
-  const isChecked = (id: number) => selectedGroupIds.includes(id);
+  // Full selection: node and all descendants selected
+  const isNodeFullySelected = (node: GroupNode, list = selectedGroupIds) => {
+    const allIds = [node.id, ...collectDescendants(node)];
+    return allIds.every((id) => list.includes(id));
+  };
+
+  // Partial selection: some (self or descendants) selected, but not fully
+  const isNodeIndeterminate = (node: GroupNode) => {
+    const desc = collectDescendants(node);
+    const anySelected = selectedGroupIds.includes(node.id) || desc.some((id) => selectedGroupIds.includes(id));
+    return anySelected && !isNodeFullySelected(node);
+  };
+
+  // Remove any parent ids that are not fully selected given current list
+  const normalizeSelection = (list: number[]) => {
+    const set = new Set(list);
+    const visit = (nodes: GroupNode[]) => {
+      for (const n of nodes) {
+        if (set.has(n.id) && !isNodeFullySelected(n, Array.from(set))) {
+          set.delete(n.id);
+        }
+        if (n.children?.length) visit(n.children);
+      }
+    };
+    visit(groupTree);
+    return Array.from(set);
+  };
+
+  const isChecked = (id: number) => {
+    const node = idToNode[id];
+    return node ? isNodeFullySelected(node) : selectedGroupIds.includes(id);
+  };
 
   const toggleSelectNode = (node: GroupNode) => {
-    const descendants = collectDescendants(node);
-    const allIds = [node.id, ...descendants];
-    const currentlyAllSelected = allIds.every((id) => selectedGroupIds.includes(id));
-    if (currentlyAllSelected) {
-      // unselect node and all descendants
-      setSelectedGroupIds((prev) => prev.filter((id) => !allIds.includes(id)));
-    } else {
-      // select node and all descendants
-      setSelectedGroupIds((prev) => Array.from(new Set([...prev, ...allIds])));
-    }
+    const allIds = [node.id, ...collectDescendants(node)];
+    setSelectedGroupIds((prev) => {
+      const currentlyAllSelected = isNodeFullySelected(node, prev);
+      const next = currentlyAllSelected
+        ? prev.filter((id) => !allIds.includes(id))
+        : Array.from(new Set([...prev, ...allIds]));
+      return normalizeSelection(next);
+    });
   };
 
   const toggleExpand = (id: number) =>
@@ -423,6 +469,10 @@ export default function AddCandidatePage() {
   const TreeNode = ({ node, level }: { node: GroupNode; level: number }) => {
     const hasChildren = (node.children || []).length > 0;
     const expanded = expandedMap[node.id] ?? level < 1; // expand roots by default
+    const cbRef = useRef<HTMLInputElement>(null);
+    useEffect(() => {
+      if (cbRef.current) cbRef.current.indeterminate = isNodeIndeterminate(node);
+    }, [selectedGroupIds, node]);
     return (
       <div>
         <div className="flex items-center gap-2 py-1" style={{ paddingLeft: level * 16 }}>
@@ -440,6 +490,7 @@ export default function AddCandidatePage() {
           )}
           <input
             type="checkbox"
+            ref={cbRef}
             checked={isChecked(node.id)}
             onChange={() => toggleSelectNode(node)}
             className="h-4 w-4 text-indigo-600 border-gray-300 rounded"

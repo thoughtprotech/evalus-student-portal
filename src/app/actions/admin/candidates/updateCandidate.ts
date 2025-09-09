@@ -20,6 +20,8 @@ export interface CandidateUpdatePayload {
   isActive?: number; // 0|1
   companyId?: number;
   candidateGroupIds?: number[];
+  createdBy?: string;
+  modifiedBy?: string;
 }
 
 export async function fetchCandidateByIdAction(candidateId: number): Promise<ApiResponse<any>> {
@@ -33,7 +35,7 @@ export async function fetchCandidateByIdAction(candidateId: number): Promise<Api
 
 export async function updateCandidateAction(payload: CandidateUpdatePayload): Promise<ApiResponse<null>> {
   try {
-    const apiPayload = { ...payload };
+  const apiPayload = { ...payload };
     const res = await apiHandler(endpoints.updateCandidate, apiPayload as any);
     if (!res.error) {
       return { status: res.status, message: res.message || "Candidate updated", error: false, data: null };
