@@ -331,9 +331,13 @@ export const endpoints = {
   getAdminTests: {
     method: "GET",
     // query should include leading ?params already: e.g., ?$top=25&$skip=0...
-    path: ({ query }) =>
-      `/Odata/Tests${query ? (query.startsWith("?") ? query : `?${query}`) : ""
-      }`,
+    path: ({ query }) => {
+      const q = query ? (query.startsWith("?") ? query : `?${query}`) : "";
+      const hasOrder = typeof q === "string" && (/\$orderby=/i.test(q) || /%24orderby=/i.test(q));
+      const orderClause = "$orderby=CreatedDate desc";
+      const suffix = hasOrder ? "" : (q ? `&${orderClause}` : `?${orderClause}`);
+      return `/Odata/Tests${q}${suffix}`;
+    },
     type: "OPEN",
   } as Endpoint<
     import("./types").GetTestsODataRequest,

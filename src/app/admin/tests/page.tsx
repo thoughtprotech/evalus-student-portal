@@ -87,7 +87,7 @@ function TestStatusCellRenderer(props: { value?: string }) {
     c === 'published'
       ? 'bg-green-100 text-green-800'
       : c === 'new'
-      ? 'bg-sky-100 text-sky-800'
+      ? 'bg-red-100 text-red-800'
       : c === 'on hold' || c === 'onhold'
       ? 'bg-amber-100 text-amber-800'
       : c === 'cancelled' || c === 'canceled'
@@ -287,13 +287,13 @@ function TestsGrid({
       candidates: "TestAssignments@odata.count",
       category: "TestCategory/TestCategoryName",
       template: "TestTemplate/TestTemplateName",
-  code: "TestCode",
-  testStatus: "TestStatus",
+      code: "TestCode",
+      testStatus: "TestStatus",
     };
-    // Default order: latest modified/created first
+    // Default order: latest created first
     const orderBy = sort
-      ? `${fieldMap[sort.colId] ?? "ModifiedDate"} ${sort.sort}`
-      : "ModifiedDate desc";
+      ? `${fieldMap[sort.colId] ?? "CreatedDate"} ${sort.sort}`
+      : "CreatedDate desc";
     const filters: string[] = [];
     const search = (query ?? "").trim();
     if (search)

@@ -312,30 +312,14 @@ export default function TestSteps({
     const runSave = async () => {
       if (saving) return;
       // Validate final steps before save with feedback
-      // Step 1: when on Step 1, use its inline validator to show field errors; otherwise, validate from draft to avoid stale closures
-      if (current === 0) {
-        if (step1ValidatorRef.current && !step1ValidatorRef.current()) {
-          setToast({ message: "Please complete required fields in Step 1 (Test Details).", type: "error" });
-          return;
-        }
-      } else {
-        const d: any = draft ?? {};
-        const assigned = Array.isArray(d?.TestAssignedInstructions) ? d.TestAssignedInstructions[0] : null;
-        const toNum = (v: any) => (v === null || v === undefined || v === "" ? 0 : Number(v));
-        const isNonEmpty = (v: any) => typeof v === "string" ? v.trim().length > 0 : v !== null && v !== undefined;
-        const validStep1 =
-          isNonEmpty(d?.TestName) &&
-          toNum(d?.TestTypeId) > 0 &&
-          toNum(d?.TestCategoryId) > 0 &&
-          toNum(d?.TestDifficultyLevelId) > 0 &&
-          toNum(assigned?.TestPrimaryInstructionId) > 0 &&
-          toNum(d?.TestDurationMinutes) > 0 &&
-          toNum(d?.TotalQuestions) > 0 &&
-          toNum(d?.TotalMarks) > 0;
-        if (!validStep1) {
-          setToast({ message: "Please complete required fields in Step 1 (Test Details).", type: "error" });
-          return;
-        }
+      // Always use step validators to ensure proper validation and error display
+      if (step1ValidatorRef.current && !step1ValidatorRef.current()) {
+        setToast({ message: "Please complete required fields in Step 1 (Test Details).", type: "error" });
+        return;
+      }
+      if (step3ValidatorRef.current && !step3ValidatorRef.current()) {
+        setToast({ message: "Please resolve validation issues in Step 3 (Add Questions).", type: "error" });
+        return;
       }
       if (step4ValidatorRef.current && !step4ValidatorRef.current()) {
         setToast({ message: "Please resolve validation issues in Step 4 (Publish).", type: "error" });
@@ -347,10 +331,111 @@ export default function TestSteps({
       }
       try {
         setSaving(true);
-        // Build payload from draft
-        const rows: any[] = Array.isArray((draft as any)?.testQuestions)
-          ? (draft as any).testQuestions
-          : [];
+        
+        // Debug: Log the entire draft at the start of save
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('[Save] Complete draft at save start:', JSON.stringify(draft, null, 2));
+        }
+        
+        // --- Recompute authoritative totals & section aggregates (even if user never visited Step 3 in edit mode) ---
+        const rows: any[] = Array.isArray((draft as any)?.testQuestions) ? (draft as any).testQuestions : [];
+        const recomputedTotalQuestions = rows.length;
+        const recomputedTotalMarks = rows.reduce((sum: number, q: any) => {
+          const v = q?.Marks === "" ? 0 : (q?.Marks ?? 0);
+          return sum + (Number(v) || 0);
+        }, 0);
+        // Section stats
+        const sectionStats = new Map<number, { q: number; m: number }>();
+        for (const q of rows) {
+          const sid = Number(q?.TestSectionId ?? q?.TestAssignedSectionId ?? q?.testAssignedSectionId);
+          if (!Number.isFinite(sid) || sid <= 0) continue;
+          const marks = Number(q?.Marks === "" ? 0 : (q?.Marks ?? 0)) || 0;
+          const rec = sectionStats.get(sid) || { q: 0, m: 0 };
+          rec.q += 1; rec.m += marks; sectionStats.set(sid, rec);
+        }
+        // Get assigned sections directly from draft (skip normalization for now to debug)
+        let finalAssigned: any[] = [];
+        const draftSections = Array.isArray((draft as any)?.TestAssignedSections) ? (draft as any).TestAssignedSections : [];
+        
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('[Save] Draft sections (before any processing):', JSON.stringify(draftSections, null, 2));
+        }
+        
+        if (draftSections.length > 0) {
+          // Use draft sections directly, convert PascalCase to camelCase for API
+          finalAssigned = draftSections.map((r: any) => ({
+            ...r,
+            TestAssignedSectionId: r.TestAssignedSectionId ?? r.testAssignedSectionId ?? r.TestSectionId,
+            // Convert to camelCase property names for API
+            sectionMinTimeDuration: r.SectionMinTimeDuration ?? r.sectionMinTimeDuration,
+            sectionMaxTimeDuration: r.SectionMaxTimeDuration ?? r.sectionMaxTimeDuration,
+          }));
+        }
+        
+        // Temporarily disable normalization to debug
+        /*
+        try {
+          // dynamic import only if utility exists
+          const mod = await import("@/utils/normalizeAssignedSections");
+          
+          // Debug: Log draft data before normalization
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('[Save] Draft before normalization:', JSON.stringify((draft as any)?.TestAssignedSections, null, 2));
+          }
+          
+          const normalized = mod.normalizeAssignedSections(draft || {});
+          
+          // Debug: Log normalized result
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('[Save] Normalized result:', JSON.stringify(normalized, null, 2));
+          }
+          
+          if (normalized.length) {
+            finalAssigned = normalized.map(r => ({ ...r }));
+          }
+        } catch { // noop //
+        }
+        */
+  // Do NOT synthesize assigned sections from questions; only update existing selections made in Step 1.
+        // Apply stats to assigned sections (dedup again just in case)
+        if (finalAssigned.length > 0) {
+          const seen = new Map<number, any>();
+          for (const r of finalAssigned) {
+            const sid = Number(r?.TestAssignedSectionId ?? r?.TestSectionId);
+            if (!Number.isFinite(sid) || sid <= 0) continue;
+            if (!seen.has(sid)) seen.set(sid, { ...r }); // first wins
+          }
+          finalAssigned = Array.from(seen.values());
+          finalAssigned.sort((a,b)=>(a.SectionOrder||0)-(b.SectionOrder||0));
+          finalAssigned.forEach((r,i)=>{ r.SectionOrder = i+1; });
+          for (const row of finalAssigned) {
+            const sid = Number(row.TestAssignedSectionId ?? row.TestSectionId);
+            const stats = sectionStats.get(sid) || { q: 0, m: 0 };
+            row.SectionTotalQuestions = stats.q;
+            row.SectionTotalMarks = stats.m;
+            // Ensure canonical id present
+            row.TestAssignedSectionId = sid;
+            
+            // Debug logging for time values
+            if (process.env.NODE_ENV !== 'production') {
+              console.log(`[Save] Section ${sid} time values:`, {
+                SectionMinTimeDuration: row.SectionMinTimeDuration,
+                SectionMaxTimeDuration: row.SectionMaxTimeDuration,
+                SectionMinTime: row.SectionMinTime,
+                SectionMaxTime: row.SectionMaxTime
+              });
+            }
+            
+            // Preserve existing per-section min/max time values (do not override if user set them in Step1)
+            if (row.SectionMinTimeDuration === undefined && row.SectionMinTime !== undefined) {
+              row.SectionMinTimeDuration = row.SectionMinTime;
+            }
+            if (row.SectionMaxTimeDuration === undefined && row.SectionMaxTime !== undefined) {
+              row.SectionMaxTimeDuration = row.SectionMaxTime;
+            }
+          }
+        }
+        // Build payload from draft (after recomputation)
   const toNum = (v: any) => (v === null || v === undefined || v === "" ? null : Number(v));
         const testQuestions = rows.map((r: any, idx: number) => ({
           TestQuestionId: toNum(
@@ -416,6 +501,14 @@ export default function TestSteps({
         // Compose payload
         const payload: any = {
           ...draft,
+          // Preserve user-entered totals; only fill if missing or zero.
+          TotalQuestions: (draft as any)?.TotalQuestions && Number((draft as any).TotalQuestions) > 0
+            ? (draft as any).TotalQuestions
+            : recomputedTotalQuestions,
+          TotalMarks: (draft as any)?.TotalMarks && Number((draft as any).TotalMarks) > 0
+            ? (draft as any).TotalMarks
+            : recomputedTotalMarks,
+          ...(finalAssigned.length ? { TestAssignedSections: finalAssigned } : {}),
           TestStatus:
             String((draft as any)?.TestStatus || "New").toLowerCase() === "published"
               ? "Published"
@@ -426,6 +519,12 @@ export default function TestSteps({
           SelectedCandidateGroupIds: Array.isArray((draft as any)?.SelectedCandidateGroupIds) ? (draft as any).SelectedCandidateGroupIds : [],
           SelectedProductIds: Array.isArray((draft as any)?.SelectedProductIds) ? (draft as any).SelectedProductIds : [],
         };
+        
+        // Debug logging for TestAssignedSections
+        if (process.env.NODE_ENV !== 'production' && finalAssigned.length > 0) {
+          console.log('[Save] TestAssignedSections being sent:', JSON.stringify(finalAssigned, null, 2));
+          console.log('[Save] Payload TestAssignedSections:', JSON.stringify(payload.TestAssignedSections, null, 2));
+        }
         // Ensure TestCode is always present (fallback if Step 1 sync was missed)
         if (!payload.TestCode) {
           try {
