@@ -21,7 +21,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 function NameCellRenderer(props: { value: string; data: ProductDto }) {
   return (
-    <Link className="text-green-600 hover:underline" href={`/admin/products/${props.data.productId}`} title={`Edit ${props.value}`}>{props.value}</Link>
+  <Link className="text-blue-600 hover:underline" href={`/admin/products/${props.data.productId}`} title={`Edit ${props.value}`}>{props.value}</Link>
   );
 }
 
