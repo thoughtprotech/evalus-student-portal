@@ -129,6 +129,21 @@ function normalizeTestToDraft(test: any): any {
     })
     .filter((x) => x.TestQuestionId > 0);
 
+  // TestAssignedSections mapping (Step 1) - handle both PascalCase and camelCase variants
+  const sections = Array.isArray(src.TestAssignedSections ?? src.testAssignedSections)
+    ? (src.TestAssignedSections ?? src.testAssignedSections)
+    : [];
+  d.TestAssignedSections = sections.map((s: any) => ({
+    TestAssignedSectionId: s.TestAssignedSectionId ?? s.testAssignedSectionId ?? null,
+    TestSectionId: s.TestSectionId ?? s.testSectionId ?? null,
+    TestId: s.TestId ?? s.testId ?? d.TestId ?? null,
+    SectionOrder: s.SectionOrder ?? s.sectionOrder ?? null,
+    SectionMinTimeDuration: s.SectionMinTimeDuration ?? s.sectionMinTimeDuration ?? null,
+    SectionMaxTimeDuration: s.SectionMaxTimeDuration ?? s.sectionMaxTimeDuration ?? null,
+    // Include any other fields that might be present
+    ...s,
+  }));
+
   // Derive totals for Step 1 pre-population only if not provided by API
   if (!("TotalQuestions" in d) || d.TotalQuestions == null) {
     d.TotalQuestions = Array.isArray(d.testQuestions) ? d.testQuestions.length : 0;

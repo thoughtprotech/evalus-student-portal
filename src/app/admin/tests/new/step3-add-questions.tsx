@@ -6,6 +6,7 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTestDraft } from "@/contexts/TestDraftContext";
+import { normalizeAssignedSections, assignedSectionsDiffer } from "@/utils/normalizeAssignedSections";
 import { MousePointerClick, FilePlus2, MinusCircle, FileInput } from "lucide-react";
 import PaginationControls from "@/components/PaginationControls";
 import { apiHandler } from "@/utils/api/client";
@@ -18,6 +19,16 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
   const router = useRouter();
   const search = useSearchParams();
   const { draft, setDraft } = useTestDraft();
+  // Normalize legacy / variant section arrays once on mount & when draft changes
+  useEffect(() => {
+    if (!draft) return;
+    const normalized = normalizeAssignedSections(draft);
+  if (normalized.length === 0) return;
+    const existing = Array.isArray((draft as any).TestAssignedSections) ? (draft as any).TestAssignedSections : [];
+    if (assignedSectionsDiffer(existing, normalized)) {
+      setDraft((d) => ({ ...d, TestAssignedSections: normalized }));
+    }
+  }, [draft, setDraft]);
 
   const [selectedCount, setSelectedCount] = useState<number>(0);
   const [selectionFromBank, setSelectionFromBank] = useState(false);
@@ -49,13 +60,20 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
     (async () => {
       try {
         const res = await apiHandler(endpoints.getTestSectionsOData, null as any);
-        const list = Array.isArray(res?.data?.value) ? res.data.value : [];
-        setSections(list as TestSection[]);
+        const list = Array.isArray(res?.data?.value) ? res.data.value as TestSection[] : [];
+        // If Step1 limited sections via TestAssignedSections, filter
+  const assigned = Array.isArray((draft as any)?.TestAssignedSections) ? (draft as any).TestAssignedSections : [];
+  const allowedIds = assigned.map((s: any) => Number(s?.TestAssignedSectionId ?? s?.TestSectionId)).filter((n: any) => Number.isFinite(n));
+        if (allowedIds.length > 0) {
+          setSections(list.filter(s => allowedIds.includes(Number(s.TestSectionId))));
+        } else {
+          setSections(list);
+        }
       } catch {
         setSections([]);
       }
     })();
-  }, []);
+  }, [draft?.TestAssignedSections]);
 
   // Ingest session selection once when returning from Select Questions
   useEffect(() => {
@@ -207,21 +225,43 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
     registerValidator(fn);
   }, [invalidMap, registerValidator]);
 
-  // Recalculate totals when questions change (keeps Step 1 totals consistent)
+  // NOTE: Intentionally NOT auto-updating draft.TotalQuestions / draft.TotalMarks here.
+  // Step 1 totals are user-entered business values and must remain stable even if questions are removed/added in Step 3.
+  // (Previous auto-sync removed per new requirement.)
+
+  // Aggregate per-section counts & marks into TestAssignedSections (Step1 display) with dedup
   useEffect(() => {
     setDraft((d) => {
       const qs: any[] = Array.isArray(d.testQuestions) ? d.testQuestions : [];
-      const totalQ = qs.length;
-      const totalMarks = qs.reduce((sum, q) => {
-        const v = q?.Marks === "" ? 0 : (q?.Marks ?? 0);
-        return sum + (Number(v) || 0);
-      }, 0);
-      // Avoid unnecessary state updates
-      if (d.TotalQuestions === totalQ && d.TotalMarks === totalMarks) return d;
-      return { ...d, TotalQuestions: totalQ, TotalMarks: totalMarks };
+      const rawAssigned: any[] = Array.isArray((d as any).TestAssignedSections) ? (d as any).TestAssignedSections : [];
+      // Dedup
+      const mapAssigned = new Map<number, any>();
+      for (const r of rawAssigned) { const id = Number(r?.TestSectionId); if (Number.isFinite(id) && !mapAssigned.has(id)) mapAssigned.set(id, { ...r }); }
+      const assigned: any[] = Array.from(mapAssigned.values());
+      assigned.sort((a: any,b: any)=>(a.SectionOrder||0)-(b.SectionOrder||0));
+      assigned.forEach((r: any,i: number)=>{ r.SectionOrder = i+1; });
+      if (assigned.length === 0) return d; // nothing to update
+      const stats = new Map<number, { q: number; m: number }>();
+      for (const q of qs) {
+        const sid = Number(q?.TestSectionId);
+        if (!Number.isFinite(sid)) continue;
+        const marks = Number(q?.Marks === "" ? 0 : (q?.Marks ?? 0)) || 0;
+        const rec = stats.get(sid) || { q: 0, m: 0 };
+        rec.q += 1;
+        rec.m += marks;
+        stats.set(sid, rec);
+      }
+      let changed = false;
+      for (const row of assigned) {
+        const sid = Number(row?.TestSectionId);
+        const rec = stats.get(sid) || { q: 0, m: 0 };
+        if (row.SectionTotalQuestions !== rec.q) { row.SectionTotalQuestions = rec.q; changed = true; }
+        if (row.SectionTotalMarks !== rec.m) { row.SectionTotalMarks = rec.m; changed = true; }
+      }
+      if (!changed && assigned.length === rawAssigned.length) return d;
+      return { ...d, TestAssignedSections: assigned };
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows]);
+  }, [rows, setDraft]);
 
   const applyAssignSection = () => {
     if (!assignFrom || !assignTo || !assignSectionId) return;

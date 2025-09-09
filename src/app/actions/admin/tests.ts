@@ -78,7 +78,7 @@ function buildQuery(params: FetchTestsParams): string {
     "TestTemplate($select=TestTemplateName)",
   ];
   searchParams.set("$expand", expandParts.join(","));
-  searchParams.set("$select", "TestId,TestCode,TestName,TestStartDate,TestEndDate,IsActive,TestStatus");
+  searchParams.set("$select", "TestId,TestCode,TestName,TestStartDate,TestEndDate,IsActive,TestStatus,CreatedDate");
   searchParams.set("$count", "true");
   if (typeof params.top === "number") searchParams.set("$top", String(params.top));
   if (typeof params.skip === "number") searchParams.set("$skip", String(params.skip));
@@ -104,7 +104,7 @@ function mapToRows(items: ODataTestItem[]): TestRow[] {
       startDate: start,
       endDate: end,
       status: isActiveBool,
-  testStatus: (it as any).TestStatus ?? undefined,
+      testStatus: (it as any).TestStatus ?? undefined,
       questions: typeof qCount === "number" ? qCount : undefined,
       level: it.TestDifficultyLevel?.TestDifficultyLevel1,
       candidates: typeof candCount === "number" ? candCount : undefined,
