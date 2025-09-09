@@ -106,6 +106,14 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<{ candidateId: number } & any, null>,
 
+  // Delete candidate
+  deleteCandidate: {
+    method: "DELETE",
+    path: ({ candidateId }: { candidateId: number }) =>
+      `/api/CandidateRegistration/${candidateId}`,
+    type: "CLOSE",
+  } as Endpoint<{ candidateId: number }, null>,
+
   // Update existing question
   updateQuestion: {
     method: "PUT",
