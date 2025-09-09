@@ -10,6 +10,8 @@ import { createCandidateAction } from "@/app/actions/dashboard/candidates/create
 import { fetchCompaniesAction } from "@/app/actions/admin/companies";
 import { fetchCandidatesAction } from "@/app/actions/admin/candidates";
 import { fetchRolesAction } from "@/app/actions/admin/roles";
+import { apiHandler } from "@/utils/api/client";
+import { endpoints } from "@/utils/api/endpoints";
 
 // Indian States (sample, add more as needed)
 const STATES = [
@@ -75,7 +77,13 @@ export default function AddCandidatePage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [companies, setCompanies] = useState<{ id: number; name: string }[]>([]);
   const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
-  const [groups, setGroups] = useState<{id:number; name:string}[]>([]);
+  // Candidate Groups hierarchy (parent -> child)
+  type GroupNode = { id: number; name: string; children?: GroupNode[] };
+  const [groupTree, setGroupTree] = useState<GroupNode[]>([]);
+  const [parentGroups, setParentGroups] = useState<{ id: number; name: string }[]>([]);
+  const [subGroups, setSubGroups] = useState<{ id: number; name: string }[]>([]);
+  const [selectedParentId, setSelectedParentId] = useState<string>("");
+  const [selectedSubIds, setSelectedSubIds] = useState<string[]>([]);
   const [userPhotoPreview, setUserPhotoPreview] = useState<string | null>(null);
   const userPhotoInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -216,6 +224,14 @@ export default function AddCandidatePage() {
 
     setIsSaving(true);
 
+    // Prefer selected subgroups (multi) if chosen; otherwise use the parent
+    const chosenGroupIds =
+      selectedSubIds.length > 0
+        ? selectedSubIds.map((s) => Number(s))
+        : selectedParentId
+        ? [Number(selectedParentId)]
+        : [];
+
     // Prepare payload (adjust as per your API)
     const payload = {
       firstName: form.firstName.trim(),
@@ -229,8 +245,8 @@ export default function AddCandidatePage() {
       postalCode: form.postalCode.trim(),
       country: form.country.trim(),
       notes: form.notes.trim(),
-      companyId: form.companyId ? Number(form.companyId) : 0,
-      candidateGroupIds: form.candidateGroupIds.map((id) => Number(id)),
+  companyId: form.companyId ? Number(form.companyId) : 0,
+  candidateGroupIds: chosenGroupIds,
         isActive: form.isActive ? 1 : 0,
         userLogin: [
             {
@@ -261,6 +277,13 @@ export default function AddCandidatePage() {
 
     setIsSaving(true);
 
+    const chosenGroupIds =
+      selectedSubIds.length > 0
+        ? selectedSubIds.map((s) => Number(s))
+        : selectedParentId
+        ? [Number(selectedParentId)]
+        : [];
+
     const payload = {
       firstName: form.firstName.trim(),
       lastName: form.lastName.trim(),
@@ -273,8 +296,8 @@ export default function AddCandidatePage() {
       postalCode: form.postalCode.trim(),
       country: form.country.trim(),
       notes: form.notes.trim(),
-      companyId: form.companyId ? Number(form.companyId) : 0,
-      candidateGroupIds: form.candidateGroupIds.map((id) => Number(id)),
+  companyId: form.companyId ? Number(form.companyId) : 0,
+  candidateGroupIds: chosenGroupIds,
         isActive: form.isActive ? 1 : 0,
         userLogin: [
             {
@@ -318,42 +341,78 @@ export default function AddCandidatePage() {
               }
           ]
       });
+  // Reset group/subgroup selections
+  setSelectedParentId("");
+  setSelectedSubIds([]);
     } else {
       toast.error(errorMessage || "Failed to create candidate");
     }
     setIsSaving(false);
   };
 
+  // Load companies, roles and candidate group hierarchy
   useEffect(() => {
     (async () => {
       try {
-        const [compRes, candRes,rolesRes] = await Promise.all([
+        const [compRes, rolesRes, groupRes] = await Promise.all([
           fetchCompaniesAction({ top: 100, skip: 0 }),
-            fetchCandidatesAction({ top: 200, skip: 0 }),
-            fetchRolesAction({ top: 200, skip: 0 })
+          fetchRolesAction({ top: 200, skip: 0 }),
+          apiHandler(endpoints.getCandidateGroupTreeOData, null as any),
         ]);
-        if (compRes.data?.rows) {
-          setCompanies(compRes.data.rows.map(r => ({ id: r.id, name: r.companyName })));
-          }
 
-          if (rolesRes.data?.rows) {    
-              setRoles(rolesRes.data.rows.map((r:any) => ({ id: r.name, name: r.name })));
-          }
-        // Derive groups placeholder (unique candidateGroup values)
-        if (candRes.data?.rows) {
-          const map = new Map<string, number>();
-          candRes.data.rows.forEach((r:any) => {
-            if (r.candidateGroup && !map.has(r.candidateGroup)) {
-              map.set(r.candidateGroup, map.size + 1);
-            }
-          });
-          setGroups(Array.from(map.entries()).map(([name, id]) => ({ id, name })));
+        if (compRes.data?.rows) {
+          setCompanies(compRes.data.rows.map((r) => ({ id: r.id, name: r.companyName })));
         }
+        if (rolesRes.data?.rows) {
+          setRoles(rolesRes.data.rows.map((r: any) => ({ id: r.name, name: r.name })));
+        }
+
+        // Normalize group tree response to { id, name, children[] }
+        const raw = (groupRes?.data as any)?.value ?? groupRes?.data ?? [];
+        const pickChildren = (n: any): any[] => {
+          const candidates = [
+            n?.children,
+            n?.Children,
+            n?.childrens,
+            n?.ChildNodes,
+            n?.Items,
+            n?.Nodes,
+            n?.Groups,
+            n?.Subgroups,
+          ];
+          for (const c of candidates) if (Array.isArray(c)) return c;
+          return [];
+        };
+        const norm = (nodes: any[]): GroupNode[] =>
+          (nodes || [])
+            .map((n) => {
+              const id = Number(
+                n?.CandidateGroupId ?? n?.candidateGroupId ?? n?.CandidateGroupID ?? n?.GroupId ?? n?.GroupID ?? n?.Id ?? n?.id
+              );
+              const name =
+                n?.GroupName ?? n?.CandidateGroupName ?? n?.name ?? n?.Group ?? n?.Name ?? n?.Title ?? n?.Label ??
+                (Number.isFinite(id) ? `Group ${id}` : "Group");
+              if (!Number.isFinite(id)) return null;
+              return { id, name: String(name), children: norm(pickChildren(n)) } as GroupNode;
+            })
+            .filter(Boolean) as GroupNode[];
+
+        const tree = Array.isArray(raw) ? norm(raw) : [];
+        setGroupTree(tree);
+        setParentGroups(tree.map((g) => ({ id: g.id, name: g.name })));
       } catch (e) {
-        console.error('Init load failed', e);
+        console.error("Init load failed", e);
       }
     })();
   }, []);
+
+  // When parent group changes, refresh subgroups and clear selected subs
+  useEffect(() => {
+    const parent = groupTree.find((g) => g.id === Number(selectedParentId));
+    const children = parent?.children ?? [];
+    setSubGroups(children.map((c) => ({ id: c.id, name: c.name })));
+    setSelectedSubIds([]);
+  }, [selectedParentId, groupTree]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -511,25 +570,8 @@ export default function AddCandidatePage() {
                 </select>
               </div>
             </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1">
-                  Candidate Groups (multi-select)
-                </label>
-                <select
-                  multiple
-                  name="candidateGroupIds"
-                  aria-label="Candidate Groups"
-                  className={`w-full h-32 border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition`}
-                  value={form.candidateGroupIds}
-                  onChange={(e) => {
-                    const options = Array.from(e.target.selectedOptions).map(o => o.value);
-                    setForm(prev => ({ ...prev, candidateGroupIds: options }));
-                  }}
-                >
-                  {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-                </select>
-              </div>
               <div className="flex items-center gap-2 pt-6">
                 <input
                   id="isActive"
@@ -540,6 +582,7 @@ export default function AddCandidatePage() {
                 />
                 <label htmlFor="isActive" className="text-sm text-gray-800">Active</label>
               </div>
+              <div></div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-800 mb-1">
@@ -724,6 +767,57 @@ export default function AddCandidatePage() {
               </div>
             </div>
             {/* --- End User Login Section --- */}
+
+            {/* --- Register Test Groups Section --- */}
+            <div className="mt-8">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Register Test Groups</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Group</label>
+                  <select
+                    aria-label="Candidate Group"
+                    name="parentGroup"
+                    className={selectCls}
+                    value={selectedParentId}
+                    onChange={(e) => setSelectedParentId(e.target.value)}
+                  >
+                    <option value="">Select group</option>
+                    {parentGroups.map((g) => (
+                      <option key={g.id} value={g.id}>
+                        {g.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Subgroup(s)</label>
+                  <select
+                    multiple
+                    aria-label="Candidate Subgroup"
+                    name="subGroup"
+                    className={`w-full h-32 border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition`}
+                    value={selectedSubIds}
+                    disabled={!selectedParentId}
+                    onChange={(e) => {
+                      const opts = Array.from(e.target.selectedOptions).map((o) => o.value);
+                      setSelectedSubIds(opts);
+                    }}
+                  >
+                    {selectedParentId ? null : (
+                      <option value="" disabled>
+                        Select a group first
+                      </option>
+                    )}
+                    {subGroups.map((sg) => (
+                      <option key={sg.id} value={sg.id}>
+                        {sg.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+            {/* --- End Register Test Groups Section --- */}
 
             {/* Bottom action buttons removed as per requirement (only header actions retained) */}
           </form>

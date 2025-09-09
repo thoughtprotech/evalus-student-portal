@@ -8,10 +8,12 @@ import { ArrowLeft, Save } from "lucide-react";
 import EditPageLoader from "@/components/EditPageLoader";
 import { fetchCandidateByIdAction, updateCandidateAction } from "@/app/actions/admin/candidates/updateCandidate";
 import { fetchCompaniesAction } from "@/app/actions/admin/companies";
-import { fetchCandidatesAction } from "@/app/actions/admin/candidates";
+import { apiHandler } from "@/utils/api/client";
+import { endpoints } from "@/utils/api/endpoints";
 
 interface CompanyOption { id: number; name: string; }
 interface GroupOption { id: number; name: string; }
+type GroupNode = { id: number; name: string; children?: GroupNode[] };
 
 // Add this to your list of roles (replace with your actual roles if needed)
 const ROLES = [
@@ -27,7 +29,12 @@ export default function EditCandidatePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [companies, setCompanies] = useState<CompanyOption[]>([]);
-  const [groups, setGroups] = useState<GroupOption[]>([]);
+  // Group tree + selections for Register Test Groups
+  const [groupTree, setGroupTree] = useState<GroupNode[]>([]);
+  const [parentGroups, setParentGroups] = useState<GroupOption[]>([]);
+  const [subGroups, setSubGroups] = useState<GroupOption[]>([]);
+  const [selectedParentId, setSelectedParentId] = useState<string>("");
+  const [selectedSubIds, setSelectedSubIds] = useState<string[]>([]);
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -54,14 +61,15 @@ export default function EditCandidatePage() {
   const [userPhotoPreview, setUserPhotoPreview] = useState<string | null>(null);
   const userPhotoInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch candidate details + companies + groups
+  // Fetch candidate details + companies + group tree
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const [candRes, compRes] = await Promise.all([
+        const [candRes, compRes, groupRes] = await Promise.all([
           fetchCandidateByIdAction(candidateId),
           fetchCompaniesAction({ top: 100, skip: 0 }),
+          apiHandler(endpoints.getCandidateGroupTreeOData, null as any),
         ]);
         if (candRes.error) throw new Error(candRes.errorMessage || candRes.message);
         const c = candRes.data;
@@ -70,16 +78,51 @@ export default function EditCandidatePage() {
         if (compRes.data?.rows) {
           setCompanies(compRes.data.rows.map(r => ({ id: r.id, name: r.companyName })));
         }
-        // TEMP: derive groups from all candidates until dedicated endpoint
-        const groupsSet = new Map<number, string>();
-        const allCand = await fetchCandidatesAction({ top: 200, skip: 0 });
-        if (allCand.data?.rows) {
-          allCand.data.rows.forEach(row => {
-            if ((row as any).candidateGroup && !(row as any).candidateGroupId) return; // skip if no id
-          });
+        // Normalize group tree response
+        const raw = (groupRes?.data as any)?.value ?? groupRes?.data ?? [];
+        const pickChildren = (n: any): any[] => {
+          const candidates = [n?.children, n?.Children, n?.childrens, n?.ChildNodes, n?.Items, n?.Nodes, n?.Groups, n?.Subgroups];
+          for (const c of candidates) if (Array.isArray(c)) return c;
+          return [];
+        };
+        const norm = (nodes: any[]): GroupNode[] =>
+          (nodes || [])
+            .map((n) => {
+              const id = Number(n?.CandidateGroupId ?? n?.candidateGroupId ?? n?.CandidateGroupID ?? n?.GroupId ?? n?.GroupID ?? n?.Id ?? n?.id);
+              const name = n?.GroupName ?? n?.CandidateGroupName ?? n?.name ?? n?.Group ?? n?.Name ?? n?.Title ?? n?.Label ?? (Number.isFinite(id) ? `Group ${id}` : "Group");
+              if (!Number.isFinite(id)) return null;
+              return { id, name: String(name), children: norm(pickChildren(n)) } as GroupNode;
+            })
+            .filter(Boolean) as GroupNode[];
+        const tree = Array.isArray(raw) ? norm(raw) : [];
+        setGroupTree(tree);
+        setParentGroups(tree.map((g) => ({ id: g.id, name: g.name })));
+
+        // Pre-select based on existing candidateGroupIds
+        if (Array.isArray(candidateGroupIds) && candidateGroupIds.length > 0) {
+          const childIdSet = new Set<number>();
+          const parentOf: Record<number, number> = {};
+          const walk = (nodes: GroupNode[], parentId?: number) => {
+            for (const n of nodes) {
+              if (parentId) parentOf[n.id] = parentId;
+              if (n.children && n.children.length) {
+                for (const c of n.children) childIdSet.add(c.id);
+                walk(n.children, n.id);
+              }
+            }
+          };
+          walk(tree);
+          // Pick first id; if it’s a child, set its parent; else treat as parent
+          const first = Number(candidateGroupIds[0]);
+          const parentId = parentOf[first] || first;
+          setSelectedParentId(String(parentId));
+          // Subgroups: any ids among candidateGroupIds that are children of selected parent
+          const parentNode = tree.find((g) => g.id === parentId);
+          const validChildIds = new Set<number>((parentNode?.children || []).map((c) => c.id));
+          const preSubs = candidateGroupIds.filter((id) => validChildIds.has(Number(id))).map(String);
+          setSelectedSubIds(preSubs);
+          setSubGroups((parentNode?.children || []).map((c) => ({ id: c.id, name: c.name })));
         }
-        // Placeholder groups (replace with real endpoint later)
-        setGroups(candidateGroupIds.map(id => ({ id, name: `Group ${id}` })));
         if (mounted) {
           setForm({
             firstName: c.firstName || "",
@@ -94,7 +137,7 @@ export default function EditCandidatePage() {
             country: c.country || "",
             notes: c.notes || "",
             companyId: c.companyId ? String(c.companyId) : "",
-            candidateGroupIds: candidateGroupIds.map(String),
+            candidateGroupIds: [],
             isActive: c.isActive === 1 || c.isActive === true,
           });
           // Load userLogin fields from candidate data if available
@@ -114,6 +157,14 @@ export default function EditCandidatePage() {
     })();
     return () => { mounted = false; };
   }, [candidateId]);
+
+  // When parent changes, refresh subgroup options and clear selection
+  useEffect(() => {
+    const parent = groupTree.find((g) => g.id === Number(selectedParentId));
+    const children = parent?.children ?? [];
+    setSubGroups(children.map((c) => ({ id: c.id, name: c.name })));
+    setSelectedSubIds([]);
+  }, [selectedParentId, groupTree]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -142,18 +193,20 @@ export default function EditCandidatePage() {
   };
 
   const validate = () => {
+    const chosenGroupIds = selectedSubIds.length > 0 ? selectedSubIds : (selectedParentId ? [selectedParentId] : []);
     if (!form.firstName.trim()) { toast.error("First name required"); return false; }
     if (!form.lastName.trim()) { toast.error("Last name required"); return false; }
     if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(form.email)) { toast.error("Valid email required"); return false; }
     if (!form.phoneNumber.trim()) { toast.error("Phone required"); return false; }
     if (!form.companyId) { toast.error("Company required"); return false; }
-    if (form.candidateGroupIds.length === 0) { toast.error("At least one group required"); return false; }
+    if (chosenGroupIds.length === 0) { toast.error("At least one group required"); return false; }
     return true;
   };
 
   const submit = async () => {
     if (!validate()) return;
     setSaving(true);
+    const chosenGroupIds = selectedSubIds.length > 0 ? selectedSubIds.map(Number) : (selectedParentId ? [Number(selectedParentId)] : []);
     const payload = {
       candidateId,
       firstName: form.firstName.trim(),
@@ -169,7 +222,7 @@ export default function EditCandidatePage() {
       notes: form.notes.trim(),
       isActive: form.isActive ? 1 : 0,
       companyId: Number(form.companyId),
-      candidateGroupIds: form.candidateGroupIds.map(Number),
+      candidateGroupIds: chosenGroupIds,
     };
     const res = await updateCandidateAction(payload);
     if (!res.error) {
@@ -243,14 +296,7 @@ export default function EditCandidatePage() {
               </select>
             </div>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Candidate Groups *</label>
-            <select multiple name="candidateGroupIds" aria-label="Candidate Groups" value={form.candidateGroupIds} onChange={(e)=>{
-              const opts = Array.from(e.target.selectedOptions).map(o=>o.value); setForm(prev=>({...prev,candidateGroupIds:opts}));
-            }} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm h-32">
-              {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-            </select>
-          </div>
+          {/* Register Test Groups moved to dedicated section below */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Address</label>
@@ -376,6 +422,57 @@ export default function EditCandidatePage() {
             </div>
           </div>
           {/* --- End User Login Section --- */}
+
+          {/* --- Register Test Groups Section --- */}
+          <div className="mt-8">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Register Test Groups</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Group</label>
+                <select
+                  aria-label="Candidate Group"
+                  name="parentGroup"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  value={selectedParentId}
+                  onChange={(e) => setSelectedParentId(e.target.value)}
+                >
+                  <option value="">Select group</option>
+                  {parentGroups.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Subgroup(s)</label>
+                <select
+                  multiple
+                  aria-label="Candidate Subgroup"
+                  name="subGroup"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm h-32"
+                  value={selectedSubIds}
+                  disabled={!selectedParentId}
+                  onChange={(e) => {
+                    const opts = Array.from(e.target.selectedOptions).map((o) => o.value);
+                    setSelectedSubIds(opts);
+                  }}
+                >
+                  {selectedParentId ? null : (
+                    <option value="" disabled>
+                      Select a group first
+                    </option>
+                  )}
+                  {subGroups.map((sg) => (
+                    <option key={sg.id} value={sg.id}>
+                      {sg.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+          {/* --- End Register Test Groups Section --- */}
         </div>
       </div>
     </div>
