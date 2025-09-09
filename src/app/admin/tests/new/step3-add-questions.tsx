@@ -3,7 +3,7 @@
 import ImportantInstructions from "@/components/ImportantInstructions";
 import Toast, { type ToastType } from "@/components/Toast";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTestDraft } from "@/contexts/TestDraftContext";
 import { normalizeAssignedSections, assignedSectionsDiffer } from "@/utils/normalizeAssignedSections";
@@ -19,15 +19,33 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
   const router = useRouter();
   const search = useSearchParams();
   const { draft, setDraft } = useTestDraft();
-  // Normalize legacy / variant section arrays once on mount & when draft changes
+  // Keep a snapshot of Step 1's assigned sections to restore if anything clears them during sub-navigation
+  const assignedSnapshotRef = useRef<any[] | null>(null);
+  useEffect(() => {
+    if (!assignedSnapshotRef.current && Array.isArray((draft as any)?.TestAssignedSections) && (draft as any).TestAssignedSections.length > 0) {
+      // store a deep copy once
+      assignedSnapshotRef.current = (draft as any).TestAssignedSections.map((r: any) => ({ ...r }));
+    }
+  }, [draft?.TestAssignedSections]);
+  // Promote legacy section arrays only if canonical TestAssignedSections is missing
   useEffect(() => {
     if (!draft) return;
-    const normalized = normalizeAssignedSections(draft);
-  if (normalized.length === 0) return;
     const existing = Array.isArray((draft as any).TestAssignedSections) ? (draft as any).TestAssignedSections : [];
-    if (assignedSectionsDiffer(existing, normalized)) {
-      setDraft((d) => ({ ...d, TestAssignedSections: normalized }));
+    if (existing.length > 0) return; // respect Step 1 user selection
+    // Prefer restoring exact snapshot captured from Step 1 if available
+    const snapshot = assignedSnapshotRef.current;
+    if (Array.isArray(snapshot) && snapshot.length > 0) {
+      setTimeout(() => {
+        setDraft((d) => ({ ...d, TestAssignedSections: snapshot.map((r: any) => ({ ...r })) }));
+      }, 0);
+      return;
     }
+    const normalized = normalizeAssignedSections(draft);
+    if (normalized.length === 0) return;
+    // Defer to next tick to avoid updating provider during another component's render
+    setTimeout(() => {
+      setDraft((d) => ({ ...d, TestAssignedSections: normalized }));
+    }, 0);
   }, [draft, setDraft]);
 
   const [selectedCount, setSelectedCount] = useState<number>(0);
@@ -60,15 +78,13 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
     (async () => {
       try {
         const res = await apiHandler(endpoints.getTestSectionsOData, null as any);
-        const list = Array.isArray(res?.data?.value) ? res.data.value as TestSection[] : [];
-        // If Step1 limited sections via TestAssignedSections, filter
-  const assigned = Array.isArray((draft as any)?.TestAssignedSections) ? (draft as any).TestAssignedSections : [];
-  const allowedIds = assigned.map((s: any) => Number(s?.TestAssignedSectionId ?? s?.TestSectionId)).filter((n: any) => Number.isFinite(n));
-        if (allowedIds.length > 0) {
-          setSections(list.filter(s => allowedIds.includes(Number(s.TestSectionId))));
-        } else {
-          setSections(list);
-        }
+        const list = Array.isArray(res?.data?.value) ? (res.data.value as TestSection[]) : [];
+        // If Step 1 limited sections, it used canonical TestAssignedSectionId which equals catalog TestSectionId
+        const assigned = Array.isArray((draft as any)?.TestAssignedSections) ? (draft as any).TestAssignedSections : [];
+        const allowedIds = assigned
+          .map((s: any) => Number(s?.TestAssignedSectionId ?? s?.TestSectionId))
+          .filter((n: any) => Number.isFinite(n));
+        setSections(allowedIds.length > 0 ? list.filter(s => allowedIds.includes(Number(s.TestSectionId))) : list);
       } catch {
         setSections([]);
       }
@@ -82,14 +98,17 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
       if (raw) {
         const data = JSON.parse(raw) as { questionIds?: number[]; testQuestions?: any[] };
         const toAdd = Array.isArray(data?.testQuestions) ? data!.testQuestions! : [];
-        if (toAdd.length > 0) {
-          setDraft((d) => {
-            const existing = Array.isArray(d.testQuestions) ? d.testQuestions : [];
-            const map = new Map<number, any>();
-            for (const q of existing) map.set(q.TestQuestionId, q);
-            for (const q of toAdd) map.set(q.TestQuestionId, q);
-            return { ...d, testQuestions: Array.from(map.values()) };
-          });
+  if (toAdd.length > 0) {
+          // Defer to next tick to avoid setState-in-render warnings
+          setTimeout(() => {
+            setDraft((d) => {
+              const existing = Array.isArray(d.testQuestions) ? d.testQuestions : [];
+              const map = new Map<number, any>();
+              for (const q of existing) map.set(q.TestQuestionId, q);
+              for (const q of toAdd) map.set(q.TestQuestionId, q);
+              return { ...d, testQuestions: Array.from(map.values()) };
+            });
+          }, 0);
           setSelectionFromBank(true);
         }
         const newCount = Array.isArray(data?.questionIds)
@@ -103,7 +122,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
     } catch {
       // ignore parse errors
     }
-    // If returning from Edit Question with an explicit updatedQuestionId, refresh only that row
+  // If returning from Edit Question with an explicit updatedQuestionId, refresh only that row
     const updatedIdParam = search?.get("updatedQuestionId");
     const updatedId = updatedIdParam ? Number(updatedIdParam) : 0;
     if (updatedId > 0) {
@@ -123,27 +142,30 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
             ?? resp?.question
             ?? resp?.Questionoptions?.[0]?.QuestionText
             ?? resp?.Question?.Questionoptions?.[0]?.QuestionText;
-          setDraft((d) => {
-            const qs: any[] = Array.isArray(d.testQuestions) ? d.testQuestions : [];
-            const updated = qs.map((q: any) => {
-              if (Number(q?.TestQuestionId) !== updatedId) return q;
-              const existingText = q?.Question?.Questionoptions?.[0]?.QuestionText;
-              const effectiveText = (typeof fetchedText === 'string' && fetchedText.trim() !== '')
-                ? fetchedText
-                : (existingText ?? "-");
-              return {
-                ...q,
-                Marks: Number.isFinite(marks) ? marks : (q?.Marks ?? 0),
-                NegativeMarks: Number.isFinite(neg) ? neg : (q?.NegativeMarks ?? 0),
-                Duration: Number.isFinite(dur) ? dur : (q?.Duration ?? 0),
-                Question: {
-                  ...(q?.Question || {}),
-                  Questionoptions: [{ QuestionText: effectiveText }],
-                },
-              };
+          // Defer update to avoid cross-render updates
+          setTimeout(() => {
+            setDraft((d) => {
+              const qs: any[] = Array.isArray(d.testQuestions) ? d.testQuestions : [];
+              const updated = qs.map((q: any) => {
+                if (Number(q?.TestQuestionId) !== updatedId) return q;
+                const existingText = q?.Question?.Questionoptions?.[0]?.QuestionText;
+                const effectiveText = (typeof fetchedText === 'string' && fetchedText.trim() !== '')
+                  ? fetchedText
+                  : (existingText ?? "-");
+                return {
+                  ...q,
+                  Marks: Number.isFinite(marks) ? marks : (q?.Marks ?? 0),
+                  NegativeMarks: Number.isFinite(neg) ? neg : (q?.NegativeMarks ?? 0),
+                  Duration: Number.isFinite(dur) ? dur : (q?.Duration ?? 0),
+                  Question: {
+                    ...(q?.Question || {}),
+                    Questionoptions: [{ QuestionText: effectiveText }],
+                  },
+                };
+              });
+              return { ...d, testQuestions: updated };
             });
-            return { ...d, testQuestions: updated };
-          });
+          }, 0);
           setToast({ message: "Question updated.", type: "success" });
         } catch {
           // Ignore refresh errors and keep existing data
@@ -160,6 +182,19 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
         }
       })();
     }
+    // After ingesting, if assigned sections somehow became empty, restore from snapshot to preserve Step 1 selections
+    try {
+      const arr = (draft as any)?.TestAssignedSections;
+      if (!Array.isArray(arr) || arr.length === 0) {
+        const snap = assignedSnapshotRef.current;
+        if (Array.isArray(snap) && snap.length > 0) {
+          setTimeout(() => {
+            setDraft((d) => ({ ...d, TestAssignedSections: snap.map((r: any) => ({ ...r })) }));
+          }, 0);
+        }
+      }
+    } catch {}
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search?.toString()]);
 
@@ -230,37 +265,56 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
   // (Previous auto-sync removed per new requirement.)
 
   // Aggregate per-section counts & marks into TestAssignedSections (Step1 display) with dedup
+  // Use canonical TestAssignedSectionId (with fallbacks) so Step 1 selections persist.
   useEffect(() => {
-    setDraft((d) => {
-      const qs: any[] = Array.isArray(d.testQuestions) ? d.testQuestions : [];
-      const rawAssigned: any[] = Array.isArray((d as any).TestAssignedSections) ? (d as any).TestAssignedSections : [];
-      // Dedup
-      const mapAssigned = new Map<number, any>();
-      for (const r of rawAssigned) { const id = Number(r?.TestSectionId); if (Number.isFinite(id) && !mapAssigned.has(id)) mapAssigned.set(id, { ...r }); }
-      const assigned: any[] = Array.from(mapAssigned.values());
-      assigned.sort((a: any,b: any)=>(a.SectionOrder||0)-(b.SectionOrder||0));
-      assigned.forEach((r: any,i: number)=>{ r.SectionOrder = i+1; });
-      if (assigned.length === 0) return d; // nothing to update
-      const stats = new Map<number, { q: number; m: number }>();
-      for (const q of qs) {
-        const sid = Number(q?.TestSectionId);
-        if (!Number.isFinite(sid)) continue;
-        const marks = Number(q?.Marks === "" ? 0 : (q?.Marks ?? 0)) || 0;
-        const rec = stats.get(sid) || { q: 0, m: 0 };
-        rec.q += 1;
-        rec.m += marks;
-        stats.set(sid, rec);
-      }
-      let changed = false;
-      for (const row of assigned) {
-        const sid = Number(row?.TestSectionId);
-        const rec = stats.get(sid) || { q: 0, m: 0 };
-        if (row.SectionTotalQuestions !== rec.q) { row.SectionTotalQuestions = rec.q; changed = true; }
-        if (row.SectionTotalMarks !== rec.m) { row.SectionTotalMarks = rec.m; changed = true; }
-      }
-      if (!changed && assigned.length === rawAssigned.length) return d;
-      return { ...d, TestAssignedSections: assigned };
-    });
+    // Defer updates to avoid setState warnings during other components' render
+    setTimeout(() => {
+      setDraft((d) => {
+        const qs: any[] = Array.isArray(d.testQuestions) ? d.testQuestions : [];
+        let assigned: any[] = Array.isArray((d as any).TestAssignedSections) ? (d as any).TestAssignedSections.map((r: any) => ({ ...r })) : [];
+        if (assigned.length === 0) return d; // nothing to update
+
+        // Deduplicate by canonical section id; preserve first entry's other fields.
+        const byId = new Map<number, any>();
+        for (const r of assigned) {
+          const id = Number(r?.TestAssignedSectionId ?? r?.testAssignedSectionId ?? r?.TestSectionId);
+          if (!Number.isFinite(id) || id <= 0) continue;
+          if (!byId.has(id)) {
+            const copy = { ...r, TestAssignedSectionId: id };
+            byId.set(id, copy);
+          }
+        }
+        assigned = Array.from(byId.values());
+        // Preserve existing SectionOrder; only sort for stable display, do not renumber
+        assigned.sort((a: any, b: any) => (a.SectionOrder || 0) - (b.SectionOrder || 0));
+
+        // Build stats from questions using their assigned section id
+        const stats = new Map<number, { q: number; m: number }>();
+        for (const q of qs) {
+          const sid = Number(q?.TestSectionId ?? q?.TestAssignedSectionId ?? q?.testAssignedSectionId);
+          if (!Number.isFinite(sid)) continue;
+          const marks = Number(q?.Marks === "" ? 0 : (q?.Marks ?? 0)) || 0;
+          const rec = stats.get(sid) || { q: 0, m: 0 };
+          rec.q += 1; rec.m += marks; stats.set(sid, rec);
+        }
+
+        let changed = false;
+        const nextAssigned = assigned.map((row: any) => {
+          const sid = Number(row?.TestAssignedSectionId ?? row?.TestSectionId);
+          const rec = stats.get(sid) || { q: 0, m: 0 };
+          const qChanged = row.SectionTotalQuestions !== rec.q;
+          const mChanged = row.SectionTotalMarks !== rec.m;
+          if (qChanged || mChanged) {
+            changed = true;
+            return { ...row, SectionTotalQuestions: rec.q, SectionTotalMarks: rec.m };
+          }
+          return row;
+        });
+
+        if (!changed && nextAssigned.length === ((d as any).TestAssignedSections as any[])?.length) return d;
+        return { ...d, TestAssignedSections: nextAssigned };
+      });
+    }, 0);
   }, [rows, setDraft]);
 
   const applyAssignSection = () => {

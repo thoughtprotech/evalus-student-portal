@@ -86,11 +86,19 @@ export default function Step1CreateTestDetails({
   // Sections selection
   type SectionLite = { TestSectionId: number; TestSectionName: string };
   const [allSections, setAllSections] = useState<SectionLite[]>([]);
-  // Canonical section ids are always the catalog TestSectionId values, stored in TestAssignedSectionId
+  // Canonical section id for UI is the catalog TestSectionId; keep TestAssignedSectionId only as DB PK in edit mode
   const [selectedSectionIds, setSelectedSectionIds] = useState<number[]>([]);
   const [assignedSections, setAssignedSections] = useState<any[]>([]);
   const { draft, setDraft } = useTestDraft();
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // Resolve a section display name by id using loaded catalog or assignedRows as fallback
+  const getSectionName = (id: number): string => {
+    const fromCatalog = allSections.find(s => Number(s.TestSectionId) === Number(id));
+    if (fromCatalog?.TestSectionName) return fromCatalog.TestSectionName;
+    const match = assignedSections.find(r => Number(r?.TestAssignedSectionId ?? r?.testAssignedSectionId ?? r?.TestSectionId) === Number(id));
+    const n = match?.TestSectionName ?? match?.SectionName ?? match?.sectionName;
+    return typeof n === 'string' && n.trim() ? n : String(id);
+  };
   // Track which sections are currently referenced by any test question (for safe removal in edit mode)
   const usedSectionIds = useMemo(() => {
     const set = new Set<number>();
@@ -109,16 +117,17 @@ export default function Step1CreateTestDetails({
   const promotedAssignedSectionsOnce = useRef(false); // retained for backward compatibility of logic
   const hydratedAssignedSections = useRef(false); // track if we've completed initial hydration
   const attemptedDeepPromote = useRef(false); // retained; normalization supersedes but keep guard
-  // Utility: ensure only one row per TestSectionId
+  // Utility: ensure only one row per TestSectionId (catalog id). Mirror TestAssignedSectionId to match backend contract.
   const dedupAssigned = (list: any[]) => {
     if (!Array.isArray(list)) return [] as any[];
     const map = new Map<number, any>();
     for (const rec of list) {
       const r: any = { ...rec };
-  // Canonical id = TestAssignedSectionId (legacy may use various casings)
-  const id = Number(r?.TestAssignedSectionId ?? r?.testAssignedSectionId ?? r?.Testassignedsectionid ?? r?.TestSectionId);
+  // Canonical section id = TestSectionId (fallback to legacy variants)
+  const id = Number(r?.TestSectionId ?? r?.testSectionId ?? r?.TestAssignedSectionId ?? r?.testAssignedSectionId ?? r?.Testassignedsectionid);
       if (!Number.isFinite(id)) continue;
-  r.TestAssignedSectionId = id;
+  r.TestSectionId = id;
+  r.TestAssignedSectionId = id; // backend expects equality
       if (!map.has(id)) {
         map.set(id, r);
       }
@@ -128,12 +137,12 @@ export default function Step1CreateTestDetails({
     arr.forEach((r: any, i: number) => { r.SectionOrder = i + 1; });
     return arr;
   };
-  // Compare assigned sections shallowly (order/id/min/max) using canonical TestAssignedSectionId
+  // Compare assigned sections shallowly (order/id/min/max) using canonical TestSectionId
   const sectionsDiffer = (a: any[], b: any[]) => {
     if (a.length !== b.length) return true;
     for (let i = 0; i < a.length; i++) {
       const ra = a[i]; const rb = b[i];
-      if (Number(ra?.TestAssignedSectionId ?? ra?.testAssignedSectionId) !== Number(rb?.TestAssignedSectionId ?? rb?.testAssignedSectionId)) return true;
+      if (Number(ra?.TestSectionId ?? ra?.testSectionId) !== Number(rb?.TestSectionId ?? rb?.testSectionId)) return true;
       if (Number(ra?.SectionOrder) !== Number(rb?.SectionOrder)) return true;
       if ((ra?.SectionMinTimeDuration ?? null) !== (rb?.SectionMinTimeDuration ?? null)) return true;
       if ((ra?.SectionMaxTimeDuration ?? null) !== (rb?.SectionMaxTimeDuration ?? null)) return true;
@@ -302,7 +311,7 @@ export default function Step1CreateTestDetails({
     const unifiedAssigned = Array.isArray(draft.TestAssignedSections) ? dedupAssigned(draft.TestAssignedSections) : [];
     if (unifiedAssigned.length > 0) {
       // Always check if draft sections differ from current local state
-      if (assignedSections.length === 0 || sectionsDiffer(assignedSections, unifiedAssigned)) {
+  if (assignedSections.length === 0 || sectionsDiffer(assignedSections, unifiedAssigned)) {
         if (process.env.NODE_ENV !== 'production') {
           console.log('[Step1] Re-hydrating assigned sections from draft:', unifiedAssigned.length, 'sections');
           console.log('[Step1] Current local state:', assignedSections.length, 'sections');
@@ -317,10 +326,11 @@ export default function Step1CreateTestDetails({
         }
         setAssignedSections(unifiedAssigned.map((s: any) => {
           const r = { ...s };
-          // Ensure canonical id is set
-          if (!Number.isFinite(Number(r.TestAssignedSectionId))) {
-            const fallbackId = Number(r.testAssignedSectionId ?? r.TestSectionId);
-            if (Number.isFinite(fallbackId)) r.TestAssignedSectionId = fallbackId;
+          // Ensure canonical TestSectionId is set and mirror to TestAssignedSectionId per API contract
+          const catalogId = Number(r.TestSectionId ?? r.testSectionId ?? r.TestAssignedSectionId ?? r.testAssignedSectionId);
+          if (Number.isFinite(catalogId)) {
+            r.TestSectionId = catalogId;
+            r.TestAssignedSectionId = catalogId;
           }
           // Promote camelCase variants to canonical PascalCase if present (for UI compatibility)
           if (r.sectionMinTimeDuration != null && r.SectionMinTimeDuration == null) r.SectionMinTimeDuration = r.sectionMinTimeDuration;
@@ -331,7 +341,7 @@ export default function Step1CreateTestDetails({
           return r;
         }));
         const ids = unifiedAssigned
-          .map((s: any) => Number(s?.TestAssignedSectionId ?? s?.testAssignedSectionId ?? s?.Testassignedsectionid ?? s?.TestSectionId))
+          .map((s: any) => Number(s?.TestSectionId ?? s?.testSectionId ?? s?.TestAssignedSectionId ?? s?.testAssignedSectionId))
           .filter((n: any) => Number.isFinite(n));
         setSelectedSectionIds(Array.from(new Set(ids)));
       }
@@ -650,11 +660,10 @@ export default function Step1CreateTestDetails({
                       <span className="text-xs text-gray-500">No sections selected.</span>
                     )}
                     {selectedSectionIds.map(id => {
-                      const sec = allSections.find(s => s.TestSectionId === id);
                       const canRemove = !draft?.TestId || !usedSectionIds.has(id);
                       return (
                         <span key={id} className={`inline-flex items-center gap-1 border rounded-full px-2 py-0.5 text-xs ${canRemove ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-100 text-gray-500 border-gray-300'}`}> 
-                          {sec?.TestSectionName || id}
+          {getSectionName(id)}
                           {canRemove && (
                             <button
                               type="button"
@@ -662,7 +671,7 @@ export default function Step1CreateTestDetails({
                               onClick={() => {
                                 setSelectedSectionIds(prev => prev.filter(x => x !== id));
                                 setAssignedSections(prev => {
-                                  const next = prev.filter(r => Number(r.TestAssignedSectionId) !== id).map((r,i) => ({ ...r, SectionOrder: i+1 }));
+                                  const next = prev.filter(r => Number(r.TestSectionId) !== id).map((r,i) => ({ ...r, SectionOrder: i+1 }));
                                   setDraft(d => ({ ...d, TestAssignedSections: next }));
                                   return next;
                                 });
@@ -685,14 +694,24 @@ export default function Step1CreateTestDetails({
                       onChange={(e) => {
                         const val = e.target.value ? Number(e.target.value) : 0;
                         if (!val) return;
+                        // Validate against catalog list to avoid accidental invalid ids
+            const existsInCatalog = allSections.some(s => Number(s.TestSectionId) === val);
+                        if (!existsInCatalog) {
+                          // Reset select and ignore invalid value
+                          e.target.value = "";
+                          return;
+                        }
                         setSelectedSectionIds(prev => {
                           if (prev.includes(val)) return prev; // guard
                           const nextIds = [...prev, val];
                           setAssignedSections(prevRows => {
-                const exists = prevRows.find(r => Number(r.TestAssignedSectionId) === val);
+                            const exists = prevRows.find(r => Number(r.TestSectionId) === val);
+                            const sec = allSections.find(s => Number(s.TestSectionId) === val);
                             const next = exists ? [...prevRows] : [...prevRows, {
-                  TestAssignedSectionId: val,
+                  TestAssignedSectionId: val, // backend expects equality with TestSectionId
+          TestSectionId: val,
                   TestId: draft?.TestId || 0,
+                              TestSectionName: sec?.TestSectionName ?? undefined,
                               SectionOrder: nextIds.length,
                               SectionTotalQuestions: null,
                               SectionTotalMarks: null,
@@ -733,12 +752,11 @@ export default function Step1CreateTestDetails({
                         </thead>
                         <tbody>
                           {assignedSections.map((row, idx) => {
-                            const section = allSections.find(s => Number(s.TestSectionId) === Number(row.TestAssignedSectionId));
-                            const canRemove = !draft?.TestId || !usedSectionIds.has(Number(row.TestAssignedSectionId));
+                            const canRemove = !draft?.TestId || !usedSectionIds.has(Number(row.TestSectionId));
                             return (
-                              <tr key={row.TestAssignedSectionId ?? idx} className={idx % 2 ? 'bg-white' : 'bg-gray-50/60'}>
+                              <tr key={(row.TestAssignedSectionId ?? row.TestSectionId ?? idx)} className={idx % 2 ? 'bg-white' : 'bg-gray-50/60'}>
                                 <td className="px-2 py-1 whitespace-nowrap text-gray-800 text-[11px] flex items-center gap-2">
-                                  <span>{section?.TestSectionName || row.TestAssignedSectionId}</span>
+                                  <span>{getSectionName(Number(row.TestSectionId))}</span>
                                   {canRemove && (
                                     <button
                                       type="button"
@@ -746,8 +764,8 @@ export default function Step1CreateTestDetails({
                                       title="Remove"
                                       onClick={() => {
                                         setAssignedSections(prev => {
-                                          const next = prev.filter(r => Number(r.TestAssignedSectionId) !== Number(row.TestAssignedSectionId)).map((r,i)=> ({ ...r, SectionOrder: i+1 }));
-                                          setSelectedSectionIds(next.map(r=> Number(r.TestAssignedSectionId)));
+                                          const next = prev.filter(r => Number(r.TestSectionId) !== Number(row.TestSectionId)).map((r,i)=> ({ ...r, SectionOrder: i+1 }));
+                                          setSelectedSectionIds(next.map(r=> Number(r.TestSectionId)));
                                           return next;
                                         });
                                       }}

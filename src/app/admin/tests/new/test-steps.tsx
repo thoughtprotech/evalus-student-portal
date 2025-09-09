@@ -311,22 +311,108 @@ export default function TestSteps({
     const router2 = useRouter();
     const runSave = async () => {
       if (saving) return;
-      // Validate final steps before save with feedback
-      // Always use step validators to ensure proper validation and error display
-      if (step1ValidatorRef.current && !step1ValidatorRef.current()) {
-        setToast({ message: "Please complete required fields in Step 1 (Test Details).", type: "error" });
+      // Helper fallback validators for when a step component isn't mounted (e.g., user jumped directly to Step 5)
+      const validateStep1Fallback = (d: any): { ok: boolean; msg?: string } => {
+        try {
+          const name = (d?.TestName ?? "").toString().trim();
+          const typeOk = Number.isFinite(Number(d?.TestTypeId));
+          const catOk = Number.isFinite(Number(d?.TestCategoryId));
+          const lvlOk = Number.isFinite(Number(d?.TestDifficultyLevelId));
+          const priOk = Number.isFinite(Number(d?.PrimaryInstructionId ?? d?.TestPrimaryInstructionId));
+          const duration = Number(d?.TestDurationMinutes);
+          const totalQ = Number(d?.TotalQuestions);
+          const totalM = Number(d?.TotalMarks);
+          const ok = !!name && typeOk && catOk && lvlOk && priOk && duration > 0 && totalQ > 0 && totalM > 0;
+          return ok
+            ? { ok: true }
+            : { ok: false, msg: "Please complete required fields in Step 1 (Test Details)." };
+        } catch {
+          return { ok: false, msg: "Please complete required fields in Step 1 (Test Details)." };
+        }
+      };
+      const validateStep3Fallback = (d: any): { ok: boolean; msg?: string } => {
+        try {
+          const rows: any[] = Array.isArray(d?.testQuestions) ? d.testQuestions : [];
+          const problems: string[] = [];
+          rows.forEach((q: any, idx: number) => {
+            const marks = Number(q?.Marks === "" ? 0 : (q?.Marks ?? 0));
+            const neg = Number(q?.NegativeMarks === "" ? 0 : (q?.NegativeMarks ?? 0));
+            const dur = Number(q?.Duration === "" ? 0 : (q?.Duration ?? 0));
+            const errs: string[] = [];
+            if (!Number.isFinite(marks) || marks < 0) errs.push("Marks must be a non-negative number");
+            if (!Number.isFinite(neg) || neg < 0) errs.push("Negative Marks must be non-negative");
+            if (neg > marks) errs.push("Negative Marks cannot exceed Marks");
+            if (!Number.isFinite(dur) || dur < 0) errs.push("Duration must be non-negative");
+            if (errs.length) problems.push(`Row ${idx + 1}: ${errs.slice(0, 2).join("; ")}`);
+          });
+          if (problems.length) {
+            const msg = `Fix inline errors in Step 3 before saving.\n${problems.slice(0, 3).join("\n")}${problems.length > 3 ? " …" : ""}`;
+            return { ok: false, msg };
+          }
+          return { ok: true };
+        } catch {
+          return { ok: false, msg: "Fix inline errors in Step 3 (Add Questions) before saving." };
+        }
+      };
+      const validateStep4Fallback = (d: any): { ok: boolean; msg?: string } => {
+        try {
+          const s = d?.TestStartDate;
+          const e = d?.TestEndDate;
+          if (!s || !e) return { ok: false, msg: "Please provide Start and End date/time in Step 4 (Publish)." };
+          const sMs = new Date(s).getTime();
+          const eMs = new Date(e).getTime();
+          if (isNaN(sMs) || isNaN(eMs) || eMs <= sMs) {
+            return { ok: false, msg: "End date/time must be later than Start date/time in Step 4 (Publish)." };
+          }
+          return { ok: true };
+        } catch {
+          return { ok: false, msg: "Please resolve date/time in Step 4 (Publish)." };
+        }
+      };
+      const validateStep5Fallback = (_d: any): { ok: boolean; msg?: string } => ({ ok: true });
+
+      // Validate all steps (use registered validators if present, otherwise fallback validators against the draft)
+      const ok1 = step1ValidatorRef.current ? step1ValidatorRef.current() : validateStep1Fallback(draft).ok;
+      if (!ok1) {
+        const fallbackMsg = !step1ValidatorRef.current ? validateStep1Fallback(draft).msg : undefined;
+        setToast({ message: fallbackMsg || "Please complete required fields in Step 1 (Test Details).", type: "error" });
+        // Focus Step 1
+        setCurrent(0);
+        const params = new URLSearchParams(searchString);
+        params.set("step", "1");
+        router.replace(`?${params.toString()}`);
         return;
       }
-      if (step3ValidatorRef.current && !step3ValidatorRef.current()) {
-        setToast({ message: "Please resolve validation issues in Step 3 (Add Questions).", type: "error" });
+      const ok3 = step3ValidatorRef.current ? step3ValidatorRef.current() : validateStep3Fallback(draft).ok;
+      if (!ok3) {
+        const fallback = !step3ValidatorRef.current ? validateStep3Fallback(draft) : { ok: false, msg: undefined };
+        setToast({ message: fallback.msg || "Please resolve validation issues in Step 3 (Add Questions).", type: "error" });
+        // Focus Step 3
+        setCurrent(2);
+        const params = new URLSearchParams(searchString);
+        params.set("step", "3");
+        router.replace(`?${params.toString()}`);
         return;
       }
-      if (step4ValidatorRef.current && !step4ValidatorRef.current()) {
-        setToast({ message: "Please resolve validation issues in Step 4 (Publish).", type: "error" });
+      const ok4 = step4ValidatorRef.current ? step4ValidatorRef.current() : validateStep4Fallback(draft).ok;
+      if (!ok4) {
+        const fallback = !step4ValidatorRef.current ? validateStep4Fallback(draft) : { ok: false, msg: undefined };
+        setToast({ message: fallback.msg || "Please resolve validation issues in Step 4 (Publish).", type: "error" });
+        // Focus Step 4
+        setCurrent(3);
+        const params = new URLSearchParams(searchString);
+        params.set("step", "4");
+        router.replace(`?${params.toString()}`);
         return;
       }
-      if (step5ValidatorRef.current && !step5ValidatorRef.current()) {
+      const ok5 = step5ValidatorRef.current ? step5ValidatorRef.current() : validateStep5Fallback(draft).ok;
+      if (!ok5) {
         setToast({ message: "Please resolve validation issues in Step 5 (Assign).", type: "error" });
+        // Focus Step 5
+        setCurrent(4);
+        const params = new URLSearchParams(searchString);
+        params.set("step", "5");
+        router.replace(`?${params.toString()}`);
         return;
       }
       try {
@@ -337,7 +423,7 @@ export default function TestSteps({
           console.log('[Save] Complete draft at save start:', JSON.stringify(draft, null, 2));
         }
         
-        // --- Recompute authoritative totals & section aggregates (even if user never visited Step 3 in edit mode) ---
+  // --- Recompute authoritative totals & section aggregates (even if user never visited Step 3 in edit mode) ---
         const rows: any[] = Array.isArray((draft as any)?.testQuestions) ? (draft as any).testQuestions : [];
         const recomputedTotalQuestions = rows.length;
         const recomputedTotalMarks = rows.reduce((sum: number, q: any) => {
@@ -353,6 +439,14 @@ export default function TestSteps({
           const rec = sectionStats.get(sid) || { q: 0, m: 0 };
           rec.q += 1; rec.m += marks; sectionStats.set(sid, rec);
         }
+        // Load catalog of valid sections to validate assigned section ids
+        let validSectionIds = new Set<number>();
+        try {
+          const secRes = await apiHandler(endpoints.getTestSectionsOData, null as any);
+          const secs = Array.isArray((secRes as any)?.data?.value) ? (secRes as any).data.value as Array<{ TestSectionId: number }> : [];
+          validSectionIds = new Set<number>(secs.map((s) => Number(s.TestSectionId)).filter((n) => Number.isFinite(n) && n > 0));
+        } catch { /* ignore; keep empty set => no filtering */ }
+
         // Get assigned sections directly from draft (skip normalization for now to debug)
         let finalAssigned: any[] = [];
         const draftSections = Array.isArray((draft as any)?.TestAssignedSections) ? (draft as any).TestAssignedSections : [];
@@ -363,13 +457,53 @@ export default function TestSteps({
         
         if (draftSections.length > 0) {
           // Use draft sections directly, convert PascalCase to camelCase for API
-          finalAssigned = draftSections.map((r: any) => ({
-            ...r,
-            TestAssignedSectionId: r.TestAssignedSectionId ?? r.testAssignedSectionId ?? r.TestSectionId,
-            // Convert to camelCase property names for API
-            sectionMinTimeDuration: r.SectionMinTimeDuration ?? r.sectionMinTimeDuration,
-            sectionMaxTimeDuration: r.SectionMaxTimeDuration ?? r.sectionMaxTimeDuration,
-          }));
+          const mapped = draftSections.map((r: any) => {
+            const sid = Number(r.TestSectionId ?? r.testSectionId ?? r.TestAssignedSectionId ?? r.testAssignedSectionId);
+            const canon = Number.isFinite(sid) && sid > 0 ? sid : undefined;
+            // Preserve DB PK when present; send null for new rows so server creates one
+            const pk = (r.TestAssignedSectionId != null && Number(r.TestAssignedSectionId) > 0)
+              ? Number(r.TestAssignedSectionId)
+              : (r.testAssignedSectionId != null && Number(r.testAssignedSectionId) > 0 ? Number(r.testAssignedSectionId) : null);
+            // Normalize order & totals
+            const ord = Number(r.SectionOrder ?? r.sectionOrder ?? 0) || undefined;
+            const totQ = (r.SectionTotalQuestions ?? r.sectionTotalQuestions);
+            const totM = (r.SectionTotalMarks ?? r.sectionTotalMarks);
+            const minT = r.SectionMinTimeDuration ?? r.sectionMinTimeDuration;
+            const maxT = r.SectionMaxTimeDuration ?? r.sectionMaxTimeDuration;
+            const tid = Number((draft as any)?.TestId ?? r.TestId ?? r.testId ?? updateId) || undefined;
+            const out: any = {
+              ...r,
+              // PascalCase (legacy/compat)
+              TestAssignedSectionId: pk,
+              TestSectionId: canon,
+              TestId: tid,
+              SectionOrder: ord,
+              SectionTotalQuestions: totQ,
+              SectionTotalMarks: totM,
+              SectionMinTimeDuration: minT,
+              SectionMaxTimeDuration: maxT,
+              // camelCase (API contract)
+              testAssignedSectionId: pk,
+              testSectionId: canon,
+              testId: tid,
+              sectionOrder: ord,
+              sectionTotalQuestions: totQ,
+              sectionTotalMarks: totM,
+              sectionMinTimeDuration: minT,
+              sectionMaxTimeDuration: maxT,
+            };
+            return out;
+          });
+          // Filter out any ids not present in catalog (when we have a catalog)
+          finalAssigned = (validSectionIds.size > 0)
+            ? mapped.filter((r: any) => validSectionIds.has(Number(r.TestAssignedSectionId)))
+            : mapped;
+          if (process.env.NODE_ENV !== 'production') {
+            const dropped = mapped.filter((r: any) => !validSectionIds.has(Number(r.TestAssignedSectionId))).map((r:any)=>r.TestAssignedSectionId);
+            if (dropped.length > 0) {
+              console.warn('[Save] Dropping invalid TestAssignedSectionId(s) not in catalog:', dropped);
+            }
+          }
         }
         
         // Temporarily disable normalization to debug
@@ -407,14 +541,16 @@ export default function TestSteps({
           }
           finalAssigned = Array.from(seen.values());
           finalAssigned.sort((a,b)=>(a.SectionOrder||0)-(b.SectionOrder||0));
-          finalAssigned.forEach((r,i)=>{ r.SectionOrder = i+1; });
+          finalAssigned.forEach((r,i)=>{ r.SectionOrder = i+1; r.sectionOrder = r.SectionOrder; });
           for (const row of finalAssigned) {
-            const sid = Number(row.TestAssignedSectionId ?? row.TestSectionId);
+            // Compute stats keyed by catalog id (TestSectionId), not DB PK
+            const sid = Number(row.TestSectionId ?? row.testSectionId);
             const stats = sectionStats.get(sid) || { q: 0, m: 0 };
             row.SectionTotalQuestions = stats.q;
             row.SectionTotalMarks = stats.m;
-            // Ensure canonical id present
-            row.TestAssignedSectionId = sid;
+            row.sectionTotalQuestions = stats.q;
+            row.sectionTotalMarks = stats.m;
+            // Do NOT overwrite DB PK; leave TestAssignedSectionId as-is (or null for new rows)
             
             // Debug logging for time values
             if (process.env.NODE_ENV !== 'production') {
@@ -433,8 +569,32 @@ export default function TestSteps({
             if (row.SectionMaxTimeDuration === undefined && row.SectionMaxTime !== undefined) {
               row.SectionMaxTimeDuration = row.SectionMaxTime;
             }
+            // Mirror to camelCase for API
+            row.sectionMinTimeDuration = row.SectionMinTimeDuration ?? row.sectionMinTimeDuration;
+            row.sectionMaxTimeDuration = row.SectionMaxTimeDuration ?? row.sectionMaxTimeDuration;
           }
         }
+  // Prepare camelCase-only section objects for API
+  // Compute edit state early so it's available during section mapping
+  const isEdit = (!!editMode && !!testId) || !!(draft as any)?.TestId;
+  const updateId: number | undefined = (testId as number | undefined) ?? ((draft as any)?.TestId as number | undefined);
+        const finalAssignedCamel = finalAssigned.map((r: any) => {
+          const testSectionId = Number(r.TestSectionId ?? r.testSectionId) || null;
+          // For new tests, backend expects testId = 0 (not null). For edits, use the actual id.
+          const resolvedTestId = isEdit
+            ? Number(updateId ?? (draft as any)?.TestId ?? r.TestId ?? r.testId ?? 0)
+            : 0;
+          return {
+          testAssignedSectionId: testSectionId, // backend expects equality with section id
+          testSectionId,
+          testId: resolvedTestId,
+          sectionOrder: Number(r.SectionOrder ?? r.sectionOrder) || 0,
+          sectionMinTimeDuration: r.SectionMinTimeDuration ?? r.sectionMinTimeDuration ?? null,
+          sectionMaxTimeDuration: r.SectionMaxTimeDuration ?? r.sectionMaxTimeDuration ?? null,
+          sectionTotalQuestions: r.SectionTotalQuestions ?? r.sectionTotalQuestions ?? 0,
+          sectionTotalMarks: r.SectionTotalMarks ?? r.sectionTotalMarks ?? 0,
+        }});
+
         // Build payload from draft (after recomputation)
   const toNum = (v: any) => (v === null || v === undefined || v === "" ? null : Number(v));
         const testQuestions = rows.map((r: any, idx: number) => ({
@@ -508,7 +668,7 @@ export default function TestSteps({
           TotalMarks: (draft as any)?.TotalMarks && Number((draft as any).TotalMarks) > 0
             ? (draft as any).TotalMarks
             : recomputedTotalMarks,
-          ...(finalAssigned.length ? { TestAssignedSections: finalAssigned } : {}),
+          ...(finalAssignedCamel.length ? { TestAssignedSections: finalAssignedCamel } : {}),
           TestStatus:
             String((draft as any)?.TestStatus || "New").toLowerCase() === "published"
               ? "Published"
@@ -568,9 +728,7 @@ export default function TestSteps({
         // Remove client-only fields
         delete (payload as any).testQuestions;
 
-  // Consider it edit if explicit flags are set OR if the draft carries a TestId
-        const isEdit = (!!editMode && !!testId) || !!(draft as any)?.TestId;
-        const updateId: number | undefined = (testId as number | undefined) ?? ((draft as any)?.TestId as number | undefined);
+  // isEdit/updateId computed earlier
         if (isEdit && !(updateId && updateId > 0)) {
           setToast({ message: "Cannot update: missing TestId.", type: "error" });
           setSaving(false);

@@ -113,7 +113,6 @@ export const endpoints = {
       `/api/Questions/${questionId}`,
     type: "CLOSE",
   } as Endpoint<{ questionId: number } & Partial<CreateQuestionRequest>, null>,
-
   createQuestionOptions: {
     method: "POST",
     path: () => `/api/questionoptions`,

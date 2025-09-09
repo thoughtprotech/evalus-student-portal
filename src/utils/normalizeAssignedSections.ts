@@ -63,9 +63,25 @@ export function normalizeAssignedSections(root: any, maxDepth = 5): CanonicalAss
     for (const key of Object.keys(obj)) {
       const val: any = (obj as any)[key];
       if (Array.isArray(val) && val.length) {
-        // Heuristic: at least one element with an id variant
-        const looksLike = val.some(v => v && typeof v === 'object' && extractFirst(v, ID_KEYS) !== undefined);
-        if (looksLike) candidateArrays.push(val);
+        // Heuristics to identify section arrays and avoid mistaking question arrays for sections
+        const looksLikeSection = val.some(v => {
+          if (!v || typeof v !== 'object') return false;
+          const hasId = extractFirst(v, ID_KEYS) !== undefined;
+          // Require at least some other section-ish hint: name/order/min/max time
+          const hasSectionHints = (
+            extractFirst(v, NAME_KEYS) !== undefined ||
+            extractFirst(v, ORDER_KEYS) !== undefined ||
+            extractFirst(v, MIN_TIME_KEYS) !== undefined ||
+            extractFirst(v, MAX_TIME_KEYS) !== undefined
+          );
+          return hasId && hasSectionHints;
+        });
+        // Detect obvious question-shaped arrays and skip them
+        const looksLikeQuestions = val.some(v => v && typeof v === 'object' && (
+          'QuestionId' in v || 'questionId' in v || 'Question' in v ||
+          'Marks' in v || 'marks' in v || 'NegativeMarks' in v || 'negativeMarks' in v
+        ));
+        if (looksLikeSection && !looksLikeQuestions) candidateArrays.push(val);
       } else if (val && typeof val === 'object') {
         scan(val, depth + 1);
       }

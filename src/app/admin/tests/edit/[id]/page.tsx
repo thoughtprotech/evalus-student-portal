@@ -162,8 +162,9 @@ function normalizeTestToDraft(test: any): any {
   return d;
 }
 
-export default async function EditTestPage({ params }: { params: { id: string } }) {
-  const id = Number(params.id);
+export default async function EditTestPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: idStr } = await params;
+  const id = Number(idStr);
   // Load dropdown data in parallel
   const [typesRes, catsRes, instRes, lvlsRes, testRes] = await Promise.all([
     apiHandler(endpoints.getTestTypes, null as any),
