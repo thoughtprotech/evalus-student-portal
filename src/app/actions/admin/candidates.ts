@@ -40,6 +40,7 @@ interface ApiCandidateItem {
     postalCode?: string;
     country?: string;
     candidateGroupName?: string;
+    candidateGroupIds?: number[]; // backend can return just IDs; we'll resolve names via group tree
     notes?: string;
     isActive: number;
     createdDate: string;
@@ -71,7 +72,7 @@ function buildQuery(params: FetchCandidatesParams): string {
     return searchParams.toString();
 }
 
-function mapToRows(items: ApiCandidateItem[]): CandidateRow[] {
+function mapToRows(items: ApiCandidateItem[], groupNameById: Record<number, string>): CandidateRow[] {
     console.log(`🔄 Starting to map ${items.length} candidate items`);
 
     return items.map((item, index) => {
@@ -98,7 +99,15 @@ function mapToRows(items: ApiCandidateItem[]): CandidateRow[] {
         if (!resolvedId || resolvedId === 0) {
             console.warn(`⚠️  Could not resolve candidate id for item index ${index}. Raw item keys:`, Object.keys(item));
         }
-        const mapped = {
+                // Derive candidate group display string
+                const idList = Array.isArray((item as any).candidateGroupIds)
+                    ? ((item as any).candidateGroupIds as any[]).map((n) => Number(n)).filter((n) => Number.isFinite(n))
+                    : [];
+                const groupNames = idList.length > 0
+                    ? idList.map((id) => groupNameById[id] || `Group ${id}`).join(", ")
+                    : (item.candidateGroupName || "");
+
+                const mapped = {
             candidateId: resolvedId,
             firstName: item.firstName || "",
             lastName: item.lastName || "",
@@ -110,7 +119,7 @@ function mapToRows(items: ApiCandidateItem[]): CandidateRow[] {
             state: item.state || "",
             postalCode: item.postalCode || "",
             country: item.country || "",
-            candidateGroup: item.candidateGroupName || "Default",
+                        candidateGroup: groupNames || "",
             notes: item.notes || "",
             isActive: item.isActive || 0,
             createdBy: item.createdBy || "System",
@@ -128,9 +137,11 @@ export async function fetchCandidatesAction(
     params: FetchCandidatesParams = { top: 15, skip: 0 }
 ): Promise<ApiResponse<{ rows: CandidateRow[]; total: number }>> {
     try {
-        // Strategy aligned with questions grid: fetch everything once (endpoint seems to return full list)
-        // then apply client-side sorting, filtering, pagination.
-        const response = await apiHandler(endpoints.getCandidates, { query: "" });
+        // Fetch candidates and candidate group tree in parallel
+        const [response, groupRes] = await Promise.all([
+            apiHandler(endpoints.getCandidates, { query: "" }),
+            apiHandler(endpoints.getCandidateGroupTreeOData, null as any)
+        ]);
 
         if (response.error || response.status !== 200) {
             return {
@@ -150,6 +161,28 @@ export async function fetchCandidatesAction(
         }
         if (!allItems || allItems.length === 0) {
             return { status: 200, message: "No candidates found", data: { rows: [], total: 0 } };
+        }
+
+        // Build groupNameById map from the group tree once
+        const groupNameById: Record<number, string> = {};
+        try {
+            const raw = (groupRes?.data as any)?.value ?? groupRes?.data ?? [];
+            const pickChildren = (n: any): any[] => {
+                const cands = [n?.children, n?.Children, n?.childrens, n?.ChildNodes, n?.Items, n?.Nodes, n?.Groups, n?.Subgroups];
+                for (const c of cands) if (Array.isArray(c)) return c; return [];
+            };
+            const walk = (nodes: any[]) => {
+                for (const n of nodes || []) {
+                    const id = Number(n?.CandidateGroupId ?? n?.candidateGroupId ?? n?.CandidateGroupID ?? n?.GroupId ?? n?.GroupID ?? n?.Id ?? n?.id);
+                    const name = n?.GroupName ?? n?.CandidateGroupName ?? n?.name ?? n?.Group ?? n?.Name ?? n?.Title ?? n?.Label ?? (Number.isFinite(id) ? `Group ${id}` : "Group");
+                    if (Number.isFinite(id)) groupNameById[id] = String(name);
+                    const kids = pickChildren(n); if (kids?.length) walk(kids);
+                }
+            };
+            if (Array.isArray(raw)) walk(raw);
+        } catch (e) {
+            // Non-fatal; groups column will fallback to ids
+            console.warn("Failed to build group name map", e);
         }
 
         // Client-side sorting
@@ -207,8 +240,8 @@ export async function fetchCandidatesAction(
         const total = allItems.length;
         const top = params.top ?? 15;
         const skip = params.skip ?? 0;
-        const pageSlice = allItems.slice(skip, skip + top);
-        const mappedRows = mapToRows(pageSlice);
+    const pageSlice = allItems.slice(skip, skip + top);
+    const mappedRows = mapToRows(pageSlice, groupNameById);
 
         return {
             status: 200,
@@ -227,8 +260,6 @@ export async function fetchCandidatesAction(
 
 export async function deleteCandidateAction(candidate: any): Promise<ApiResponse<null>> {
     try {
-
-        const res = await apiHandler(endpoints.deleteCandidate, { candidateId: candidate.id } as any);
         // For now, return a placeholder implementation
         console.log("Delete candidate with id:", candidate.id);
         return {
