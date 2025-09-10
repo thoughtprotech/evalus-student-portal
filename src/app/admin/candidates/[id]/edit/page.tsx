@@ -2,15 +2,17 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import toast from "react-hot-toast";
 import Link from "next/link";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Users } from "lucide-react";
 import EditPageLoader from "@/components/EditPageLoader";
 import { fetchCandidateByIdAction, updateCandidateAction } from "@/app/actions/admin/candidates/updateCandidate";
 import { fetchCompaniesAction } from "@/app/actions/admin/companies";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
 import { useUser } from "@/contexts/UserContext";
+import PageHeader from "@/components/PageHeader";
+import Toast from "@/components/Toast";
+import ConfirmationModal from "@/components/ConfirmationModal";
 
 interface CompanyOption { id: number; name: string; }
 type GroupNode = { id: number; name: string; children?: GroupNode[] };
@@ -60,6 +62,12 @@ export default function EditCandidatePage() {
   });
   const [userPhotoPreview, setUserPhotoPreview] = useState<string | null>(null);
   const userPhotoInputRef = useRef<HTMLInputElement>(null);
+  const [toast, setToast] = useState<{ message: string; type: any } | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const inputCls = "w-full border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md px-3 py-2 text-sm bg-white";
+  const selectCls = inputCls;
+  const textareaCls = inputCls;
 
   // Fetch candidate details + companies + group tree
   useEffect(() => {
@@ -152,7 +160,7 @@ export default function EditCandidatePage() {
           });
         }
       } catch (e: any) {
-        toast.error(e.message || "Failed to load candidate");
+        setToast({ message: e.message || "Failed to load candidate", type: "error" });
       } finally {
         if (mounted) setLoading(false);
       }
@@ -275,13 +283,13 @@ export default function EditCandidatePage() {
   };
 
   const validate = () => {
-  const chosenGroupIds = selectedGroupIds;
-    if (!form.firstName.trim()) { toast.error("First name required"); return false; }
-    if (!form.lastName.trim()) { toast.error("Last name required"); return false; }
-    if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(form.email)) { toast.error("Valid email required"); return false; }
-    if (!form.phoneNumber.trim()) { toast.error("Phone required"); return false; }
-    if (!form.companyId) { toast.error("Company required"); return false; }
-    if (chosenGroupIds.length === 0) { toast.error("At least one group required"); return false; }
+    const chosenGroupIds = selectedGroupIds;
+    if (!form.firstName.trim()) { setToast({ message: "First name required", type: "error" }); return false; }
+    if (!form.lastName.trim()) { setToast({ message: "Last name required", type: "error" }); return false; }
+    if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(form.email)) { setToast({ message: "Valid email required", type: "error" }); return false; }
+    if (!form.phoneNumber.trim()) { setToast({ message: "Phone required", type: "error" }); return false; }
+    if (!form.companyId) { setToast({ message: "Company required", type: "error" }); return false; }
+    if (chosenGroupIds.length === 0) { setToast({ message: "At least one group required", type: "error" }); return false; }
     return true;
   };
 
@@ -309,10 +317,10 @@ export default function EditCandidatePage() {
     };
     const res = await updateCandidateAction(payload);
     if (!res.error) {
-      toast.success("Candidate updated");
-      router.push("/admin/candidates");
+      setToast(null);
+      setShowSuccess(true);
     } else {
-      toast.error(res.errorMessage || "Update failed");
+      setToast({ message: res.errorMessage || "Update failed", type: "error" });
     }
     setSaving(false);
   };
@@ -320,21 +328,19 @@ export default function EditCandidatePage() {
   if (loading) return <EditPageLoader message="Loading candidate..." />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="w-[85%] mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/admin/candidates" className="text-gray-500 hover:text-gray-700"><ArrowLeft className="w-5 h-5"/></Link>
-            <h1 className="text-2xl font-semibold text-gray-900">Edit Candidate</h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <button onClick={() => router.back()} className="px-3 py-2 text-sm rounded-lg border border-gray-300 bg-white hover:bg-gray-50">Cancel</button>
-            <button onClick={submit} disabled={saving} className={`px-4 py-2 text-sm rounded-lg text-white font-medium ${saving?"bg-gray-400":"bg-indigo-600 hover:bg-indigo-700"}`}>{saving?"Saving...":"Save Changes"}</button>
-          </div>
+    <div className="p-4 h-full flex flex-col">
+      {/* Header with back + actions */}
+      <div className="flex items-start justify-between w-[60%] mx-auto mb-4">
+        <div className="flex items-center gap-4">
+          <Link href="/admin/candidates" className="inline-flex items-center text-sm text-indigo-600 hover:underline"><ArrowLeft className="w-4 h-4 mr-1"/> Back</Link>
+          <PageHeader title="Edit Candidate" icon={<Users className="w-6 h-6 text-indigo-600" />} showSearch={false} onSearch={()=>{}} />
         </div>
+        <div className="flex gap-2">
+          <button onClick={() => router.push('/admin/candidates')} className="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50">Cancel</button>
+          <button onClick={submit} disabled={saving} className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium shadow hover:bg-indigo-700 disabled:opacity-50">{saving?"Saving…":"Update"}</button>
   </div>
-  <div className="w-[85%] mx-auto px-6 py-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 space-y-6 relative">
+      {/* Centered card */}
+      <div className="w-[60%] mx-auto bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-6 relative">
           {saving && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-sm rounded-lg">
               <div className="flex flex-col items-center gap-3">
@@ -348,32 +354,32 @@ export default function EditCandidatePage() {
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">First Name *</label>
-              <input name="firstName" placeholder="First name" aria-label="First name" value={form.firstName} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">First Name<span className="text-red-500 ml-0.5">*</span></label>
+              <input name="firstName" placeholder="First name" aria-label="First name" value={form.firstName} onChange={handleChange} className={inputCls} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Last Name *</label>
-              <input name="lastName" placeholder="Last name" aria-label="Last name" value={form.lastName} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Email *</label>
-              <input type="email" name="email" placeholder="Email" aria-label="Email" value={form.email} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Phone *</label>
-              <input name="phoneNumber" placeholder="Phone" aria-label="Phone" value={form.phoneNumber} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Last Name<span className="text-red-500 ml-0.5">*</span></label>
+              <input name="lastName" placeholder="Last name" aria-label="Last name" value={form.lastName} onChange={handleChange} className={inputCls} />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Cell Phone</label>
-              <input name="cellPhone" placeholder="Cell Phone" aria-label="Cell Phone" value={form.cellPhone} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Email<span className="text-red-500 ml-0.5">*</span></label>
+              <input type="email" name="email" placeholder="Email" aria-label="Email" value={form.email} onChange={handleChange} className={inputCls} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Company *</label>
-              <select name="companyId" aria-label="Company" value={form.companyId} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Phone<span className="text-red-500 ml-0.5">*</span></label>
+              <input name="phoneNumber" placeholder="Phone" aria-label="Phone" value={form.phoneNumber} onChange={handleChange} className={inputCls} />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Cell Phone</label>
+              <input name="cellPhone" placeholder="Cell Phone" aria-label="Cell Phone" value={form.cellPhone} onChange={handleChange} className={inputCls} />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Company<span className="text-red-500 ml-0.5">*</span></label>
+              <select name="companyId" aria-label="Company" value={form.companyId} onChange={handleChange} className={selectCls}>
                 <option value="">Select company</option>
                 {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
@@ -382,39 +388,40 @@ export default function EditCandidatePage() {
           {/* Register Test Groups moved to dedicated section below */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Address</label>
-              <textarea name="address" placeholder="Address" aria-label="Address" value={form.address} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" rows={2} />
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Address</label>
+              <textarea name="address" placeholder="Address" aria-label="Address" value={form.address} onChange={handleChange} className={textareaCls} rows={2} />
             </div>
             <div className="space-y-2">
-              <div className="flex items-center gap-2 pt-4">
-                <input id="isActive" type="checkbox" checked={form.isActive} onChange={(e)=>setForm(prev=>({...prev,isActive:e.target.checked}))} className="h-4 w-4 text-indigo-600 border-gray-300 rounded" />
-                <label htmlFor="isActive" className="text-sm text-gray-700">Active</label>
-              </div>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Status<span className="text-red-500 ml-0.5">*</span></label>
+              <select className={selectCls} value={form.isActive ? 1 : 0} onChange={(e)=>setForm(prev=>({...prev,isActive: Number(e.target.value)===1}))}>
+                <option value={1}>Active</option>
+                <option value={0}>Inactive</option>
+              </select>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">City</label>
-              <input name="city" placeholder="City" aria-label="City" value={form.city} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">City</label>
+              <input name="city" placeholder="City" aria-label="City" value={form.city} onChange={handleChange} className={inputCls} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">State</label>
-              <input name="state" placeholder="State" aria-label="State" value={form.state} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">State</label>
+              <input name="state" placeholder="State" aria-label="State" value={form.state} onChange={handleChange} className={inputCls} />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Postal Code</label>
-              <input name="postalCode" placeholder="Postal Code" aria-label="Postal Code" value={form.postalCode} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Postal Code</label>
+              <input name="postalCode" placeholder="Postal Code" aria-label="Postal Code" value={form.postalCode} onChange={handleChange} className={inputCls} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Country</label>
-              <input name="country" placeholder="Country" aria-label="Country" value={form.country} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Country</label>
+              <input name="country" placeholder="Country" aria-label="Country" value={form.country} onChange={handleChange} className={inputCls} />
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Notes</label>
-            <textarea name="notes" placeholder="Notes" aria-label="Notes" value={form.notes} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" rows={3} />
+            <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Notes</label>
+            <textarea name="notes" placeholder="Notes" aria-label="Notes" value={form.notes} onChange={handleChange} className={textareaCls} rows={3} />
           </div>
 
           {/* --- User Login Section --- */}
@@ -422,26 +429,22 @@ export default function EditCandidatePage() {
             <h2 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">User Login</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  User Name
-                </label>
+                <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">User Name</label>
                 <input
                   type="text"
                   name="userName"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  className={inputCls}
                   placeholder="Enter user name"
                   value={userLogin.userName}
                   onChange={handleUserLoginChange}
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Password
-                </label>
+                <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Password</label>
                 <input
                   type="password"
                   name="password"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  className={inputCls}
                   placeholder="Enter password"
                   value={userLogin.password}
                   onChange={handleUserLoginChange}
@@ -450,25 +453,21 @@ export default function EditCandidatePage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Display Name
-                </label>
+                <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Display Name</label>
                 <input
                   type="text"
                   name="displayName"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  className={inputCls}
                   placeholder="Enter display name"
                   value={userLogin.displayName}
                   onChange={handleUserLoginChange}
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Role
-                </label>
+                <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Role</label>
                 <select
                   name="role"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  className={selectCls}
                   value={userLogin.role}
                   onChange={handleUserLoginChange}
                 >
@@ -482,15 +481,13 @@ export default function EditCandidatePage() {
               </div>
             </div>
             <div className="mt-4">
-              <label className="block text-xs font-medium text-gray-600 mb-1">
-                User Photo
-              </label>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">User Photo</label>
               <input
                 type="file"
                 name="userPhoto"
                 accept="image/*"
                 ref={userPhotoInputRef}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                className={inputCls}
                 onChange={handleUserPhotoChange}
               />
               {userPhotoPreview && (
@@ -526,6 +523,18 @@ export default function EditCandidatePage() {
           {/* --- End Register Test Groups Section --- */}
         </div>
       </div>
+      <div className="fixed top-4 right-4 z-50 space-y-2">{toast && <Toast message={toast.message} type={toast.type} onClose={()=>setToast(null)} />}</div>
+      <ConfirmationModal
+        isOpen={showSuccess}
+        onConfirm={() => { setShowSuccess(false); router.push('/admin/candidates'); }}
+        onCancel={() => { setShowSuccess(false); router.push('/admin/candidates'); }}
+        title="Candidate Updated Successfully!"
+        message="Candidate data saved."
+        confirmText="Go to Candidates"
+        cancelText=""
+        variant="success"
+        className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200"
+      />
     </div>
   );
 }

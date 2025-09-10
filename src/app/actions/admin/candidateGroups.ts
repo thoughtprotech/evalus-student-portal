@@ -69,7 +69,38 @@ export async function createCandidateGroupAction(payload: any): Promise<ApiRespo
 
 export async function updateCandidateGroupAction(id: number, payload: any): Promise<ApiResponse<any>> {
   try {
-  const res = await apiHandler(endpoints.updateCandidateGroup, { ...payload, id });
+    const body: any = { ...(payload || {}) };
+    // Normalize to expected backend shape for edit
+    // Prefer camelCase keys if present; fall back to PascalCase
+    if (body.candidateGroupId == null || Number(body.candidateGroupId) === 0) {
+      body.candidateGroupId = id;
+    }
+    if (body.candidateGroupName == null && body.CandidateGroupName != null) {
+      body.candidateGroupName = body.CandidateGroupName;
+    }
+    if (body.parentId == null && body.ParentId != null) {
+      body.parentId = body.ParentId;
+    }
+    if (body.language == null && body.Language != null) {
+      body.language = body.Language;
+    }
+    if (body.isActive == null && body.IsActive != null) {
+      body.isActive = body.IsActive;
+    }
+    if (body.createdBy == null && body.CreatedBy != null) {
+      body.createdBy = body.CreatedBy;
+    }
+    if (body.createdDate == null && body.CreatedDate != null) {
+      body.createdDate = body.CreatedDate;
+    }
+    if (body.modifiedBy == null && body.ModifiedBy != null) {
+      body.modifiedBy = body.ModifiedBy;
+    }
+    if (body.modifiedDate == null && body.ModifiedDate != null) {
+      body.modifiedDate = body.ModifiedDate;
+    }
+
+    const res = await apiHandler(endpoints.updateCandidateGroup, { id, ...body });
     return res as any;
   } catch (e: any) {
     return { status: 500, error: true, message: 'Failed to update group', errorMessage: e?.message } as any;

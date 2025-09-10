@@ -9,6 +9,8 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { Users, ArrowLeft } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { fetchCandidateGroupsODataAction, updateCandidateGroupAction, type CandidateGroupRow } from "@/app/actions/admin/candidateGroups";
+import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
+import type { GetLanguagesResponse } from "@/utils/api/types";
 
 export default function EditCandidateGroupPage() {
   const params = useParams();
@@ -24,11 +26,13 @@ export default function EditCandidateGroupPage() {
   const [form, setForm] = useState({
     name: "",
     parentId: 0,
-    language: "English",
+    language: "",
     isActive: 1,
     createdBy: "",
     createdDate: "",
   });
+  const [languages, setLanguages] = useState<GetLanguagesResponse[]>([]);
+  const [langLoading, setLangLoading] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -42,7 +46,7 @@ export default function EditCandidateGroupPage() {
           setForm({
             name: row.name,
             parentId: row.parentId ?? 0,
-            language: row.language || "English",
+            language: row.language || "",
             isActive: row.isActive ?? 1,
             createdBy: row.createdBy || username || 'Admin',
             createdDate: row.createdDate || new Date().toISOString(),
@@ -58,20 +62,40 @@ export default function EditCandidateGroupPage() {
     return () => { mounted = false; };
   }, [id]);
 
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setLangLoading(true);
+      const res = await fetchLanguagesAction();
+      if (mounted) {
+        if (res.status === 200 && res.data) {
+          const active = (res.data || []).filter((l: any) => (l.isActive ?? l.IsActive ?? 1) === 1);
+          setLanguages(active);
+          if (!form.language && active.length) setForm(f => ({ ...f, language: active[0].language }));
+        } else {
+          setToast({ message: res.message || 'Failed to load languages', type: 'error' });
+        }
+      }
+      setLangLoading(false);
+    })();
+    return () => { mounted = false; };
+  }, []);
+
   const submit = async () => {
-    if (!form.name.trim()) { setToast({ message: 'Group name required', type: 'error' }); return; }
+  if (!form.name.trim()) { setToast({ message: 'Group name required', type: 'error' }); return; }
+  if (!form.language.trim()) { setToast({ message: 'Language required', type: 'error' }); return; }
     setSaving(true);
     const nowIso = new Date().toISOString();
+    // Use backend-preferred camelCase shape; id is provided in URL, and action will set candidateGroupId
     const payload = {
-      CandidateGroupId: id,
-      CandidateGroupName: form.name.trim(),
-      ParentId: form.parentId,
-      Language: form.language,
-      IsActive: form.isActive,
-      CreatedBy: form.createdBy || username || 'Admin',
-      CreatedDate: form.createdDate || nowIso,
-      ModifiedBy: username || 'Admin',
-      ModifiedDate: nowIso,
+      candidateGroupName: form.name.trim(),
+      parentId: form.parentId,
+      language: form.language,
+      isActive: form.isActive,
+      createdBy: form.createdBy || username || 'Admin',
+      createdDate: form.createdDate || nowIso,
+      modifiedBy: username || 'Admin',
+      modifiedDate: nowIso,
     } as any;
     const res = await updateCandidateGroupAction(id, payload);
     setSaving(false);
@@ -83,43 +107,59 @@ export default function EditCandidateGroupPage() {
     }
   };
 
+  const inputCls = "w-full border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md px-3 py-2 text-sm bg-white";
+  const selectCls = inputCls;
+
   return (
-    <div className="p-4 bg-gray-50 h-full flex flex-col">
-      <div className="sticky top-0 z-20 bg-gray-50 pt-2 pb-3">
-        <PageHeader icon={<Users className="w-6 h-6 text-indigo-600" />} title="Edit Candidate Group" onSearch={()=>{}} showSearch={false} />
+    <div className="p-4 h-full flex flex-col">
+      {/* Header + actions */}
+      <div className="flex items-start justify-between w-[60%] mx-auto mb-4">
+        <div className="flex items-center gap-4">
+          <Link href="/admin/candidate-groups" className="inline-flex items-center text-sm text-indigo-600 hover:underline"><ArrowLeft className="w-4 h-4 mr-1"/> Back</Link>
+          <PageHeader icon={<Users className="w-6 h-6 text-indigo-600" />} title="Edit Candidate Group" showSearch={false} onSearch={()=>{}} />
+        </div>
+        <div className="flex gap-2">
+          <Link href="/admin/candidate-groups" className="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50">Cancel</Link>
+          <button disabled={saving} onClick={submit} className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium shadow hover:bg-indigo-700 disabled:opacity-50">{saving?"Saving…":"Update"}</button>
+        </div>
       </div>
-      <div className="bg-white shadow rounded-lg p-4 max-w-3xl">
-        <div className="mb-4"><Link href="/admin/candidate-groups" className="inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline"><ArrowLeft className="w-4 h-4"/> Back</Link></div>
-        {loading ? (
-          <div className="py-20 flex justify-center text-sm text-gray-600">Loading…</div>
+
+      {/* Centered card */}
+      <div className="w-[60%] mx-auto bg-white shadow-sm border border-gray-200 rounded-lg p-6 space-y-4">
+  {loading ? (
+          <div className="py-12 text-center text-sm text-gray-600">Loading…</div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <>
             <div>
-              <label className="block text-sm text-gray-700 mb-1">Group Name</label>
-              <input value={form.name} onChange={e=>setForm(f=>({...f, name: e.target.value}))} className="w-full border rounded px-3 py-2" />
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Group Name<span className="text-red-500 ml-0.5">*</span></label>
+              <input value={form.name} onChange={e=>setForm(f=>({...f, name: e.target.value}))} className={inputCls} />
+            </div>
+            {/* Parent Id removed from Edit screen as requested */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Language<span className="text-red-500 ml-0.5">*</span></label>
+              <select
+                value={form.language}
+                onChange={e=>setForm(f=>({...f, language: e.target.value}))}
+                className={selectCls}
+                disabled={langLoading || languages.length === 0}
+              >
+                {!langLoading && languages.length === 0 && <option value="">No languages</option>}
+                {languages.map(l => (
+                  <option key={l.language} value={l.language}>{l.language}</option>
+                ))}
+              </select>
             </div>
             <div>
-              <label className="block text-sm text-gray-700 mb-1">Parent Id</label>
-              <input type="number" value={form.parentId} onChange={e=>setForm(f=>({...f, parentId: Number(e.target.value||0)}))} className="w-full border rounded px-3 py-2" placeholder="0 for root" />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Language</label>
-              <input value={form.language} onChange={e=>setForm(f=>({...f, language: e.target.value}))} className="w-full border rounded px-3 py-2" placeholder="English" />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Status</label>
-              <select value={form.isActive} onChange={e=>setForm(f=>({...f, isActive: Number(e.target.value)}))} className="w-full border rounded px-3 py-2">
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Status<span className="text-red-500 ml-0.5">*</span></label>
+              <select value={form.isActive} onChange={e=>setForm(f=>({...f, isActive: Number(e.target.value)}))} className={selectCls}>
                 <option value={1}>Active</option>
                 <option value={0}>Inactive</option>
               </select>
             </div>
-          </div>
+          </>
         )}
-        <div className="mt-6 flex items-center gap-3">
-          <button disabled={saving} onClick={submit} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-md">{saving ? 'Saving…' : 'Update'}</button>
-          <Link href="/admin/candidate-groups" className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50">Cancel</Link>
-        </div>
       </div>
+
       <div className="fixed top-4 right-4 z-50 space-y-2">{toast && <Toast message={toast.message} type={toast.type} onClose={()=>setToast(null)} />}</div>
       <ConfirmationModal
         isOpen={showSuccess}
