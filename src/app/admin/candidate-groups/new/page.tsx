@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import PageHeader from "@/components/PageHeader";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { createCandidateGroupAction } from "@/app/actions/admin/candidateGroups";
-import { Users, ArrowLeft, ChevronDown, ChevronUp, Circle } from "lucide-react";
+import { Users, ArrowLeft, ChevronDown, ChevronUp, Circle, Check } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
 import type { GetLanguagesResponse } from "@/utils/api/types";
@@ -41,6 +41,9 @@ export default function NewCandidateGroupPage() {
   const [tree, setTree] = useState<GroupNode[]>([]);
   const [treeOpen, setTreeOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const [treeFilter, setTreeFilter] = useState("");
+  const [idToNode, setIdToNode] = useState<Record<number, GroupNode>>({});
+  const [idToParent, setIdToParent] = useState<Record<number, number | null>>({});
 
   const inputCls = "w-full border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md px-3 py-2 text-sm bg-white";
   const selectCls = inputCls;
@@ -121,7 +124,21 @@ export default function NewCandidateGroupPage() {
             return { id, name: String(name ?? `Group ${id}`), children: norm(pickChildren(n)) } as GroupNode;
           })
           .filter(Boolean) as GroupNode[];
-      setTree(Array.isArray(raw) ? norm(raw) : []);
+      const built = Array.isArray(raw) ? norm(raw) : [];
+      setTree(built);
+      // Build id maps for breadcrumb
+      const nodeMap: Record<number, GroupNode> = {};
+      const parentMap: Record<number, number | null> = {};
+      const walk = (nodes: GroupNode[], parent: number | null) => {
+        for (const nd of nodes) {
+          nodeMap[nd.id] = nd;
+          parentMap[nd.id] = parent;
+          if (nd.children?.length) walk(nd.children, nd.id);
+        }
+      };
+      walk(built, null);
+      setIdToNode(nodeMap);
+      setIdToParent(parentMap);
     } catch (e: any) {
       // ignore
     }
@@ -161,7 +178,7 @@ export default function NewCandidateGroupPage() {
     const isExpanded = expanded[node.id] ?? level < 1; // expand roots by default
     return (
       <div>
-        <div className="flex items-center gap-2 px-2 py-1 hover:bg-gray-50 rounded cursor-pointer" style={{ paddingLeft: level * 12 }}
+        <div className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer ${parentGroup?.id === node.id ? 'bg-indigo-50' : 'hover:bg-gray-50'}`} style={{ paddingLeft: level * 12 }}
           onClick={() => { setParentGroup({ id: node.id, name: node.name }); setTreeOpen(false); }}
           title={node.name}
         >
@@ -173,9 +190,10 @@ export default function NewCandidateGroupPage() {
           ) : (<span className="h-5 w-5" />)}
           <Circle className="w-2 h-2 text-gray-400" />
           <span className="text-sm text-gray-800 truncate">{node.name}</span>
+          {parentGroup?.id === node.id && <Check className="w-3.5 h-3.5 text-indigo-600 ml-auto" />}
         </div>
         {hasChildren && isExpanded && (
-          <div>
+          <div className="ml-3 pl-3 border-l border-gray-200">
             {node.children!.map((c) => (
               <TreeRow key={c.id} node={c} level={level + 1} />
             ))}
@@ -184,6 +202,49 @@ export default function NewCandidateGroupPage() {
       </div>
     );
   };
+
+  // Expand/Collapse all helpers
+  const expandAll = () => {
+    const next: Record<number, boolean> = {};
+    const walk = (nodes: GroupNode[]) => {
+      for (const n of nodes) {
+        next[n.id] = true;
+        if (n.children?.length) walk(n.children);
+      }
+    };
+    walk(tree);
+    setExpanded(next);
+  };
+  const collapseAll = () => setExpanded({});
+
+  // Filter tree by name and include ancestors of matches
+  const filterTree = useMemo(() => {
+    const q = (treeFilter || "").toLowerCase().trim();
+    if (!q) return tree;
+    const walk = (nodes: GroupNode[]): GroupNode[] =>
+      nodes
+        .map((n) => {
+          const kids = n.children ? walk(n.children) : [];
+          const match = n.name.toLowerCase().includes(q);
+          if (match || kids.length) return { id: n.id, name: n.name, children: kids } as GroupNode;
+          return null;
+        })
+        .filter(Boolean) as GroupNode[];
+    return walk(tree);
+  }, [tree, treeFilter]);
+
+  const parentBreadcrumb = useMemo(() => {
+    if (!parentGroup) return '';
+    const names: string[] = [];
+    let cur: number | null | undefined = parentGroup.id;
+    while (cur != null) {
+      const n = idToNode[cur];
+      if (!n) break;
+      names.push(n.name);
+      cur = idToParent[cur] ?? null;
+    }
+    return names.reverse().join(' › ');
+  }, [parentGroup, idToNode, idToParent]);
 
   return (
     <div className="p-4 h-full flex flex-col">
@@ -243,21 +304,31 @@ export default function NewCandidateGroupPage() {
                 onClick={async () => { await ensureTreeLoaded(); setTreeOpen(v=>!v); }}
                 className="w-full flex items-center justify-between border border-gray-300 rounded-md px-3 py-2 text-sm bg-white hover:bg-gray-50"
               >
-                <span className={`truncate ${parentGroup ? 'text-gray-900' : 'text-gray-500'}`}>{parentGroup ? parentGroup.name : (treeLoading ? 'Loading…' : 'Select a parent group')}</span>
+                <span className={`truncate ${parentGroup ? 'text-gray-900' : 'text-gray-500'}`}>{parentGroup ? (parentBreadcrumb || parentGroup.name) : (treeLoading ? 'Loading…' : 'Select a parent group')}</span>
                 <ChevronDown className="w-4 h-4 text-gray-500" />
               </button>
               {treeOpen && (
                 <div className="relative">
-                  <div className="absolute z-20 mt-1 w-full max-h-72 overflow-auto bg-white border border-gray-200 rounded-md shadow">
-                    {treeLoading ? (
-                      <div className="p-3 text-sm text-gray-500">Loading groups…</div>
-                    ) : tree.length === 0 ? (
-                      <div className="p-3 text-sm text-gray-500">No groups found</div>
-                    ) : (
-                      <div className="py-1">
-                        {renderTree(tree)}
-                      </div>
-                    )}
+                  <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-md shadow">
+                    <div className="p-2 border-b border-gray-100 flex items-center gap-2">
+                      <input
+                        value={treeFilter}
+                        onChange={(e)=>setTreeFilter(e.target.value)}
+                        placeholder="Search groups..."
+                        className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                      />
+                      <button type="button" onClick={expandAll} className="text-xs text-gray-600 hover:text-indigo-700">Expand all</button>
+                      <button type="button" onClick={collapseAll} className="text-xs text-gray-600 hover:text-indigo-700">Collapse all</button>
+                    </div>
+                    <div className="max-h-72 overflow-auto py-1">
+                      {treeLoading ? (
+                        <div className="p-3 text-sm text-gray-500">Loading groups…</div>
+                      ) : (filterTree.length === 0 ? (
+                        <div className="p-3 text-sm text-gray-500">No groups found</div>
+                      ) : (
+                        renderTree(filterTree)
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
