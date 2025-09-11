@@ -1,41 +1,68 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import PageHeader from "@/components/PageHeader";
-import Toast from "@/components/Toast";
+import ConfirmationModal from "@/components/ConfirmationModal";
 import { createCandidateGroupAction } from "@/app/actions/admin/candidateGroups";
-import { Users, ArrowLeft } from "lucide-react";
+import { Users, ArrowLeft, ChevronDown, ChevronUp, Circle } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
 import type { GetLanguagesResponse } from "@/utils/api/types";
+import { apiHandler } from "@/utils/api/client";
+import { endpoints } from "@/utils/api/endpoints";
+
+type GroupNode = { id: number; name: string; children?: GroupNode[] };
 
 export default function NewCandidateGroupPage() {
   const router = useRouter();
   const { username } = useUser();
+  // Mode selection
+  type Mode = "ROOT" | "SUB";
+  const [mode, setMode] = useState<Mode>("ROOT");
+
+  // Root mode fields
   const [name, setName] = useState("");
-  const [parentId, setParentId] = useState<number>(0);
+
+  // Sub mode fields
+  const [parentGroup, setParentGroup] = useState<{ id: number; name: string } | null>(null);
+  const [subName, setSubName] = useState("");
+
   const [language, setLanguage] = useState("");
   const [isActive, setIsActive] = useState(1);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: any } | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [languages, setLanguages] = useState<GetLanguagesResponse[]>([]);
   const [langLoading, setLangLoading] = useState(false);
+
+  // Group tree dropdown state
+  const [treeLoading, setTreeLoading] = useState(false);
+  const [tree, setTree] = useState<GroupNode[]>([]);
+  const [treeOpen, setTreeOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   const inputCls = "w-full border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md px-3 py-2 text-sm bg-white";
   const selectCls = inputCls;
 
-  const canSave = name.trim().length > 0;
+  const canSave = useMemo(() => {
+    if (!language.trim()) return false;
+    if (mode === "ROOT") return name.trim().length > 0;
+    return !!parentGroup && subName.trim().length > 0;
+  }, [mode, name, parentGroup, subName, language]);
 
   const save = async () => {
-  if (!canSave) { setToast({ message: 'Enter group name', type: 'warning' }); return; }
-  if (!language.trim()) { setToast({ message: 'Select language', type: 'error' }); return; }
+  // Guard invalid states; button should already be disabled
+  if (!language.trim()) return;
+  if (mode === "ROOT" && !name.trim()) return;
+  if (mode === "SUB" && !parentGroup) return;
+  if (mode === "SUB" && !subName.trim()) return;
+
     setSaving(true);
     const nowIso = new Date().toISOString();
     const payload = {
-      CandidateGroupName: name.trim(),
-      ParentId: parentId,
+      CandidateGroupName: (mode === "ROOT" ? name.trim() : subName.trim()),
+      ParentId: (mode === "ROOT" ? 0 : parentGroup!.id),
       Language: language,
       IsActive: isActive,
       CreatedBy: username || 'Admin',
@@ -45,10 +72,13 @@ export default function NewCandidateGroupPage() {
     };
     const res = await createCandidateGroupAction(payload);
     setSaving(false);
-    if (res.status === 200) {
-      router.push('/admin/candidate-groups');
+  const statusNum = typeof (res as any)?.status === 'number' ? Number((res as any).status) : NaN;
+  const noError = (res as any)?.error === false || (res as any)?.error == null;
+  const ok = noError && (isNaN(statusNum) || (statusNum >= 200 && statusNum < 400));
+  if (ok) {
+      setShowSuccessModal(true);
     } else {
-      setToast({ message: res.message || 'Create failed', type: 'error' });
+      // Silent failure: keep on page; optionally re-enable button
     }
   };
 
@@ -63,14 +93,97 @@ export default function NewCandidateGroupPage() {
           const active = (res.data || []).filter((l: any) => (l.isActive ?? l.IsActive ?? 1) === 1);
           setLanguages(active);
           if (!language && active.length) setLanguage(active[0].language);
-        } else {
-          setToast({ message: res.message || 'Failed to load languages', type: 'error' });
-        }
+  }
       }
       setLangLoading(false);
     })();
     return () => { mounted = false; };
   }, []);
+
+  // Load group tree (on mount lazily or when switching to SUB)
+  const ensureTreeLoaded = async () => {
+    if (tree.length || treeLoading) return;
+    setTreeLoading(true);
+    try {
+      const res = await apiHandler(endpoints.getCandidateGroupTreeOData, null as any);
+      const raw = (res?.data as any)?.value ?? res?.data ?? [];
+      const pickChildren = (n: any): any[] => {
+        const candidates = [n?.children, n?.Children, n?.childrens, n?.ChildNodes, n?.Items, n?.Nodes, n?.Groups, n?.Subgroups];
+        for (const c of candidates) if (Array.isArray(c)) return c;
+        return [];
+      };
+      const norm = (nodes: any[]): GroupNode[] =>
+        (nodes || [])
+          .map((n) => {
+            const id = Number(n?.CandidateGroupId ?? n?.candidateGroupId ?? n?.Id ?? n?.id);
+            const name = n?.GroupName ?? n?.CandidateGroupName ?? n?.name ?? n?.Group ?? n?.Name ?? n?.Title ?? n?.Label;
+            if (!Number.isFinite(id)) return null;
+            return { id, name: String(name ?? `Group ${id}`), children: norm(pickChildren(n)) } as GroupNode;
+          })
+          .filter(Boolean) as GroupNode[];
+      setTree(Array.isArray(raw) ? norm(raw) : []);
+    } catch (e: any) {
+      // ignore
+    }
+    setTreeLoading(false);
+  };
+
+  useEffect(() => {
+    if (mode === "SUB") ensureTreeLoaded();
+  }, [mode]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (!treeOpen) return;
+      const el = dropdownRef.current;
+      if (el && !el.contains(e.target as Node)) setTreeOpen(false);
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [treeOpen]);
+
+  const renderTree = (nodes: GroupNode[], level = 0) => {
+    return (
+      <div>
+        {nodes.map((n) => (
+          <TreeRow key={n.id} node={n} level={level} />
+        ))}
+      </div>
+    );
+  };
+
+  const [expanded, setExpanded] = useState<Record<number, boolean>>({});
+  const toggleExpand = (id: number) => setExpanded((m) => ({ ...m, [id]: !m[id] }));
+
+  const TreeRow = ({ node, level }: { node: GroupNode; level: number }) => {
+    const hasChildren = (node.children || []).length > 0;
+    const isExpanded = expanded[node.id] ?? level < 1; // expand roots by default
+    return (
+      <div>
+        <div className="flex items-center gap-2 px-2 py-1 hover:bg-gray-50 rounded cursor-pointer" style={{ paddingLeft: level * 12 }}
+          onClick={() => { setParentGroup({ id: node.id, name: node.name }); setTreeOpen(false); }}
+          title={node.name}
+        >
+          {hasChildren ? (
+            <button type="button" onClick={(e) => { e.stopPropagation(); toggleExpand(node.id); }}
+              className="h-5 w-5 flex items-center justify-center rounded border border-gray-200 text-xs bg-white">
+              {isExpanded ? <ChevronUp className="w-3 h-3"/> : <ChevronDown className="w-3 h-3"/>}
+            </button>
+          ) : (<span className="h-5 w-5" />)}
+          <Circle className="w-2 h-2 text-gray-400" />
+          <span className="text-sm text-gray-800 truncate">{node.name}</span>
+        </div>
+        {hasChildren && isExpanded && (
+          <div>
+            {node.children!.map((c) => (
+              <TreeRow key={c.id} node={c} level={level + 1} />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="p-4 h-full flex flex-col">
@@ -87,15 +200,75 @@ export default function NewCandidateGroupPage() {
       </div>
 
       {/* Centered card */}
-      <div className="w-[60%] mx-auto bg-white shadow-sm border border-gray-200 rounded-lg p-6 space-y-4">
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Group Name<span className="text-red-500 ml-0.5">*</span></label>
-          <input value={name} onChange={e=>setName(e.target.value)} className={inputCls} placeholder="e.g., Madhu Test Sub" />
+      <div className="w-[60%] mx-auto bg-white shadow-sm border border-gray-200 rounded-lg p-6 space-y-5">
+        {/* Mode selection */}
+        <div className="flex gap-6">
+          <label className="inline-flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="mode"
+              value="ROOT"
+              checked={mode === "ROOT"}
+              onChange={() => setMode("ROOT")}
+              className="h-4 w-4 text-indigo-600 border-gray-300"
+            />
+            <span className="text-sm text-gray-800">Create a top-level group</span>
+          </label>
+          <label className="inline-flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="mode"
+              value="SUB"
+              checked={mode === "SUB"}
+              onChange={() => setMode("SUB")}
+              className="h-4 w-4 text-indigo-600 border-gray-300"
+            />
+            <span className="text-sm text-gray-800">Create a subgroup under an existing group</span>
+          </label>
         </div>
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Parent Id</label>
-          <input type="number" value={parentId} onChange={e=>setParentId(Number(e.target.value||0))} className={inputCls} placeholder="0 for root" />
-        </div>
+
+        {mode === "ROOT" ? (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Group Name<span className="text-red-500 ml-0.5">*</span></label>
+              <input value={name} onChange={e=>setName(e.target.value)} className={inputCls} placeholder="Enter group name" />
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div ref={dropdownRef}>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Parent Group<span className="text-red-500 ml-0.5">*</span></label>
+              <button
+                type="button"
+                onClick={async () => { await ensureTreeLoaded(); setTreeOpen(v=>!v); }}
+                className="w-full flex items-center justify-between border border-gray-300 rounded-md px-3 py-2 text-sm bg-white hover:bg-gray-50"
+              >
+                <span className={`truncate ${parentGroup ? 'text-gray-900' : 'text-gray-500'}`}>{parentGroup ? parentGroup.name : (treeLoading ? 'Loading…' : 'Select a parent group')}</span>
+                <ChevronDown className="w-4 h-4 text-gray-500" />
+              </button>
+              {treeOpen && (
+                <div className="relative">
+                  <div className="absolute z-20 mt-1 w-full max-h-72 overflow-auto bg-white border border-gray-200 rounded-md shadow">
+                    {treeLoading ? (
+                      <div className="p-3 text-sm text-gray-500">Loading groups…</div>
+                    ) : tree.length === 0 ? (
+                      <div className="p-3 text-sm text-gray-500">No groups found</div>
+                    ) : (
+                      <div className="py-1">
+                        {renderTree(tree)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Subgroup Name<span className="text-red-500 ml-0.5">*</span></label>
+              <input value={subName} onChange={e=>setSubName(e.target.value)} className={inputCls} placeholder="Enter subgroup name" />
+            </div>
+          </div>
+        )}
+
         <div>
           <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Language<span className="text-red-500 ml-0.5">*</span></label>
           <select
@@ -119,7 +292,16 @@ export default function NewCandidateGroupPage() {
         </div>
       </div>
 
-      <div className="fixed top-4 right-4 z-50 space-y-2">{toast && <Toast message={toast.message} type={toast.type} onClose={()=>setToast(null)} />}</div>
+      <ConfirmationModal
+        isOpen={showSuccessModal}
+        variant="success"
+        title="Group Created Successfully!"
+        message={mode === 'ROOT' ? 'The top-level group has been created.' : 'The subgroup has been created under the selected group.'}
+        confirmText="Go to List"
+        cancelText=""
+        onConfirm={() => { setShowSuccessModal(false); router.push('/admin/candidate-groups'); }}
+        onCancel={() => setShowSuccessModal(false)}
+      />
     </div>
   );
 }
