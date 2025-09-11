@@ -171,11 +171,16 @@ export default function NewCandidateGroupPage() {
   };
 
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
-  const toggleExpand = (id: number) => setExpanded((m) => ({ ...m, [id]: !m[id] }));
+  const [collapsedAll, setCollapsedAll] = useState(false);
+  const toggleExpand = (id: number) => {
+    setCollapsedAll(false);
+    setExpanded((m) => ({ ...m, [id]: !m[id] }));
+  };
 
   const TreeRow = ({ node, level }: { node: GroupNode; level: number }) => {
-    const hasChildren = (node.children || []).length > 0;
-    const isExpanded = expanded[node.id] ?? level < 1; // expand roots by default
+  const hasChildren = (node.children || []).length > 0;
+  // If user collapsed all, only show nodes explicitly re-opened
+  const isExpanded = collapsedAll ? !!expanded[node.id] : (expanded[node.id] ?? level < 1);
     return (
       <div>
         <div className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer ${parentGroup?.id === node.id ? 'bg-indigo-50' : 'hover:bg-gray-50'}`} style={{ paddingLeft: level * 12 }}
@@ -213,9 +218,13 @@ export default function NewCandidateGroupPage() {
       }
     };
     walk(tree);
+    setCollapsedAll(false);
     setExpanded(next);
   };
-  const collapseAll = () => setExpanded({});
+  const collapseAll = () => {
+    setExpanded({});
+    setCollapsedAll(true);
+  };
 
   // Filter tree by name and include ancestors of matches
   const filterTree = useMemo(() => {
