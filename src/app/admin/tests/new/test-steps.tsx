@@ -314,18 +314,34 @@ export default function TestSteps({
       // Helper fallback validators for when a step component isn't mounted (e.g., user jumped directly to Step 5)
       const validateStep1Fallback = (d: any): { ok: boolean; msg?: string } => {
         try {
-          const name = (d?.TestName ?? "").toString().trim();
-          const typeOk = Number.isFinite(Number(d?.TestTypeId));
-          const catOk = Number.isFinite(Number(d?.TestCategoryId));
-          const lvlOk = Number.isFinite(Number(d?.TestDifficultyLevelId));
-          const priOk = Number.isFinite(Number(d?.PrimaryInstructionId ?? d?.TestPrimaryInstructionId));
-          const duration = Number(d?.TestDurationMinutes);
-          const totalQ = Number(d?.TotalQuestions);
-          const totalM = Number(d?.TotalMarks);
+          if (typeof window !== 'undefined' && sessionStorage.getItem('admin:newTest:step1valid') === '1') {
+            return { ok: true };
+          }
+        } catch { /* ignore */ }
+        const compute = (src: any) => {
+          const name = (src?.TestName ?? "").toString().trim();
+          // Field name alignment with Step1 component
+          const typeOk = Number.isFinite(Number(src?.TestTypeId ?? src?.TypeId));
+          const catOk = Number.isFinite(Number(src?.CategoryId ?? src?.TestCategoryId));
+          const lvlOk = Number.isFinite(Number(src?.DifficultyLevelId ?? src?.TestDifficultyLevelId));
+          const priOk = Number.isFinite(Number(src?.PrimaryInstructionId ?? src?.TestPrimaryInstructionId));
+          const duration = Number(src?.TestDuration ?? src?.TestDurationMinutes ?? src?.DurationMinutes);
+          const totalQ = Number(src?.TotalQuestions);
+          const totalM = Number(src?.TotalMarks);
           const ok = !!name && typeOk && catOk && lvlOk && priOk && duration > 0 && totalQ > 0 && totalM > 0;
-          return ok
-            ? { ok: true }
-            : { ok: false, msg: "Please complete required fields in Step 1 (Test Details)." };
+          return ok;
+        };
+        try {
+          if (compute(d)) return { ok: true };
+          // Attempt one-time snapshot restore before failing
+          try {
+            const snapRaw = typeof window !== 'undefined' ? sessionStorage.getItem('admin:newTest:step1snapshot') : null;
+            if (snapRaw) {
+              const snap = JSON.parse(snapRaw);
+              if (compute(snap)) return { ok: true };
+            }
+          } catch { /* ignore */ }
+          return { ok: false, msg: "Please complete required fields in Step 1 (Test Details)." };
         } catch {
           return { ok: false, msg: "Please complete required fields in Step 1 (Test Details)." };
         }
@@ -371,12 +387,28 @@ export default function TestSteps({
       };
       const validateStep5Fallback = (_d: any): { ok: boolean; msg?: string } => ({ ok: true });
 
-      // Validate all steps (use registered validators if present, otherwise fallback validators against the draft)
-      const ok1 = step1ValidatorRef.current ? step1ValidatorRef.current() : validateStep1Fallback(draft).ok;
-      if (!ok1) {
-        const fallbackMsg = !step1ValidatorRef.current ? validateStep1Fallback(draft).msg : undefined;
-        setToast({ message: fallbackMsg || "Please complete required fields in Step 1 (Test Details).", type: "error" });
-        // Focus Step 1
+      // Validate Step1 prioritizing draft & snapshot (component may be unmounted or ref stale after external navigation)
+      let step1Result = validateStep1Fallback(draft);
+      if (!step1Result.ok) {
+        // Try snapshot restore once
+        try {
+          const snapRaw = typeof window !== 'undefined' ? sessionStorage.getItem('admin:newTest:step1snapshot') : null;
+          if (snapRaw) {
+            const snap = JSON.parse(snapRaw);
+            const snapCheck = validateStep1Fallback(snap);
+            if (snapCheck.ok) step1Result = snapCheck;
+          }
+        } catch { /* ignore */ }
+      }
+      if (!step1Result.ok && step1ValidatorRef.current && current === 0) {
+        // If user is actually on Step1, allow live validator to run (could clear transient errors)
+        try {
+          const liveOk = step1ValidatorRef.current();
+          if (liveOk) step1Result = { ok: true };
+        } catch { /* ignore */ }
+      }
+      if (!step1Result.ok) {
+        setToast({ message: step1Result.msg || "Please complete required fields in Step 1 (Test Details).", type: "error" });
         setCurrent(0);
         const params = new URLSearchParams(searchString);
         params.set("step", "1");

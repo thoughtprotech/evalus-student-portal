@@ -2,7 +2,6 @@
 
 import ImportantInstructions from "@/components/ImportantInstructions";
 import Toast, { type ToastType } from "@/components/Toast";
-import ConfirmationModal from "@/components/ConfirmationModal";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTestDraft } from "@/contexts/TestDraftContext";
@@ -68,8 +67,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
   const [sections, setSections] = useState<TestSection[]>([]);
   const [delSelected, setDelSelected] = useState<Record<number, boolean>>({});
   const [toast, setToast] = useState<{ message: string; type?: ToastType } | null>(null);
-  // Confirm editing when test is Published
-  const [confirmEditHref, setConfirmEditHref] = useState<string | null>(null);
+  // Removed: edit gating confirmations; questions can be edited without restriction
   // Inline validation map per question id
   const [invalidMap, setInvalidMap] = useState<Record<number, string[]>>({});
 
@@ -197,6 +195,39 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search?.toString()]);
+
+  // Restore Step1 critical fields if they were lost after returning from editing a question
+  useEffect(() => {
+    try {
+      const snapRaw = sessionStorage.getItem("admin:newTest:step1snapshot");
+      if (!snapRaw) return;
+      const snap = JSON.parse(snapRaw);
+      if (!draft) return;
+      // If any required Step1 field is now empty but snapshot has it, restore.
+      const requiredKeys = [
+        "TestName","TestTypeId","CategoryId","DifficultyLevelId","PrimaryInstructionId","TestDuration","TotalQuestions","TotalMarks"
+      ];
+      let needsRestore = false;
+      for (const k of requiredKeys) {
+        if ((draft as any)[k] == null || (String((draft as any)[k]).trim() === "")) {
+          if (snap[k] != null && String(snap[k]).trim() !== "") { needsRestore = true; break; }
+        }
+      }
+      // Also restore TestAssignedSections if missing
+      const hasSectionsNow = Array.isArray((draft as any).TestAssignedSections) && (draft as any).TestAssignedSections.length > 0;
+      const hasSectionsSnap = Array.isArray(snap.TestAssignedSections) && snap.TestAssignedSections.length > 0;
+      if (!hasSectionsNow && hasSectionsSnap) needsRestore = true;
+      if (needsRestore) {
+        setTimeout(() => {
+          setDraft(d => ({ ...snap, ...d, // draft wins for new keys
+            // Ensure we don't overwrite updated questions array
+            testQuestions: (d as any).testQuestions ?? snap.testQuestions,
+            TestAssignedSections: hasSectionsNow ? (d as any).TestAssignedSections : snap.TestAssignedSections
+          }));
+        },0);
+      }
+    } catch {/* ignore */}
+  }, [draft, setDraft]);
 
   // Keep banner in sync with draft if session is empty
   useEffect(() => {
@@ -428,29 +459,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
 
   return (
     <div className="w-full pb-32">
-      {/* Confirm before editing when TestStatus is Published */}
-      <ConfirmationModal
-        isOpen={!!confirmEditHref}
-        title="Edit Published Test?"
-        message="This test is published. Editing a question may affect ongoing or scheduled exams. Do you want to continue to the question editor?"
-        variant="danger"
-        confirmText="Proceed to Edit"
-        cancelText="Cancel"
-        onCancel={() => setConfirmEditHref(null)}
-        onConfirm={() => {
-          const href = confirmEditHref;
-          setConfirmEditHref(null);
-          try { sessionStorage.setItem("admin:newTest:suppressClear", "1"); } catch {}
-          if (href) {
-            try {
-              // Prefer full navigation to avoid stuck transitional states
-              window.location.assign(href);
-            } catch {
-              router.push(href);
-            }
-          }
-        }}
-      />
+  {/* Removed published-edit confirmation modal */}
       {/* Toast positioned top-right */}
       {toast && (
         <div className="fixed top-4 right-4 z-50">
@@ -612,7 +621,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                                   ? `/admin/tests/edit/${encodeURIComponent(String(testId))}?step=3`
                                   : "/admin/tests/new?step=3";
                                 const href = `/admin/questions/${encodeURIComponent(String(qid))}/edit?returnTo=${encodeURIComponent(base)}`;
-                                const isPublished = String((draft as any)?.TestStatus || "").trim().toLowerCase() === "published";
+                                // Removed: no published gating
                                 return (
                                   <a
                                     href={href}
@@ -620,29 +629,14 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                                     onClick={async (e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
+                                      // Snapshot Step1 critical fields & sections so they can be restored if lost
                                       try {
-                                        // First, check if question is in use via OData function
-                                        const res = await apiHandler(endpoints.isQuestionInUse, { testQuestionId: qid } as any);
-                                        const data: any = res?.data;
-                                        // Accept either boolean or object with a boolean field
-                                        const inUse = typeof data === 'boolean'
-                                          ? data
-                                          : (data?.value ?? data?.InUse ?? data?.isInUse ?? false);
-                                        if (inUse) {
-                                          setToast({ message: "This question is already in use and cannot be edited.", type: "warning" });
-                                          return;
-                                        }
-                                      } catch {
-                                        // If the check fails, be safe and block with a message
-                                        setToast({ message: "Unable to verify question usage. Please try again later.", type: "error" });
-                                        return;
-                                      }
-
-                                      // Next, gate editing when test is Published
-                                      if (isPublished) {
-                                        setConfirmEditHref(href);
-                                        return;
-                                      }
+                                        const snap: any = {};
+                                        const keys = ["TestName","TestTypeId","CategoryId","DifficultyLevelId","PrimaryInstructionId","TestDuration","TotalQuestions","TotalMarks","TestAssignedSections"];
+                                        for (const k of keys) snap[k] = (draft as any)?.[k];
+                                        sessionStorage.setItem("admin:newTest:step1snapshot", JSON.stringify(snap));
+                                      } catch {/* ignore */}
+                                      // Removed: usage check and published confirmation; always navigate to editor
                                       try { sessionStorage.setItem("admin:newTest:suppressClear", "1"); } catch {}
                                       try {
                                         window.location.assign(href);

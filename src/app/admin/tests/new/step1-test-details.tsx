@@ -376,7 +376,15 @@ export default function Step1CreateTestDetails({
   if (totalQuestions === "" || Number(totalQuestions) <= 0) errs.totalQuestions = "Total Questions must be a positive number";
   if (totalMarks === "" || Number(totalMarks) <= 0) errs.totalMarks = "Total Marks must be a positive number";
     setErrors(errs);
-    return Object.keys(errs).length === 0;
+    const ok = Object.keys(errs).length === 0;
+    try {
+      if (ok) {
+        sessionStorage.setItem('admin:newTest:step1valid','1');
+      } else {
+        sessionStorage.removeItem('admin:newTest:step1valid');
+      }
+    } catch {/* ignore */}
+    return ok;
   };
 
   // Update the validator ref whenever inputs change
