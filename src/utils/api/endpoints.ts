@@ -106,6 +106,14 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<{ candidateId: number } & any, null>,
 
+  // Delete candidate
+  deleteCandidate: {
+    method: "DELETE",
+    path: ({ candidateId }: { candidateId: number }) =>
+      `/api/CandidateRegistration/${candidateId}`,
+    type: "CLOSE",
+  } as Endpoint<{ candidateId: number }, null>,
+
   // Update existing question
   updateQuestion: {
     method: "PUT",
@@ -556,6 +564,30 @@ export const endpoints = {
     path: () => `/api/odata/CandidateGroups/GetCandidateGroupTree`,
     type: "OPEN",
   } as Endpoint<null, any[]>,
+
+  // Admin Candidate Groups OData list (supports dynamic query)
+  listCandidateGroupsOData: {
+    method: "GET",
+    path: ({ query }) => `/api/odata/CandidateGroups${query ? (query.startsWith("?") ? query : `?${query}`) : ""}`,
+    type: "OPEN",
+  } as Endpoint<{ query?: string }, { '@odata.count'?: number; value: any[] }>,
+
+  // Candidate Groups CRUD
+  createCandidateGroup: {
+    method: "POST",
+  path: () => `/api/CandidateGroup`,
+    type: "CLOSE",
+  } as Endpoint<any, any>,
+  updateCandidateGroup: {
+    method: "PUT",
+  path: ({ id }: { id: number }) => `/api/CandidateGroup/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number } & any, any>,
+  deleteCandidateGroup: {
+    method: "DELETE",
+  path: ({ id }: { id: number }) => `/api/CandidateGroup/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number }, null>,
 
   getQuestionsByQuery: {
     method: "GET",

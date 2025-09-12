@@ -48,9 +48,28 @@ function IsActiveCellRenderer(props: { value: number | boolean }) {
 }
 
 function CandidateGroupCellRenderer(props: { value: string }) {
+    const raw = props.value || '';
+    const groups = raw
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+
+    // Show only first 2 groups in the pill; if more, display "+N more" and add full list as tooltip
+    const shown = groups.slice(0, 2).join(', ');
+    const extraCount = Math.max(0, groups.length - 2);
+    const display = groups.length === 0
+        ? 'Default'
+        : extraCount > 0
+            ? `${shown} +${extraCount} more`
+            : shown;
+    const tooltip = groups.length > 2 ? groups.join(', ') : raw || 'Default';
+
     return (
-        <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
-            {props.value || 'Default'}
+        <span
+            className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium"
+            title={tooltip}
+        >
+            {display}
         </span>
     );
 }

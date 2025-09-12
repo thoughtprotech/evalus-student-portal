@@ -40,6 +40,7 @@ interface ApiCandidateItem {
     postalCode?: string;
     country?: string;
     candidateGroupName?: string;
+    candidateGroupIds?: number[]; // backend can return just IDs; we'll resolve names via group tree
     notes?: string;
     isActive: number;
     createdDate: string;
@@ -71,20 +72,9 @@ function buildQuery(params: FetchCandidatesParams): string {
     return searchParams.toString();
 }
 
-function mapToRows(items: ApiCandidateItem[]): CandidateRow[] {
-    console.log(`🔄 Starting to map ${items.length} candidate items`);
-
+function mapToRows(items: ApiCandidateItem[], groupNameById: Record<number, string>): CandidateRow[] {
     return items.map((item, index) => {
-        console.log(`📝 Mapping candidate item ${index + 1}/${items.length}:`, item);
-
-        // Validate item structure
-        if (!item) {
-            console.log(`⚠️  Candidate item ${index} is null or undefined`);
-            return null;
-        }
-
-        if (typeof item !== 'object') {
-            console.log(`⚠️  Candidate item ${index} is not an object:`, typeof item);
+        if (!item || typeof item !== 'object') {
             return null;
         }
 
@@ -96,9 +86,17 @@ function mapToRows(items: ApiCandidateItem[]): CandidateRow[] {
             ?? (item as any).id
             ?? 0;
         if (!resolvedId || resolvedId === 0) {
-            console.warn(`⚠️  Could not resolve candidate id for item index ${index}. Raw item keys:`, Object.keys(item));
+            // Keep mapping but leave id as 0 if backend omitted
         }
-        const mapped = {
+                // Derive candidate group display string
+                const idList = Array.isArray((item as any).candidateGroupIds)
+                    ? ((item as any).candidateGroupIds as any[]).map((n) => Number(n)).filter((n) => Number.isFinite(n))
+                    : [];
+                const groupNames = idList.length > 0
+                    ? idList.map((id) => groupNameById[id] || `Group ${id}`).join(", ")
+                    : (item.candidateGroupName || "");
+
+                const mapped = {
             candidateId: resolvedId,
             firstName: item.firstName || "",
             lastName: item.lastName || "",
@@ -110,7 +108,7 @@ function mapToRows(items: ApiCandidateItem[]): CandidateRow[] {
             state: item.state || "",
             postalCode: item.postalCode || "",
             country: item.country || "",
-            candidateGroup: item.candidateGroupName || "Default",
+                        candidateGroup: groupNames || "",
             notes: item.notes || "",
             isActive: item.isActive || 0,
             createdBy: item.createdBy || "System",
@@ -119,7 +117,6 @@ function mapToRows(items: ApiCandidateItem[]): CandidateRow[] {
             modifiedDate: item.modifiedDate || "",
         };
 
-        console.log(`✅ Mapped candidate item ${index + 1}:`, mapped);
         return mapped;
     }).filter(item => item !== null) as CandidateRow[];
 }
@@ -128,9 +125,11 @@ export async function fetchCandidatesAction(
     params: FetchCandidatesParams = { top: 15, skip: 0 }
 ): Promise<ApiResponse<{ rows: CandidateRow[]; total: number }>> {
     try {
-        // Strategy aligned with questions grid: fetch everything once (endpoint seems to return full list)
-        // then apply client-side sorting, filtering, pagination.
-        const response = await apiHandler(endpoints.getCandidates, { query: "" });
+        // Fetch candidates and candidate group tree in parallel
+        const [response, groupRes] = await Promise.all([
+            apiHandler(endpoints.getCandidates, { query: "" }),
+            apiHandler(endpoints.getCandidateGroupTreeOData, null as any)
+        ]);
 
         if (response.error || response.status !== 200) {
             return {
@@ -150,6 +149,27 @@ export async function fetchCandidatesAction(
         }
         if (!allItems || allItems.length === 0) {
             return { status: 200, message: "No candidates found", data: { rows: [], total: 0 } };
+        }
+
+        // Build groupNameById map from the group tree once
+        const groupNameById: Record<number, string> = {};
+        try {
+            const raw = (groupRes?.data as any)?.value ?? groupRes?.data ?? [];
+            const pickChildren = (n: any): any[] => {
+                const cands = [n?.children, n?.Children, n?.childrens, n?.ChildNodes, n?.Items, n?.Nodes, n?.Groups, n?.Subgroups];
+                for (const c of cands) if (Array.isArray(c)) return c; return [];
+            };
+            const walk = (nodes: any[]) => {
+                for (const n of nodes || []) {
+                    const id = Number(n?.CandidateGroupId ?? n?.candidateGroupId ?? n?.CandidateGroupID ?? n?.GroupId ?? n?.GroupID ?? n?.Id ?? n?.id);
+                    const name = n?.GroupName ?? n?.CandidateGroupName ?? n?.name ?? n?.Group ?? n?.Name ?? n?.Title ?? n?.Label ?? (Number.isFinite(id) ? `Group ${id}` : "Group");
+                    if (Number.isFinite(id)) groupNameById[id] = String(name);
+                    const kids = pickChildren(n); if (kids?.length) walk(kids);
+                }
+            };
+            if (Array.isArray(raw)) walk(raw);
+        } catch (e) {
+            // Non-fatal; groups column will fallback to ids
         }
 
         // Client-side sorting
@@ -207,8 +227,8 @@ export async function fetchCandidatesAction(
         const total = allItems.length;
         const top = params.top ?? 15;
         const skip = params.skip ?? 0;
-        const pageSlice = allItems.slice(skip, skip + top);
-        const mappedRows = mapToRows(pageSlice);
+    const pageSlice = allItems.slice(skip, skip + top);
+    const mappedRows = mapToRows(pageSlice, groupNameById);
 
         return {
             status: 200,
@@ -225,64 +245,26 @@ export async function fetchCandidatesAction(
     }
 }
 
-export async function deleteCandidateAction(candidate: any): Promise<ApiResponse<null>> {
+export async function deleteCandidateAction(candidateId: number): Promise<ApiResponse<null>> {
     try {
-
-        const res = await apiHandler(endpoints.deleteCandidate, { candidateId: candidate.id } as any);
-        // For now, return a placeholder implementation
-        console.log("Delete candidate with id:", candidate.id);
-        return {
-            status: 200,
-            message: "Candidate deletion not implemented yet. Please add endpoint to endpoints.ts"
-        };
+        const res = await apiHandler(endpoints.deleteCandidate, { candidateId });
+        if (res.error || (res.status && res.status >= 400)) {
+            return {
+                status: res.status || 400,
+                error: true,
+                message: res.message || 'Failed to delete candidate',
+                errorMessage: res.errorMessage,
+            };
+        }
+        return { status: 200, message: 'Candidate deleted successfully' };
     } catch (error: any) {
         return {
             status: 500,
             error: true,
-            message: "Network error",
+            message: 'Network error',
             errorMessage: error?.message,
         };
     }
 }
 
-// Legacy compatibility functions
-interface Candidate {
-    id: number;
-    name: string;
-    email: string;
-    appliedRole: string;
-    appliedAt: string;
-}
-
-const generateMockCandidates = (count: number): Candidate[] => {
-    const roles = [
-        "Frontend Dev",
-        "Backend Dev",
-        "UI/UX Designer",
-        "QA Engineer",
-    ];
-    return Array.from({ length: count }, (_, i) => ({
-        id: i + 1,
-        name: `Candidate ${i + 1}`,
-        email: `candidate${i + 1}@example.com`,
-        appliedRole: roles[i % roles.length],
-        appliedAt: new Date(Date.now() - i * 43200000).toISOString(),
-    }));
-};
-
-export async function fetchCandidatesLegacyAction(): Promise<
-    ApiResponse<Candidate[]>
-> {
-    try {
-        const allCandidates = generateMockCandidates(25);
-
-        return {
-            status: 200,
-            message: "Fetching Candidates Successful",
-            data: allCandidates,
-        };
-    } catch (error) {
-        console.log("Error Fetching Candidates", error);
-        return { status: 500, message: "Error Fetching Candidates" };
-    }
-}
+// Removed legacy mock functions and console noise
