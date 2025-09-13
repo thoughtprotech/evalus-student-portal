@@ -387,50 +387,52 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
                         </span>
                     )}
                 </div>
-                <PaginationControls
-                    page={page}
-                    pageSize={pageSize}
-                    total={total}
-                    onPageChange={setPage}
-                    onPageSizeChange={(s: number) => { setPageSize(s); setPage(1); }}
-                    pageSizeOptions={[15, 25, 50]}
-                    showTotalCount
-                />
-                <div className="flex items-center gap-2">
-                    <button
-                        type="button"
-                        onClick={() => setShowFilters((v) => !v)}
-                        className={
-                            `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm transition-colors ` +
-                            (showFilters
-                                ? `bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100`
-                                : `bg-white text-gray-700 border-gray-300 hover:bg-gray-50`)
-                        }
-                        title={showFilters ? "Hide filters" : "Show filters"}
-                    >
-                        <Filter className="w-4 h-4" /> {showFilters ? "Hide Filters" : "Show Filters"}
-                    </button>
-                    <button
-                        onClick={() => {
-                            const api = gridApiRef.current as any;
-                            const hasSearch = !!(query && query.length);
-                            filterModelRef.current = {};
-                            if (hasSearch && onClearQuery) {
-                                skipNextFilterFetchRef.current = true;
+                <div className="flex items-center gap-3">
+                    <PaginationControls
+                        page={page}
+                        pageSize={pageSize}
+                        total={total}
+                        onPageChange={setPage}
+                        onPageSizeChange={(s: number) => { setPageSize(s); setPage(1); }}
+                        pageSizeOptions={[15, 25, 50]}
+                        showTotalCount
+                    />
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setShowFilters((v) => !v)}
+                            className={
+                                `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm transition-colors ` +
+                                (showFilters
+                                    ? `bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100`
+                                    : `bg-white text-gray-700 border-gray-300 hover:bg-gray-50`)
                             }
-                            api?.setFilterModel?.(null);
-                            setFiltersVersion((v) => v + 1);
-                            setPage(1);
-                            if (hasSearch && onClearQuery) {
-                                onClearQuery();
-                            }
-                        }}
-                        className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                        title="Clear search and all column filters"
-                        disabled={!query && Object.keys(filterModelRef.current || {}).length === 0}
-                    >
-                        <XCircle className="w-4 h-4" /> Clear Filters
-                    </button>
+                            title={showFilters ? "Hide filters" : "Show filters"}
+                        >
+                            <Filter className="w-4 h-4" /> {showFilters ? "Hide Filters" : "Show Filters"}
+                        </button>
+                        <button
+                            onClick={() => {
+                                const api = gridApiRef.current as any;
+                                const hasSearch = !!(query && query.length);
+                                filterModelRef.current = {};
+                                if (hasSearch && onClearQuery) {
+                                    skipNextFilterFetchRef.current = true;
+                                }
+                                api?.setFilterModel?.(null);
+                                setFiltersVersion((v) => v + 1);
+                                setPage(1);
+                                if (hasSearch && onClearQuery) {
+                                    onClearQuery();
+                                }
+                            }}
+                            className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                            title="Clear search and all column filters"
+                            disabled={!query && Object.keys(filterModelRef.current || {}).length === 0}
+                        >
+                            <XCircle className="w-4 h-4" /> Clear Filters
+                        </button>
+                    </div>
                 </div>
             </div>
 

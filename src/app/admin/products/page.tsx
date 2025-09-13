@@ -132,16 +132,17 @@ function ProductsGrid({ query, onClearQuery }: { query: string; onClearQuery?: (
             <span className="text-sm text-gray-600 bg-blue-50 px-2 py-1 rounded">{selectedCount} selected</span>
           )}
         </div>
-        <PaginationControls
-          page={page}
-          pageSize={pageSize}
-          total={total}
-          onPageChange={setPage}
-          onPageSizeChange={(s: number) => { setPageSize(s); setPage(1); }}
-          pageSizeOptions={[15,25,50]}
-          showTotalCount
-        />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <PaginationControls
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+            onPageSizeChange={(s: number) => { setPageSize(s); setPage(1); }}
+            pageSizeOptions={[15,25,50]}
+            showTotalCount
+          />
+          <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setShowFilters(v => !v)}
@@ -160,6 +161,7 @@ function ProductsGrid({ query, onClearQuery }: { query: string; onClearQuery?: (
           >
             <XCircle className="w-4 h-4" /> Clear Filters
           </button>
+          </div>
         </div>
       </div>
 

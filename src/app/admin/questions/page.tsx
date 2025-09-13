@@ -430,16 +430,17 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
             </span>
           )}
         </div>
-        <PaginationControls
-          page={page}
-          pageSize={pageSize}
-          total={total}
-          onPageChange={setPage}
-          onPageSizeChange={(s: number) => { setPageSize(s); setPage(1); }}
-          pageSizeOptions={[15, 25, 50]}
-          showTotalCount
-        />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <PaginationControls
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+            onPageSizeChange={(s: number) => { setPageSize(s); setPage(1); }}
+            pageSizeOptions={[15, 25, 50]}
+            showTotalCount
+          />
+          <div className="flex items-center gap-2">
           {/* Show/Hide filters toggle button */}
           <button
             type="button"
@@ -478,6 +479,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           >
             <XCircle className="w-4 h-4" /> Clear Filters
           </button>
+          </div>
         </div>
       </div>
 
