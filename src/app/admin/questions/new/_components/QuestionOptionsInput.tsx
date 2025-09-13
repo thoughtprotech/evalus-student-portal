@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { QUESTION_TYPES } from "@/utils/constants";
 import { GetQuestionTypesResponse } from "@/utils/api/types";
 import InlineRichInput from "@/components/InlineRichInput";
+import { TextOrHtml } from "@/components/TextOrHtml";
 
 const QuestionOptionsInput = ({
   questionTypeId,
@@ -199,7 +200,7 @@ const QuestionOptionsInput = ({
                   setOptions(newOpts);
                   // No need to update correctOptionIndices since we're using indices, not text values
                 }}
-                className="flex-1"
+                className="flex-1 min-w-80 sm:min-w-96"
                 placeholder={`Option ${idx + 1}`}
               />
             </div>
@@ -226,20 +227,24 @@ const QuestionOptionsInput = ({
 
     return (
       <div className="flex flex-col gap-4">
+        <style jsx>{`
+          /* Keep images contained so layout isn't disturbed */
+          .match-html img { max-width: 100%; height: auto; display: inline-block; }
+        `}</style>
         <div className="flex gap-4">
           {[0, 1].map((col) => (
             <div key={col} className="flex flex-col gap-2">
               <h4 className="font-medium">Column {col + 1}</h4>
               {matchCols[col].map((val, idx) => (
-                <input
+                <InlineRichInput
                   key={idx}
                   value={val}
-                  onChange={(e) => {
+                  onChange={(html) => {
                     const updated = [...matchCols];
-                    updated[col][idx] = e.target.value;
+                    updated[col][idx] = html;
                     setMatchCols(updated);
                   }}
-                  className="px-3 py-2 border border-gray-300 rounded-xl"
+                  className="w-80 sm:w-96"
                   placeholder={`Value ${idx + 1}`}
                 />
               ))}
@@ -261,7 +266,9 @@ const QuestionOptionsInput = ({
           <div className="mt-4">
             {matchCols[0].map((left, idx) => (
               <div key={idx} className="flex gap-10 items-center">
-                <span className="w-12">{left}</span>
+                <span className="w-12 match-html">
+                  <TextOrHtml content={left} unstyled />
+                </span>
                 <div className="flex gap-2">
                   {matchCols[1].map((right, jdx) => (
                     <label key={jdx} className="flex items-center gap-1">
@@ -286,7 +293,7 @@ const QuestionOptionsInput = ({
                           setMatchAnswer(updated);
                         }}
                       />
-                      {right}
+                      <span className="match-html"><TextOrHtml content={right} unstyled /></span>
                     </label>
                   ))}
                 </div>
