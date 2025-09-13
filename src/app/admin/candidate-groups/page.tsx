@@ -65,6 +65,10 @@ export default function CandidateGroupsPage() {
   const filterModelRef = useRef<any>({});
   const filterDebounceRef = useRef<any>(null);
   const firstLoadRef = useRef(true);
+  const gridShellRef = useRef<HTMLDivElement | null>(null);
+  const [frozenHeight, setFrozenHeight] = useState<number | null>(null);
+  const activeFetchRef = useRef(0);
+  const MIN_LOADER_MS = 900;
 
   const formatDate = (val?: string | number) => {
     if (!val) return "";
@@ -130,6 +134,13 @@ export default function CandidateGroupsPage() {
   };
 
   const fetchPage = async () => {
+    // Freeze current grid height to avoid jump while reloading
+    if (gridShellRef.current) {
+      const h = gridShellRef.current.offsetHeight;
+      if (h > 0) setFrozenHeight(h);
+    }
+    const fetchId = ++activeFetchRef.current;
+    const startTs = performance.now();
     setLoading(true);
     const sort = sortModelRef.current?.[0];
     const sortFieldMap: Record<string, string> = {
@@ -150,7 +161,15 @@ export default function CandidateGroupsPage() {
     } else {
       setToast({ message: res.message || 'Failed to fetch candidate groups', type: 'error' });
     }
-    setLoading(false);
+    const elapsed = performance.now() - startTs;
+    const finalize = () => {
+      if (fetchId !== activeFetchRef.current) return; // ignore stale
+      setLoading(false);
+      if (firstLoadRef.current) firstLoadRef.current = false;
+    };
+    if (elapsed < MIN_LOADER_MS) {
+      setTimeout(finalize, MIN_LOADER_MS - elapsed);
+    } else finalize();
   };
 
   useEffect(() => { fetchPage(); }, [query]);
@@ -214,7 +233,7 @@ export default function CandidateGroupsPage() {
               </div>
             </div>
         </div>
-        <div className="ag-theme-alpine ag-theme-evalus w-full flex-1 min-h-0 relative">
+  <div ref={gridShellRef} className="ag-theme-alpine ag-theme-evalus w-full flex-1 min-h-0 relative" style={frozenHeight && loading ? { minHeight: frozenHeight } : undefined}>
           <AgGridReact<CandidateGroupRow>
             columnDefs={columnDefs}
             defaultColDef={defaultColDef}
@@ -231,7 +250,10 @@ export default function CandidateGroupsPage() {
             animateRows
           />
           {loading && (
-            <GridOverlayLoader message="Loading groups..." />
+            <GridOverlayLoader
+              message={firstLoadRef.current ? "Loading groups..." : "Refreshing..."}
+              backdropClassName={`${firstLoadRef.current ? 'bg-white/80' : 'bg-white/60'} backdrop-blur-md pointer-events-none`}
+            />
           )}
         </div>
         <ConfirmationModal
