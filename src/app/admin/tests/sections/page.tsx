@@ -154,7 +154,7 @@ export default function TestSectionsPage() {
                 if (!sel?.length) { setToast({ message: 'Select rows to delete', type: 'info' }); return; }
                 setPendingDelete(sel); setConfirmOpen(true);
               }}
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50"
+              className="inline-flex items-center gap-2 w-32 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50"
             >
               <Trash2 className="w-4 h-4" /> Delete
             </button>

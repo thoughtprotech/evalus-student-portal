@@ -523,7 +523,7 @@ function TestsGrid({
           {/* Actions: New, Publish and Delete */}
           <Link href="/admin/tests/new">
             <button
-              className="inline-flex items-center justify-center gap-2 w-28 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 w-32 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700 cursor-pointer"
               title="Create new test"
               onClick={() => {
                 try {
@@ -559,7 +559,7 @@ function TestsGrid({
               setPublishConfirmOpen(true);
             }}
             disabled={!selectedRow || String(selectedRow.testStatus ?? "").toLowerCase() !== "new"}
-            className="inline-flex items-center justify-center gap-2 w-28 px-3 py-2 rounded-md bg-emerald-600 text-white text-sm shadow hover:bg-emerald-700 disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 w-32 px-3 py-2 rounded-md bg-emerald-600 text-white text-sm shadow hover:bg-emerald-700 disabled:opacity-50 cursor-pointer"
             title="Publish selected test"
           >
             <Rocket className="w-4 h-4" /> Publish
@@ -578,7 +578,7 @@ function TestsGrid({
               setConfirmOpen(true);
             }}
             disabled={deleting || !selectedRow}
-            className="inline-flex items-center justify-center gap-2 w-28 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 w-32 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50 cursor-pointer"
             title="Delete selected test"
           >
             <Trash2 className="w-4 h-4" /> {deleting ? "Deleting..." : "Delete"}

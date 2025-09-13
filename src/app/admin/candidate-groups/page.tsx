@@ -217,12 +217,12 @@ export default function CandidateGroupsPage() {
       <div className="bg-white shadow rounded-lg p-2 flex-1 overflow-hidden flex flex-col min-h-0">
         <div className="mb-3 flex items-center justify-between gap-3 flex-none">
           <div className="flex items-center gap-3 flex-wrap">
-            <Link href="/admin/candidate-groups/new"><button className="inline-flex items-center gap-2 w-40 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700"><PlusCircle className="w-4 h-4" /> New Group</button></Link>
+            <Link href="/admin/candidate-groups/new"><button className="inline-flex items-center gap-2 w-32 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700"><PlusCircle className="w-4 h-4" /> New Group</button></Link>
             <button disabled={deleting || selectedCount === 0} onClick={() => {
               const sel = gridApiRef.current?.getSelectedRows?.() as CandidateGroupRow[];
               if (!sel?.length) { setToast({ message: 'Select groups to delete', type: 'info' }); return; }
               setPendingDelete(sel); setConfirmOpen(true);
-            }} className="inline-flex items-center gap-2 w-28 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50"><Trash2 className="w-4 h-4" /> Delete</button>
+            }} className="inline-flex items-center gap-2 w-32 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50"><Trash2 className="w-4 h-4" /> Delete</button>
             {selectedCount > 0 && <span className="text-sm text-gray-600 bg-blue-50 px-2 py-1 rounded">{selectedCount} selected</span>}
           </div>
             <div className="flex items-center gap-3">

@@ -115,8 +115,8 @@ export default function WriteUpsPage() {
     <div className="bg-white shadow rounded-lg p-2 flex-1 min-h-0 overflow-hidden flex flex-col">
       <div className="mb-3 flex items-center justify-between gap-3 flex-none">
         <div className="flex items-center gap-2 flex-wrap">
-          <Link href="/admin/write-ups/new"><button className="inline-flex items-center gap-2 w-40 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700"><PlusCircle className="w-4 h-4"/> New</button></Link>
-          <button disabled={selectedCount===0 || deleting} onClick={()=>{ if(selectedCount===0){ setToast({ message:'Select records to delete', type:'info'}); return;} setConfirmOpen(true); }} className="inline-flex items-center gap-2 w-40 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50"><Trash2 className="w-4 h-4"/> {deleting? 'Deleting...':'Delete'}{selectedCount>0 && !deleting && <span className="ml-1">({selectedCount})</span>}</button>
+          <Link href="/admin/write-ups/new"><button className="inline-flex items-center gap-2 w-32 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700"><PlusCircle className="w-4 h-4"/> New</button></Link>
+          <button disabled={selectedCount===0 || deleting} onClick={()=>{ if(selectedCount===0){ setToast({ message:'Select records to delete', type:'info'}); return;} setConfirmOpen(true); }} className="inline-flex items-center gap-2 w-32 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50"><Trash2 className="w-4 h-4"/> {deleting? 'Deleting...':'Delete'}{selectedCount>0 && !deleting && <span className="ml-1">({selectedCount})</span>}</button>
         </div>
         <div className="flex items-center gap-3">
           <PaginationControls page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={s=>{ setPageSize(s); setPage(1); }} pageSizeOptions={[15,25,50,100]} showTotalCount />
