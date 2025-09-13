@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { QUESTION_TYPES } from "@/utils/constants";
 import { GetQuestionTypesResponse } from "@/utils/api/types";
+import InlineRichInput from "@/components/InlineRichInput";
 
 const QuestionOptionsInput = ({
   questionTypeId,
@@ -190,16 +191,15 @@ const QuestionOptionsInput = ({
                   }
                 }}
               />
-              <input
+              <InlineRichInput
                 value={opt}
-                onChange={(e) => {
+                onChange={(html) => {
                   const newOpts = [...options];
-                  newOpts[idx] = e.target.value;
+                  newOpts[idx] = html;
                   setOptions(newOpts);
-                  
                   // No need to update correctOptionIndices since we're using indices, not text values
                 }}
-                className="px-3 py-2 border border-gray-300 rounded-xl flex-1"
+                className="flex-1"
                 placeholder={`Option ${idx + 1}`}
               />
             </div>
