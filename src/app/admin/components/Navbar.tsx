@@ -21,6 +21,7 @@ import {
   BarcodeIcon,
   BookOpen,
   BookOpenText,
+  FolderTree,
 } from "lucide-react";
 
 interface NavItem {
@@ -36,6 +37,7 @@ const navItems: NavItem[] = [
   { label: "Tests", path: "/admin/tests", Icon: ClipboardList },
   { label: "Products", path: "/admin/products", Icon: Box },
   { label: "Candidates", path: "/admin/candidates", Icon: User },
+  { label: "Published Documents", path: "/admin/published-documents", Icon: BookOpenText },
   { label: "Reports", path: "/admin/reports", Icon: BarChart2 },
   { label: "Settings", path: "/admin/settings", Icon: Settings },
 ];
@@ -90,6 +92,10 @@ export default function Navbar({ username }: NavbarProps) {
           if (label === 'Candidates') {
             const isActive = pathname.startsWith('/admin/candidates') || pathname.startsWith('/admin/candidate-groups');
             return <CandidatesSubmenu key={path} Icon={Icon} isActive={isActive} pathname={pathname} basePath={path} />;
+          }
+          if (label === 'Published Documents') {
+            const isActive = pathname.startsWith('/admin/published-documents');
+            return <PublishedDocumentsSubmenu key={path} Icon={Icon} isActive={isActive} pathname={pathname} basePath={path} />;
           }
           if (label === 'Tests') {
             const isActive = pathname.startsWith('/admin/tests') || pathname.startsWith('/admin/test-instructions');
@@ -174,6 +180,11 @@ export default function Navbar({ username }: NavbarProps) {
                 </Link>
               );
             })}
+                {/* Published Documents grouping for mobile */}
+                <div className="border-t border-gray-200">
+                  <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">Published Documents</p>
+                  <Link href="/admin/published-documents/folders" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/published-documents/folders') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Publish Documents folder</Link>
+                </div>
                 {/* Candidates grouping for mobile */}
                 <div className="border-t border-gray-200">
                   <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">Candidates</p>
@@ -319,6 +330,36 @@ function CandidatesSubmenu({ Icon, isActive, pathname, basePath }: CandidatesSub
         <div role="menu" aria-label="Candidates submenu" className="absolute left-0 top-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 min-w-[210px] z-30 p-1 animate-fade-in">
           <Link role="menuitem" href="/admin/candidates" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/candidates') && !pathname.startsWith('/admin/candidate-groups') ? 'bg-indigo-50 text-indigo-700':'text-gray-700 hover:bg-indigo-50'}`}>Candidates</Link>
           <Link role="menuitem" href="/admin/candidate-groups" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/candidate-groups') ? 'bg-indigo-50 text-indigo-700':'text-gray-700 hover:bg-indigo-50'}`}>Candidate Groups</Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface PublishedDocumentsSubmenuProps { Icon: React.ComponentType<any>; isActive: boolean; pathname: string; basePath: string; }
+function PublishedDocumentsSubmenu({ Icon, isActive, pathname, basePath }: PublishedDocumentsSubmenuProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+  const hoverTimeoutRef = useRef<any>(null);
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => { if (open && ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    window.addEventListener('mousedown', onClick); window.addEventListener('keyup', onKey);
+    return () => { window.removeEventListener('mousedown', onClick); window.removeEventListener('keyup', onKey); };
+  }, [open]);
+  useEffect(()=>{ setOpen(false); }, [pathname]);
+  const handleMouseEnter = () => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current); setOpen(true); };
+  const handleMouseLeave = () => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current); hoverTimeoutRef.current = setTimeout(() => setOpen(false), 120); };
+  return (
+    <div ref={ref} className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+      <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={()=>setOpen(o=>!o)} onKeyDown={e=>{ if(e.key==='ArrowDown'){ e.preventDefault(); setOpen(true);} }} className={`flex items-center space-x-1 px-3 py-2 rounded-md transition focus:outline-none focus:ring-2 focus:ring-indigo-400 ${isActive ? 'bg-indigo-100 text-indigo-700' : 'text-gray-700 hover:text-indigo-700 hover:bg-indigo-100'}`}>
+        <Icon className="w-5 h-5" />
+        <span className="text-sm font-medium">Published Documents</span>
+        <svg className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+      </button>
+      {open && (
+        <div role="menu" aria-label="Published Documents submenu" className="absolute left-0 top-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 min-w-[260px] z-30 p-1 animate-fade-in">
+          <Link role="menuitem" href="/admin/published-documents/folders" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/published-documents/folders') ? 'bg-indigo-50 text-indigo-700':'text-gray-700 hover:bg-indigo-50'}`}>Publish Documents folder</Link>
         </div>
       )}
     </div>

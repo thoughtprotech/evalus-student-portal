@@ -41,6 +41,7 @@ export default function NewCandidateGroupPage() {
   const [tree, setTree] = useState<GroupNode[]>([]);
   const [treeOpen, setTreeOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const [treeFilter, setTreeFilter] = useState("");
   const [idToNode, setIdToNode] = useState<Record<number, GroupNode>>({});
   const [idToParent, setIdToParent] = useState<Record<number, number | null>>({});
@@ -172,9 +173,23 @@ export default function NewCandidateGroupPage() {
 
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const [collapsedAll, setCollapsedAll] = useState(false);
+  const preserveScroll = (update: () => void) => {
+    const el = scrollRef.current;
+    const top = el?.scrollTop ?? 0;
+    const left = el?.scrollLeft ?? 0;
+    update();
+    requestAnimationFrame(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = top;
+        scrollRef.current.scrollLeft = left;
+      }
+    });
+  };
   const toggleExpand = (id: number) => {
-    setCollapsedAll(false);
-    setExpanded((m) => ({ ...m, [id]: !m[id] }));
+    preserveScroll(() => {
+      setCollapsedAll(false);
+      setExpanded((m) => ({ ...m, [id]: !m[id] }));
+    });
   };
 
   const TreeRow = ({ node, level }: { node: GroupNode; level: number }) => {
@@ -183,12 +198,17 @@ export default function NewCandidateGroupPage() {
   const isExpanded = collapsedAll ? !!expanded[node.id] : (expanded[node.id] ?? level < 1);
     return (
       <div>
-        <div className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer ${parentGroup?.id === node.id ? 'bg-indigo-50' : 'hover:bg-gray-50'}`} style={{ paddingLeft: level * 12 }}
+        <div data-node-id={node.id} className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer ${parentGroup?.id === node.id ? 'bg-indigo-50' : 'hover:bg-gray-50'}`} style={{ paddingLeft: level * 12 }}
           onClick={() => { setParentGroup({ id: node.id, name: node.name }); setTreeOpen(false); }}
           title={node.name}
         >
           {hasChildren ? (
-            <button type="button" onClick={(e) => { e.stopPropagation(); toggleExpand(node.id); }}
+            <button type="button" onClick={(e) => { e.stopPropagation(); const rowEl = (e.currentTarget as HTMLElement).closest('[data-node-id]') as HTMLElement | null; const anchor = rowEl || undefined; 
+              // preserve row anchor position by adjusting scroll after expansion
+              const sc = scrollRef.current; let oldOffset: number | null = null; if (sc && anchor) { const a = anchor.getBoundingClientRect(); const s = sc.getBoundingClientRect(); oldOffset = a.top - s.top; }
+              toggleExpand(node.id);
+              requestAnimationFrame(() => { if (sc && anchor && oldOffset != null) { const newAnchor = sc.querySelector(`[data-node-id='${node.id}']`) as HTMLElement | null; if (newAnchor) { const a2 = newAnchor.getBoundingClientRect(); const s2 = sc.getBoundingClientRect(); const newOffset = a2.top - s2.top; sc.scrollTop += (newOffset - oldOffset); } } });
+            }}
               className="h-5 w-5 flex items-center justify-center rounded border border-gray-200 text-xs bg-white">
               {isExpanded ? <ChevronUp className="w-3 h-3"/> : <ChevronDown className="w-3 h-3"/>}
             </button>
@@ -210,20 +230,24 @@ export default function NewCandidateGroupPage() {
 
   // Expand/Collapse all helpers
   const expandAll = () => {
-    const next: Record<number, boolean> = {};
-    const walk = (nodes: GroupNode[]) => {
-      for (const n of nodes) {
-        next[n.id] = true;
-        if (n.children?.length) walk(n.children);
-      }
-    };
-    walk(tree);
-    setCollapsedAll(false);
-    setExpanded(next);
+    preserveScroll(() => {
+      const next: Record<number, boolean> = {};
+      const walk = (nodes: GroupNode[]) => {
+        for (const n of nodes) {
+          next[n.id] = true;
+          if (n.children?.length) walk(n.children);
+        }
+      };
+      walk(tree);
+      setCollapsedAll(false);
+      setExpanded(next);
+    });
   };
   const collapseAll = () => {
-    setExpanded({});
-    setCollapsedAll(true);
+    preserveScroll(() => {
+      setExpanded({});
+      setCollapsedAll(true);
+    });
   };
 
   // Filter tree by name and include ancestors of matches
@@ -329,7 +353,7 @@ export default function NewCandidateGroupPage() {
                       <button type="button" onClick={expandAll} className="text-xs text-gray-600 hover:text-indigo-700">Expand all</button>
                       <button type="button" onClick={collapseAll} className="text-xs text-gray-600 hover:text-indigo-700">Collapse all</button>
                     </div>
-                    <div className="max-h-72 overflow-auto py-1">
+                    <div ref={scrollRef} className="max-h-72 overflow-auto py-1">
                       {treeLoading ? (
                         <div className="p-3 text-sm text-gray-500">Loading groups…</div>
                       ) : (filterTree.length === 0 ? (

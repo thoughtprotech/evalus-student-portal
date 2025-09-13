@@ -892,6 +892,28 @@ export const endpoints = {
     path: () => `/odata/PublishedDocuments/GetDocumentsTree()`,
     type: "OPEN",
   } as Endpoint<null, import('./types').PublishedDocumentTreeItem[]>,
+  // Admin - Published Document Folders (CRUD + OData list)
+  listPublishedDocumentFoldersOData: {
+    method: "GET",
+    // Matches backend: /odata/PublishedDocumentsFolders
+    path: ({ query }: { query?: string }) => `/odata/PublishedDocumentsFolders${query ? (query.startsWith("?") ? query : `?${query}`) : ""}`,
+    type: "OPEN",
+  } as Endpoint<{ query?: string }, any>,
+  createPublishedDocumentFolder: {
+    method: "POST",
+    path: () => `/api/PublishedDocumentFolder`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number; publishedDocumentFolderName: string; parentId: number; language: string }, null>,
+  updatePublishedDocumentFolder: {
+    method: "PUT",
+    path: ({ id }: { id: number }) => `/api/PublishedDocumentFolder/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number; publishedDocumentFolderName: string; parentId: number; language: string }, null>,
+  deletePublishedDocumentFolder: {
+    method: "DELETE",
+    path: ({ id }: { id: number }) => `/api/PublishedDocumentFolder/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number }, null>,
 
   getAdminDashboardAnalytics: {
     method: "GET",
