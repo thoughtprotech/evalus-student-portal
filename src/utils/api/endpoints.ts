@@ -774,6 +774,34 @@ export const endpoints = {
       TestSectionName: string;
     }>
   >,
+  // Admin Test Sections CRUD + OData listing
+  // Generic OData listing with dynamic query for grid (supports $top, $skip, $filter, $orderby)
+  listTestSectionsOData: {
+    method: "GET",
+    path: ({ query }) => `/Odata/TestSections${query ? (query.startsWith("?") ? query : `?${query}`) : ""}`,
+    type: "OPEN",
+  } as Endpoint<{ query?: string }, { '@odata.count'?: number; value: any[] }>,
+
+  createTestSection: {
+    method: "POST",
+    path: () => `/api/TestSections`,
+    type: "CLOSE",
+  } as Endpoint<any, any>,
+  updateTestSection: {
+    method: "PUT",
+    path: ({ id }: { id: number }) => `/api/TestSections/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number } & any, any>,
+  getTestSectionById: {
+    method: "GET",
+    path: ({ id }: { id: number }) => `/api/TestSections/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number }, any>,
+  deleteTestSection: {
+    method: "DELETE",
+    path: ({ id }: { id: number }) => `/api/TestSections/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number }, null>,
   getProductById: {
     method: "GET",
     path: ({ productId }: { productId: number }) =>
