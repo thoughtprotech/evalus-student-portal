@@ -442,7 +442,7 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
               setPendingDelete(selected);
               setConfirmOpen(true);
             }}
-            disabled={deleting}
+            disabled={deleting || selectedCount === 0}
             className="inline-flex items-center justify-center gap-2 w-32 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50"
             title="Delete selected companies"
           >

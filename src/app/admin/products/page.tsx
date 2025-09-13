@@ -122,7 +122,7 @@ function ProductsGrid({ query, onClearQuery }: { query: string; onClearQuery?: (
             onClick={() => {
               const api = gridApiRef.current; if (!api) return; const selected = api.getSelectedRows?.() as ProductRow[]; if (!selected || selected.length === 0) { setToast({ message: "Please select at least one product to delete.", type: "info" }); return; } setPendingDelete(selected); setConfirmOpen(true);
             }}
-            disabled={deleting}
+            disabled={deleting || selectedCount === 0}
             className="inline-flex items-center justify-center gap-2 w-32 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50"
             title="Delete selected products"
           >

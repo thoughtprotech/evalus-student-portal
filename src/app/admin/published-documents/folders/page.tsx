@@ -171,7 +171,7 @@ export default function PublishedDocumentFoldersPage() {
         <div className="mb-3 flex items-center justify-between gap-3 flex-none">
           <div className="flex items-center gap-3 flex-wrap">
             <Link href="/admin/published-documents/folders/new"><button className="inline-flex items-center gap-2 w-40 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700"><PlusCircle className="w-4 h-4" /> New Folder</button></Link>
-            <button disabled={deleting} onClick={() => {
+            <button disabled={deleting || selectedCount === 0} onClick={() => {
               const sel = gridApiRef.current?.getSelectedRows?.() as PublishedDocumentFolderRow[];
               if (!sel?.length) { setToast({ message: 'Select folders to delete', type: 'info' }); return; }
               setPendingDelete(sel); setConfirmOpen(true);

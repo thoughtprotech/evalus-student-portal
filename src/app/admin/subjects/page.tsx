@@ -250,7 +250,7 @@ export default function SubjectsPage() {
                 <div className="mb-3 flex items-center justify-between gap-3 flex-none">
                     <div className="flex items-center gap-3 flex-wrap">
                         <Link href="/admin/subjects/new"><button className="inline-flex items-center gap-2 w-32 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700"><PlusCircle className="w-4 h-4" /> New</button></Link>
-                        <button disabled={deleting} onClick={() => {
+                        <button disabled={deleting || selectedCount === 0} onClick={() => {
                             const sel = gridApiRef.current?.getSelectedRows?.() as SubjectRow[];
                             if (!sel?.length) { setToast({ message: 'Select subjects to delete', type: 'info' }); return; }
                             setPendingDelete(sel); setConfirmOpen(true);

@@ -153,7 +153,7 @@ export default function QuestionDifficultyLevelsPage() {
           <div className="flex items-center gap-3 flex-wrap">
             <Link href="/admin/questions/difficulty-levels/new"><button className="inline-flex items-center gap-2 w-32 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700"><PlusCircle className="w-4 h-4" /> New</button></Link>
             <button
-              disabled={deleting}
+              disabled={deleting || selectedCount === 0}
               onClick={() => {
                 const sel = gridApiRef.current?.getSelectedRows?.() as DifficultyLevelRow[];
                 if (!sel?.length) { setToast({ message: 'Select rows to delete', type: 'info' }); return; }
