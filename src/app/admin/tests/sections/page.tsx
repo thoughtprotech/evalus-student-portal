@@ -21,7 +21,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 function NameCellRenderer(props: { value: string; data: TestSectionRow }) {
   return (
-  <Link className="text-blue-600 hover:underline" href={`/admin/tests/sections/${props.data.id}/edit`} title={props.value}>
+    <Link className="text-blue-600 hover:underline" href={`/admin/tests/sections/${props.data.id}/edit`} title={props.value}>
       {props.value}
     </Link>
   );
@@ -101,8 +101,8 @@ export default function TestSectionsPage() {
         const value = cfg.filter.replace(/'/g, "''");
         if (field === 'isActive') {
           const v = value.toLowerCase();
-          if (["active","1","true"].includes(v)) { filters.push(`${serverField} eq 1`); return; }
-          if (["inactive","0","false"].includes(v)) { filters.push(`${serverField} eq 0`); return; }
+          if (["active", "1", "true"].includes(v)) { filters.push(`${serverField} eq 1`); return; }
+          if (["inactive", "0", "false"].includes(v)) { filters.push(`${serverField} eq 0`); return; }
         }
         switch (cfg.type) {
           case 'startsWith': filters.push(`startswith(${serverField},'${value}')`); break;
@@ -161,7 +161,7 @@ export default function TestSectionsPage() {
             {selectedCount > 0 && <span className="text-sm text-gray-600 bg-blue-50 px-2 py-1 rounded">{selectedCount} selected</span>}
           </div>
           <div className="flex items-center gap-3">
-            <PaginationControls page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} pageSizeOptions={[15,25,50]} showTotalCount />
+            <PaginationControls page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} pageSizeOptions={[15, 25, 50]} showTotalCount />
             <div className="flex items-center gap-2">
               <button onClick={() => setShowFilters(v => !v)} className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm ${showFilters ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}><Filter className="w-4 h-4" /> {showFilters ? 'Hide Filters' : 'Show Filters'}</button>
               <button onClick={() => { filterModelRef.current = {}; gridApiRef.current?.setFilterModel?.(null); setPage(1); fetchPage(); }} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50" disabled={!query && Object.keys(filterModelRef.current || {}).length === 0}><XCircle className="w-4 h-4" /> Clear Filters</button>
@@ -172,7 +172,7 @@ export default function TestSectionsPage() {
           <div className="p-3 border border-gray-200 rounded mb-2 flex items-center gap-3">
             <div className="space-y-1">
               <label className="text-xs font-semibold uppercase tracking-wide text-gray-600">Language</label>
-              <select className="border border-gray-300 rounded px-2 py-1 text-sm" onChange={(e)=>{ filterModelRef.current = { ...(filterModelRef.current||{}), language: e.target.value || undefined }; setPage(1); fetchPage(); }}>
+              <select className="border border-gray-300 rounded px-2 py-1 text-sm" onChange={(e) => { filterModelRef.current = { ...(filterModelRef.current || {}), language: e.target.value || undefined }; setPage(1); fetchPage(); }}>
                 <option value="">All</option>
                 <option>English</option>
                 <option>Hindi</option>
@@ -180,7 +180,7 @@ export default function TestSectionsPage() {
             </div>
             <div className="space-y-1">
               <label className="text-xs font-semibold uppercase tracking-wide text-gray-600">Status</label>
-              <select className="border border-gray-300 rounded px-2 py-1 text-sm" onChange={(e)=>{ const v = e.target.value; filterModelRef.current = { ...(filterModelRef.current||{}), isActive: v===''? undefined : Number(v) }; setPage(1); fetchPage(); }}>
+              <select className="border border-gray-300 rounded px-2 py-1 text-sm" onChange={(e) => { const v = e.target.value; filterModelRef.current = { ...(filterModelRef.current || {}), isActive: v === '' ? undefined : Number(v) }; setPage(1); fetchPage(); }}>
                 <option value="">All</option>
                 <option value="1">Active</option>
                 <option value="0">Inactive</option>
@@ -208,7 +208,7 @@ export default function TestSectionsPage() {
           />
           {loading ? <GridOverlayLoader message="Loading sections..." /> : null}
         </div>
-        
+
         <ConfirmationModal
           isOpen={confirmOpen}
           title="Confirm Delete"
@@ -222,10 +222,8 @@ export default function TestSectionsPage() {
               for (const row of pendingDelete) {
                 await deleteTestSectionAction(row.id);
               }
-              setToast({ message: `Deleted ${pendingDelete.length} item(s)`, type: 'success' });
               fetchPage();
-            } catch { setToast({ message: 'Delete failed', type: 'error' }); }
-            setDeleting(false); setConfirmOpen(false); setPendingDelete([]);
+            } finally { setDeleting(false); setConfirmOpen(false); setPendingDelete([]); }
           }}
         />
       </div>

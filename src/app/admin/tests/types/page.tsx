@@ -8,9 +8,8 @@ import GridOverlayLoader from "@/components/GridOverlayLoader";
 import Toast from "@/components/Toast";
 import PaginationControls from "@/components/PaginationControls";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { fetchSpotlightsODataAction, deleteSpotlightAction, type SpotlightRow } from "@/app/actions/admin/spotlights";
+import { fetchTestTypesAdminAction, deleteTestTypeAction, type TestTypeRow } from "@/app/actions/admin/test-types";
 
-// AG Grid
 import { AgGridReact } from "ag-grid-react";
 import type { ColDef, GridApi } from "ag-grid-community";
 import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
@@ -19,11 +18,29 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-function NameCellRenderer(props: { value: string; data: SpotlightRow }) {
+function TypeCellRenderer(props: { value: string; data: TestTypeRow }) {
     return (
-        <Link className="text-blue-600 hover:underline" href={`/admin/spotlights/${props.data.id}/edit`} title={props.value}>
+        <Link className="text-blue-600 hover:underline" href={`/admin/tests/types/${props.data.id}/edit`} title={props.value}>
             {props.value}
         </Link>
+    );
+}
+
+function StatusCell(props: { value: number }) {
+    const isActive = Number(props.value) === 1;
+    return (
+        <span className={`px-2 py-0.5 text-xs rounded ${isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
+            {isActive ? "Active" : "Inactive"}
+        </span>
+    );
+}
+
+function LanguageCell(props: { value?: string }) {
+    if (!props.value) return null;
+    return (
+        <span className="inline-block px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+            {props.value}
+        </span>
     );
 }
 
@@ -37,16 +54,16 @@ const formatDate = (val?: string | number) => {
     return `${dd}-${mm}-${yyyy}`;
 };
 
-export default function SpotlightsPage() {
+export default function TestTypesPage() {
     const [query, setQuery] = useState("");
-    const [rows, setRows] = useState<SpotlightRow[]>([]);
+    const [rows, setRows] = useState<TestTypeRow[]>([]);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(15);
     const [showFilters, setShowFilters] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
-    const [pendingDelete, setPendingDelete] = useState<SpotlightRow[]>([]);
+    const [pendingDelete, setPendingDelete] = useState<TestTypeRow[]>([]);
     const [deleting, setDeleting] = useState(false);
     const [selectedCount, setSelectedCount] = useState(0);
     const [toast, setToast] = useState<{ message: string; type: any } | null>(null);
@@ -57,12 +74,13 @@ export default function SpotlightsPage() {
 
     const defaultColDef = useMemo<ColDef>(() => ({ resizable: true, sortable: true, filter: true, floatingFilter: showFilters, flex: 1, minWidth: 120 }), [showFilters]);
 
-    const columnDefs = useMemo<ColDef<SpotlightRow>[]>(() => [
-        { headerName: "Name", field: "name", cellRenderer: NameCellRenderer, minWidth: 220 },
-        { headerName: "Description", field: "description", minWidth: 260, flex: 2 },
-        { headerName: "Created Date", field: "addedDate", valueFormatter: p => formatDate(p.value), width: 160 },
-        { headerName: "Valid From", field: "validFrom", valueFormatter: p => formatDate(p.value), width: 160 },
-        { headerName: "Valid To", field: "validTo", valueFormatter: p => formatDate(p.value), width: 160 },
+    const columnDefs = useMemo<ColDef<TestTypeRow>[]>(() => [
+        { headerName: "Type", field: "type", cellRenderer: TypeCellRenderer, minWidth: 220 },
+        { headerName: "Language", field: "language", cellRenderer: LanguageCell, width: 140 },
+        { headerName: "Status", field: "isActive", cellRenderer: StatusCell, width: 140 },
+        { headerName: "Created By", field: "createdBy", width: 160 },
+        { headerName: "Created Date", field: "createdDate", valueFormatter: p => formatDate(p.value), width: 160 },
+        { headerName: "Modified Date", field: "modifiedDate", valueFormatter: p => formatDate(p.value), width: 160 },
     ], [showFilters]);
 
     const buildFilter = useCallback(() => {
@@ -71,15 +89,20 @@ export default function SpotlightsPage() {
         Object.entries(fm).forEach(([field, cfg]: any) => {
             if (!cfg) return;
             const map: Record<string, string> = {
-                name: 'SpotlightName',
-                description: 'SpotlightNameDescription',
-                addedDate: 'AddedDate',
-                validFrom: 'ValidFrom',
-                validTo: 'ValidTo',
+                type: 'TestType1',
+                language: 'Language',
+                isActive: 'IsActive',
+                createdDate: 'CreatedDate',
+                modifiedDate: 'ModifiedDate',
             };
             const serverField = map[field] || field;
             if (cfg.filterType === 'text' && cfg.filter) {
                 const value = String(cfg.filter).replace(/'/g, "''");
+                if (field === 'isActive') {
+                    const v = value.toLowerCase();
+                    if (["active", "1", "true"].includes(v)) { filters.push(`${serverField} eq 1`); return; }
+                    if (["inactive", "0", "false"].includes(v)) { filters.push(`${serverField} eq 0`); return; }
+                }
                 switch (cfg.type) {
                     case 'startsWith': filters.push(`startswith(${serverField},'${value}')`); break;
                     case 'endsWith': filters.push(`endswith(${serverField},'${value}')`); break;
@@ -91,7 +114,7 @@ export default function SpotlightsPage() {
                 filters.push(`contains(${serverField},'${value}')`);
             }
         });
-        if (query.trim()) filters.push(`contains(SpotlightName,'${query.trim().replace(/'/g, "''")}')`);
+        if (query.trim()) filters.push(`contains(TestType1,'${query.trim().replace(/'/g, "''")}')`);
         return filters.length ? filters.join(' and ') : undefined;
     }, [query]);
 
@@ -100,14 +123,14 @@ export default function SpotlightsPage() {
         const filter = buildFilter();
         const sort = sortModelRef.current?.[0];
         const fieldMap: Record<string, string> = {
-            name: 'SpotlightName',
-            description: 'SpotlightNameDescription',
-            addedDate: 'AddedDate',
-            validFrom: 'ValidFrom',
-            validTo: 'ValidTo',
+            type: 'TestType1',
+            language: 'Language',
+            isActive: 'IsActive',
+            createdDate: 'CreatedDate',
+            modifiedDate: 'ModifiedDate'
         };
-        const orderBy = sort ? `${fieldMap[sort.colId] || 'AddedDate'} ${sort.sort}` : 'AddedDate desc';
-        const res = await fetchSpotlightsODataAction({ top: pageSize, skip: (page - 1) * pageSize, orderBy, filter });
+        const orderBy = sort ? `${fieldMap[sort.colId] || 'ModifiedDate'} ${sort.sort}` : 'ModifiedDate desc';
+        const res = await fetchTestTypesAdminAction({ top: pageSize, skip: (page - 1) * pageSize, orderBy, filter });
         if (res.status === 200 && res.data) { setRows(res.data.rows); setTotal(res.data.total); }
         setLoading(false);
     }, [page, pageSize, buildFilter]);
@@ -117,16 +140,16 @@ export default function SpotlightsPage() {
     return (
         <div className="p-4 bg-gray-50 h-full min-h-0 flex flex-col">
             <div className="sticky top-0 z-20 bg-gray-50 pt-2 pb-3 flex-none">
-                <PageHeader icon={<HelpCircle className="w-6 h-6 text-indigo-600" />} title="Spotlights" showSearch searchValue={query} onSearch={(v) => { setPage(1); setQuery(v); }} />
+                <PageHeader icon={<HelpCircle className="w-6 h-6 text-indigo-600" />} title="Test Types" showSearch searchValue={query} onSearch={(v) => { setPage(1); setQuery(v); }} />
             </div>
             <div className="bg-white shadow rounded-lg p-2 flex-1 overflow-hidden flex flex-col min-h-0">
                 <div className="mb-3 flex items-center justify-between gap-3 flex-none">
                     <div className="flex items-center gap-3 flex-wrap">
-                        <Link href="/admin/spotlights/new"><button className="inline-flex items-center gap-2 w-32 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700"><PlusCircle className="w-4 h-4" /> New</button></Link>
+                        <Link href="/admin/tests/types/new"><button className="inline-flex items-center gap-2 w-32 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700"><PlusCircle className="w-4 h-4" /> New</button></Link>
                         <button
                             disabled={deleting || selectedCount === 0}
                             onClick={() => {
-                                const sel = gridApiRef.current?.getSelectedRows?.() as SpotlightRow[];
+                                const sel = gridApiRef.current?.getSelectedRows?.() as TestTypeRow[];
                                 if (!sel?.length) { setToast({ message: 'Select rows to delete', type: 'info' }); return; }
                                 setPendingDelete(sel); setConfirmOpen(true);
                             }}
@@ -145,7 +168,7 @@ export default function SpotlightsPage() {
                     </div>
                 </div>
                 <div className="ag-theme-alpine ag-theme-evalus w-full flex-1 min-h-0 relative">
-                    <AgGridReact<SpotlightRow>
+                    <AgGridReact<TestTypeRow>
                         columnDefs={columnDefs}
                         defaultColDef={defaultColDef}
                         rowData={rows}
@@ -157,28 +180,29 @@ export default function SpotlightsPage() {
                         headerHeight={36} rowHeight={32}
                         onSortChanged={() => { sortModelRef.current = (gridApiRef.current as any)?.getSortModel?.() || []; setPage(1); fetchPage(); }}
                         onFilterChanged={() => { const api = gridApiRef.current as any; if (!api) return; const fm = api.getFilterModel?.(); filterModelRef.current = fm || {}; if (filterDebounceRef.current) clearTimeout(filterDebounceRef.current); filterDebounceRef.current = setTimeout(() => { setPage(1); fetchPage(); }, 300); }}
-                        overlayNoRowsTemplate="No spotlights found"
+                        overlayNoRowsTemplate="No test types found"
                         overlayLoadingTemplate=""
                         theme="legacy"
                         animateRows
                     />
-                    {loading ? <GridOverlayLoader message="Loading spotlights..." /> : null}
+                    {loading ? <GridOverlayLoader message="Loading types..." /> : null}
                 </div>
                 <ConfirmationModal
                     isOpen={confirmOpen}
                     title="Confirm Delete"
-                    message={`Delete ${pendingDelete.length} selected spotlight(s)?`}
+                    message={`Delete ${pendingDelete.length} selected type(s)?`}
                     confirmText={deleting ? 'Deleting…' : 'Delete'}
                     variant="danger"
                     onCancel={() => setConfirmOpen(false)}
                     onConfirm={async () => {
                         setDeleting(true);
-                        try {
-                            for (const row of pendingDelete) {
-                                await deleteSpotlightAction(row.id);
-                            }
-                            fetchPage();
-                        } finally { setDeleting(false); setConfirmOpen(false); setPendingDelete([]); }
+                        for (const row of pendingDelete) {
+                            await deleteTestTypeAction(row.id);
+                        }
+                        await fetchPage();
+                        setDeleting(false);
+                        setConfirmOpen(false);
+                        setPendingDelete([]);
                     }}
                 />
             </div>

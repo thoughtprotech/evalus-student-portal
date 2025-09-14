@@ -458,6 +458,34 @@ export const endpoints = {
     import("./types").ODataList<import("./types").TestTypeOData>
   >,
 
+  // Admin Test Types full OData listing (grid with paging/filter/sort)
+  getAdminTestTypes: {
+    method: "GET",
+    path: ({ query }: { query?: string }) => `/Odata/TestTypes${query ? (query.startsWith("?") ? query : `?${query}`) : ""}`,
+    type: "OPEN",
+  } as Endpoint<{ query?: string }, { '@odata.count'?: number; value: any[] }>,
+  // Test Types CRUD
+  createTestType: {
+    method: "POST",
+    path: () => `/api/TestTypes`,
+    type: "CLOSE",
+  } as Endpoint<{ testTypeId: number; testType1: string; language: string; isActive: number; createdBy?: string; createdDate?: string; modifiedBy?: string; modifiedDate?: string }, null>,
+  updateTestType: {
+    method: "PUT",
+    path: ({ id }: { id: number }) => `/api/TestTypes/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number } & { testTypeId: number; testType1: string; language: string; isActive: number; createdBy?: string; createdDate?: string; modifiedBy?: string; modifiedDate?: string }, null>,
+  getTestTypeById: {
+    method: "GET",
+    path: ({ id }: { id: number }) => `/api/TestTypes/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number }, any>,
+  deleteTestType: {
+    method: "DELETE",
+    path: ({ id }: { id: number }) => `/api/TestTypes/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number }, null>,
+
   getTestCategories: {
     method: "GET",
     path: () => `/Odata/TestCategories?$select=TestCategoryId,TestCategoryName`,
