@@ -368,3 +368,37 @@ function PublishedDocumentsSubmenu({ Icon, isActive, pathname, basePath }: Publi
   );
 }
 
+interface SettingsSubmenuProps { Icon: React.ComponentType<any>; isActive: boolean; pathname: string; basePath: string; }
+function SettingsSubmenu({ Icon, isActive, pathname, basePath }: SettingsSubmenuProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+  const hoverTimeoutRef = useRef<any>(null);
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => { if (open && ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    window.addEventListener('mousedown', onClick); window.addEventListener('keyup', onKey);
+    return () => { window.removeEventListener('mousedown', onClick); window.removeEventListener('keyup', onKey); };
+  }, [open]);
+  useEffect(() => { setOpen(false); }, [pathname]);
+  const handleMouseEnter = () => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current); setOpen(true); };
+  const handleMouseLeave = () => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current); hoverTimeoutRef.current = setTimeout(() => setOpen(false), 120); };
+  return (
+    <div ref={ref} className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+      <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(o => !o)} onKeyDown={e => { if (e.key === 'ArrowDown') { e.preventDefault(); setOpen(true); } }} className={`flex items-center space-x-1 px-3 py-2 rounded-md transition focus:outline-none focus:ring-2 focus:ring-indigo-400 ${isActive ? 'bg-indigo-100 text-indigo-700' : 'text-gray-700 hover:text-indigo-700 hover:bg-indigo-100'}`}>
+        <Icon className="w-5 h-5" />
+        <span className="text-sm font-medium">Settings</span>
+        <svg className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+      </button>
+      {open && (
+        <div role="menu" aria-label="Settings submenu" className="absolute left-0 top-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 min-w-[260px] z-30 p-1 animate-fade-in">
+          <Link role="menuitem" href="/admin/settings" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname === '/admin/settings' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Settings</Link>
+          <div className="h-px bg-gray-200 my-1" />
+          <p className="px-3 py-1 text-[11px] uppercase tracking-wide text-gray-500">Published Documents</p>
+          <Link role="menuitem" href="/admin/published-documents/folders" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/published-documents/folders') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Publish Documents folder</Link>
+          <Link role="menuitem" href="/admin/published-documents/documents" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/published-documents/documents') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Published Documents</Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
