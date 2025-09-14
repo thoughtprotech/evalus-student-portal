@@ -24,7 +24,8 @@ export async function fetchTestTypesAdminAction(params: { top?: number; skip?: n
   sp.set('$count', 'true');
   sp.set('$select', 'TestTypeId,TestType1,Language,IsActive,CreatedBy,CreatedDate,ModifiedBy,ModifiedDate');
 
-  const res = await apiHandler(endpoints.getAdminTestTypes, { query: `?${sp.toString()}` } as any);
+  // Append a URL fragment to bust the short-lived client GET cache so the grid refreshes immediately after mutations
+  const res = await apiHandler(endpoints.getAdminTestTypes, { query: `?${sp.toString()}#cb=${Date.now()}` } as any);
   if (res.status === 200 && res.data) {
     const payload: any = res.data;
     const list: any[] = Array.isArray(payload?.value) ? payload.value : [];
