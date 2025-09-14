@@ -44,32 +44,55 @@ export default function Index() {
     };
 
     items.forEach(item => {
-      const pathSegments = (item.path || '').split('/').filter(Boolean);
+      // Support both "/", ">", and "\" separated paths from backend (trim spaces)
+      const raw = item.path && item.path.trim().length > 0 ? item.path : (item.publishedDocumentFolderName || "");
+      let pathSegments = raw
+        .split(/[>/\\]/g)
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      // Some payloads include the document name as the last path segment; strip if it looks like a file
+      const last = pathSegments[pathSegments.length - 1]?.toLowerCase();
+      const docNameLower = (item.documentName || "").toLowerCase();
+      if (last && (last === docNameLower || /\.(pdf|docx?|xlsx?|pptx?)$/i.test(last))) {
+        pathSegments = pathSegments.slice(0, -1);
+      }
+
+      // If backend path is truncated (e.g., only parent folder), ensure the leaf folder
+      const leafFolder = (item.publishedDocumentFolderName || '').trim();
+      const lastSeg = pathSegments[pathSegments.length - 1];
+      if (leafFolder && (!lastSeg || leafFolder.toLowerCase() !== lastSeg.toLowerCase())) {
+        pathSegments.push(leafFolder);
+      }
+
       const folderNode = ensureFolder(pathSegments);
       folderNode.files.push(item);
     });
 
     const toFileNodes = (entry: FolderMapEntry, name?: string): FileNode[] => {
       const folderChildren: FileNode[] = [];
-      // First add subfolders
-      for (const [childName, childEntry] of entry.children) {
-        folderChildren.push({
-          name: childName,
-          type: 'folder',
-          children: toFileNodes(childEntry, childName),
-        });
-      }
-      // Then add files
-      for (const file of entry.files) {
+      // First add files (sorted by name) so they appear directly under the folder header
+      const sortedFiles = entry.files
+        .slice()
+        .sort((a, b) => (a.documentName || '').localeCompare(b.documentName || ''));
+      for (const file of sortedFiles) {
         folderChildren.push({
           name: file.documentName,
           type: 'file',
           fileType: inferFileType(file.documentUrl || file.documentName),
-            // Placeholder size (unknown); could be extended when backend adds size
           fileSize: '',
           uploadDate: `${formatToDDMMYYYY_HHMM(file.validFrom)} - ${formatToDDMMYYYY_HHMM(file.validTo)}`,
           description: file.publishedDocumentFolderName,
           url: buildDocumentUrl(file.documentUrl),
+        });
+      }
+      // Then add subfolders (sorted alphabetically) below the files for a consistent UI
+      const sortedChildren = Array.from(entry.children.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+      for (const [childName, childEntry] of sortedChildren) {
+        folderChildren.push({
+          name: childName,
+          type: 'folder',
+          children: toFileNodes(childEntry, childName),
         });
       }
       return folderChildren;
@@ -77,12 +100,31 @@ export default function Index() {
 
     // Top-level folders become root nodes
     const result: FileNode[] = [];
-    for (const [folderName, entry] of root.children) {
+    const topSorted = Array.from(root.children.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+    for (const [folderName, entry] of topSorted) {
       result.push({
         name: folderName,
         type: 'folder',
         children: toFileNodes(entry, folderName),
       });
+    }
+
+    // Also include any root-level files (no folder path) alongside top-level folders
+    if (root.files.length > 0) {
+      const sortedRootFiles = root.files
+        .slice()
+        .sort((a, b) => (a.documentName || '').localeCompare(b.documentName || ''));
+      for (const file of sortedRootFiles) {
+        result.push({
+          name: file.documentName,
+          type: 'file',
+          fileType: inferFileType(file.documentUrl || file.documentName),
+          fileSize: '',
+          uploadDate: `${formatToDDMMYYYY_HHMM(file.validFrom)} - ${formatToDDMMYYYY_HHMM(file.validTo)}`,
+          description: file.publishedDocumentFolderName,
+          url: buildDocumentUrl(file.documentUrl),
+        });
+      }
     }
     return result;
   }
