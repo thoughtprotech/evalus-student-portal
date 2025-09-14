@@ -80,8 +80,8 @@ export default function CandidateGroupsPage() {
     return `${dd}-${mm}-${yyyy}`;
   };
 
+  // Use AG Grid's built-in selection column via selectionColumnDef below; don't add a manual checkbox column here.
   const columnDefs = useMemo<ColDef<CandidateGroupRow>[]>(() => [
-    { headerName: "", width: 44, pinned: 'left', lockPinned: true, sortable: false, filter: false, resizable: false, suppressMenu: true, checkboxSelection: true, headerCheckboxSelection: true },
     { field: 'name', headerName: 'Group', minWidth: 200, flex: 1.4, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer },
     { field: 'language', headerName: 'Language', width: 140, sortable: true, filter: 'agTextColumnFilter' },
     { field: 'isActive', headerName: 'Status', width: 120, sortable: true, filter: 'agTextColumnFilter', cellRenderer: StatusCell },
@@ -237,6 +237,7 @@ export default function CandidateGroupsPage() {
         <div ref={gridShellRef} className="ag-theme-alpine ag-theme-evalus w-full flex-1 min-h-0 relative" style={frozenHeight && loading ? { minHeight: frozenHeight } : undefined}>
           <AgGridReact<CandidateGroupRow>
             columnDefs={columnDefs}
+            selectionColumnDef={{ pinned: 'left', width: 44, headerName: '', resizable: false, suppressMovable: true }}
             defaultColDef={defaultColDef}
             rowData={pagedRows}
             getRowId={p => String(p.data.id)}
