@@ -10,6 +10,7 @@ import { fetchPublishedDocumentFoldersODataAction, type PublishedDocumentFolderR
 import { createPublishedDocumentAction } from "@/app/actions/admin/publishedDocuments";
 import { uploadToLocal } from "@/utils/uploadToLocal";
 import DateTimePicker from "@/components/form/DateTimePicker";
+import TreeSelect from "@/components/form/TreeSelect";
 
 type FormState = {
     publishedDocumentFolderId: number | "";
@@ -38,6 +39,9 @@ export default function NewPublishedDocumentPage() {
             } finally { setLoadingFolders(false); }
         })();
     }, []);
+
+    // Build a tree view (flattened with indentation) for the folders dropdown
+    // TreeSelect consumes the flat items and renders + / - for expand/collapse
 
     const canSave = !!(form.publishedDocumentFolderId && form.documentName.trim() && (form.files?.length || form.documentUrl.trim()) && form.validFrom && form.validTo);
 
@@ -117,10 +121,15 @@ export default function NewPublishedDocumentPage() {
                 )}
                 <div>
                     <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Document Folder <span className="text-red-500">*</span></label>
-                    <select className={inputCls} value={form.publishedDocumentFolderId} onChange={e => setForm(f => ({ ...f, publishedDocumentFolderId: e.target.value ? Number(e.target.value) : "" }))} disabled={loadingFolders}>
-                        <option value="">Select folder…</option>
-                        {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
-                    </select>
+                    <TreeSelect
+                        label=""
+                        items={folders}
+                        value={form.publishedDocumentFolderId}
+                        onChange={(val) => setForm(f => ({ ...f, publishedDocumentFolderId: val }))}
+                        placeholder="Select folder…"
+                        disabled={loadingFolders}
+                        required
+                    />
                 </div>
                 <div>
                     <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Document Name <span className="text-red-500">*</span></label>

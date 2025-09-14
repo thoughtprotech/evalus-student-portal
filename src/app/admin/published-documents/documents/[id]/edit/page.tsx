@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import PageHeader from "@/components/PageHeader";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -11,6 +11,7 @@ import { getPublishedDocumentByIdAction, updatePublishedDocumentAction } from "@
 import { uploadToLocal } from "@/utils/uploadToLocal";
 import { deleteLocalUpload, isLocalUploadUrl } from "@/utils/deleteLocalUpload";
 import DateTimePicker from "@/components/form/DateTimePicker";
+import TreeSelect from "@/components/form/TreeSelect";
 
 type FormState = {
   publishedDocumentFolderId: number | "";
@@ -63,6 +64,8 @@ export default function EditPublishedDocumentPage() {
     })();
     return () => { mounted = false; };
   }, [id]);
+
+  // Build a tree view (flattened with indentation) for folders dropdown
 
   // Allow either a file OR a URL, plus required dates
   const canSave = !!(form.publishedDocumentFolderId && form.documentName.trim() && (form.files.length > 0 || form.documentUrl.trim()) && form.validFrom && form.validTo);
@@ -138,10 +141,14 @@ export default function EditPublishedDocumentPage() {
         )}
         <div>
           <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Document Folder <span className="text-red-500">*</span></label>
-          <select className={inputCls} value={form.publishedDocumentFolderId} onChange={e => setForm(f => ({ ...f, publishedDocumentFolderId: e.target.value ? Number(e.target.value) : "" }))}>
-            <option value="">Select folder…</option>
-            {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
-          </select>
+          <TreeSelect
+            label=""
+            items={folders}
+            value={form.publishedDocumentFolderId}
+            onChange={(val) => setForm(f => ({ ...f, publishedDocumentFolderId: val }))}
+            placeholder="Select folder…"
+            required
+          />
         </div>
         <div>
           <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Document Name <span className="text-red-500">*</span></label>
