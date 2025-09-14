@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, ChangeEvent, FormEvent, useEffect, useRef } from "react";
+import { useState, ChangeEvent, FormEvent, useEffect, useRef, useLayoutEffect } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -56,16 +56,16 @@ export default function AddCandidatePage() {
     notes: "",
     companyId: "", // store as string in form, convert later
     candidateGroupIds: [] as string[], // multi-select values as strings
-      isActive: true,
-      userLogin: [
-          {
-              userName: "",
-              password: "",
-              displayName: "",
-              role: "",
-              userPhoto: null as File | null,
-          }
-      ]
+    isActive: true,
+    userLogin: [
+      {
+        userName: "",
+        password: "",
+        displayName: "",
+        role: "",
+        userPhoto: null as File | null,
+      }
+    ]
   });
   const [userLogin, setUserLogin] = useState({
     userName: "",
@@ -88,6 +88,12 @@ export default function AddCandidatePage() {
   const [idToNode, setIdToNode] = useState<Record<number, GroupNode>>({});
   const [userPhotoPreview, setUserPhotoPreview] = useState<string | null>(null);
   const userPhotoInputRef = useRef<HTMLInputElement>(null);
+  // Preserve scroll position for tree container
+  const treeScrollRef = useRef<HTMLDivElement>(null);
+  const lastScrollTopRef = useRef(0);
+  const onTreeScroll = () => {
+    if (treeScrollRef.current) lastScrollTopRef.current = treeScrollRef.current.scrollTop;
+  };
   const router = useRouter();
 
   /*
@@ -99,100 +105,108 @@ export default function AddCandidatePage() {
   };
   */
 
-    const handleInputChange = (
-        e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-        index?: number // optional index for userLogin
+  const handleInputChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+    index?: number // optional index for userLogin
+  ) => {
+    const { name, value } = e.target;
+
+    setForm((prev) => {
+      // If we are updating a userLogin field
+      if (typeof index === "number") {
+        return {
+          ...prev,
+          userLogin: prev.userLogin.map((u, i) =>
+            i === index ? { ...u, [name]: value } : u
+          ),
+        };
+      }
+
+      // Otherwise update top-level form field
+      return { ...prev, [name]: value };
+    });
+  };
+
+  /*
+    const handleUserLoginChange = (
+      e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
     ) => {
-        const { name, value } = e.target;
-
-        setForm((prev) => {
-            // If we are updating a userLogin field
-            if (typeof index === "number") {
-                return {
-                    ...prev,
-                    userLogin: prev.userLogin.map((u, i) =>
-                        i === index ? { ...u, [name]: value } : u
-                    ),
-                };
-            }
-
-            // Otherwise update top-level form field
-            return { ...prev, [name]: value };
-        });
+      const { name, value, type } = e.target;
+      setUserLogin((prev) => ({
+        ...prev,
+        [name]: type === "file" ? (e.target as any).files?.[0] : value,
+      }));
     };
+  
+    // Restore scroll position on rerenders that change the tree/selection
+    useLayoutEffect(() => {
+      const el = treeScrollRef.current;
+      if (el) {
+        el.scrollTop = lastScrollTopRef.current;
+      }
+    }, [selectedGroupIds, expandedMap, groupTree]);
+  
+    */
 
-/*
   const handleUserLoginChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    index: number
   ) => {
     const { name, value, type } = e.target;
-    setUserLogin((prev) => ({
+
+    setForm((prev) => ({
       ...prev,
-      [name]: type === "file" ? (e.target as any).files?.[0] : value,
+      userLogin: prev.userLogin.map((u, i) =>
+        i === index
+          ? {
+            ...u,
+            [name]:
+              type === "file"
+                ? (e.target as HTMLInputElement).files?.[0] ?? null
+                : value,
+          }
+          : u
+      ),
     }));
   };
 
-  */
 
-    const handleUserLoginChange = (
-        e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-        index: number
-    ) => {
-        const { name, value, type } = e.target;
-
-        setForm((prev) => ({
-            ...prev,
-            userLogin: prev.userLogin.map((u, i) =>
-                i === index
-                    ? {
-                        ...u,
-                        [name]:
-                            type === "file"
-                                ? (e.target as HTMLInputElement).files?.[0] ?? null
-                                : value,
-                    }
-                    : u
-            ),
+  /*
+    // For file input (user photo)
+    const handleUserPhotoChange = (e: ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files && e.target.files[0]) {
+        setUserLogin((prev) => ({
+          ...prev,
+          userPhoto: e.target.files![0],
         }));
+        setUserPhotoPreview(URL.createObjectURL(e.target.files[0]));
+      }
     };
+    */
 
-
-/*
-  // For file input (user photo)
-  const handleUserPhotoChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleUserPhotoChange = (e: ChangeEvent<HTMLInputElement>, index: number) => {
     if (e.target.files && e.target.files[0]) {
-      setUserLogin((prev) => ({
+      const file = e.target.files[0];
+
+      // update userLogin[index].userPhoto
+      setForm((prev) => ({
         ...prev,
-        userPhoto: e.target.files![0],
+        userLogin: prev.userLogin.map((u, i) =>
+          i === index ? { ...u, userPhoto: file } : u
+        ),
       }));
-      setUserPhotoPreview(URL.createObjectURL(e.target.files[0]));
+
+      // if you only need one preview
+      setUserPhotoPreview(URL.createObjectURL(file));
+
+      // 👉 if you want previews per user (array), use state like:
+      // setUserPhotoPreview((prev) => {
+      //   const updated = [...prev];
+      //   updated[index] = URL.createObjectURL(file);
+      //   return updated;
+      // });
     }
   };
-  */
-
-    const handleUserPhotoChange = (e: ChangeEvent<HTMLInputElement>, index: number) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-
-            // update userLogin[index].userPhoto
-            setForm((prev) => ({
-                ...prev,
-                userLogin: prev.userLogin.map((u, i) =>
-                    i === index ? { ...u, userPhoto: file } : u
-                ),
-            }));
-
-            // if you only need one preview
-            setUserPhotoPreview(URL.createObjectURL(file));
-
-            // 👉 if you want previews per user (array), use state like:
-            // setUserPhotoPreview((prev) => {
-            //   const updated = [...prev];
-            //   updated[index] = URL.createObjectURL(file);
-            //   return updated;
-            // });
-        }
-    };
 
 
 
@@ -226,8 +240,8 @@ export default function AddCandidatePage() {
 
     setIsSaving(true);
 
-  // Use selected group ids from the hierarchical selector
-  const chosenGroupIds = selectedGroupIds;
+    // Use selected group ids from the hierarchical selector
+    const chosenGroupIds = selectedGroupIds;
 
     // Prepare payload (adjust as per your API)
     const payload = {
@@ -242,20 +256,20 @@ export default function AddCandidatePage() {
       postalCode: form.postalCode.trim(),
       country: form.country.trim(),
       notes: form.notes.trim(),
-  companyId: form.companyId ? Number(form.companyId) : 0,
-  candidateGroupIds: chosenGroupIds,
-  createdBy: username || "system",
-  modifiedBy: username || "system",
-        isActive: form.isActive ? 1 : 0,
-        userLogin: [
-            {
-                userName: form.userLogin[0].userName,
-                password: form.userLogin[0].password,
-                displayName: form.userLogin[0].displayName,
-                role: form.userLogin[0].role,
-                userPhoto: form.userLogin[0].userPhoto,
-            }
-        ]
+      companyId: form.companyId ? Number(form.companyId) : 0,
+      candidateGroupIds: chosenGroupIds,
+      createdBy: username || "system",
+      modifiedBy: username || "system",
+      isActive: form.isActive ? 1 : 0,
+      userLogin: [
+        {
+          userName: form.userLogin[0].userName,
+          password: form.userLogin[0].password,
+          displayName: form.userLogin[0].displayName,
+          role: form.userLogin[0].role,
+          userPhoto: form.userLogin[0].userPhoto,
+        }
+      ]
     };
 
     const res = await createCandidateAction(payload);
@@ -276,7 +290,7 @@ export default function AddCandidatePage() {
 
     setIsSaving(true);
 
-  const chosenGroupIds = selectedGroupIds;
+    const chosenGroupIds = selectedGroupIds;
 
     const payload = {
       firstName: form.firstName.trim(),
@@ -290,20 +304,20 @@ export default function AddCandidatePage() {
       postalCode: form.postalCode.trim(),
       country: form.country.trim(),
       notes: form.notes.trim(),
-  companyId: form.companyId ? Number(form.companyId) : 0,
-  candidateGroupIds: chosenGroupIds,
-  createdBy: username || "system",
-  modifiedBy: username || "system",
-        isActive: form.isActive ? 1 : 0,
-        userLogin: [
-            {
-                userName: form.userLogin[0].userName,
-                password: form.userLogin[0].password,
-                displayName: form.userLogin[0].displayName,
-                role: form.userLogin[0].role,
-                userPhoto: form.userLogin[0].userPhoto,
-            }
-        ]
+      companyId: form.companyId ? Number(form.companyId) : 0,
+      candidateGroupIds: chosenGroupIds,
+      createdBy: username || "system",
+      modifiedBy: username || "system",
+      isActive: form.isActive ? 1 : 0,
+      userLogin: [
+        {
+          userName: form.userLogin[0].userName,
+          password: form.userLogin[0].password,
+          displayName: form.userLogin[0].displayName,
+          role: form.userLogin[0].role,
+          userPhoto: form.userLogin[0].userPhoto,
+        }
+      ]
     };
 
     const res = await createCandidateAction(payload);
@@ -326,19 +340,19 @@ export default function AddCandidatePage() {
         notes: "",
         companyId: "",
         candidateGroupIds: [],
-          isActive: true,
-          userLogin: [
-              {
-                  userName: "",
-                  password: "",
-                  displayName: "",
-                  role: "",
-                  userPhoto: null as File | null,
-              }
-          ]
+        isActive: true,
+        userLogin: [
+          {
+            userName: "",
+            password: "",
+            displayName: "",
+            role: "",
+            userPhoto: null as File | null,
+          }
+        ]
       });
-  // Reset selected groups
-  setSelectedGroupIds([]);
+      // Reset selected groups
+      setSelectedGroupIds([]);
     } else {
       toast.error(errorMessage || "Failed to create candidate");
     }
@@ -541,22 +555,20 @@ export default function AddCandidatePage() {
                 <button
                   onClick={handleSaveAndNew}
                   disabled={isSaving}
-                  className={`px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium transition-colors ${
-                    isSaving
+                  className={`px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium transition-colors ${isSaving
                       ? "bg-gray-50 text-gray-400 cursor-not-allowed"
                       : "bg-white text-gray-700 hover:bg-gray-50"
-                  }`}
+                    }`}
                 >
                   {isSaving ? "Saving..." : "Save & New"}
                 </button>
                 <button
                   onClick={handleSubmit}
                   disabled={isSaving}
-                  className={`px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-colors ${
-                    isSaving
+                  className={`px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-colors ${isSaving
                       ? "bg-gray-400 cursor-not-allowed"
                       : "bg-indigo-600 hover:bg-indigo-700"
-                  }`}
+                    }`}
                 >
                   {isSaving ? "Saving..." : "Save Candidate"}
                 </button>
@@ -566,8 +578,8 @@ export default function AddCandidatePage() {
         </div>
       </div>
 
-  {/* Main Content */}
-  <div className="w-[85%] mx-auto px-6 py-8">
+      {/* Main Content */}
+      <div className="w-[85%] mx-auto px-6 py-8">
         <div className="w-full bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <form
             onSubmit={handleSubmit}
@@ -664,7 +676,7 @@ export default function AddCandidatePage() {
                 </select>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center gap-2 pt-6">
                 <input
@@ -829,9 +841,9 @@ export default function AddCandidatePage() {
                     onChange={(e) => handleUserLoginChange(e, 0)}
                   >
                     <option value="">Select role</option>
-                                      {roles.map((role) => (
-                                          <option key={role.id} value={role.id}>
-                                              {role.name}
+                    {roles.map((role) => (
+                      <option key={role.id} value={role.id}>
+                        {role.name}
                       </option>
                     ))}
                   </select>
@@ -847,7 +859,7 @@ export default function AddCandidatePage() {
                   accept="image/*"
                   ref={userPhotoInputRef}
                   className={inputCls}
-                  onChange={(e) => handleUserPhotoChange(e,0)}
+                  onChange={(e) => handleUserPhotoChange(e, 0)}
                 />
                 {userPhotoPreview && (
                   <div className="mt-2">
@@ -870,7 +882,7 @@ export default function AddCandidatePage() {
                   <div className="text-sm text-gray-700">Select one or more groups to register</div>
                   <div className="text-xs text-gray-500">Selected: {selectedGroupIds.length}</div>
                 </div>
-                <div className="max-h-72 overflow-auto py-2">
+                <div ref={treeScrollRef} onScroll={onTreeScroll} className="max-h-72 overflow-auto py-2">
                   {groupTree.length === 0 ? (
                     <div className="px-4 py-8 text-sm text-gray-500">No groups available</div>
                   ) : (
@@ -893,7 +905,7 @@ export default function AddCandidatePage() {
           setShowSuccessModal(false);
           router.push("/admin/candidates");
         }}
-        onCancel={() => {}}
+        onCancel={() => { }}
         title="Candidate Created Successfully! 🎉"
         message="Your candidate has been successfully created and saved to the database."
         confirmText="Go to Candidates"

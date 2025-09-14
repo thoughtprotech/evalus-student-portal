@@ -1,26 +1,32 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Save, Users } from "lucide-react";
 import EditPageLoader from "@/components/EditPageLoader";
 import { fetchCandidateByIdAction, updateCandidateAction } from "@/app/actions/admin/candidates/updateCandidate";
 import { fetchCompaniesAction } from "@/app/actions/admin/companies";
+import { fetchRolesAction } from "@/app/actions/admin/roles";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
 import { useUser } from "@/contexts/UserContext";
-import PageHeader from "@/components/PageHeader";
 import Toast from "@/components/Toast";
 import ConfirmationModal from "@/components/ConfirmationModal";
 
 interface CompanyOption { id: number; name: string; }
 type GroupNode = { id: number; name: string; children?: GroupNode[] };
 
-// Add this to your list of roles (replace with your actual roles if needed)
-const ROLES = [
-  { value: "candidate", display: "Candidate" },
-  { value: "admin", display: "Admin" }
+// Sample lists for State and Country to match 'New' page UX
+const STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
+  "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram",
+  "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu",
+  "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
+];
+const COUNTRIES = [
+  "India", "United States", "Canada", "United Kingdom", "Australia"
 ];
 
 export default function EditCandidatePage() {
@@ -32,6 +38,7 @@ export default function EditCandidatePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [companies, setCompanies] = useState<CompanyOption[]>([]);
+  const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
   // Group tree + hierarchical selection state
   const [groupTree, setGroupTree] = useState<GroupNode[]>([]);
   const [selectedGroupIds, setSelectedGroupIds] = useState<number[]>([]);
@@ -62,29 +69,40 @@ export default function EditCandidatePage() {
   });
   const [userPhotoPreview, setUserPhotoPreview] = useState<string | null>(null);
   const userPhotoInputRef = useRef<HTMLInputElement>(null);
+  // Preserve scroll position for tree container
+  const treeScrollRef = useRef<HTMLDivElement>(null);
+  const lastScrollTopRef = useRef(0);
+  const onTreeScroll = () => {
+    if (treeScrollRef.current) lastScrollTopRef.current = treeScrollRef.current.scrollTop;
+  };
   const [toast, setToast] = useState<{ message: string; type: any } | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const inputCls = "w-full border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md px-3 py-2 text-sm bg-white";
-  const selectCls = inputCls;
-  const textareaCls = inputCls;
+  // Match 'New' page input styles
+  const inputCls = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition";
+  const selectCls = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition";
+  const textareaCls = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition";
 
   // Fetch candidate details + companies + group tree
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const [candRes, compRes, groupRes] = await Promise.all([
+        const [candRes, compRes, rolesRes, groupRes] = await Promise.all([
           fetchCandidateByIdAction(candidateId),
           fetchCompaniesAction({ top: 100, skip: 0 }),
+          fetchRolesAction({ top: 200, skip: 0 }),
           apiHandler(endpoints.getCandidateGroupTreeOData, null as any),
         ]);
         if (candRes.error) throw new Error(candRes.errorMessage || candRes.message);
-  const c = candRes.data;
-  // Map candidate groups (assuming API returns candidateGroups array with ids)
-  const candidateGroupIds: number[] = (c?.candidateGroupIds || c?.candidateGroups?.map((g: any) => g.candidateGroupId) || []).map((x: any) => Number(x)).filter((n: any) => Number.isFinite(n));
+        const c = candRes.data;
+        // Map candidate groups (assuming API returns candidateGroups array with ids)
+        const candidateGroupIds: number[] = (c?.candidateGroupIds || c?.candidateGroups?.map((g: any) => g.candidateGroupId) || []).map((x: any) => Number(x)).filter((n: any) => Number.isFinite(n));
         if (compRes.data?.rows) {
           setCompanies(compRes.data.rows.map(r => ({ id: r.id, name: r.companyName })));
+        }
+        if (rolesRes.data?.rows) {
+          setRoles(rolesRes.data.rows.map((r: any) => ({ id: r.name, name: r.name })));
         }
         // Normalize group tree response
         const raw = (groupRes?.data as any)?.value ?? groupRes?.data ?? [];
@@ -256,6 +274,14 @@ export default function EditCandidatePage() {
     );
   };
 
+  // Restore scroll position on rerenders that change the tree/selection
+  useLayoutEffect(() => {
+    const el = treeScrollRef.current;
+    if (el) {
+      el.scrollTop = lastScrollTopRef.current;
+    }
+  }, [selectedGroupIds, expandedMap, groupTree]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
@@ -296,7 +322,7 @@ export default function EditCandidatePage() {
   const submit = async () => {
     if (!validate()) return;
     setSaving(true);
-  const chosenGroupIds = selectedGroupIds;
+    const chosenGroupIds = selectedGroupIds;
     const payload = {
       candidateId,
       firstName: form.firstName.trim(),
@@ -312,7 +338,7 @@ export default function EditCandidatePage() {
       notes: form.notes.trim(),
       isActive: form.isActive ? 1 : 0,
       companyId: Number(form.companyId),
-  candidateGroupIds: chosenGroupIds,
+      candidateGroupIds: chosenGroupIds,
       modifiedBy: username || "system",
     };
     const res = await updateCandidateAction(payload);
@@ -328,19 +354,54 @@ export default function EditCandidatePage() {
   if (loading) return <EditPageLoader message="Loading candidate..." />;
 
   return (
-    <div className="p-4 h-full flex flex-col">
-      {/* Header with back + actions */}
-      <div className="flex items-start justify-between w-[60%] mx-auto mb-4">
-        <div className="flex items-center gap-4">
-          <Link href="/admin/candidates" className="inline-flex items-center text-sm text-indigo-600 hover:underline"><ArrowLeft className="w-4 h-4 mr-1"/> Back</Link>
-          <PageHeader title="Edit Candidate" icon={<Users className="w-6 h-6 text-indigo-600" />} showSearch={false} onSearch={()=>{}} />
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="w-[85%] mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Link
+                href="/admin/candidates"
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Link>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                  <Users className="w-4 h-4 text-indigo-600" />
+                </div>
+                <h1 className="text-2xl font-semibold text-gray-900">
+                  Edit Candidate
+                </h1>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/admin/candidates"
+                className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                Back to Candidates
+              </Link>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={submit}
+                  disabled={saving}
+                  className={`px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-colors ${saving
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-indigo-600 hover:bg-indigo-700"
+                    }`}
+                >
+                  {saving ? "Saving..." : "Save Candidate"}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <button onClick={() => router.push('/admin/candidates')} className="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50">Cancel</button>
-          <button onClick={submit} disabled={saving} className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium shadow hover:bg-indigo-700 disabled:opacity-50">{saving?"Saving…":"Update"}</button>
-  </div>
-      {/* Centered card */}
-      <div className="w-[60%] mx-auto bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-6 relative">
+      </div>
+
+      {/* Main Content */}
+      <div className="w-[85%] mx-auto px-6 py-8">
+        <div className="w-full bg-white rounded-lg shadow-sm border border-gray-200 p-8 relative">
           {saving && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-sm rounded-lg">
               <div className="flex flex-col items-center gap-3">
@@ -352,178 +413,197 @@ export default function EditCandidatePage() {
               </div>
             </div>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">First Name<span className="text-red-500 ml-0.5">*</span></label>
-              <input name="firstName" placeholder="First name" aria-label="First name" value={form.firstName} onChange={handleChange} className={inputCls} />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Last Name<span className="text-red-500 ml-0.5">*</span></label>
-              <input name="lastName" placeholder="Last name" aria-label="Last name" value={form.lastName} onChange={handleChange} className={inputCls} />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Email<span className="text-red-500 ml-0.5">*</span></label>
-              <input type="email" name="email" placeholder="Email" aria-label="Email" value={form.email} onChange={handleChange} className={inputCls} />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Phone<span className="text-red-500 ml-0.5">*</span></label>
-              <input name="phoneNumber" placeholder="Phone" aria-label="Phone" value={form.phoneNumber} onChange={handleChange} className={inputCls} />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Cell Phone</label>
-              <input name="cellPhone" placeholder="Cell Phone" aria-label="Cell Phone" value={form.cellPhone} onChange={handleChange} className={inputCls} />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Company<span className="text-red-500 ml-0.5">*</span></label>
-              <select name="companyId" aria-label="Company" value={form.companyId} onChange={handleChange} className={selectCls}>
-                <option value="">Select company</option>
-                {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </div>
-          </div>
-          {/* Register Test Groups moved to dedicated section below */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Address</label>
-              <textarea name="address" placeholder="Address" aria-label="Address" value={form.address} onChange={handleChange} className={textareaCls} rows={2} />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Status<span className="text-red-500 ml-0.5">*</span></label>
-              <select className={selectCls} value={form.isActive ? 1 : 0} onChange={(e)=>setForm(prev=>({...prev,isActive: Number(e.target.value)===1}))}>
-                <option value={1}>Active</option>
-                <option value={0}>Inactive</option>
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">City</label>
-              <input name="city" placeholder="City" aria-label="City" value={form.city} onChange={handleChange} className={inputCls} />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">State</label>
-              <input name="state" placeholder="State" aria-label="State" value={form.state} onChange={handleChange} className={inputCls} />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Postal Code</label>
-              <input name="postalCode" placeholder="Postal Code" aria-label="Postal Code" value={form.postalCode} onChange={handleChange} className={inputCls} />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Country</label>
-              <input name="country" placeholder="Country" aria-label="Country" value={form.country} onChange={handleChange} className={inputCls} />
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Notes</label>
-            <textarea name="notes" placeholder="Notes" aria-label="Notes" value={form.notes} onChange={handleChange} className={textareaCls} rows={3} />
-          </div>
-
-          {/* --- User Login Section --- */}
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">User Login</h2>
+          <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="space-y-6" autoComplete="off">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">User Name</label>
-                <input
-                  type="text"
-                  name="userName"
-                  className={inputCls}
-                  placeholder="Enter user name"
-                  value={userLogin.userName}
-                  onChange={handleUserLoginChange}
-                />
+                <label className="block text-sm font-medium text-gray-800 mb-1">First Name <span className="text-red-500">*</span></label>
+                <input name="firstName" placeholder="First name" aria-label="First name" value={form.firstName} onChange={handleChange} className={inputCls} />
               </div>
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Password</label>
-                <input
-                  type="password"
-                  name="password"
-                  className={inputCls}
-                  placeholder="Enter password"
-                  value={userLogin.password}
-                  onChange={handleUserLoginChange}
-                />
+                <label className="block text-sm font-medium text-gray-800 mb-1">Last Name <span className="text-red-500">*</span></label>
+                <input name="lastName" placeholder="Last name" aria-label="Last name" value={form.lastName} onChange={handleChange} className={inputCls} />
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Display Name</label>
-                <input
-                  type="text"
-                  name="displayName"
-                  className={inputCls}
-                  placeholder="Enter display name"
-                  value={userLogin.displayName}
-                  onChange={handleUserLoginChange}
-                />
+                <label className="block text-sm font-medium text-gray-800 mb-1">Email <span className="text-red-500">*</span></label>
+                <input type="email" name="email" placeholder="Email" aria-label="Email" value={form.email} onChange={handleChange} className={inputCls} />
               </div>
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Role</label>
-                <select
-                  name="role"
-                  className={selectCls}
-                  value={userLogin.role}
-                  onChange={handleUserLoginChange}
-                >
-                  <option value="">Select role</option>
-                  {ROLES.map((role) => (
-                    <option key={role.value} value={role.value}>
-                      {role.display}
-                    </option>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Phone Number <span className="text-red-500">*</span></label>
+                <input name="phoneNumber" placeholder="Phone" aria-label="Phone" value={form.phoneNumber} onChange={handleChange} className={inputCls} />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Cell Phone</label>
+                <input name="cellPhone" placeholder="Cell Phone" aria-label="Cell Phone" value={form.cellPhone} onChange={handleChange} className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Company</label>
+                <select name="companyId" aria-label="Company" value={form.companyId} onChange={handleChange} className={selectCls}>
+                  <option value="">Select company</option>
+                  {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+            </div>
+            {/* Active checkbox row to match 'New' */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center gap-2 pt-6">
+                <input
+                  id="isActive"
+                  type="checkbox"
+                  checked={form.isActive}
+                  onChange={(e) => setForm(prev => ({ ...prev, isActive: e.target.checked }))}
+                  className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                />
+                <label htmlFor="isActive" className="text-sm text-gray-800">Active</label>
+              </div>
+              <div></div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Address</label>
+                <textarea name="address" placeholder="Enter address" aria-label="Address" value={form.address} onChange={handleChange} className={textareaCls} rows={2} />
+              </div>
+              <div></div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-800 mb-1">City</label>
+                <input name="city" placeholder="City" aria-label="City" value={form.city} onChange={handleChange} className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-800 mb-1">State</label>
+                <select aria-label="State" name="state" className={selectCls} value={form.state} onChange={handleChange}>
+                  <option value="">Select state</option>
+                  {STATES.map((state) => (
+                    <option key={state} value={state}>{state}</option>
                   ))}
                 </select>
               </div>
             </div>
-            <div className="mt-4">
-              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">User Photo</label>
-              <input
-                type="file"
-                name="userPhoto"
-                accept="image/*"
-                ref={userPhotoInputRef}
-                className={inputCls}
-                onChange={handleUserPhotoChange}
-              />
-              {userPhotoPreview && (
-                <div className="mt-2">
-                  <img
-                    src={userPhotoPreview}
-                    alt="User Photo Preview"
-                    className="h-16 w-16 object-contain border rounded"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Postal Code</label>
+                <input name="postalCode" placeholder="Postal Code" aria-label="Postal Code" value={form.postalCode} onChange={handleChange} className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Country</label>
+                <select aria-label="Country" name="country" className={selectCls} value={form.country} onChange={handleChange}>
+                  <option value="">Select country</option>
+                  {COUNTRIES.map((country) => (
+                    <option key={country} value={country}>{country}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Notes</label>
+              <textarea name="notes" placeholder="Additional notes (optional)" aria-label="Notes" value={form.notes} onChange={handleChange} className={textareaCls} rows={3} />
+            </div>
+
+            {/* --- User Login Section --- */}
+            <div className="mt-8">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">User Login</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">User Name</label>
+                  <input
+                    type="text"
+                    name="userName"
+                    className={inputCls}
+                    placeholder="Enter user name"
+                    value={userLogin.userName}
+                    onChange={handleUserLoginChange}
                   />
                 </div>
-              )}
-            </div>
-          </div>
-          {/* --- End User Login Section --- */}
-
-          {/* --- Register Test Groups Section --- */}
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Register Test Groups</h2>
-            <div className="border border-gray-200 rounded-lg bg-white">
-              <div className="flex items-center justify-between px-3 py-2 border-b bg-gray-50 rounded-t-lg">
-                <div className="text-sm text-gray-700">Select one or more groups to register</div>
-                <div className="text-xs text-gray-500">Selected: {selectedGroupIds.length}</div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Password</label>
+                  <input
+                    type="password"
+                    name="password"
+                    className={inputCls}
+                    placeholder="Enter password"
+                    value={userLogin.password}
+                    onChange={handleUserLoginChange}
+                  />
+                </div>
               </div>
-              <div className="max-h-72 overflow-auto py-2">
-                {groupTree.length === 0 ? (
-                  <div className="px-4 py-8 text-sm text-gray-500">No groups available</div>
-                ) : (
-                  groupTree.map((n) => <TreeNode key={n.id} node={n} level={0} />)
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Display Name</label>
+                  <input
+                    type="text"
+                    name="displayName"
+                    className={inputCls}
+                    placeholder="Enter display name"
+                    value={userLogin.displayName}
+                    onChange={handleUserLoginChange}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Role</label>
+                  <select
+                    name="role"
+                    className={selectCls}
+                    value={userLogin.role}
+                    onChange={handleUserLoginChange}
+                  >
+                    <option value="">Select role</option>
+                    {roles.map((role) => (
+                      <option key={role.id} value={role.id}>
+                        {role.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-800 mb-1">User Photo</label>
+                <input
+                  type="file"
+                  name="userPhoto"
+                  accept="image/*"
+                  ref={userPhotoInputRef}
+                  className={inputCls}
+                  onChange={handleUserPhotoChange}
+                />
+                {userPhotoPreview && (
+                  <div className="mt-2">
+                    <img
+                      src={userPhotoPreview}
+                      alt="User Photo Preview"
+                      className="h-16 w-16 object-contain border rounded"
+                    />
+                  </div>
                 )}
               </div>
             </div>
-          </div>
-          {/* --- End Register Test Groups Section --- */}
+            {/* --- End User Login Section --- */}
+
+            {/* --- Register Test Groups Section --- */}
+            <div className="mt-8">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Register Test Groups</h2>
+              <div className="border border-gray-200 rounded-lg bg-white">
+                <div className="flex items-center justify-between px-3 py-2 border-b bg-gray-50 rounded-t-lg">
+                  <div className="text-sm text-gray-700">Select one or more groups to register</div>
+                  <div className="text-xs text-gray-500">Selected: {selectedGroupIds.length}</div>
+                </div>
+                <div ref={treeScrollRef} onScroll={onTreeScroll} className="max-h-72 overflow-auto py-2">
+                  {groupTree.length === 0 ? (
+                    <div className="px-4 py-8 text-sm text-gray-500">No groups available</div>
+                  ) : (
+                    groupTree.map((n) => <TreeNode key={n.id} node={n} level={0} />)
+                  )}
+                </div>
+              </div>
+            </div>
+            {/* --- End Register Test Groups Section --- */}
+          </form>
         </div>
       </div>
-      <div className="fixed top-4 right-4 z-50 space-y-2">{toast && <Toast message={toast.message} type={toast.type} onClose={()=>setToast(null)} />}</div>
+      <div className="fixed top-4 right-4 z-50 space-y-2">{toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}</div>
       <ConfirmationModal
         isOpen={showSuccess}
         onConfirm={() => { setShowSuccess(false); router.push('/admin/candidates'); }}
