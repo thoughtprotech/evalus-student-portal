@@ -82,12 +82,12 @@ export default function CandidateGroupsPage() {
 
   // Use AG Grid's built-in selection column via selectionColumnDef below; don't add a manual checkbox column here.
   const columnDefs = useMemo<ColDef<CandidateGroupRow>[]>(() => [
-    { field: 'name', headerName: 'Group', minWidth: 200, flex: 1.4, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer },
-    { field: 'language', headerName: 'Language', width: 140, sortable: true, filter: 'agTextColumnFilter' },
-    { field: 'isActive', headerName: 'Status', width: 120, sortable: true, filter: 'agTextColumnFilter', cellRenderer: StatusCell },
-    { field: 'createdBy', headerName: 'Created By', width: 200, sortable: true, filter: 'agTextColumnFilter' },
-    { field: 'createdDate', headerName: 'Created Date', width: 140, sortable: true, valueFormatter: p => formatDate(p.value) },
-    { field: 'modifiedDate', headerName: 'Updated Date', width: 140, sortable: true, valueFormatter: p => formatDate(p.value) },
+    { field: 'name', headerName: 'Group', width: 920, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer },
+    { field: 'language', headerName: 'Language', width: 480, sortable: true, filter: 'agTextColumnFilter' },
+    { field: 'isActive', headerName: 'Status', width: 140, sortable: true, filter: 'agTextColumnFilter', cellRenderer: StatusCell },
+    { field: 'createdBy', headerName: 'Created By', width: 240, sortable: true, filter: 'agTextColumnFilter' },
+    { field: 'createdDate', headerName: 'Created Date', width: 260, sortable: true, valueFormatter: p => formatDate(p.value) },
+    { field: 'modifiedDate', headerName: 'Updated Date', width: 260, sortable: true, valueFormatter: p => formatDate(p.value) },
     { field: 'id', hide: true },
   ], [showFilters]);
 
