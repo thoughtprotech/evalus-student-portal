@@ -37,7 +37,6 @@ const navItems: NavItem[] = [
   { label: "Tests", path: "/admin/tests", Icon: ClipboardList },
   { label: "Products", path: "/admin/products", Icon: Box },
   { label: "Candidates", path: "/admin/candidates", Icon: User },
-  { label: "Published Documents", path: "/admin/published-documents", Icon: BookOpenText },
   { label: "Reports", path: "/admin/reports", Icon: BarChart2 },
   { label: "Settings", path: "/admin/settings", Icon: Settings },
 ];
@@ -93,9 +92,9 @@ export default function Navbar({ username }: NavbarProps) {
             const isActive = pathname.startsWith('/admin/candidates') || pathname.startsWith('/admin/candidate-groups');
             return <CandidatesSubmenu key={path} Icon={Icon} isActive={isActive} pathname={pathname} basePath={path} />;
           }
-          if (label === 'Published Documents') {
-            const isActive = pathname.startsWith('/admin/published-documents');
-            return <PublishedDocumentsSubmenu key={path} Icon={Icon} isActive={isActive} pathname={pathname} basePath={path} />;
+          if (label === 'Settings') {
+            const isActive = pathname.startsWith('/admin/settings') || pathname.startsWith('/admin/published-documents');
+            return <SettingsSubmenu key={path} Icon={Icon} isActive={isActive} pathname={pathname} basePath={path} />;
           }
           if (label === 'Tests') {
             const isActive = pathname.startsWith('/admin/tests') || pathname.startsWith('/admin/test-instructions');
@@ -163,7 +162,7 @@ export default function Navbar({ username }: NavbarProps) {
       {menuOpen && (
         <nav className="absolute top-full left-0 w-full bg-white border-t border-gray-200 shadow-md md:hidden">
           <div className="flex flex-col">
-            {navItems.map(({ label, path, Icon }) => {
+            {navItems.filter(n => n.label !== 'Settings').map(({ label, path, Icon }) => {
               const isActive = pathname === path;
               return (
                 <Link
@@ -180,10 +179,12 @@ export default function Navbar({ username }: NavbarProps) {
                 </Link>
               );
             })}
-            {/* Published Documents grouping for mobile */}
+            {/* Settings (including Published Documents) grouping for mobile */}
             <div className="border-t border-gray-200">
-              <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">Published Documents</p>
+              <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">Settings</p>
+              <Link href="/admin/settings" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname === '/admin/settings' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Settings</Link>
               <Link href="/admin/published-documents/folders" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/published-documents/folders') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Publish Documents folder</Link>
+              <Link href="/admin/published-documents/documents" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/published-documents/documents') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Published Documents</Link>
             </div>
             {/* Candidates grouping for mobile */}
             <div className="border-t border-gray-200">
