@@ -187,7 +187,8 @@ export default function PublishedDocumentsPage() {
           if (sel?.length) {
             for (const row of sel) {
               const res = await deletePublishedDocumentAction(row.id);
-              if (res.status === 200 && row.documentUrl && isLocalUploadUrl(row.documentUrl)) {
+              // Treat any 2xx status as successful delete
+              if (res.status >= 200 && res.status < 300 && row.documentUrl && isLocalUploadUrl(row.documentUrl)) {
                 try { await deleteLocalUpload(row.documentUrl); } catch { /* ignore */ }
               }
             }
