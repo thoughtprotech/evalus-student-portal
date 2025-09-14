@@ -192,6 +192,47 @@ export const endpoints = {
     path: () => `/api/Spotlights`,
     type: "CLOSE",
   } as Endpoint<null, GetSpotlightResponse[]>,
+  // OData Spotlights listing (for grid filtering/sorting/paging)
+  getSpotlightsOData: {
+    method: "GET",
+    path: ({ query }: { query?: string }) => `/Odata/Spotlights${query ? (query.startsWith("?") ? query : `?${query}`) : ""}`,
+    type: "OPEN",
+  } as Endpoint<{ query?: string }, { '@odata.count'?: number; value: any[] }>,
+  createSpotlight: {
+    method: "POST",
+    path: () => `/api/Spotlights`,
+    type: "CLOSE",
+  } as Endpoint<{
+    id: number;
+    spotlightName: string;
+    spotlightNameDescription: string;
+    addedDate: string;
+    validFrom: string;
+    validTo: string;
+    addedDay?: number;
+  }, null>,
+  updateSpotlight: {
+    method: "PUT",
+    path: ({ id }: { id: number }) => `/api/Spotlights/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number } & {
+    spotlightName: string;
+    spotlightNameDescription: string;
+    addedDate: string;
+    validFrom: string;
+    validTo: string;
+    addedDay?: number;
+  }, null>,
+  getSpotlightById: {
+    method: "GET",
+    path: ({ id }: { id: number }) => `/api/Spotlights/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number }, GetSpotlightResponse>,
+  deleteSpotlight: {
+    method: "DELETE",
+    path: ({ id }: { id: number }) => `/api/Spotlights/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number }, null>,
 
   getSidebarMenus: {
     method: "GET",

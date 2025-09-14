@@ -93,7 +93,7 @@ export default function Navbar({ username }: NavbarProps) {
             return <CandidatesSubmenu key={path} Icon={Icon} isActive={isActive} pathname={pathname} basePath={path} />;
           }
           if (label === 'Settings') {
-            const isActive = pathname.startsWith('/admin/settings') || pathname.startsWith('/admin/published-documents');
+            const isActive = pathname.startsWith('/admin/settings') || pathname.startsWith('/admin/published-documents') || pathname.startsWith('/admin/spotlights');
             return <SettingsSubmenu key={path} Icon={Icon} isActive={isActive} pathname={pathname} basePath={path} />;
           }
           if (label === 'Tests') {
@@ -185,6 +185,7 @@ export default function Navbar({ username }: NavbarProps) {
               <Link href="/admin/settings" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname === '/admin/settings' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Settings</Link>
               <Link href="/admin/published-documents/folders" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/published-documents/folders') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Publish Documents folder</Link>
               <Link href="/admin/published-documents/documents" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/published-documents/documents') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Published Documents</Link>
+              <Link href="/admin/spotlights" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/spotlights') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Spotlights</Link>
             </div>
             {/* Candidates grouping for mobile */}
             <div className="border-t border-gray-200">
@@ -396,6 +397,9 @@ function SettingsSubmenu({ Icon, isActive, pathname, basePath }: SettingsSubmenu
           <p className="px-3 py-1 text-[11px] uppercase tracking-wide text-gray-500">Published Documents</p>
           <Link role="menuitem" href="/admin/published-documents/folders" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/published-documents/folders') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Publish Documents folder</Link>
           <Link role="menuitem" href="/admin/published-documents/documents" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/published-documents/documents') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Published Documents</Link>
+          <div className="h-px bg-gray-200 my-1" />
+          <p className="px-3 py-1 text-[11px] uppercase tracking-wide text-gray-500">Spotlights</p>
+          <Link role="menuitem" href="/admin/spotlights" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/spotlights') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Spotlights</Link>
         </div>
       )}
     </div>
