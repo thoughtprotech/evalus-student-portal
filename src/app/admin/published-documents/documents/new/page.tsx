@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { fetchPublishedDocumentFoldersODataAction, type PublishedDocumentFolderRow } from "@/app/actions/admin/publishedDocumentFolders";
 import { createPublishedDocumentAction } from "@/app/actions/admin/publishedDocuments";
 import { uploadToLocal } from "@/utils/uploadToLocal";
+import DateTimePicker from "@/components/form/DateTimePicker";
 
 type FormState = {
     publishedDocumentFolderId: number | "";
@@ -137,14 +138,20 @@ export default function NewPublishedDocumentPage() {
                     </div>
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Valid From <span className="text-red-500">*</span></label>
-                        <input type="datetime-local" className={inputCls} value={form.validFrom} onChange={e => setForm(f => ({ ...f, validFrom: e.target.value }))} />
-                    </div>
-                    <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Valid To <span className="text-red-500">*</span></label>
-                        <input type="datetime-local" className={inputCls} value={form.validTo} onChange={e => setForm(f => ({ ...f, validTo: e.target.value }))} />
-                    </div>
+                    <DateTimePicker
+                        label="Valid From"
+                        value={form.validFrom}
+                        onChange={(iso) => setForm(f => ({ ...f, validFrom: iso }))}
+                        required
+                        maxDateTime={form.validTo || undefined}
+                    />
+                    <DateTimePicker
+                        label="Valid To"
+                        value={form.validTo}
+                        onChange={(iso) => setForm(f => ({ ...f, validTo: iso }))}
+                        required
+                        minDateTime={form.validFrom || undefined}
+                    />
                 </div>
             </div>
 

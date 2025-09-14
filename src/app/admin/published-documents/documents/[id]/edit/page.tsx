@@ -10,6 +10,7 @@ import { fetchPublishedDocumentFoldersODataAction, type PublishedDocumentFolderR
 import { getPublishedDocumentByIdAction, updatePublishedDocumentAction } from "@/app/actions/admin/publishedDocuments";
 import { uploadToLocal } from "@/utils/uploadToLocal";
 import { deleteLocalUpload, isLocalUploadUrl } from "@/utils/deleteLocalUpload";
+import DateTimePicker from "@/components/form/DateTimePicker";
 
 type FormState = {
   publishedDocumentFolderId: number | "";
@@ -48,8 +49,8 @@ export default function EditPublishedDocumentPage() {
             publishedDocumentFolderId: Number(d.publishedDocumentFolderId) || "",
             documentName: d.documentName || "",
             documentUrl: d.documentUrl || "",
-            validFrom: d.validFrom ? new Date(d.validFrom).toISOString().slice(0, 16) : "",
-            validTo: d.validTo ? new Date(d.validTo).toISOString().slice(0, 16) : "",
+            validFrom: d.validFrom ? new Date(d.validFrom).toISOString() : "",
+            validTo: d.validTo ? new Date(d.validTo).toISOString() : "",
             files: [],
           });
           setOriginalUrl(d.documentUrl || "");
@@ -158,14 +159,20 @@ export default function EditPublishedDocumentPage() {
           </div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Valid From <span className="text-red-500">*</span></label>
-            <input type="datetime-local" className={inputCls} value={form.validFrom} onChange={e => setForm(f => ({ ...f, validFrom: e.target.value }))} />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Valid To <span className="text-red-500">*</span></label>
-            <input type="datetime-local" className={inputCls} value={form.validTo} onChange={e => setForm(f => ({ ...f, validTo: e.target.value }))} />
-          </div>
+          <DateTimePicker
+            label="Valid From"
+            value={form.validFrom}
+            onChange={(iso) => setForm(f => ({ ...f, validFrom: iso }))}
+            required
+            maxDateTime={form.validTo || undefined}
+          />
+          <DateTimePicker
+            label="Valid To"
+            value={form.validTo}
+            onChange={(iso) => setForm(f => ({ ...f, validTo: iso }))}
+            required
+            minDateTime={form.validFrom || undefined}
+          />
         </div>
       </div>
       {/* No pre-submit confirmation; success handled by modal; errors inline above form */}
