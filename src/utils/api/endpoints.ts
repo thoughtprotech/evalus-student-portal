@@ -906,12 +906,12 @@ export const endpoints = {
   } as Endpoint<{ id: number; publishedDocumentFolderName: string; parentId: number; language: string }, null>,
   updatePublishedDocumentFolder: {
     method: "PUT",
-    path: ({ id }: { id: number }) => `/api/PublishedDocumentFolder/${id}`,
+    path: ({ id }: { id: number }) => `/api/PublishedDocumentsFolders/${id}`,
     type: "CLOSE",
   } as Endpoint<{ id: number; publishedDocumentFolderName: string; parentId: number; language: string }, null>,
   deletePublishedDocumentFolder: {
     method: "DELETE",
-    path: ({ id }: { id: number }) => `/api/PublishedDocumentFolder/${id}`,
+    path: ({ id }: { id: number }) => `/api/PublishedDocumentsFolders/${id}`,
     type: "CLOSE",
   } as Endpoint<{ id: number }, null>,
 

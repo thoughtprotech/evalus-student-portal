@@ -33,8 +33,8 @@ export async function fetchPublishedDocumentFoldersODataAction(
     filter?: string;
   }) => {
     const sp = new URLSearchParams();
-  if (typeof (opts.top ?? params.top) === 'number') sp.set('$top', String(opts.top ?? params.top));
-  if (typeof params.skip === 'number' && (params.skip as number) > 0) sp.set('$skip', String(params.skip));
+    if (typeof (opts.top ?? params.top) === 'number') sp.set('$top', String(opts.top ?? params.top));
+    if (typeof params.skip === 'number' && (params.skip as number) > 0) sp.set('$skip', String(params.skip));
     if (opts.orderBy ?? params.orderBy) sp.set('$orderby', String(opts.orderBy ?? params.orderBy));
     if (opts.filter ?? params.filter) sp.set('$filter', String(opts.filter ?? params.filter));
     if (opts.countStyle === 'v4') sp.set('$count', 'true');
@@ -185,14 +185,14 @@ export async function updatePublishedDocumentFolderAction(id: number, payload: {
     } as any;
 
     // Try a set of likely routes until one succeeds (2xx)
-  const routes: Array<{ method: 'PUT'; path: () => string; type: 'CLOSE' }> = [
+    const routes: Array<{ method: 'PUT'; path: () => string; type: 'CLOSE' }> = [
       // Original singular
-  { method: 'PUT', path: () => `/api/PublishedDocumentFolder/${id}`, type: 'CLOSE' },
+      { method: 'PUT', path: () => `/api/PublishedDocumentFolder/${id}`, type: 'CLOSE' },
       // Pluralized conventional controller
-  { method: 'PUT', path: () => `/api/PublishedDocumentFolders/${id}`, type: 'CLOSE' },
+      { method: 'PUT', path: () => `/api/PublishedDocumentFolders/${id}`, type: 'CLOSE' },
       // With "Documents" segment (mirrors OData entity set name)
-  { method: 'PUT', path: () => `/api/PublishedDocumentsFolder/${id}`, type: 'CLOSE' },
-  { method: 'PUT', path: () => `/api/PublishedDocumentsFolders/${id}`, type: 'CLOSE' },
+      { method: 'PUT', path: () => `/api/PublishedDocumentsFolder/${id}`, type: 'CLOSE' },
+      { method: 'PUT', path: () => `/api/PublishedDocumentsFolders/${id}`, type: 'CLOSE' },
     ];
 
     for (const cfg of routes) {
@@ -212,6 +212,20 @@ export async function updatePublishedDocumentFolderAction(id: number, payload: {
 
 export async function deletePublishedDocumentFolderAction(id: number): Promise<ApiResponse<null>> {
   try {
+    // Try a few likely DELETE routes until one returns 2xx
+    const candidates: Array<{ method: 'DELETE'; path: () => string; type: 'CLOSE' }> = [
+      // Confirmed correct endpoint (from user/backend)
+      { method: 'DELETE', path: () => `/api/PublishedDocumentsFolders/${id}`, type: 'CLOSE' },
+    ];
+
+    for (const cfg of candidates) {
+      const res = await apiHandler(cfg as any, null as any);
+      if (res && typeof res.status === 'number' && res.status >= 200 && res.status < 300) {
+        return res as any;
+      }
+    }
+
+    // Fallback to configured endpoint (in case middleware rewrites)
     const res = await apiHandler(endpoints.deletePublishedDocumentFolder, { id });
     return res as any;
   } catch (e: any) {

@@ -239,10 +239,15 @@ export default function PublishedDocumentFoldersPage() {
               };
               pendingDelete.forEach(r => collect(r, 0));
               const toDelete = Array.from(all.values()).sort((a, b) => b.depth - a.depth);
-              for (const { row } of toDelete) { await deletePublishedDocumentFolderAction(row.id); }
+              for (const { row } of toDelete) {
+                const res = await deletePublishedDocumentFolderAction(row.id);
+                if (!(res && typeof res.status === 'number' && res.status >= 200 && res.status < 300)) {
+                  throw new Error(res?.message || res?.errorMessage || `Delete failed for folder id ${row.id}`);
+                }
+              }
               setToast({ message: `Deleted ${toDelete.length} item(s)`, type: 'success' });
             } catch (e: any) {
-              setToast({ message: 'Delete failed', type: 'error' });
+              setToast({ message: e?.message || 'Delete failed', type: 'error' });
             }
             fetchPage();
             setDeleting(false); setConfirmOpen(false); setPendingDelete([]);
