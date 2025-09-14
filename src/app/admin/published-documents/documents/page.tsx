@@ -63,7 +63,23 @@ export default function PublishedDocumentsPage() {
     // Put Document Name first for easier scanning and consistent UX
     { field: 'documentName', headerName: 'Document Name', minWidth: 240, flex: 1.8, filter: 'agTextColumnFilter', sortable: true, cellRenderer: (p: { value: string; data: DocumentRow }) => <Link className="text-blue-600 hover:underline" href={`/admin/published-documents/documents/${p.data.id}/edit`}>{p.value}</Link> },
     { field: 'folderName', headerName: 'Documents Folder', minWidth: 200, flex: 1.2, filter: 'agTextColumnFilter', sortable: true },
-    { field: 'documentUrl', headerName: 'Document URL', minWidth: 240, flex: 1.4, filter: 'agTextColumnFilter', sortable: true },
+    {
+      field: 'documentUrl',
+      headerName: 'Document URL',
+      minWidth: 240,
+      flex: 1.4,
+      filter: 'agTextColumnFilter',
+      sortable: true,
+      cellRenderer: (p: { value: string }) => {
+        const url = p.value || '';
+        if (!url) return '';
+        return (
+          <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all">
+            {url}
+          </a>
+        );
+      }
+    },
     { field: 'validFrom', headerName: 'Valid From', width: 140, filter: 'agDateColumnFilter', sortable: true, valueFormatter: (p: any) => toDateOnly(p.value) },
     { field: 'validTo', headerName: 'Valid To', width: 140, filter: 'agDateColumnFilter', sortable: true, valueFormatter: (p: any) => toDateOnly(p.value) },
   ], [showFilters]);
