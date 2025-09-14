@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import PageHeader from "@/components/PageHeader";
-import Toast from "@/components/Toast";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { ArrowLeft, BookOpenText, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { fetchPublishedDocumentFoldersODataAction, type PublishedDocumentFolderRow } from "@/app/actions/admin/publishedDocumentFolders";
+import { createPublishedDocumentAction } from "@/app/actions/admin/publishedDocuments";
+import { uploadToLocal } from "@/utils/uploadToLocal";
 
 type FormState = {
     publishedDocumentFolderId: number | "";
@@ -23,7 +24,7 @@ export default function NewPublishedDocumentPage() {
     const [folders, setFolders] = useState<PublishedDocumentFolderRow[]>([]);
     const [loadingFolders, setLoadingFolders] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [toast, setToast] = useState<{ message: string; type: any } | null>(null);
+    const [error, setError] = useState<string>("");
     const [showSuccess, setShowSuccess] = useState(false);
     const [form, setForm] = useState<FormState>({ publishedDocumentFolderId: "", documentName: "", documentUrl: "", validFrom: "", validTo: "", files: [] });
 
@@ -37,7 +38,7 @@ export default function NewPublishedDocumentPage() {
         })();
     }, []);
 
-    const canSave = form.publishedDocumentFolderId && form.documentName.trim() && (form.files?.length || form.documentUrl.trim());
+    const canSave = !!(form.publishedDocumentFolderId && form.documentName.trim() && (form.files?.length || form.documentUrl.trim()) && form.validFrom && form.validTo);
 
     const inputCls = "w-full border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md px-3 py-2 text-sm bg-white";
 
@@ -47,22 +48,48 @@ export default function NewPublishedDocumentPage() {
     };
 
     const save = async () => {
-        if (!canSave) { setToast({ message: 'Fill required fields', type: 'error' }); return; }
+        if (!canSave) { setError('Fill all required fields'); return; }
         setSaving(true);
         try {
+            setError("");
             // 1) Upload files (if any) -> get URLs
             let url = form.documentUrl.trim();
             if (form.files.length) {
-                // TODO: call upload API to save in root folder and return URL(s)
-                // For now, placeholder: pick first file name under /uploads
-                url = `/uploads/${form.files[0].name}`;
+                const first = form.files[0];
+                const up = await uploadToLocal(first);
+                url = up.url;
+            }
+            // Enforce absolute URL: if relative like /uploads/..., prefix with site origin
+            try {
+                const u = new URL(url, window.location.origin);
+                url = u.toString();
+            } catch { /* ignore */ }
+            // Validate required dates and ensure order
+            if (!form.validFrom || !form.validTo) {
+                throw new Error('Valid From and Valid To are required');
+            }
+            const vf = new Date(form.validFrom);
+            const vt = new Date(form.validTo);
+            if (isNaN(vf.getTime()) || isNaN(vt.getTime())) {
+                throw new Error('Please enter valid date/time values');
+            }
+            if (vt < vf) {
+                throw new Error('Valid To must be after Valid From');
             }
             // 2) Call create API with payload
-            // TODO: createPublishedDocumentAction
-            setToast(null);
+            const payload = {
+                id: 0,
+                publishedDocumentFolderId: Number(form.publishedDocumentFolderId),
+                documentName: form.documentName.trim(),
+                documentUrl: url,
+                validFrom: new Date(form.validFrom).toISOString(),
+                validTo: new Date(form.validTo).toISOString(),
+            };
+            const res = await createPublishedDocumentAction(payload as any);
+            if (res.status < 200 || res.status >= 300) throw new Error(res.message || 'Create failed');
             setShowSuccess(true);
         } catch (e: any) {
-            setToast({ message: e?.message || 'Failed to save', type: 'error' });
+            setError(e?.message || 'Failed to save');
         } finally { setSaving(false); }
     };
 
@@ -75,13 +102,18 @@ export default function NewPublishedDocumentPage() {
                 </div>
                 <div className="flex gap-2">
                     <Link href="/admin/published-documents/documents" className="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50">Cancel</Link>
-                    <button onClick={save} disabled={!canSave || saving} className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium shadow hover:bg-indigo-700 disabled:opacity-50">
+                    <button onClick={() => { if (!canSave) { setError('Fill all required fields'); return; } save(); }} disabled={!canSave || saving} className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium shadow hover:bg-indigo-700 disabled:opacity-50">
                         {saving ? "Saving…" : "Create"}
                     </button>
                 </div>
             </div>
 
             <div className="w-[60%] mx-auto bg-white shadow-sm border border-gray-200 rounded-lg p-6 space-y-4">
+                {error && (
+                    <div className="p-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded">
+                        {error}
+                    </div>
+                )}
                 <div>
                     <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Document Folder <span className="text-red-500">*</span></label>
                     <select className={inputCls} value={form.publishedDocumentFolderId} onChange={e => setForm(f => ({ ...f, publishedDocumentFolderId: e.target.value ? Number(e.target.value) : "" }))} disabled={loadingFolders}>
@@ -94,26 +126,29 @@ export default function NewPublishedDocumentPage() {
                     <input className={inputCls} value={form.documentName} onChange={e => setForm(f => ({ ...f, documentName: e.target.value }))} placeholder="Enter document name" />
                 </div>
                 <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Upload Files <span className="text-red-500">*</span></label>
+                    <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Upload Files</label>
                     <input type="file" multiple onChange={onFileChange} className={inputCls} />
+                    <p className="mt-1 text-xs text-gray-500">Provide a file or a URL below.</p>
                 </div>
-                <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Or Document URL</label>
-                    <input className={inputCls} value={form.documentUrl} onChange={e => setForm(f => ({ ...f, documentUrl: e.target.value }))} placeholder="https://…" />
-                </div>
+                {form.files.length === 0 && (
+                    <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Or Document URL</label>
+                        <input className={inputCls} value={form.documentUrl} onChange={e => setForm(f => ({ ...f, documentUrl: e.target.value }))} placeholder="https://…" />
+                    </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Valid From</label>
+                        <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Valid From <span className="text-red-500">*</span></label>
                         <input type="datetime-local" className={inputCls} value={form.validFrom} onChange={e => setForm(f => ({ ...f, validFrom: e.target.value }))} />
                     </div>
                     <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Valid To</label>
+                        <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Valid To <span className="text-red-500">*</span></label>
                         <input type="datetime-local" className={inputCls} value={form.validTo} onChange={e => setForm(f => ({ ...f, validTo: e.target.value }))} />
                     </div>
                 </div>
             </div>
 
-            <div className="fixed top-4 right-4 z-50 space-y-2">{toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}</div>
+            {/* No pre-submit confirmation; errors inline and success handled by modal */}
             <ConfirmationModal
                 isOpen={showSuccess}
                 onConfirm={() => { setShowSuccess(false); router.push('/admin/published-documents/documents'); }}

@@ -16,6 +16,7 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 import { fetchPublishedDocumentsODataAction, deletePublishedDocumentAction, type PublishedDocumentRow } from "@/app/actions/admin/publishedDocuments";
+import { deleteLocalUpload, isLocalUploadUrl } from "@/utils/deleteLocalUpload";
 import { fetchPublishedDocumentFoldersODataAction } from "@/app/actions/admin/publishedDocumentFolders";
 
 type DocumentRow = {
@@ -185,7 +186,10 @@ export default function PublishedDocumentsPage() {
           const sel = gridApiRef.current?.getSelectedRows?.() as DocumentRow[];
           if (sel?.length) {
             for (const row of sel) {
-              await deletePublishedDocumentAction(row.id);
+              const res = await deletePublishedDocumentAction(row.id);
+              if (res.status === 200 && row.documentUrl && isLocalUploadUrl(row.documentUrl)) {
+                try { await deleteLocalUpload(row.documentUrl); } catch { /* ignore */ }
+              }
             }
             await fetchPage();
           }

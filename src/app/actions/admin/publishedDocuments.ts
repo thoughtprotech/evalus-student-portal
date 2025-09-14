@@ -64,3 +64,22 @@ export async function deletePublishedDocumentAction(id: number): Promise<ApiResp
     const res = await apiHandler(endpoints.deletePublishedDocument, { id } as any);
     return res as any;
 }
+
+export async function getPublishedDocumentByIdAction(id: number): Promise<ApiResponse<PublishedDocumentRow | null>> {
+    const res = await apiHandler(endpoints.getPublishedDocumentById, { id } as any);
+    if (res.status === 200 && res.data) {
+        const d: any = res.data;
+        const row: PublishedDocumentRow = {
+            id: d.PublishedDocumentId ?? d.Id ?? d.id,
+            publishedDocumentFolderId: d.PublishedDocumentFolderId ?? d.publishedDocumentFolderId,
+            folderName: d.PublishedDocumentFolderName ?? d.folderName ?? d.FolderName,
+            documentName: d.DocumentName ?? d.documentName,
+            documentUrl: d.DocumentUrl ?? d.documentUrl,
+            validFrom: d.ValidFrom ?? d.validFrom,
+            validTo: d.ValidTo ?? d.validTo,
+        };
+        return { status: 200, data: row, message: 'Fetched' } as any;
+    }
+    return { status: res.status, error: res.error, errorMessage: res.errorMessage, message: res.message } as any;
+}
+

@@ -935,6 +935,12 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<{ id: number; publishedDocumentFolderId: number; documentName: string; documentUrl: string; validFrom?: string; validTo?: string }, null>,
 
+  getPublishedDocumentById: {
+    method: "GET",
+    path: ({ id }: { id: number }) => `/api/PublishedDocuments/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number }, any>,
+
   deletePublishedDocument: {
     method: "DELETE",
     path: ({ id }: { id: number }) => `/api/PublishedDocuments/${id}`,
