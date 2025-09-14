@@ -66,9 +66,8 @@ export default function PublishedDocumentFoldersPage() {
   const MIN_LOADER_MS = 900;
 
   const columnDefs = useMemo<ColDef<PublishedDocumentFolderRow>[]>(() => [
-    { headerName: "", width: 44, pinned: 'left', lockPinned: true, sortable: false, filter: false, resizable: false, suppressMenu: true, checkboxSelection: true, headerCheckboxSelection: true },
-    { field: 'name', headerName: 'Folder Name', minWidth: 220, flex: 1.6, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer },
-    { field: 'language', headerName: 'Language', width: 160, sortable: true, filter: 'agTextColumnFilter' },
+    { field: 'name', headerName: 'Folder Name', minWidth: 220, flex: 1.6, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer, checkboxSelection: false, headerCheckboxSelection: false },
+    { field: 'language', headerName: 'Language', width: 160, sortable: true, filter: 'agTextColumnFilter', checkboxSelection: false, headerCheckboxSelection: false },
     { field: 'id', hide: true },
     { field: 'parentId', hide: true },
   ], [showFilters]);
@@ -190,6 +189,7 @@ export default function PublishedDocumentFoldersPage() {
         <div ref={gridShellRef} className="ag-theme-alpine ag-theme-evalus w-full flex-1 min-h-0 relative" style={frozenHeight && loading ? { minHeight: frozenHeight } : undefined}>
           <AgGridReact<PublishedDocumentFolderRow>
             columnDefs={columnDefs}
+            selectionColumnDef={{ pinned: 'left', width: 44, headerName: '', suppressMovable: true, resizable: false }}
             defaultColDef={defaultColDef}
             rowData={pagedRows}
             getRowId={p => String(p.data.id)}

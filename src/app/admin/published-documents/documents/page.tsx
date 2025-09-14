@@ -16,6 +16,7 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 import { fetchPublishedDocumentsODataAction, deletePublishedDocumentAction, type PublishedDocumentRow } from "@/app/actions/admin/publishedDocuments";
+import { fetchPublishedDocumentFoldersODataAction } from "@/app/actions/admin/publishedDocumentFolders";
 
 type DocumentRow = {
   id: number;
@@ -45,14 +46,26 @@ export default function PublishedDocumentsPage() {
   const [deleting, setDeleting] = useState(false);
   const gridShellRef = useRef<HTMLDivElement | null>(null);
   const [frozenHeight, setFrozenHeight] = useState<number | null>(null);
+  const [folderMap, setFolderMap] = useState<Record<number, string>>({});
+
+  // Format ISO datetime to DD-MM-YYYY only
+  const toDateOnly = (iso?: string) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${dd}-${mm}-${yyyy}`;
+  };
 
   const columnDefs = useMemo<ColDef<DocumentRow>[]>(() => [
-    { headerName: "", width: 44, pinned: 'left', lockPinned: true, sortable: false, filter: false, resizable: false, suppressMenu: true, checkboxSelection: true, headerCheckboxSelection: true },
-    { field: 'folderName', headerName: 'Documents Folder', minWidth: 220, flex: 1.4, filter: 'agTextColumnFilter', sortable: true },
-    { field: 'documentName', headerName: 'Document Name', minWidth: 220, flex: 1.6, filter: 'agTextColumnFilter', sortable: true, cellRenderer: (p: { value: string; data: DocumentRow }) => <Link className="text-blue-600 hover:underline" href={`/admin/published-documents/documents/${p.data.id}/edit`}>{p.value}</Link> },
+    // Put Document Name first for easier scanning and consistent UX
+    { field: 'documentName', headerName: 'Document Name', minWidth: 240, flex: 1.8, filter: 'agTextColumnFilter', sortable: true, cellRenderer: (p: { value: string; data: DocumentRow }) => <Link className="text-blue-600 hover:underline" href={`/admin/published-documents/documents/${p.data.id}/edit`}>{p.value}</Link> },
+    { field: 'folderName', headerName: 'Documents Folder', minWidth: 200, flex: 1.2, filter: 'agTextColumnFilter', sortable: true },
     { field: 'documentUrl', headerName: 'Document URL', minWidth: 240, flex: 1.4, filter: 'agTextColumnFilter', sortable: true },
-    { field: 'validFrom', headerName: 'Valid From', width: 140, filter: 'agDateColumnFilter', sortable: true },
-    { field: 'validTo', headerName: 'Valid To', width: 140, filter: 'agDateColumnFilter', sortable: true },
+    { field: 'validFrom', headerName: 'Valid From', width: 140, filter: 'agDateColumnFilter', sortable: true, valueFormatter: (p: any) => toDateOnly(p.value) },
+    { field: 'validTo', headerName: 'Valid To', width: 140, filter: 'agDateColumnFilter', sortable: true, valueFormatter: (p: any) => toDateOnly(p.value) },
   ], [showFilters]);
 
   const defaultColDef = useMemo<ColDef>(() => ({ resizable: true, sortable: true, filter: true, floatingFilter: showFilters }), [showFilters]);
@@ -64,23 +77,36 @@ export default function PublishedDocumentsPage() {
     }
     setLoading(true);
     try {
-      const select = "$select=Id,PublishedDocumentFolderId,PublishedDocumentFolderName,DocumentName,DocumentUrl,ValidFrom,ValidTo";
+      // Keep $select limited to fields guaranteed by backend; folder name isn't provided in OData currently
+      const select = "$select=Id,PublishedDocumentFolderId,DocumentName,DocumentUrl,ValidFrom,ValidTo";
       const filter = query.trim() ? `&$filter=contains(DocumentName,'${encodeURIComponent(query.trim()).replace(/'/g, "''")}')` : "";
       const orderBy = "&$orderby=DocumentName asc";
-      const res = await fetchPublishedDocumentsODataAction({ query: `?${select}${filter}&$count=true${orderBy}` });
-      if (res.status === 200 && res.data) {
-        const mapped: DocumentRow[] = res.data.rows.map((r) => ({
+
+      const [docsRes, foldersRes] = await Promise.all([
+        fetchPublishedDocumentsODataAction({ query: `?${select}${filter}&$count=true${orderBy}` }),
+        fetchPublishedDocumentFoldersODataAction({ top: 2000, skip: 0, orderBy: 'PublishedDocumentFolderName asc' })
+      ]);
+
+      let localFolderMap: Record<number, string> = { ...folderMap };
+      if (foldersRes.status === 200 && foldersRes.data) {
+        localFolderMap = {};
+        for (const f of foldersRes.data.rows) localFolderMap[f.id] = f.name;
+        setFolderMap(localFolderMap);
+      }
+
+      if (docsRes.status === 200 && docsRes.data) {
+        const mapped: DocumentRow[] = docsRes.data.rows.map((r) => ({
           id: r.id,
-          folderName: r.folderName || String(r.publishedDocumentFolderId),
+          folderName: localFolderMap[r.publishedDocumentFolderId] || r.folderName || String(r.publishedDocumentFolderId),
           documentName: r.documentName,
           documentUrl: r.documentUrl,
           validFrom: r.validFrom,
           validTo: r.validTo,
         }));
         setRows(mapped);
-        setTotal(res.data.total);
+        setTotal(docsRes.data.total);
       } else {
-        setToast({ message: res.message || 'Failed to fetch', type: 'error' });
+        setToast({ message: docsRes.message || 'Failed to fetch', type: 'error' });
       }
     } finally {
       setLoading(false);
@@ -121,6 +147,7 @@ export default function PublishedDocumentsPage() {
         <div ref={gridShellRef} className="ag-theme-alpine ag-theme-evalus w-full flex-1 min-h-0 relative" style={frozenHeight && loading ? { minHeight: frozenHeight } : undefined}>
           <AgGridReact<DocumentRow>
             columnDefs={columnDefs}
+            selectionColumnDef={{ pinned: 'left', width: 44, headerName: '', suppressMovable: true, resizable: false }}
             defaultColDef={defaultColDef}
             rowData={pagedRows}
             getRowId={(p) => String(p.data.id)}
