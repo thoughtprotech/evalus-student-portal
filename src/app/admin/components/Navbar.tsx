@@ -171,8 +171,8 @@ export default function Navbar({ username }: NavbarProps) {
                   href={path}
                   onClick={() => setMenuOpen(false)}
                   className={`flex items-center space-x-2 px-4 py-3 transition ${isActive
-                      ? "bg-indigo-100 text-indigo-700"
-                      : "text-gray-700 hover:bg-indigo-50"
+                    ? "bg-indigo-100 text-indigo-700"
+                    : "text-gray-700 hover:bg-indigo-50"
                     }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -180,21 +180,21 @@ export default function Navbar({ username }: NavbarProps) {
                 </Link>
               );
             })}
-                {/* Published Documents grouping for mobile */}
-                <div className="border-t border-gray-200">
-                  <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">Published Documents</p>
-                  <Link href="/admin/published-documents/folders" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/published-documents/folders') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Publish Documents folder</Link>
-                </div>
-                {/* Candidates grouping for mobile */}
-                <div className="border-t border-gray-200">
-                  <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">Candidates</p>
-                  <Link href="/admin/candidates" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/candidates') && !pathname.startsWith('/admin/candidate-groups') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Candidates</Link>
-                  <Link href="/admin/candidate-groups" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/candidate-groups') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Candidate Groups</Link>
-                </div>
-                <Link href="/admin/tests" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/tests') && !pathname.startsWith('/admin/test-instructions') && !pathname.startsWith('/admin/tests/sections') && !pathname.startsWith('/admin/tests/difficulty-levels') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Tests</Link>
-                <Link href="/admin/test-instructions" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/test-instructions') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Instructions</Link>
-                <Link href="/admin/tests/sections" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/tests/sections') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Sections</Link>
-                <Link href="/admin/tests/difficulty-levels" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/tests/difficulty-levels') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Difficulty Levels</Link>
+            {/* Published Documents grouping for mobile */}
+            <div className="border-t border-gray-200">
+              <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">Published Documents</p>
+              <Link href="/admin/published-documents/folders" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/published-documents/folders') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Publish Documents folder</Link>
+            </div>
+            {/* Candidates grouping for mobile */}
+            <div className="border-t border-gray-200">
+              <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">Candidates</p>
+              <Link href="/admin/candidates" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/candidates') && !pathname.startsWith('/admin/candidate-groups') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Candidates</Link>
+              <Link href="/admin/candidate-groups" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/candidate-groups') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Candidate Groups</Link>
+            </div>
+            <Link href="/admin/tests" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/tests') && !pathname.startsWith('/admin/test-instructions') && !pathname.startsWith('/admin/tests/sections') && !pathname.startsWith('/admin/tests/difficulty-levels') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Tests</Link>
+            <Link href="/admin/test-instructions" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/test-instructions') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Instructions</Link>
+            <Link href="/admin/tests/sections" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/tests/sections') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Sections</Link>
+            <Link href="/admin/tests/difficulty-levels" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/tests/difficulty-levels') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Difficulty Levels</Link>
             {/* Inline grouping for mobile (explicit) */}
             <div className="border-t border-gray-200">
               <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">Content</p>
@@ -248,12 +248,12 @@ function QuestionsSubmenu({ Icon, isActive, pathname, basePath }: QuestionsSubme
         <span className="text-sm font-medium">Questions</span>
         <svg className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
       </button>
-    {open && (
+      {open && (
         <div role="menu" aria-label="Questions submenu" className="absolute left-0 top-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 min-w-[240px] z-30 p-1 animate-fade-in">
           <Link role="menuitem" href="/admin/questions" className={`block rounded px-3 py-2 text-sm whitespace-nowrap focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/questions') && !pathname.startsWith('/admin/subjects') && !pathname.startsWith('/admin/write-ups') && !pathname.startsWith('/admin/questions/difficulty-levels') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Questions</Link>
           <Link role="menuitem" href="/admin/write-ups" className={`block rounded px-3 py-2 text-sm whitespace-nowrap focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/write-ups') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>WriteUps</Link>
           <Link role="menuitem" href="/admin/subjects" className={`block rounded px-3 py-2 text-sm whitespace-nowrap focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/subjects') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Subjects</Link>
-      <Link role="menuitem" href="/admin/questions/difficulty-levels" className={`block rounded px-3 py-2 text-sm whitespace-nowrap focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/questions/difficulty-levels') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Question Difficulty Levels</Link>
+          <Link role="menuitem" href="/admin/questions/difficulty-levels" className={`block rounded px-3 py-2 text-sm whitespace-nowrap focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/questions/difficulty-levels') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Question Difficulty Levels</Link>
         </div>
       )}
     </div>
@@ -271,7 +271,7 @@ function TestsSubmenu({ Icon, isActive, pathname, basePath }: TestsSubmenuProps)
     window.addEventListener('mousedown', onClick); window.addEventListener('keyup', onKey);
     return () => { window.removeEventListener('mousedown', onClick); window.removeEventListener('keyup', onKey); };
   }, [open]);
-  useEffect(()=>{ setOpen(false); }, [pathname]);
+  useEffect(() => { setOpen(false); }, [pathname]);
   const handleMouseEnter = () => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
     setOpen(true);
@@ -282,17 +282,17 @@ function TestsSubmenu({ Icon, isActive, pathname, basePath }: TestsSubmenuProps)
   };
   return (
     <div ref={ref} className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-      <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={()=>setOpen(o=>!o)} onKeyDown={e=>{ if(e.key==='ArrowDown'){ e.preventDefault(); setOpen(true);} }} className={`flex items-center space-x-1 px-3 py-2 rounded-md transition focus:outline-none focus:ring-2 focus:ring-indigo-400 ${isActive ? 'bg-indigo-100 text-indigo-700' : 'text-gray-700 hover:text-indigo-700 hover:bg-indigo-100'}`}>
+      <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(o => !o)} onKeyDown={e => { if (e.key === 'ArrowDown') { e.preventDefault(); setOpen(true); } }} className={`flex items-center space-x-1 px-3 py-2 rounded-md transition focus:outline-none focus:ring-2 focus:ring-indigo-400 ${isActive ? 'bg-indigo-100 text-indigo-700' : 'text-gray-700 hover:text-indigo-700 hover:bg-indigo-100'}`}>
         <Icon className="w-5 h-5" />
         <span className="text-sm font-medium">Tests</span>
         <svg className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
       </button>
       {open && (
         <div role="menu" aria-label="Tests submenu" className="absolute left-0 top-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 min-w-[210px] z-30 p-1 animate-fade-in">
-          <Link role="menuitem" href="/admin/tests" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/tests') && !pathname.startsWith('/admin/test-instructions') && !pathname.startsWith('/admin/tests/sections') && !pathname.startsWith('/admin/tests/difficulty-levels') ? 'bg-indigo-50 text-indigo-700':'text-gray-700 hover:bg-indigo-50'}`}>Tests</Link>
-          <Link role="menuitem" href="/admin/test-instructions" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/test-instructions') ? 'bg-indigo-50 text-indigo-700':'text-gray-700 hover:bg-indigo-50'}`}>Test Instructions</Link>
-          <Link role="menuitem" href="/admin/tests/sections" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/tests/sections') ? 'bg-indigo-50 text-indigo-700':'text-gray-700 hover:bg-indigo-50'}`}>Test Sections</Link>
-          <Link role="menuitem" href="/admin/tests/difficulty-levels" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/tests/difficulty-levels') ? 'bg-indigo-50 text-indigo-700':'text-gray-700 hover:bg-indigo-50'}`}>Test Difficulty Levels</Link>
+          <Link role="menuitem" href="/admin/tests" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/tests') && !pathname.startsWith('/admin/test-instructions') && !pathname.startsWith('/admin/tests/sections') && !pathname.startsWith('/admin/tests/difficulty-levels') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Tests</Link>
+          <Link role="menuitem" href="/admin/test-instructions" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/test-instructions') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Instructions</Link>
+          <Link role="menuitem" href="/admin/tests/sections" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/tests/sections') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Sections</Link>
+          <Link role="menuitem" href="/admin/tests/difficulty-levels" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/tests/difficulty-levels') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Difficulty Levels</Link>
         </div>
       )}
     </div>
@@ -310,7 +310,7 @@ function CandidatesSubmenu({ Icon, isActive, pathname, basePath }: CandidatesSub
     window.addEventListener('mousedown', onClick); window.addEventListener('keyup', onKey);
     return () => { window.removeEventListener('mousedown', onClick); window.removeEventListener('keyup', onKey); };
   }, [open]);
-  useEffect(()=>{ setOpen(false); }, [pathname]);
+  useEffect(() => { setOpen(false); }, [pathname]);
   const handleMouseEnter = () => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
     setOpen(true);
@@ -321,15 +321,15 @@ function CandidatesSubmenu({ Icon, isActive, pathname, basePath }: CandidatesSub
   };
   return (
     <div ref={ref} className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-      <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={()=>setOpen(o=>!o)} onKeyDown={e=>{ if(e.key==='ArrowDown'){ e.preventDefault(); setOpen(true);} }} className={`flex items-center space-x-1 px-3 py-2 rounded-md transition focus:outline-none focus:ring-2 focus:ring-indigo-400 ${isActive ? 'bg-indigo-100 text-indigo-700' : 'text-gray-700 hover:text-indigo-700 hover:bg-indigo-100'}`}>
+      <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(o => !o)} onKeyDown={e => { if (e.key === 'ArrowDown') { e.preventDefault(); setOpen(true); } }} className={`flex items-center space-x-1 px-3 py-2 rounded-md transition focus:outline-none focus:ring-2 focus:ring-indigo-400 ${isActive ? 'bg-indigo-100 text-indigo-700' : 'text-gray-700 hover:text-indigo-700 hover:bg-indigo-100'}`}>
         <Icon className="w-5 h-5" />
         <span className="text-sm font-medium">Candidates</span>
         <svg className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
       </button>
       {open && (
         <div role="menu" aria-label="Candidates submenu" className="absolute left-0 top-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 min-w-[210px] z-30 p-1 animate-fade-in">
-          <Link role="menuitem" href="/admin/candidates" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/candidates') && !pathname.startsWith('/admin/candidate-groups') ? 'bg-indigo-50 text-indigo-700':'text-gray-700 hover:bg-indigo-50'}`}>Candidates</Link>
-          <Link role="menuitem" href="/admin/candidate-groups" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/candidate-groups') ? 'bg-indigo-50 text-indigo-700':'text-gray-700 hover:bg-indigo-50'}`}>Candidate Groups</Link>
+          <Link role="menuitem" href="/admin/candidates" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/candidates') && !pathname.startsWith('/admin/candidate-groups') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Candidates</Link>
+          <Link role="menuitem" href="/admin/candidate-groups" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/candidate-groups') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Candidate Groups</Link>
         </div>
       )}
     </div>
@@ -347,19 +347,20 @@ function PublishedDocumentsSubmenu({ Icon, isActive, pathname, basePath }: Publi
     window.addEventListener('mousedown', onClick); window.addEventListener('keyup', onKey);
     return () => { window.removeEventListener('mousedown', onClick); window.removeEventListener('keyup', onKey); };
   }, [open]);
-  useEffect(()=>{ setOpen(false); }, [pathname]);
+  useEffect(() => { setOpen(false); }, [pathname]);
   const handleMouseEnter = () => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current); setOpen(true); };
   const handleMouseLeave = () => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current); hoverTimeoutRef.current = setTimeout(() => setOpen(false), 120); };
   return (
     <div ref={ref} className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-      <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={()=>setOpen(o=>!o)} onKeyDown={e=>{ if(e.key==='ArrowDown'){ e.preventDefault(); setOpen(true);} }} className={`flex items-center space-x-1 px-3 py-2 rounded-md transition focus:outline-none focus:ring-2 focus:ring-indigo-400 ${isActive ? 'bg-indigo-100 text-indigo-700' : 'text-gray-700 hover:text-indigo-700 hover:bg-indigo-100'}`}>
+      <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(o => !o)} onKeyDown={e => { if (e.key === 'ArrowDown') { e.preventDefault(); setOpen(true); } }} className={`flex items-center space-x-1 px-3 py-2 rounded-md transition focus:outline-none focus:ring-2 focus:ring-indigo-400 ${isActive ? 'bg-indigo-100 text-indigo-700' : 'text-gray-700 hover:text-indigo-700 hover:bg-indigo-100'}`}>
         <Icon className="w-5 h-5" />
         <span className="text-sm font-medium">Published Documents</span>
         <svg className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
       </button>
       {open && (
         <div role="menu" aria-label="Published Documents submenu" className="absolute left-0 top-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 min-w-[260px] z-30 p-1 animate-fade-in">
-          <Link role="menuitem" href="/admin/published-documents/folders" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/published-documents/folders') ? 'bg-indigo-50 text-indigo-700':'text-gray-700 hover:bg-indigo-50'}`}>Publish Documents folder</Link>
+          <Link role="menuitem" href="/admin/published-documents/folders" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/published-documents/folders') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Publish Documents folder</Link>
+          <Link role="menuitem" href="/admin/published-documents/documents" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/published-documents/documents') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Published Documents</Link>
         </div>
       )}
     </div>

@@ -575,17 +575,17 @@ export const endpoints = {
   // Candidate Groups CRUD
   createCandidateGroup: {
     method: "POST",
-  path: () => `/api/CandidateGroup`,
+    path: () => `/api/CandidateGroup`,
     type: "CLOSE",
   } as Endpoint<any, any>,
   updateCandidateGroup: {
     method: "PUT",
-  path: ({ id }: { id: number }) => `/api/CandidateGroup/${id}`,
+    path: ({ id }: { id: number }) => `/api/CandidateGroup/${id}`,
     type: "CLOSE",
   } as Endpoint<{ id: number } & any, any>,
   deleteCandidateGroup: {
     method: "DELETE",
-  path: ({ id }: { id: number }) => `/api/CandidateGroup/${id}`,
+    path: ({ id }: { id: number }) => `/api/CandidateGroup/${id}`,
     type: "CLOSE",
   } as Endpoint<{ id: number }, null>,
 
@@ -915,13 +915,39 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<{ id: number }, null>,
 
+  // Published Documents list (OData) and CRUD
+  listPublishedDocumentsOData: {
+    method: "GET",
+    // Backend OData: /odata/PublishedDocuments
+    path: ({ query }: { query?: string }) => `/odata/PublishedDocuments${query ? (query.startsWith("?") ? query : `?${query}`) : ""}`,
+    type: "OPEN",
+  } as Endpoint<{ query?: string }, { '@odata.count'?: number; value: any[] }>,
+
+  createPublishedDocument: {
+    method: "POST",
+    path: () => `/api/PublishedDocuments`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number; publishedDocumentFolderId: number; documentName: string; documentUrl: string; validFrom?: string; validTo?: string }, null>,
+
+  updatePublishedDocument: {
+    method: "PUT",
+    path: ({ id }: { id: number }) => `/api/PublishedDocuments/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number; publishedDocumentFolderId: number; documentName: string; documentUrl: string; validFrom?: string; validTo?: string }, null>,
+
+  deletePublishedDocument: {
+    method: "DELETE",
+    path: ({ id }: { id: number }) => `/api/PublishedDocuments/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number }, null>,
+
   getAdminDashboardAnalytics: {
     method: "GET",
     path: () => `/api/TestAdminDashboard/adminDashboard/analytics`,
     type: "CLOSE",
   } as Endpoint<null, AdminDashboardAnallyticsResponse>,
 
-    getAdminDashboardRecentActivities: {
+  getAdminDashboardRecentActivities: {
     method: "GET",
     path: () => `/api/TestAdminDashboard/adminDashboard/recentActivities`,
     type: "CLOSE",

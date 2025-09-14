@@ -66,6 +66,7 @@ export default function PublishedDocumentFoldersPage() {
   const MIN_LOADER_MS = 900;
 
   const columnDefs = useMemo<ColDef<PublishedDocumentFolderRow>[]>(() => [
+    { headerName: "", width: 44, pinned: 'left', lockPinned: true, sortable: false, filter: false, resizable: false, suppressMenu: true, checkboxSelection: true, headerCheckboxSelection: true },
     { field: 'name', headerName: 'Folder Name', minWidth: 220, flex: 1.6, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer },
     { field: 'language', headerName: 'Language', width: 160, sortable: true, filter: 'agTextColumnFilter' },
     { field: 'id', hide: true },
@@ -133,7 +134,7 @@ export default function PublishedDocumentFoldersPage() {
 
   // Tree flattening similar to Candidate Groups
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
-  const toggle = (id: number) => { setExpanded(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; }); setTimeout(() => { try { gridApiRef.current?.refreshCells({ force: true }); } catch {} }, 0); };
+  const toggle = (id: number) => { setExpanded(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; }); setTimeout(() => { try { gridApiRef.current?.refreshCells({ force: true }); } catch { } }, 0); };
 
   useEffect(() => {
     const byId: Record<number, PublishedDocumentFolderRow> = Object.fromEntries(rows.map(r => [r.id, r]));
@@ -193,8 +194,7 @@ export default function PublishedDocumentFoldersPage() {
             rowData={pagedRows}
             getRowId={p => String(p.data.id)}
             onGridReady={e => { gridApiRef.current = e.api; }}
-            rowSelection={{ mode: 'multiRow', checkboxes: true }}
-            selectionColumnDef={{ pinned: 'left', width: 44 }}
+            rowSelection={{ mode: 'multiRow' }}
             onSelectionChanged={() => setSelectedCount(gridApiRef.current?.getSelectedRows()?.length || 0)}
             headerHeight={36} rowHeight={32}
             onSortChanged={() => { sortModelRef.current = (gridApiRef.current as any)?.getSortModel?.() || []; setPage(1); fetchPage(); }}
