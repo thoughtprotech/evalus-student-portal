@@ -198,6 +198,7 @@ export default function Navbar({ username }: NavbarProps) {
             <Link href="/admin/tests/sections" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/tests/sections') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Sections</Link>
             <Link href="/admin/tests/difficulty-levels" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/tests/difficulty-levels') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Difficulty Levels</Link>
             <Link href="/admin/tests/types" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/tests/types') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Types</Link>
+            <Link href="/admin/tests/categories" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/tests/categories') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Categories</Link>
             {/* Inline grouping for mobile (explicit) */}
             <div className="border-t border-gray-200">
               <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">Content</p>
@@ -296,6 +297,7 @@ function TestsSubmenu({ Icon, isActive, pathname, basePath }: TestsSubmenuProps)
           <Link role="menuitem" href="/admin/test-instructions" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/test-instructions') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Instructions</Link>
           <Link role="menuitem" href="/admin/tests/sections" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/tests/sections') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Sections</Link>
           <Link role="menuitem" href="/admin/tests/difficulty-levels" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/tests/difficulty-levels') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Difficulty Levels</Link>
+          <Link role="menuitem" href="/admin/tests/categories" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/tests/categories') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Categories</Link>
           <Link role="menuitem" href="/admin/tests/types" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/tests/types') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Types</Link>
         </div>
       )}

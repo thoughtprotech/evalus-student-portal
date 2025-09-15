@@ -495,6 +495,36 @@ export const endpoints = {
     import("./types").ODataList<import("./types").TestCategoryOData>
   >,
 
+  // Admin Test Categories full OData listing (tree + paging/filter/sort)
+  getAdminTestCategories: {
+    method: "GET",
+    path: ({ query }: { query?: string }) => `/Odata/TestCategories${query ? (query.startsWith("?") ? query : `?${query}`) : ""}`,
+    type: "OPEN",
+  } as Endpoint<{ query?: string }, { '@odata.count'?: number; value: any[] }>,
+
+  // Test Categories CRUD
+  createTestCategory: {
+    method: "POST",
+    path: () => `/api/TestCategories`,
+    type: "CLOSE",
+  } as Endpoint<{ testCategoryId: number; testCategoryName: string; testCategoryType: string; parentId: number; language: string; isActive: number; createdBy?: string; createdDate?: string; modifiedBy?: string; modifiedDate?: string }, null>,
+  updateTestCategory: {
+    method: "PUT",
+    // Use body.testCategoryId to form the path so we don't need an extra 'id' key in JSON body
+    path: ({ testCategoryId }: { testCategoryId: number }) => `/api/TestCategories/${testCategoryId}`,
+    type: "CLOSE",
+  } as Endpoint<{ testCategoryId: number; testCategoryName: string; testCategoryType: string; parentId: number; language: string; isActive: number; createdBy?: string; createdDate?: string; modifiedBy?: string; modifiedDate?: string }, null>,
+  getTestCategoryById: {
+    method: "GET",
+    path: ({ id }: { id: number }) => `/api/TestCategories/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number }, any>,
+  deleteTestCategory: {
+    method: "DELETE",
+    path: ({ id }: { id: number }) => `/api/TestCategories/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number }, null>,
+
   getTestInstructions: {
     method: "GET",
     path: () =>
