@@ -182,30 +182,66 @@ export default function Navbar({ username }: NavbarProps) {
             {/* Settings (including Published Documents) grouping for mobile */}
             <div className="border-t border-gray-200">
               <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">Settings</p>
-              <Link href="/admin/settings" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname === '/admin/settings' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Settings</Link>
-              <Link href="/admin/published-documents/folders" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/published-documents/folders') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Publish Documents folder</Link>
-              <Link href="/admin/published-documents/documents" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/published-documents/documents') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Published Documents</Link>
-              <Link href="/admin/spotlights" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/spotlights') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Spotlights</Link>
+              {[
+                { label: 'Publish Documents folder', href: '/admin/published-documents/folders', active: pathname.startsWith('/admin/published-documents/folders') },
+                { label: 'Published Documents', href: '/admin/published-documents/documents', active: pathname.startsWith('/admin/published-documents/documents') },
+                { label: 'Settings', href: '/admin/settings', active: pathname === '/admin/settings' },
+                { label: 'Spotlights', href: '/admin/spotlights', active: pathname.startsWith('/admin/spotlights') },
+              ].sort((a, b) => {
+                const pa = a.label === 'Settings' ? -1 : 0;
+                const pb = b.label === 'Settings' ? -1 : 0;
+                if (pa !== pb) return pa - pb;
+                return a.label.localeCompare(b.label);
+              }).map(item => (
+                <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${item.active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>{item.label}</Link>
+              ))}
             </div>
             {/* Candidates grouping for mobile */}
             <div className="border-t border-gray-200">
               <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">Candidates</p>
-              <Link href="/admin/candidates" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/candidates') && !pathname.startsWith('/admin/candidate-groups') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Candidates</Link>
-              <Link href="/admin/candidate-groups" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/candidate-groups') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Candidate Groups</Link>
+              {[
+                { label: 'Candidate Groups', href: '/admin/candidate-groups', active: pathname.startsWith('/admin/candidate-groups') },
+                { label: 'Candidates', href: '/admin/candidates', active: pathname.startsWith('/admin/candidates') && !pathname.startsWith('/admin/candidate-groups') },
+              ].sort((a, b) => {
+                const pa = a.label === 'Candidates' ? -1 : 0;
+                const pb = b.label === 'Candidates' ? -1 : 0;
+                if (pa !== pb) return pa - pb;
+                return a.label.localeCompare(b.label);
+              }).map(item => (
+                <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${item.active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>{item.label}</Link>
+              ))}
             </div>
-            <Link href="/admin/tests" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/tests') && !pathname.startsWith('/admin/test-instructions') && !pathname.startsWith('/admin/tests/sections') && !pathname.startsWith('/admin/tests/difficulty-levels') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Tests</Link>
-            <Link href="/admin/test-instructions" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/test-instructions') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Instructions</Link>
-            <Link href="/admin/tests/sections" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/tests/sections') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Sections</Link>
-            <Link href="/admin/tests/difficulty-levels" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/tests/difficulty-levels') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Difficulty Levels</Link>
-            <Link href="/admin/tests/types" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/tests/types') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Types</Link>
-            <Link href="/admin/tests/categories" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/tests/categories') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Categories</Link>
+            {[
+              { label: 'Test Categories', href: '/admin/tests/categories', active: pathname.startsWith('/admin/tests/categories') },
+              { label: 'Test Difficulty Levels', href: '/admin/tests/difficulty-levels', active: pathname.startsWith('/admin/tests/difficulty-levels') },
+              { label: 'Test Instructions', href: '/admin/test-instructions', active: pathname.startsWith('/admin/test-instructions') },
+              { label: 'Test Sections', href: '/admin/tests/sections', active: pathname.startsWith('/admin/tests/sections') },
+              { label: 'Test Types', href: '/admin/tests/types', active: pathname.startsWith('/admin/tests/types') },
+              { label: 'Tests', href: '/admin/tests', active: pathname.startsWith('/admin/tests') && !pathname.startsWith('/admin/test-instructions') && !pathname.startsWith('/admin/tests/sections') && !pathname.startsWith('/admin/tests/difficulty-levels') && !pathname.startsWith('/admin/tests/categories') && !pathname.startsWith('/admin/tests/types') },
+            ].sort((a, b) => {
+              const pa = a.label === 'Tests' ? -1 : 0;
+              const pb = b.label === 'Tests' ? -1 : 0;
+              if (pa !== pb) return pa - pb;
+              return a.label.localeCompare(b.label);
+            }).map(item => (
+              <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${item.active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>{item.label}</Link>
+            ))}
             {/* Inline grouping for mobile (explicit) */}
             <div className="border-t border-gray-200">
               <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">Content</p>
-              <Link href="/admin/questions" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/questions') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Questions</Link>
-              <Link href="/admin/questions/difficulty-levels" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/questions/difficulty-levels') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Question Difficulty Levels</Link>
-              <Link href="/admin/write-ups" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/write-ups') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>WriteUps</Link>
-              <Link href="/admin/subjects" onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${pathname.startsWith('/admin/subjects') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Subjects</Link>
+              {[
+                { label: 'Question Difficulty Levels', href: '/admin/questions/difficulty-levels', active: pathname.startsWith('/admin/questions/difficulty-levels') },
+                { label: 'Questions', href: '/admin/questions', active: pathname.startsWith('/admin/questions') && !pathname.startsWith('/admin/questions/difficulty-levels') },
+                { label: 'Subjects', href: '/admin/subjects', active: pathname.startsWith('/admin/subjects') },
+                { label: 'WriteUps', href: '/admin/write-ups', active: pathname.startsWith('/admin/write-ups') },
+              ].sort((a, b) => {
+                const pa = a.label === 'Questions' ? -1 : 0;
+                const pb = b.label === 'Questions' ? -1 : 0;
+                if (pa !== pb) return pa - pb;
+                return a.label.localeCompare(b.label);
+              }).map(item => (
+                <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className={`flex items-center space-x-2 px-4 py-2 text-sm ${item.active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>{item.label}</Link>
+              ))}
             </div>
           </div>
         </nav>
@@ -254,10 +290,25 @@ function QuestionsSubmenu({ Icon, isActive, pathname, basePath }: QuestionsSubme
       </button>
       {open && (
         <div role="menu" aria-label="Questions submenu" className="absolute left-0 top-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 min-w-[240px] z-30 p-1 animate-fade-in">
-          <Link role="menuitem" href="/admin/questions" className={`block rounded px-3 py-2 text-sm whitespace-nowrap focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/questions') && !pathname.startsWith('/admin/subjects') && !pathname.startsWith('/admin/write-ups') && !pathname.startsWith('/admin/questions/difficulty-levels') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Questions</Link>
-          <Link role="menuitem" href="/admin/write-ups" className={`block rounded px-3 py-2 text-sm whitespace-nowrap focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/write-ups') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>WriteUps</Link>
-          <Link role="menuitem" href="/admin/subjects" className={`block rounded px-3 py-2 text-sm whitespace-nowrap focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/subjects') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Subjects</Link>
-          <Link role="menuitem" href="/admin/questions/difficulty-levels" className={`block rounded px-3 py-2 text-sm whitespace-nowrap focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/questions/difficulty-levels') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Question Difficulty Levels</Link>
+          {[
+            {
+              label: 'Questions',
+              href: '/admin/questions',
+              active: pathname.startsWith('/admin/questions') && !pathname.startsWith('/admin/questions/difficulty-levels') && !pathname.startsWith('/admin/subjects') && !pathname.startsWith('/admin/write-ups'),
+            },
+            { label: 'WriteUps', href: '/admin/write-ups', active: pathname.startsWith('/admin/write-ups') },
+            { label: 'Subjects', href: '/admin/subjects', active: pathname.startsWith('/admin/subjects') },
+            { label: 'Question Difficulty Levels', href: '/admin/questions/difficulty-levels', active: pathname.startsWith('/admin/questions/difficulty-levels') },
+          ]
+            .sort((a, b) => {
+              const pa = a.label === 'Questions' ? -1 : 0;
+              const pb = b.label === 'Questions' ? -1 : 0;
+              if (pa !== pb) return pa - pb;
+              return a.label.localeCompare(b.label);
+            })
+            .map(item => (
+              <Link key={item.href} role="menuitem" href={item.href} className={`block rounded px-3 py-2 text-sm whitespace-nowrap focus:outline-none focus:bg-indigo-100 ${item.active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>{item.label}</Link>
+            ))}
         </div>
       )}
     </div>
@@ -293,12 +344,23 @@ function TestsSubmenu({ Icon, isActive, pathname, basePath }: TestsSubmenuProps)
       </button>
       {open && (
         <div role="menu" aria-label="Tests submenu" className="absolute left-0 top-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 min-w-[210px] z-30 p-1 animate-fade-in">
-          <Link role="menuitem" href="/admin/tests" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/tests') && !pathname.startsWith('/admin/test-instructions') && !pathname.startsWith('/admin/tests/sections') && !pathname.startsWith('/admin/tests/difficulty-levels') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Tests</Link>
-          <Link role="menuitem" href="/admin/test-instructions" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/test-instructions') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Instructions</Link>
-          <Link role="menuitem" href="/admin/tests/sections" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/tests/sections') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Sections</Link>
-          <Link role="menuitem" href="/admin/tests/difficulty-levels" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/tests/difficulty-levels') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Difficulty Levels</Link>
-          <Link role="menuitem" href="/admin/tests/categories" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/tests/categories') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Categories</Link>
-          <Link role="menuitem" href="/admin/tests/types" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/tests/types') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Test Types</Link>
+          {[
+            { label: 'Tests', href: '/admin/tests', active: pathname.startsWith('/admin/tests') && !pathname.startsWith('/admin/test-instructions') && !pathname.startsWith('/admin/tests/sections') && !pathname.startsWith('/admin/tests/difficulty-levels') && !pathname.startsWith('/admin/tests/categories') && !pathname.startsWith('/admin/tests/types') },
+            { label: 'Test Instructions', href: '/admin/test-instructions', active: pathname.startsWith('/admin/test-instructions') },
+            { label: 'Test Sections', href: '/admin/tests/sections', active: pathname.startsWith('/admin/tests/sections') },
+            { label: 'Test Difficulty Levels', href: '/admin/tests/difficulty-levels', active: pathname.startsWith('/admin/tests/difficulty-levels') },
+            { label: 'Test Categories', href: '/admin/tests/categories', active: pathname.startsWith('/admin/tests/categories') },
+            { label: 'Test Types', href: '/admin/tests/types', active: pathname.startsWith('/admin/tests/types') },
+          ]
+            .sort((a, b) => {
+              const pa = a.label === 'Tests' ? -1 : 0;
+              const pb = b.label === 'Tests' ? -1 : 0;
+              if (pa !== pb) return pa - pb;
+              return a.label.localeCompare(b.label);
+            })
+            .map(item => (
+              <Link key={item.href} role="menuitem" href={item.href} className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${item.active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>{item.label}</Link>
+            ))}
         </div>
       )}
     </div>
@@ -334,8 +396,19 @@ function CandidatesSubmenu({ Icon, isActive, pathname, basePath }: CandidatesSub
       </button>
       {open && (
         <div role="menu" aria-label="Candidates submenu" className="absolute left-0 top-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 min-w-[210px] z-30 p-1 animate-fade-in">
-          <Link role="menuitem" href="/admin/candidates" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/candidates') && !pathname.startsWith('/admin/candidate-groups') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Candidates</Link>
-          <Link role="menuitem" href="/admin/candidate-groups" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/candidate-groups') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Candidate Groups</Link>
+          {[
+            { label: 'Candidates', href: '/admin/candidates', active: pathname.startsWith('/admin/candidates') && !pathname.startsWith('/admin/candidate-groups') },
+            { label: 'Candidate Groups', href: '/admin/candidate-groups', active: pathname.startsWith('/admin/candidate-groups') },
+          ]
+            .sort((a, b) => {
+              const pa = a.label === 'Candidates' ? -1 : 0;
+              const pb = b.label === 'Candidates' ? -1 : 0;
+              if (pa !== pb) return pa - pb;
+              return a.label.localeCompare(b.label);
+            })
+            .map(item => (
+              <Link key={item.href} role="menuitem" href={item.href} className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${item.active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>{item.label}</Link>
+            ))}
         </div>
       )}
     </div>
@@ -399,8 +472,14 @@ function SettingsSubmenu({ Icon, isActive, pathname, basePath }: SettingsSubmenu
           <Link role="menuitem" href="/admin/settings" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname === '/admin/settings' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Settings</Link>
           <div className="h-px bg-gray-200 my-1" />
           <p className="px-3 py-1 text-[11px] uppercase tracking-wide text-gray-500">Published Documents</p>
-          <Link role="menuitem" href="/admin/published-documents/folders" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/published-documents/folders') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Publish Documents folder</Link>
-          <Link role="menuitem" href="/admin/published-documents/documents" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/published-documents/documents') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Published Documents</Link>
+          {[
+            { label: 'Publish Documents folder', href: '/admin/published-documents/folders', active: pathname.startsWith('/admin/published-documents/folders') },
+            { label: 'Published Documents', href: '/admin/published-documents/documents', active: pathname.startsWith('/admin/published-documents/documents') },
+          ]
+            .sort((a, b) => a.label.localeCompare(b.label))
+            .map(item => (
+              <Link key={item.href} role="menuitem" href={item.href} className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${item.active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>{item.label}</Link>
+            ))}
           <div className="h-px bg-gray-200 my-1" />
           <p className="px-3 py-1 text-[11px] uppercase tracking-wide text-gray-500">Spotlights</p>
           <Link role="menuitem" href="/admin/spotlights" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/spotlights') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Spotlights</Link>
