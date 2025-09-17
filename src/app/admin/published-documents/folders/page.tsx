@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import { PlusCircle, Trash2, Filter, XCircle, BookOpenText } from "lucide-react";
@@ -65,12 +65,88 @@ export default function PublishedDocumentFoldersPage() {
   const activeFetchRef = useRef(0);
   const MIN_LOADER_MS = 900;
 
+  // Custom hierarchical selection state (independent from AG Grid internal selection so collapsed descendants are handled)
+  const selectionRef = useRef<Set<number>>(new Set());
+  const [selectionVersion, setSelectionVersion] = useState(0); // force re-render of checkbox cells
+  const childrenMapRef = useRef<Record<number, number[]>>({});
+  const parentMapRef = useRef<Record<number, number | null>>({});
+
+  const rebuildMaps = useCallback(() => {
+    const cm: Record<number, number[]> = {};
+    const pm: Record<number, number | null> = {};
+    rows.forEach(r => {
+      pm[r.id] = r.parentId || 0;
+      (cm[r.parentId] ||= []).push(r.id);
+    });
+    Object.values(cm).forEach(list => list.sort((a, b) => a - b));
+    childrenMapRef.current = cm;
+    parentMapRef.current = pm;
+  }, [rows]);
+  useEffect(() => { rebuildMaps(); }, [rebuildMaps]);
+
+  const collectDesc = useCallback((id: number, acc: number[] = []) => {
+    acc.push(id);
+    (childrenMapRef.current[id] || []).forEach(c => collectDesc(c, acc));
+    return acc;
+  }, []);
+
+  const updateAncestors = useCallback((id: number) => {
+    const set = selectionRef.current;
+    let cur = parentMapRef.current[id];
+    while (cur && cur !== 0) {
+      const kids = childrenMapRef.current[cur] || [];
+      const any = kids.some(k => set.has(k));
+      const all = kids.length > 0 && kids.every(k => set.has(k));
+      if (!any) set.delete(cur); else if (all) set.add(cur); else set.delete(cur); // parent is selected only if all children selected
+      cur = parentMapRef.current[cur];
+    }
+  }, []);
+
+  const selectNode = useCallback((id: number) => {
+    const set = selectionRef.current; collectDesc(id).forEach(d => set.add(d)); updateAncestors(id); setSelectionVersion(v => v + 1);
+  }, [collectDesc, updateAncestors]);
+  const deselectNode = useCallback((id: number) => {
+    const set = selectionRef.current; collectDesc(id).forEach(d => set.delete(d)); updateAncestors(id); setSelectionVersion(v => v + 1);
+  }, [collectDesc, updateAncestors]);
+  const toggleNode = useCallback((id: number) => { selectionRef.current.has(id) ? deselectNode(id) : selectNode(id); }, [selectNode, deselectNode]);
+
+  const getState = useCallback((id: number) => {
+    const set = selectionRef.current;
+    const sel = set.has(id);
+    const kids = childrenMapRef.current[id] || [];
+    if (!kids.length) return sel ? 'all' : 'none';
+    const kidSel = kids.filter(k => set.has(k)).length;
+    if (kidSel === 0 && !sel) return 'none';
+    if (kidSel === kids.length && sel) return 'all';
+    return 'partial';
+  }, []);
+
+  useEffect(() => { setSelectedCount(selectionRef.current.size); }, [selectionVersion]);
+
+  const SelectionCheckbox = useCallback((p: any) => {
+    const row: PublishedDocumentFolderRow = p.data;
+    const state = getState(row.id);
+    return (
+      <div className="flex items-center justify-center">
+        <input
+          type="checkbox"
+          aria-label="Select row"
+          checked={selectionRef.current.has(row.id)}
+          ref={el => { if (el) el.indeterminate = state === 'partial'; }}
+          onChange={() => toggleNode(row.id)}
+          className="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+        />
+      </div>
+    );
+  }, [getState, toggleNode, selectionVersion]);
+
   const columnDefs = useMemo<ColDef<PublishedDocumentFolderRow>[]>(() => [
-    { field: 'name', headerName: 'Folder Name', minWidth: 220, flex: 1.6, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer, checkboxSelection: false, headerCheckboxSelection: false },
-    { field: 'language', headerName: 'Language', width: 160, sortable: true, filter: 'agTextColumnFilter', checkboxSelection: false, headerCheckboxSelection: false },
+    { colId: 'select', headerName: '', width: 46, pinned: 'left', sortable: false, filter: false, suppressMovable: true, resizable: false, lockVisible: true, cellRenderer: SelectionCheckbox },
+    { field: 'name', headerName: 'Folder Name', minWidth: 220, flex: 1.6, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer },
+    { field: 'language', headerName: 'Language', width: 160, sortable: true, filter: 'agTextColumnFilter' },
     { field: 'id', hide: true },
     { field: 'parentId', hide: true },
-  ], [showFilters]);
+  ], [showFilters, SelectionCheckbox]);
 
   const defaultColDef = useMemo<ColDef>(() => ({ resizable: true, sortable: true, filter: true, floatingFilter: showFilters }), [showFilters]);
 
@@ -162,6 +238,8 @@ export default function PublishedDocumentFoldersPage() {
 
   const pagedRows = useMemo(() => flatVisible.slice((page - 1) * pageSize, (page - 1) * pageSize + pageSize), [flatVisible, page, pageSize]);
 
+  // (Removed AG Grid built-in selection handlers)
+
   return (
     <div className="p-4 bg-gray-50 h-full flex flex-col">
       <div className="sticky top-0 z-20 bg-gray-50 pt-2 pb-3">
@@ -172,9 +250,10 @@ export default function PublishedDocumentFoldersPage() {
           <div className="flex items-center gap-3 flex-wrap">
             <Link href="/admin/published-documents/folders/new"><button className="inline-flex items-center gap-2 w-32 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700"><PlusCircle className="w-4 h-4" /> New Folder</button></Link>
             <button disabled={deleting || selectedCount === 0} onClick={() => {
-              const sel = gridApiRef.current?.getSelectedRows?.() as PublishedDocumentFolderRow[];
-              if (!sel?.length) { setToast({ message: 'Select folders to delete', type: 'info' }); return; }
-              setPendingDelete(sel); setConfirmOpen(true);
+              const ids = Array.from(selectionRef.current);
+              if (!ids.length) { setToast({ message: 'Select folders to delete', type: 'info' }); return; }
+              setPendingDelete(rows.filter(r => ids.includes(r.id)));
+              setConfirmOpen(true);
             }} className="inline-flex items-center gap-2 w-32 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50"><Trash2 className="w-4 h-4" /> Delete</button>
             {selectedCount > 0 && <span className="text-sm text-gray-600 bg-blue-50 px-2 py-1 rounded">{selectedCount} selected</span>}
           </div>
@@ -189,13 +268,10 @@ export default function PublishedDocumentFoldersPage() {
         <div ref={gridShellRef} className="ag-theme-alpine ag-theme-evalus w-full flex-1 min-h-0 relative" style={frozenHeight && loading ? { minHeight: frozenHeight } : undefined}>
           <AgGridReact<PublishedDocumentFolderRow>
             columnDefs={columnDefs}
-            selectionColumnDef={{ pinned: 'left', width: 44, headerName: '', suppressMovable: true, resizable: false }}
             defaultColDef={defaultColDef}
             rowData={pagedRows}
             getRowId={p => String(p.data.id)}
             onGridReady={e => { gridApiRef.current = e.api; }}
-            rowSelection={{ mode: 'multiRow' }}
-            onSelectionChanged={() => setSelectedCount(gridApiRef.current?.getSelectedRows()?.length || 0)}
             headerHeight={36} rowHeight={32}
             onSortChanged={() => { sortModelRef.current = (gridApiRef.current as any)?.getSortModel?.() || []; setPage(1); fetchPage(); }}
             onFilterChanged={() => { const api = gridApiRef.current as any; if (!api) return; const fm = api.getFilterModel?.(); filterModelRef.current = fm || {}; if (filterDebounceRef.current) clearTimeout(filterDebounceRef.current); filterDebounceRef.current = setTimeout(() => { setPage(1); fetchPage(); }, 300); }}
@@ -229,23 +305,17 @@ export default function PublishedDocumentFoldersPage() {
           onConfirm={async () => {
             if (!pendingDelete.length) return; setDeleting(true);
             try {
-              const byParent: Record<number, PublishedDocumentFolderRow[]> = {};
-              rows.forEach(r => { (byParent[r.parentId] ||= []).push(r); });
-              const all = new Map<number, { row: PublishedDocumentFolderRow; depth: number }>();
-              const collect = (row: PublishedDocumentFolderRow, depth: number) => {
-                if (all.has(row.id)) { const existing = all.get(row.id)!; if (depth > existing.depth) existing.depth = depth; }
-                else all.set(row.id, { row, depth });
-                (byParent[row.id] || []).forEach(child => collect(child, depth + 1));
-              };
-              pendingDelete.forEach(r => collect(r, 0));
-              const toDelete = Array.from(all.values()).sort((a, b) => b.depth - a.depth);
-              for (const { row } of toDelete) {
+              const byId: Record<number, PublishedDocumentFolderRow> = Object.fromEntries(rows.map(r => [r.id, r]));
+              const depth = (id: number, guard = 0): number => { const n = byId[id]; if (!n || !n.parentId || !byId[n.parentId] || guard > 50) return 0; return 1 + depth(n.parentId, guard + 1); };
+              const ordered = [...pendingDelete].sort((a, b) => depth(b.id) - depth(a.id));
+              for (const row of ordered) {
                 const res = await deletePublishedDocumentFolderAction(row.id);
                 if (!(res && typeof res.status === 'number' && res.status >= 200 && res.status < 300)) {
                   throw new Error(res?.message || res?.errorMessage || `Delete failed for folder id ${row.id}`);
                 }
               }
-              setToast({ message: `Deleted ${toDelete.length} item(s)`, type: 'success' });
+              setToast({ message: `Deleted ${pendingDelete.length} item(s)`, type: 'success' });
+              selectionRef.current.clear(); setSelectionVersion(v => v + 1); setSelectedCount(0);
             } catch (e: any) {
               setToast({ message: e?.message || 'Delete failed', type: 'error' });
             }
