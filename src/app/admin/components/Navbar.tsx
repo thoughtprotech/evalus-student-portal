@@ -186,7 +186,7 @@ export default function Navbar({ username }: NavbarProps) {
                 { label: 'Publish Documents folder', href: '/admin/published-documents/folders', active: pathname.startsWith('/admin/published-documents/folders') },
                 { label: 'Published Documents', href: '/admin/published-documents/documents', active: pathname.startsWith('/admin/published-documents/documents') },
                 { label: 'Settings', href: '/admin/settings', active: pathname === '/admin/settings' },
-                { label: 'Spotlights', href: '/admin/spotlights', active: pathname.startsWith('/admin/spotlights') },
+                { label: 'Spotlight', href: '/admin/spotlights', active: pathname.startsWith('/admin/spotlights') },
               ].sort((a, b) => {
                 const pa = a.label === 'Settings' ? -1 : 0;
                 const pb = b.label === 'Settings' ? -1 : 0;
@@ -481,8 +481,8 @@ function SettingsSubmenu({ Icon, isActive, pathname, basePath }: SettingsSubmenu
               <Link key={item.href} role="menuitem" href={item.href} className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${item.active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>{item.label}</Link>
             ))}
           <div className="h-px bg-gray-200 my-1" />
-          <p className="px-3 py-1 text-[11px] uppercase tracking-wide text-gray-500">Spotlights</p>
-          <Link role="menuitem" href="/admin/spotlights" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/spotlights') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Spotlights</Link>
+          <p className="px-3 py-1 text-[11px] uppercase tracking-wide text-gray-500">Spotlight</p>
+          <Link role="menuitem" href="/admin/spotlights" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/spotlights') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Spotlight</Link>
         </div>
       )}
     </div>

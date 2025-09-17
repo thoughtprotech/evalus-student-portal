@@ -117,7 +117,7 @@ export default function SpotlightsPage() {
     return (
         <div className="p-4 bg-gray-50 h-full min-h-0 flex flex-col">
             <div className="sticky top-0 z-20 bg-gray-50 pt-2 pb-3 flex-none">
-                <PageHeader icon={<HelpCircle className="w-6 h-6 text-indigo-600" />} title="Spotlights" showSearch searchValue={query} onSearch={(v) => { setPage(1); setQuery(v); }} />
+                <PageHeader icon={<HelpCircle className="w-6 h-6 text-indigo-600" />} title="Spotlight" showSearch searchValue={query} onSearch={(v) => { setPage(1); setQuery(v); }} />
             </div>
             <div className="bg-white shadow rounded-lg p-2 flex-1 overflow-hidden flex flex-col min-h-0">
                 <div className="mb-3 flex items-center justify-between gap-3 flex-none">
@@ -157,12 +157,12 @@ export default function SpotlightsPage() {
                         headerHeight={36} rowHeight={32}
                         onSortChanged={() => { sortModelRef.current = (gridApiRef.current as any)?.getSortModel?.() || []; setPage(1); fetchPage(); }}
                         onFilterChanged={() => { const api = gridApiRef.current as any; if (!api) return; const fm = api.getFilterModel?.(); filterModelRef.current = fm || {}; if (filterDebounceRef.current) clearTimeout(filterDebounceRef.current); filterDebounceRef.current = setTimeout(() => { setPage(1); fetchPage(); }, 300); }}
-                        overlayNoRowsTemplate="No spotlights found"
+                        overlayNoRowsTemplate="No spotlight items found"
                         overlayLoadingTemplate=""
                         theme="legacy"
                         animateRows
                     />
-                    {loading ? <GridOverlayLoader message="Loading spotlights..." /> : null}
+                    {loading ? <GridOverlayLoader message="Loading spotlight items..." /> : null}
                 </div>
                 <ConfirmationModal
                     isOpen={confirmOpen}
