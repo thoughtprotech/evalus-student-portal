@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import { PlusCircle, Trash2, Filter, XCircle, Layers } from "lucide-react";
@@ -80,7 +80,30 @@ export default function TestCategoriesPage() {
         return `${dd}-${mm}-${yyyy}`;
     };
 
+    // Internal hierarchical selection state
+    const selectionRef = useRef<Set<number>>(new Set());
+    const [selectionVersion, setSelectionVersion] = useState(0);
+    const childrenMapRef = useRef<Record<number, number[]>>({});
+    const parentMapRef = useRef<Record<number, number | null>>({});
+    const rebuildMaps = useCallback(() => {
+        const cm: Record<number, number[]> = {};
+        const pm: Record<number, number | null> = {};
+        rows.forEach(r => { pm[r.id] = r.parentId || 0; (cm[r.parentId] ||= []).push(r.id); });
+        Object.values(cm).forEach(a => a.sort((a, b) => a - b));
+        childrenMapRef.current = cm;
+        parentMapRef.current = pm;
+    }, [rows]);
+    useEffect(() => { rebuildMaps(); }, [rebuildMaps]);
+    const collectDesc = useCallback((id: number, acc: number[] = []): number[] => { acc.push(id); (childrenMapRef.current[id] || []).forEach(c => collectDesc(c, acc)); return acc; }, []);
+    const updateAncestors = useCallback((id: number) => { const set = selectionRef.current; let cur = parentMapRef.current[id]; while (cur && cur !== 0) { const kids = childrenMapRef.current[cur] || []; const any = kids.some(k => set.has(k)); const all = kids.length > 0 && kids.every(k => set.has(k)); if (!any) set.delete(cur); else if (all) set.add(cur); else set.delete(cur); cur = parentMapRef.current[cur]; } }, []);
+    const selectNode = useCallback((id: number) => { const set = selectionRef.current; collectDesc(id).forEach(d => set.add(d)); updateAncestors(id); setSelectionVersion(v => v + 1); }, [collectDesc, updateAncestors]);
+    const deselectNode = useCallback((id: number) => { const set = selectionRef.current; collectDesc(id).forEach(d => set.delete(d)); updateAncestors(id); setSelectionVersion(v => v + 1); }, [collectDesc, updateAncestors]);
+    const toggleNode = useCallback((id: number) => { selectionRef.current.has(id) ? deselectNode(id) : selectNode(id); }, [selectNode, deselectNode]);
+    const getState = useCallback((id: number) => { const set = selectionRef.current; const sel = set.has(id); const kids = childrenMapRef.current[id] || []; if (!kids.length) return sel ? 'all' : 'none'; const kidSel = kids.filter(k => set.has(k)).length; if (kidSel === 0 && !sel) return 'none'; if (kidSel === kids.length && sel) return 'all'; return 'partial'; }, []);
+    useEffect(() => { setSelectedCount(selectionRef.current.size); }, [selectionVersion]);
+    const SelectionCheckbox = useCallback((p: any) => { const row: TestCategoryRow = p.data; const state = getState(row.id); return (<div className="flex items-center justify-center"><input type="checkbox" aria-label="Select row" checked={selectionRef.current.has(row.id)} ref={el => { if (el) el.indeterminate = state === 'partial'; }} onChange={() => toggleNode(row.id)} className="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" /></div>); }, [getState, toggleNode, selectionVersion]);
     const columnDefs = useMemo<ColDef<TestCategoryRow>[]>(() => [
+        { colId: 'select', headerName: '', width: 46, pinned: 'left', sortable: false, filter: false, resizable: false, suppressMovable: true, cellRenderer: SelectionCheckbox },
         { field: 'name', headerName: 'Category', width: 920, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer },
         { field: 'type', headerName: 'Type', width: 200, sortable: true, filter: 'agTextColumnFilter' },
         { field: 'language', headerName: 'Language', width: 240, sortable: true, filter: 'agTextColumnFilter' },
@@ -89,7 +112,7 @@ export default function TestCategoriesPage() {
         { field: 'createdDate', headerName: 'Created Date', width: 260, sortable: true, valueFormatter: p => formatDate(p.value) },
         { field: 'modifiedDate', headerName: 'Updated Date', width: 260, sortable: true, valueFormatter: p => formatDate(p.value) },
         { field: 'id', hide: true },
-    ], [showFilters]);
+    ], [showFilters, SelectionCheckbox]);
 
     const defaultColDef = useMemo<ColDef>(() => ({ resizable: true, sortable: true, filter: true, floatingFilter: showFilters }), [showFilters]);
 
@@ -218,9 +241,10 @@ export default function TestCategoriesPage() {
                     <div className="flex items-center gap-3 flex-wrap">
                         <Link href="/admin/tests/categories/new"><button className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700 whitespace-nowrap"><PlusCircle className="w-4 h-4" /> New Category</button></Link>
                         <button disabled={deleting || selectedCount === 0} onClick={() => {
-                            const sel = gridApiRef.current?.getSelectedRows?.() as TestCategoryRow[];
-                            if (!sel?.length) { setToast({ message: 'Select categories to delete', type: 'info' }); return; }
-                            setPendingDelete(sel); setConfirmOpen(true);
+                            const ids = Array.from(selectionRef.current);
+                            if (!ids.length) { setToast({ message: 'Select categories to delete', type: 'info' }); return; }
+                            setPendingDelete(rows.filter(r => ids.includes(r.id)));
+                            setConfirmOpen(true);
                         }} className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50 whitespace-nowrap"><Trash2 className="w-4 h-4" /> Delete</button>
                         {selectedCount > 0 && <span className="text-sm text-gray-600 bg-blue-50 px-2 py-1 rounded">{selectedCount} selected</span>}
                     </div>
@@ -235,13 +259,10 @@ export default function TestCategoriesPage() {
                 <div ref={gridShellRef} className="ag-theme-alpine ag-theme-evalus w-full flex-1 min-h-0 relative" style={frozenHeight && loading ? { minHeight: frozenHeight } : undefined}>
                     <AgGridReact<TestCategoryRow>
                         columnDefs={columnDefs}
-                        selectionColumnDef={{ pinned: 'left', width: 44, headerName: '', resizable: false, suppressMovable: true }}
                         defaultColDef={defaultColDef}
                         rowData={pagedRows}
                         getRowId={p => String(p.data.id)}
                         onGridReady={e => { gridApiRef.current = e.api; }}
-                        rowSelection={{ mode: 'multiRow' }}
-                        onSelectionChanged={() => setSelectedCount(gridApiRef.current?.getSelectedRows()?.length || 0)}
                         headerHeight={36} rowHeight={32}
                         onSortChanged={() => { sortModelRef.current = (gridApiRef.current as any)?.getSortModel?.() || []; setPage(1); fetchPage(); }}
                         onFilterChanged={() => { const api = gridApiRef.current as any; if (!api) return; const fm = api.getFilterModel?.(); filterModelRef.current = fm || {}; if (filterDebounceRef.current) clearTimeout(filterDebounceRef.current); filterDebounceRef.current = setTimeout(() => { setPage(1); fetchPage(); }, 300); }}
@@ -290,9 +311,8 @@ export default function TestCategoriesPage() {
                             };
                             pendingDelete.forEach(r => collect(r, 0));
                             const toDelete = Array.from(all.values()).sort((a, b) => b.depth - a.depth);
-                            for (const { row } of toDelete) {
-                                await deleteTestCategoryAction(row.id);
-                            }
+                            for (const { row } of toDelete) { await deleteTestCategoryAction(row.id); }
+                            selectionRef.current.clear(); setSelectionVersion(v => v + 1); setSelectedCount(0);
                         } catch (e: any) {
                             // No toasts per delete UX harmonization; grid will refresh
                         }

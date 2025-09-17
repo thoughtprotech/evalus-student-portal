@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import { PlusCircle, Trash2, BookOpen, Filter, XCircle } from "lucide-react";
@@ -91,7 +91,23 @@ export default function SubjectsPage() {
         return `${dd}-${mm}-${yyyy}`;
     };
 
+    // Internal hierarchical selection
+    const selectionRef = useRef<Set<number>>(new Set());
+    const [selectionVersion, setSelectionVersion] = useState(0);
+    const childrenMapRef = useRef<Record<number, number[]>>({});
+    const parentMapRef = useRef<Record<number, number | null>>({});
+    const rebuildMaps = useCallback(() => { const cm: Record<number, number[]> = {}; const pm: Record<number, number | null> = {}; rows.forEach(r => { pm[r.id] = r.parentId || 0; (cm[r.parentId] ||= []).push(r.id); }); Object.values(cm).forEach(a => a.sort((a, b) => a - b)); childrenMapRef.current = cm; parentMapRef.current = pm; }, [rows]);
+    useEffect(() => { rebuildMaps(); }, [rebuildMaps]);
+    const collectDesc = useCallback((id: number, acc: number[] = []): number[] => { acc.push(id); (childrenMapRef.current[id] || []).forEach(c => collectDesc(c, acc)); return acc; }, []);
+    const updateAncestors = useCallback((id: number) => { const set = selectionRef.current; let cur = parentMapRef.current[id]; while (cur && cur !== 0) { const kids = childrenMapRef.current[cur] || []; const any = kids.some(k => set.has(k)); const all = kids.length > 0 && kids.every(k => set.has(k)); if (!any) set.delete(cur); else if (all) set.add(cur); else set.delete(cur); cur = parentMapRef.current[cur]; } }, []);
+    const selectNode = useCallback((id: number) => { const set = selectionRef.current; collectDesc(id).forEach(d => set.add(d)); updateAncestors(id); setSelectionVersion(v => v + 1); }, [collectDesc, updateAncestors]);
+    const deselectNode = useCallback((id: number) => { const set = selectionRef.current; collectDesc(id).forEach(d => set.delete(d)); updateAncestors(id); setSelectionVersion(v => v + 1); }, [collectDesc, updateAncestors]);
+    const toggleNode = useCallback((id: number) => { selectionRef.current.has(id) ? deselectNode(id) : selectNode(id); }, [selectNode, deselectNode]);
+    const getState = useCallback((id: number) => { const set = selectionRef.current; const sel = set.has(id); const kids = childrenMapRef.current[id] || []; if (!kids.length) return sel ? 'all' : 'none'; const kidSel = kids.filter(k => set.has(k)).length; if (kidSel === 0 && !sel) return 'none'; if (kidSel === kids.length && sel) return 'all'; return 'partial'; }, []);
+    useEffect(() => { setSelectedCount(selectionRef.current.size); }, [selectionVersion]);
+    const SelectionCheckbox = useCallback((p: any) => { const row: SubjectRow = p.data; const state = getState(row.id); return (<div className="flex items-center justify-center"><input type="checkbox" aria-label="Select row" checked={selectionRef.current.has(row.id)} ref={el => { if (el) el.indeterminate = state === 'partial'; }} onChange={() => toggleNode(row.id)} className="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" /></div>); }, [getState, toggleNode, selectionVersion]);
     const columnDefs = useMemo<ColDef<SubjectRow>[]>(() => [
+        { colId: 'select', headerName: '', width: 46, pinned: 'left', sortable: false, filter: false, resizable: false, suppressMovable: true, cellRenderer: SelectionCheckbox },
         { field: 'name', headerName: 'Subject', width: 400, minWidth: 320, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer },
         { field: 'type', headerName: 'Type', width: 220, minWidth: 120, sortable: true, filter: 'agTextColumnFilter' },
         { field: 'language', headerName: 'Language', width: 220, minWidth: 110, sortable: true, filter: 'agTextColumnFilter', cellRenderer: LanguageCell },
@@ -100,7 +116,7 @@ export default function SubjectsPage() {
         { field: 'createdDate', headerName: 'Created Date', width: 220, minWidth: 140, sortable: true, valueFormatter: p => formatDate(p.value) },
         { field: 'modifiedDate', headerName: 'Updated Date', width: 720, minWidth: 160, sortable: true, valueFormatter: p => formatDate(p.value) },
         { field: 'id', hide: true },
-    ], [showFilters]);
+    ], [showFilters, SelectionCheckbox]);
 
     const defaultColDef = useMemo<ColDef>(() => ({ resizable: true, sortable: true, filter: true, floatingFilter: showFilters }), [showFilters]);
 
@@ -164,7 +180,7 @@ export default function SubjectsPage() {
             createdDate: 'CreatedDate',
             modifiedDate: 'ModifiedDate'
         };
-    const orderBy = sort ? `${sortFieldMap[sort.colId] || 'CreatedDate'} ${sort.sort}` : 'CreatedDate desc';
+        const orderBy = sort ? `${sortFieldMap[sort.colId] || 'CreatedDate'} ${sort.sort}` : 'CreatedDate desc';
         const filter = buildServerFilter();
         // Fetch a large upper bound to allow hierarchy building locally
         const res = await fetchSubjectsODataAction({ top: 2000, skip: 0, orderBy, filter });
@@ -251,9 +267,10 @@ export default function SubjectsPage() {
                     <div className="flex items-center gap-3 flex-wrap">
                         <Link href="/admin/subjects/new"><button className="inline-flex items-center gap-2 w-32 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700"><PlusCircle className="w-4 h-4" /> New</button></Link>
                         <button disabled={deleting || selectedCount === 0} onClick={() => {
-                            const sel = gridApiRef.current?.getSelectedRows?.() as SubjectRow[];
-                            if (!sel?.length) { setToast({ message: 'Select subjects to delete', type: 'info' }); return; }
-                            setPendingDelete(sel); setConfirmOpen(true);
+                            const ids = Array.from(selectionRef.current);
+                            if (!ids.length) { setToast({ message: 'Select subjects to delete', type: 'info' }); return; }
+                            setPendingDelete(rows.filter(r => ids.includes(r.id)));
+                            setConfirmOpen(true);
                         }} className="inline-flex items-center gap-2 w-32 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50"><Trash2 className="w-4 h-4" /> Delete</button>
                         {selectedCount > 0 && <span className="text-sm text-gray-600 bg-blue-50 px-2 py-1 rounded">{selectedCount} selected</span>}
                     </div>
@@ -273,9 +290,6 @@ export default function SubjectsPage() {
                         getRowId={p => String(p.data.id)}
                         onGridReady={e => { gridApiRef.current = e.api; }}
                         onFirstDataRendered={() => { /* fixed widths -> nothing to auto size */ }}
-                        rowSelection={{ mode: 'multiRow', checkboxes: true }}
-                        selectionColumnDef={{ pinned: 'left', width: 44 }}
-                        onSelectionChanged={() => setSelectedCount(gridApiRef.current?.getSelectedRows()?.length || 0)}
                         headerHeight={36} rowHeight={32}
                         onSortChanged={() => { onSortChanged(); }}
                         onFilterChanged={() => {
@@ -332,10 +346,8 @@ export default function SubjectsPage() {
                             pendingDelete.forEach(r => collect(r, 0));
                             // Delete deepest first to avoid FK issues
                             const toDelete = Array.from(all.values()).sort((a, b) => b.depth - a.depth);
-                            for (const { row } of toDelete) {
-                                await deleteSubjectAction(row.id);
-                            }
-                            setToast({ message: `Deleted ${toDelete.length} item(s)`, type: 'success' });
+                            for (const { row } of toDelete) { await deleteSubjectAction(row.id); }
+                            setToast({ message: `Deleted ${toDelete.length} item(s)`, type: 'success' }); selectionRef.current.clear(); setSelectionVersion(v => v + 1); setSelectedCount(0);
                         } catch (e: any) {
                             setToast({ message: 'Delete failed', type: 'error' });
                         }
