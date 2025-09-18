@@ -7,7 +7,7 @@ export interface ApiResponse<T> {
 }
 
 export type Endpoint<Request, Response> = {
-  method: "GET" | "POST" | "PUT" | "DELETE";
+  method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
   path: (params: Request) => string;
   type: "OPEN" | "CLOSE";
 };
@@ -37,11 +37,11 @@ export interface GetQuestionListResponse {
   questionText: string;
   questionType: QuestionType;
   questionStatus:
-    | "Not Visited"
-    | "Attempted"
-    | "UnAttempted"
-    | "To Review"
-    | "Answered To Review";
+  | "Not Visited"
+  | "Attempted"
+  | "UnAttempted"
+  | "To Review"
+  | "Answered To Review";
   marks: number;
   negativeMarks: number;
   questionSectionId: number;
@@ -211,12 +211,12 @@ export interface GetCandidateTestResponse {
   testStartDate: string;
   testEndDate: string;
   testCandidateRegistrationStatus:
-    | "Registered"
-    | "Completed"
-    | "Cancelled"
-    | "In Progress"
-    | "Missed"
-    | "Up Next"; // Virtual grouping for upcoming registered tests
+  | "Registered"
+  | "Completed"
+  | "Cancelled"
+  | "In Progress"
+  | "Missed"
+  | "Up Next"; // Virtual grouping for upcoming registered tests
   testId: number;
   // Optional id from registration table if candidate already registered
   testRegistrationId: number;
@@ -477,7 +477,7 @@ export type SubmitQuestionRequest = {
   comments: string;
   userName: string;
 };
-export interface SubmitQuestionResponse {}
+export interface SubmitQuestionResponse { }
 
 export interface SubmitTestRequest {
   testResponseId: number;
