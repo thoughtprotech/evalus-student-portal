@@ -104,8 +104,7 @@ function createApiClient() {
         // Only set Content-Type for non-GET JSON requests to avoid CORS preflight for GET
         const finalHeaders: Record<string, string> = { ...headers };
         if (endpoint.method !== "GET" && !isForm) {
-          const isJsonPatch = endpoint.method === "PATCH" && (body as any) && Array.isArray((body as any).operations);
-          finalHeaders["Content-Type"] = isJsonPatch ? "application/json-patch+json" : "application/json";
+          finalHeaders["Content-Type"] = "application/json";
         }
 
         const res = await fetch(fullUrl, {
@@ -116,9 +115,7 @@ function createApiClient() {
               ? undefined
               : isForm
                 ? (body as FormData)
-                : (endpoint.method === "PATCH" && (body as any) && Array.isArray((body as any).operations)
-                  ? JSON.stringify((body as any).operations)
-                  : JSON.stringify(body)),
+                : JSON.stringify(body),
           credentials: endpoint.type === "CLOSE" ? "include" : undefined,
         });
 

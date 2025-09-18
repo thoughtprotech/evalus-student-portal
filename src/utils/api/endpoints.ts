@@ -1058,17 +1058,4 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<null, AdminDashboardRecentActivitiesResponse[]>,
 
-  // Users - minimal PATCH for userPhoto or displayName updates
-  patchUser: {
-    method: "PATCH",
-    path: ({ userName }: { userName: string }) => `/api/Users/${encodeURIComponent(userName)}`,
-    type: "CLOSE",
-  } as Endpoint<{ userName: string } & { operations: Array<{ path: string; op: string; from?: string; value?: any }> }, null>,
-
-  // Users - fetch by userName (fallback for profile binding)
-  getUserByUserName: {
-    method: "GET",
-    path: ({ userName }: { userName: string }) => `/api/Users/${encodeURIComponent(userName)}`,
-    type: "CLOSE",
-  } as Endpoint<{ userName: string }, any>,
 };

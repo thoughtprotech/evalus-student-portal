@@ -27,9 +27,10 @@ export default function UpdatePassword({
   });
 
   const onSubmit: SubmitHandler<PasswordUpdateForm> = async (data) => {
+    // Here you'd make the API call to update the password
     handleUserUpdate(data.newPassword, "password");
-    setIsModalOpen(false);
-    reset();
+    setIsModalOpen(false); // Close the modal after submit
+    reset(); // Reset form fields
   };
 
   const handleCloseForm = () => {
@@ -40,25 +41,24 @@ export default function UpdatePassword({
   return (
     <>
       <button
-        className="px-4 py-2 rounded-md shadow-md cursor-pointer border border-gray-300 text-indigo-600 font-semibold hover:bg-gray-50"
+        className="px-4 py-2 rounded-md shadow-md cursor-pointer border border-gray-300"
         onClick={() => setIsModalOpen(true)}
       >
-        Update Password
+        <h1 className="text-indigo-500 font-bold">Update Password</h1>
       </button>
       <Modal
         title="Update Password"
         isOpen={isModalOpen}
         closeModal={handleCloseForm}
-        className="max-w-lg"
       >
-        <form className="space-y-5 text-left" onSubmit={handleSubmit(onSubmit)}>
+        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
           {/* Current Password */}
           <div className="flex flex-col items-start gap-2">
             <label
               htmlFor="currentPassword"
               className="block text-sm font-semibold"
             >
-              Current Password <span className="text-red-500">*</span>
+              Current Password
             </label>
             <input
               id="currentPassword"
@@ -81,7 +81,7 @@ export default function UpdatePassword({
               htmlFor="newPassword"
               className="block text-sm font-semibold"
             >
-              New Password <span className="text-red-500">*</span>
+              New Password
             </label>
             <input
               id="newPassword"
@@ -89,7 +89,6 @@ export default function UpdatePassword({
               className="w-full p-2 border border-gray-300 shadow-md rounded-md"
               {...register("newPassword", {
                 required: "New password is required",
-                minLength: { value: 6, message: "Password must be at least 6 characters" },
               })}
             />
             {errors.newPassword && (
@@ -105,7 +104,7 @@ export default function UpdatePassword({
               htmlFor="confirmPassword"
               className="block text-sm font-semibold"
             >
-              Confirm Password <span className="text-red-500">*</span>
+              Confirm Password
             </label>
             <input
               id="confirmPassword"
@@ -124,19 +123,18 @@ export default function UpdatePassword({
             )}
           </div>
 
-          <div className="w-full flex items-center justify-end gap-3 pt-2">
+          <div className="w-full flex gap-4">
             <button
-              type="button"
-              className="px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium border border-gray-300"
-              onClick={handleCloseForm}
-            >
-              Cancel
-            </button>
-            <button
-              className="px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow"
+              className="w-full px-4 py-2 rounded-md shadow-md cursor-pointer bg-green-600 text-white font-bold"
               type="submit"
             >
               Save
+            </button>
+            <button
+              className="w-full px-4 py-2 rounded-md cursor-pointer shadow-md bg-gray-300 font-bold"
+              onClick={handleCloseForm}
+            >
+              Cancel
             </button>
           </div>
         </form>
