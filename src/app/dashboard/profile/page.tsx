@@ -2,7 +2,6 @@
 
 import {
   fetchCandidateAction,
-  updateCandidateAction,
 } from "@/app/actions/dashboard/user";
 import { EditableImage } from "@/components/EditableImage";
 import EditableText from "@/components/EditableText";
@@ -60,17 +59,35 @@ export default function ProfilePage() {
   };
 
   const handleUserUpdate = async (text: string, field: string) => {
-    // Update user or candidate field
-    let payload;
+    // PATCH API endpoint: /api/Users/{userName}/both
+    // Print PATCH payload for debugging
+    // Build JSON Patch document
+    // Build simple JSON payload for PUT
+    let updatedUser = { ...user };
+    let updatedCandidate = { ...candidate };
     if (user && field in user) {
-      payload = { ...user, [field]: text, candidate };
+      updatedUser[field] = text;
     } else if (candidate && field in candidate) {
-      payload = { ...user, candidate: { ...candidate, [field]: text } };
-    } else {
-      payload = { ...user, candidate };
+      updatedCandidate[field] = text;
     }
-    const { status } = await updateCandidateAction(userName, payload);
-    if (status) fetchCandidate();
+    // Remove navigation arrays if present
+    delete updatedUser.users;
+    delete updatedUser.userlogs;
+    delete updatedCandidate.users;
+    const putPayload = {
+      user: updatedUser,
+      candidateRegistration: updatedCandidate,
+    };
+    console.log("Profile PUT payload:", putPayload);
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+    const res = await fetch(`${baseUrl}/api/Users/${userName}/both`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(putPayload),
+    });
+    if (res.ok) fetchCandidate();
   };
 
   if (!loaded) {
@@ -180,6 +197,16 @@ export default function ProfilePage() {
                     <EditableText
                       text={candidate.phoneNumber}
                       onSubmit={(text) => handleUserUpdate(text, "phoneNumber")}
+                      className="text-lg text-gray-800"
+                      inputClassName="w-full p-2 border border-gray-300 rounded-md"
+                      type="phone"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-600">Cell Phone</h3>
+                    <EditableText
+                      text={candidate.cellPhone}
+                      onSubmit={(text) => handleUserUpdate(text, "cellPhone")}
                       className="text-lg text-gray-800"
                       inputClassName="w-full p-2 border border-gray-300 rounded-md"
                       type="phone"
