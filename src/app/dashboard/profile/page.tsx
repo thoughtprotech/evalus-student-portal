@@ -6,7 +6,7 @@ import {
 } from "@/app/actions/dashboard/user";
 import { EditableImage } from "@/components/EditableImage";
 import EditableText from "@/components/EditableText";
-import { Mail, MapPin, StickyNote } from "lucide-react";
+import { User, Mail, MapPin, StickyNote } from "lucide-react";
 import { useEffect, useState } from "react";
 import UpdatePassword from "./_components/UpdatePassword";
 import Loader from "@/components/Loader";
@@ -120,12 +120,37 @@ export default function ProfilePage() {
       </div>
 
       <div className="w-full max-w-4xl flex flex-col gap-6">
+        {/* Account Information Section */}
+        <div className="bg-white p-4 rounded-lg shadow-md flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <User className="text-indigo-500" />
+            <h2 className="font-semibold text-lg text-gray-800">Account Information</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {candidate && (
+              <>
+                <div>
+                  <h3 className="font-medium text-gray-600">Display Name</h3>
+                  <EditableText
+                    text={candidate.DisplayName}
+                    onSubmit={(text) => handleUserUpdate(text, "DisplayName")}
+                    className="text-lg text-gray-800"
+                    inputClassName="w-full p-2 border border-gray-300 rounded-md"
+                  />
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-600">User Name</h3>
+                  <div className="text-lg text-gray-800 p-2">{candidate.Email}</div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+        {/* Contact Information Section */}
         <div className="bg-white p-4 rounded-lg shadow-md flex flex-col gap-4">
           <div className="flex items-center gap-2">
             <Mail className="text-indigo-500" />
-            <h2 className="font-semibold text-lg text-gray-800">
-              Contact Information
-            </h2>
+            <h2 className="font-semibold text-lg text-gray-800">Contact Information</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {candidate && (
@@ -145,16 +170,6 @@ export default function ProfilePage() {
                   <EditableText
                     text={candidate.PhoneNumber}
                     onSubmit={(text) => handleUserUpdate(text, "PhoneNumber")}
-                    className="text-lg text-gray-800"
-                    inputClassName="w-full p-2 border border-gray-300 rounded-md"
-                    type="phone"
-                  />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-600">Cell Phone</h3>
-                  <EditableText
-                    text={candidate.CellPhone}
-                    onSubmit={(text) => handleUserUpdate(text, "CellPhone")}
                     className="text-lg text-gray-800"
                     inputClassName="w-full p-2 border border-gray-300 rounded-md"
                     type="phone"
@@ -224,13 +239,7 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <div className="bg-white p-4 rounded-lg shadow-md">
-          <div className="flex items-center gap-2">
-            <StickyNote className="text-yellow-500" />
-            <h2 className="font-semibold text-lg text-gray-800">Notes</h2>
-          </div>
-          <h1 className="text-lg text-gray-800">{candidate?.Notes}</h1>
-        </div>
+        {/* Notes section removed */}
       </div>
     </div>
   );

@@ -50,6 +50,7 @@ export default function UpdatePassword({
         title="Update Password"
         isOpen={isModalOpen}
         closeModal={handleCloseForm}
+        className="max-w-md"
       >
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
           {/* Current Password */}
@@ -58,7 +59,7 @@ export default function UpdatePassword({
               htmlFor="currentPassword"
               className="block text-sm font-semibold"
             >
-              Current Password
+              Current Password <span className="text-red-500">*</span>
             </label>
             <input
               id="currentPassword"
@@ -81,7 +82,7 @@ export default function UpdatePassword({
               htmlFor="newPassword"
               className="block text-sm font-semibold"
             >
-              New Password
+              New Password <span className="text-red-500">*</span>
             </label>
             <input
               id="newPassword"
@@ -104,7 +105,7 @@ export default function UpdatePassword({
               htmlFor="confirmPassword"
               className="block text-sm font-semibold"
             >
-              Confirm Password
+              Confirm Password <span className="text-red-500">*</span>
             </label>
             <input
               id="confirmPassword"
@@ -125,7 +126,7 @@ export default function UpdatePassword({
 
           <div className="w-full flex gap-4">
             <button
-              className="w-full px-4 py-2 rounded-md shadow-md cursor-pointer bg-green-600 text-white font-bold"
+              className="w-full px-4 py-2 rounded-md shadow-md cursor-pointer bg-blue-600 text-white font-bold"
               type="submit"
             >
               Save
