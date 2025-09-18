@@ -141,7 +141,7 @@ export default function Navbar({ username }: NavbarProps) {
         >
           <div className="bg-white shadow-md rounded-md flex flex-col">
             <Link
-              href="/dashboard/profile"
+              href="/admin/profile"
               className="flex items-center gap-2 px-4 py-2 border-b border-gray-200 hover:bg-indigo-50"
             >
               <UserCircle className="w-5 h-5 text-indigo-500" />
