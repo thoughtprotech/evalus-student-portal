@@ -3,6 +3,7 @@
 import { SubmitHandler, useForm } from "react-hook-form";
 import Modal from "@/components/Modal";
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 type PasswordUpdateForm = {
   currentPassword: string;
@@ -16,6 +17,9 @@ export default function UpdatePassword({
   handleUserUpdate: (text: string, field: string) => void;
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const {
     handleSubmit,
     formState: { errors },
@@ -61,14 +65,24 @@ export default function UpdatePassword({
             >
               Current Password <span className="text-red-500">*</span>
             </label>
-            <input
-              id="currentPassword"
-              type="password"
-              className="w-full p-2 border border-gray-300 shadow-md rounded-md"
-              {...register("currentPassword", {
-                required: "Current password is required",
-              })}
-            />
+            <div className="relative w-full">
+              <input
+                id="currentPassword"
+                type={showCurrent ? "text" : "password"}
+                className="w-full p-2 border border-gray-300 shadow-md rounded-md pr-10"
+                {...register("currentPassword", {
+                  required: "Current password is required",
+                })}
+              />
+              <button
+                type="button"
+                className="absolute right-2 top-2 text-gray-500"
+                tabIndex={-1}
+                onClick={() => setShowCurrent((v) => !v)}
+              >
+                {showCurrent ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
             {errors.currentPassword && (
               <p className="text-red-500 text-xs font-bold">
                 {errors.currentPassword.message}
@@ -84,14 +98,24 @@ export default function UpdatePassword({
             >
               New Password <span className="text-red-500">*</span>
             </label>
-            <input
-              id="newPassword"
-              type="password"
-              className="w-full p-2 border border-gray-300 shadow-md rounded-md"
-              {...register("newPassword", {
-                required: "New password is required",
-              })}
-            />
+            <div className="relative w-full">
+              <input
+                id="newPassword"
+                type={showNew ? "text" : "password"}
+                className="w-full p-2 border border-gray-300 shadow-md rounded-md pr-10"
+                {...register("newPassword", {
+                  required: "New password is required",
+                })}
+              />
+              <button
+                type="button"
+                className="absolute right-2 top-2 text-gray-500"
+                tabIndex={-1}
+                onClick={() => setShowNew((v) => !v)}
+              >
+                {showNew ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
             {errors.newPassword && (
               <p className="text-red-500 text-xs font-bold">
                 {errors.newPassword.message}
@@ -107,16 +131,26 @@ export default function UpdatePassword({
             >
               Confirm Password <span className="text-red-500">*</span>
             </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              className="w-full p-2 border border-gray-300 shadow-md rounded-md"
-              {...register("confirmPassword", {
-                required: "Confirm password is required",
-                validate: (value) =>
-                  value === watch("newPassword") || "Passwords do not match",
-              })}
-            />
+            <div className="relative w-full">
+              <input
+                id="confirmPassword"
+                type={showConfirm ? "text" : "password"}
+                className="w-full p-2 border border-gray-300 shadow-md rounded-md pr-10"
+                {...register("confirmPassword", {
+                  required: "Confirm password is required",
+                  validate: (value) =>
+                    value === watch("newPassword") || "Passwords do not match",
+                })}
+              />
+              <button
+                type="button"
+                className="absolute right-2 top-2 text-gray-500"
+                tabIndex={-1}
+                onClick={() => setShowConfirm((v) => !v)}
+              >
+                {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
             {errors.confirmPassword && (
               <p className="text-red-500 text-xs font-bold">
                 {errors.confirmPassword.message}
