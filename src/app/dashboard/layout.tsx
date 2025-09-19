@@ -37,7 +37,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   );
   const [sideBarLoader, setSideBarLoader] = useState<boolean>(false);
 
-  const { username, setUsername, setCurrentGroupId } = useUser();
+  const { username, userPhoto, setUsername, setCurrentGroupId } = useUser();
 
   const getUser = async () => {
     const user = await getUserAction();
@@ -126,7 +126,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         sessionStorage.removeItem("admin:newTest:suppressClear");
         sessionStorage.removeItem("admin:newTest:preselectedIds");
         sessionStorage.removeItem("admin:newTest:selectedQuestions");
-      } catch {}
+      } catch { }
       router.push("/");
     } else {
       return toast.error("Something Went Wrong");
@@ -195,8 +195,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       {/* Mobile Background Overlay */}
       <div
         className={`fixed inset-0 z-40 bg-black transition-opacity duration-300 ${mobileMenuOpen
-            ? "opacity-50 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
+          ? "opacity-50 pointer-events-auto"
+          : "opacity-0 pointer-events-none"
           } md:hidden`}
         onClick={toggleMobileMenu}
       />
@@ -278,9 +278,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <DropDown
               face={
                 <div className="flex items-center space-x-2">
-                  <div className="w-7 h-7 md:w-9 md:h-9 bg-indigo-200 text-indigo-800 rounded-full flex items-center justify-center font-bold text-sm shadow-inner">
-                    {username.charAt(0).toUpperCase()}
-                  </div>
+                  {typeof userPhoto === 'string' && userPhoto !== '' && userPhoto !== 'null' ? (
+                    <img
+                      src={userPhoto}
+                      alt={username}
+                      className="w-7 h-7 md:w-9 md:h-9 rounded-full object-cover border border-gray-300"
+                      onError={e => { e.currentTarget.style.display = 'none'; }}
+                    />
+                  ) : (
+                    <div className="w-7 h-7 md:w-9 md:h-9 bg-indigo-200 text-indigo-800 rounded-full flex items-center justify-center font-bold text-sm shadow-inner">
+                      {username.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <h1 className="text-xs md:text-base font-bold text-gray-600">
                     {username}
                   </h1>

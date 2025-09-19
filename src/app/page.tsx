@@ -19,6 +19,9 @@ export default function Home() {
     formState: { errors },
   } = useForm<FormData>();
   const router = useRouter();
+  const { setUsername, setUserPhoto } = require("@/contexts/UserContext").useUser();
+  // Import API_BASE_URL from env or constants
+  const { API_BASE_URL } = require("@/utils/env").env;
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
@@ -27,6 +30,19 @@ export default function Home() {
       formData.append("password", data.password);
       const res = await loginAction(formData);
       if (res.status === 200) {
+        setUsername(data.username);
+        // Fetch user photo URL from API and update context
+        try {
+          const userRes = await fetch(`${API_BASE_URL}/api/Users/${data.username}`);
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            setUserPhoto(userData?.user?.userPhoto ?? null);
+          } else {
+            setUserPhoto(null);
+          }
+        } catch {
+          setUserPhoto(null);
+        }
         if (res.data!.role === "ADMIN") {
           router.push("/admin");
         } else {
