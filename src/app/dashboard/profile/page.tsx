@@ -33,14 +33,15 @@ export default function ProfilePage() {
   const [loaded, setLoaded] = useState<boolean>(false);
   const [user, setUser] = useState<any>(null);
   const [candidate, setCandidate] = useState<any>(null);
-  // Get username from UserContext
-  const { username: userName } = require("@/contexts/UserContext").useUser();
+  // Get username and setUserPhoto from UserContext
+  const { username: userName, setUserPhoto } = require("@/contexts/UserContext").useUser();
 
   const fetchCandidate = async () => {
     const { status, data } = await fetchCandidateAction(userName);
     if (status && data) {
       setUser(data.user);
       setCandidate(data.candidateRegistration);
+      setUserPhoto(data.user?.userPhoto ?? null);
       setLoaded(true);
     }
   };

@@ -10,7 +10,7 @@ export default function AdminDashboardLayout({
 }: {
   children: ReactNode;
 }) {
-  const { username, setUsername } = useUser();
+  const { username, setUsername, userPhoto } = useUser();
 
   const getUser = async () => {
     const user = await getUserAction();
@@ -27,7 +27,7 @@ export default function AdminDashboardLayout({
     <div className="flex flex-col h-screen overflow-hidden">
       {/* Navbar stays fixed at top and receives server‐side username */}
       <header className="flex-none">
-        <Navbar username={username} />
+        <Navbar username={username} userPhoto={userPhoto} />
       </header>
 
       {/* Content fills remaining space and scrolls */}

@@ -46,9 +46,10 @@ const hasSubMenu = (label: string) => label === 'Questions';
 
 interface NavbarProps {
   username: string;
+  userPhoto?: string | null;
 }
 
-export default function Navbar({ username }: NavbarProps) {
+export default function Navbar({ username, userPhoto }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -132,9 +133,18 @@ export default function Navbar({ username }: NavbarProps) {
         <DropDown
           face={
             <div className="flex items-center space-x-2 cursor-pointer">
-              <div className="w-8 h-8 bg-indigo-200 text-indigo-800 rounded-full flex items-center justify-center font-bold shadow-inner">
-                {username.charAt(0).toUpperCase()}
-              </div>
+              {typeof userPhoto === 'string' && userPhoto !== '' && userPhoto !== 'null' ? (
+                <img
+                  src={userPhoto}
+                  alt={username}
+                  className="w-8 h-8 rounded-full object-cover border border-gray-300"
+                  onError={e => { e.currentTarget.style.display = 'none'; }}
+                />
+              ) : (
+                <div className="w-8 h-8 bg-indigo-200 text-indigo-800 rounded-full flex items-center justify-center font-bold shadow-inner">
+                  {username.charAt(0).toUpperCase()}
+                </div>
+              )}
               <span className="font-semibold text-gray-700">{username}</span>
             </div>
           }
