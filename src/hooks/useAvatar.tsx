@@ -22,6 +22,7 @@ export function useAvatar(
         width={size}
         height={size}
         className="rounded-full object-cover"
+        style={{ width: "auto", height: "auto", maxWidth: size, maxHeight: size, objectFit: "cover", aspectRatio: "1 / 1" }}
         onError={() => setImgError(true)}
       />
     );
