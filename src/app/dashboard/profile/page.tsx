@@ -33,7 +33,8 @@ export default function ProfilePage() {
   const [loaded, setLoaded] = useState<boolean>(false);
   const [user, setUser] = useState<any>(null);
   const [candidate, setCandidate] = useState<any>(null);
-  const userName = "admin"; // Replace with dynamic value if available
+  // Get username from UserContext
+  const { username: userName } = require("@/contexts/UserContext").useUser();
 
   const fetchCandidate = async () => {
     const { status, data } = await fetchCandidateAction(userName);
