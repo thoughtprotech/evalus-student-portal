@@ -2,6 +2,7 @@
 
 import {
   fetchCandidateAction,
+  updateCandidateAction,
 } from "@/app/actions/dashboard/user";
 import { EditableImage } from "@/components/EditableImage";
 import EditableText from "@/components/EditableText";
@@ -48,12 +49,38 @@ export default function ProfilePage() {
   }, []);
 
   const handleImageUpdate = async (formdata: FormData) => {
-    // For image update, merge user and candidate objects as needed
+    // Upload the image and get the public URL
+    let newUserPhoto = user?.userPhoto ?? "";
+    if (formdata.has("file")) {
+      // Delete old image if it exists and is a profile image
+      if (user?.userPhoto && typeof user.userPhoto === 'string' && user.userPhoto.includes('/uploads/profiles/')) {
+        // Extract the relevant path for deletion
+        let relativePath = user.userPhoto;
+        // If userPhoto is a full URL, extract the path
+        if (relativePath.startsWith('http')) {
+          try {
+            const urlObj = new URL(relativePath);
+            relativePath = urlObj.pathname;
+          } catch { }
+        }
+        await fetch(`/api/uploads?path=${relativePath}`, { method: 'DELETE' });
+      }
+      const file = formdata.get("file");
+      if (file && file instanceof File) {
+        // Upload the file and get the public URL
+        const { url } = await (await import("@/utils/uploadToLocal")).uploadToLocal(file);
+        if (url && url.startsWith("/uploads/profiles/")) {
+          // Store only the relevant path
+          newUserPhoto = url;
+        }
+      }
+    }
     const payload = {
       ...user,
-      userPhoto: formdata.get("userPhoto"),
+      userPhoto: newUserPhoto,
       candidate: candidate,
     };
+    console.log("Image Update Payload:", payload);
     const { status } = await updateCandidateAction(userName, payload);
     if (status) fetchCandidate();
   };

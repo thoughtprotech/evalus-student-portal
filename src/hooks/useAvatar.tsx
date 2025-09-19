@@ -13,7 +13,8 @@ export function useAvatar(
   size = 64
 ): JSX.Element {
   // If an image is provided, render it directly
-  if (imageSrc) {
+  const [imgError, setImgError] = React.useState(false);
+  if (imageSrc && imageSrc !== 'null' && imageSrc !== '' && !imgError) {
     return (
       <Image
         src={imageSrc}
@@ -21,6 +22,7 @@ export function useAvatar(
         width={size}
         height={size}
         className="rounded-full object-cover"
+        onError={() => setImgError(true)}
       />
     );
   }

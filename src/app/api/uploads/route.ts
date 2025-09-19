@@ -21,19 +21,19 @@ export async function POST(req: NextRequest) {
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
 
-        const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-        try { await fs.mkdir(uploadsDir, { recursive: true }); } catch { }
+        const profilesDir = path.join(process.cwd(), 'public', 'uploads', 'profiles');
+        try { await fs.mkdir(profilesDir, { recursive: true }); } catch { }
 
-        const orig = sanitizeFileName(file.name || 'upload');
+        const orig = sanitizeFileName(file.name || 'profile');
         const ext = path.extname(orig);
         const nameNoExt = path.basename(orig, ext);
         const stamp = new Date().toISOString().replace(/[-:.TZ]/g, '');
         const fileName = `${nameNoExt}_${stamp}${ext || ''}`;
-        const targetPath = path.join(uploadsDir, fileName);
+        const targetPath = path.join(profilesDir, fileName);
 
         await fs.writeFile(targetPath, buffer);
 
-        const publicUrl = `/uploads/${fileName}`;
+        const publicUrl = `/uploads/profiles/${fileName}`;
         return NextResponse.json({ status: 200, error: false, message: 'Uploaded', data: { url: publicUrl, name: fileName } });
     } catch (err: any) {
         return NextResponse.json({ error: true, message: err?.message || 'Upload failed' }, { status: 500 });
@@ -46,12 +46,12 @@ export async function DELETE(req: NextRequest) {
         const { searchParams } = new URL(req.url);
         let p = searchParams.get('path') || '';
         if (!p) return NextResponse.json({ error: true, message: 'Missing path' }, { status: 400 });
-        // Only allow deleting under /uploads
-        if (!p.startsWith('/uploads/')) return NextResponse.json({ error: true, message: 'Invalid path' }, { status: 400 });
-        // Normalize and ensure it's inside public/uploads
-        const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+        // Only allow deleting under /uploads/profiles
+        if (!p.startsWith('/uploads/profiles/')) return NextResponse.json({ error: true, message: 'Invalid path' }, { status: 400 });
+        // Normalize and ensure it's inside public/uploads/profiles
+        const profilesDir = path.join(process.cwd(), 'public', 'uploads', 'profiles');
         const fileName = path.basename(p); // drop directories
-        const target = path.join(uploadsDir, fileName);
+        const target = path.join(profilesDir, fileName);
         // Optional: refuse to delete if fileName looks unsafe
         if (!/^[a-zA-Z0-9._-]+$/.test(fileName)) return NextResponse.json({ error: true, message: 'Unsafe filename' }, { status: 400 });
         await fs.unlink(target);
