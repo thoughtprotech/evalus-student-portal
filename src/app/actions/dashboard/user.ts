@@ -5,7 +5,7 @@ import UserMock from "@/mock/user.json";
 // Fetch user and candidateRegistration by userName
 export async function fetchCandidateAction(userName: string) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+    const { API_BASE_URL: baseUrl } = require("@/utils/env").env;
     const res = await fetch(`${baseUrl}/api/Users/${userName}`, {
       method: "GET",
       headers: {
@@ -51,7 +51,7 @@ export async function updateCandidateAction(
   payload: any
 ) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+    const { API_BASE_URL: baseUrl } = require("@/utils/env").env;
     const res = await fetch(`${baseUrl}/api/Users/${userName}`, {
       method: "PUT",
       headers: {

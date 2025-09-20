@@ -41,7 +41,25 @@ export default function ProfilePage() {
     if (status && data) {
       setUser(data.user);
       setCandidate(data.candidateRegistration);
-      setUserPhoto(data.user?.userPhoto ?? null);
+      // Check if userPhoto exists physically
+      if (data.user?.userPhoto) {
+        try {
+          const imgRes = await fetch(data.user.userPhoto);
+          if (imgRes.status === 404) {
+            setUserPhoto(null);
+            // Also update user object so EditableImage gets null src
+            setUser((prev: any) => ({ ...prev, userPhoto: null }));
+          } else {
+            setUserPhoto(data.user.userPhoto);
+          }
+        } catch {
+          setUserPhoto(null);
+          setUser((prev: any) => ({ ...prev, userPhoto: null }));
+        }
+      } else {
+        setUserPhoto(null);
+        setUser((prev: any) => ({ ...prev, userPhoto: null }));
+      }
       setLoaded(true);
     }
   };
@@ -107,8 +125,9 @@ export default function ProfilePage() {
       user: updatedUser,
       candidateRegistration: updatedCandidate,
     };
-    console.log("Profile PUT payload:", putPayload);
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+    console.log("=== PUT /api/Users/", userName, "/both payload ===", JSON.stringify(putPayload, null, 2));
+    const { API_BASE_URL: baseUrl } = require("@/utils/env").env;
+    console.log("Sending PUT request to:", `${baseUrl}/api/Users/${userName}/both`);
     const res = await fetch(`${baseUrl}/api/Users/${userName}/both`, {
       method: "PUT",
       headers: {
@@ -116,6 +135,7 @@ export default function ProfilePage() {
       },
       body: JSON.stringify(putPayload),
     });
+    console.log("PUT response status:", res.status);
     if (res.ok) fetchCandidate();
   };
 
