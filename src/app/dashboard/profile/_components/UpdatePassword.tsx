@@ -6,7 +6,6 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
 type PasswordUpdateForm = {
-  currentPassword: string;
   newPassword: string;
   confirmPassword: string;
 };
@@ -17,7 +16,6 @@ export default function UpdatePassword({
   handleUserUpdate: (text: string, field: string) => void;
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const {
@@ -27,14 +25,18 @@ export default function UpdatePassword({
     watch,
     register,
   } = useForm<PasswordUpdateForm>({
-    mode: "onBlur", // Validation will trigger when input loses focus
+    mode: "onBlur",
+    defaultValues: {
+      newPassword: "",
+      confirmPassword: "",
+    },
   });
 
   const onSubmit: SubmitHandler<PasswordUpdateForm> = async (data) => {
-    // Here you'd make the API call to update the password
+    // Only send newPassword
     handleUserUpdate(data.newPassword, "password");
-    setIsModalOpen(false); // Close the modal after submit
-    reset(); // Reset form fields
+    setIsModalOpen(false);
+    reset();
   };
 
   const handleCloseForm = () => {
@@ -57,38 +59,7 @@ export default function UpdatePassword({
         className="max-w-md"
       >
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-          {/* Current Password */}
-          <div className="flex flex-col items-start gap-2">
-            <label
-              htmlFor="currentPassword"
-              className="block text-sm font-semibold"
-            >
-              Current Password <span className="text-red-500">*</span>
-            </label>
-            <div className="relative w-full">
-              <input
-                id="currentPassword"
-                type={showCurrent ? "text" : "password"}
-                className="w-full p-2 border border-gray-300 shadow-md rounded-md pr-10"
-                {...register("currentPassword", {
-                  required: "Current password is required",
-                })}
-              />
-              <button
-                type="button"
-                className="absolute right-2 top-2 text-gray-500"
-                tabIndex={-1}
-                onClick={() => setShowCurrent((v) => !v)}
-              >
-                {showCurrent ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-            {errors.currentPassword && (
-              <p className="text-red-500 text-xs font-bold">
-                {errors.currentPassword.message}
-              </p>
-            )}
-          </div>
+          {/* Current Password field removed */}
 
           {/* New Password */}
           <div className="flex flex-col items-start gap-2">
