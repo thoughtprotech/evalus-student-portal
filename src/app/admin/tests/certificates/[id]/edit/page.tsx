@@ -144,17 +144,17 @@ export default function EditTestCertificatePage() {
                 </div>
             </div>
             <div className="fixed top-4 right-4 space-y-2 z-50">{toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}</div>
-      <ConfirmationModal
-        isOpen={showSuccess}
-        onConfirm={() => { setShowSuccess(false); router.push('/admin/tests/certificates'); }}
-        onCancel={() => { setShowSuccess(false); router.push('/admin/tests/certificates'); }}
-        title="Test Certificate Updated"
-        message="Your test certificate has been updated successfully."
-        confirmText="Go to List"
-        cancelText=""
-        variant="success"
-        className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200"
-      />
+            <ConfirmationModal
+                isOpen={showSuccess}
+                onConfirm={() => { setShowSuccess(false); router.push('/admin/tests/certificates'); }}
+                onCancel={() => { setShowSuccess(false); router.push('/admin/tests/certificates'); }}
+                title="Test Certificate Updated"
+                message="Your test certificate has been updated successfully."
+                confirmText="Go to List"
+                cancelText=""
+                variant="success"
+                className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200"
+            />
         </div>
     );
 }
