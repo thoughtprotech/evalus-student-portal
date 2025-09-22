@@ -52,8 +52,8 @@ function NewQuestionPageInner() {
     languageId: string;
     writeUpId: number | null;
     graceMarks: number;
-  allowComments: number; // 1 = Yes, 0 = No
-  duration: number; // seconds
+    allowComments: number; // 1 = Yes, 0 = No
+    duration: number; // seconds
   }>({
     tags: "",
     marks: 0,
@@ -66,8 +66,8 @@ function NewQuestionPageInner() {
     languageId: "",
     writeUpId: null,
     graceMarks: 0,
-  allowComments: 0, // 0 = No, 1 = Yes (Allow Candidate Comments)
-  duration: 0,
+    allowComments: 0, // 0 = No, 1 = Yes (Allow Candidate Comments)
+    duration: 0,
   });
   // Question Status (Active by default)
   const [questionStatus, setQuestionStatus] = useState<number>(1); // 1 = Active, 0 = InActive
@@ -484,7 +484,7 @@ function NewQuestionPageInner() {
         return { success: false };
       }
 
-  // Chapter and Topic are optional
+      // Chapter and Topic are optional
 
       if (questionsMeta.languageId === "") {
         toast.error("Language Is Required");
@@ -553,11 +553,11 @@ function NewQuestionPageInner() {
       // For now, backend createQuestion supports a single field. Prefer Web URL; fallback to Mobile.
       const selectedSingleVideoUrl = cleanVideoUrlWeb || cleanVideoUrlMobile;
 
-  const payload: CreateQuestionRequest = {
+      const payload: CreateQuestionRequest = {
         explanation: explanation.trim(), // Save HTML as-is
         ...(selectedSingleVideoUrl && { videoSolURL: selectedSingleVideoUrl }), // Only include if not empty
         ...(cleanVideoUrlMobile && { videoSolMobileURL: cleanVideoUrlMobile }), // Only include if not empty
-  ...(batchNo?.trim() ? { batchNo: batchNo.trim(), ...( { BatchNo: batchNo.trim(), BatchNumber: batchNo.trim() } as any) } : {}),
+        ...(batchNo?.trim() ? { batchNo: batchNo.trim(), ...({ BatchNo: batchNo.trim(), BatchNumber: batchNo.trim() } as any) } : {}),
         questionsMeta: {
           tags: questionsMeta.tags,
           marks: questionsMeta.marks,
@@ -584,13 +584,13 @@ function NewQuestionPageInner() {
           answer: stringifiedAnswer!,
         },
         isActive: questionStatus,
-  // Mirror duration at top-level for backend compatibility
-  duration: questionsMeta.duration || 0,
-  Duration: questionsMeta.duration || 0,
+        // Mirror duration at top-level for backend compatibility
+        duration: questionsMeta.duration || 0,
+        Duration: questionsMeta.duration || 0,
       };
 
       // Step 1: Create the question
-  const res = await createQuestionAction(payload);
+      const res = await createQuestionAction(payload);
       const { data, status, error, errorMessage, message } = res;
 
       // Check for success more broadly
@@ -644,7 +644,7 @@ function NewQuestionPageInner() {
             // Ensure wizard doesn't clear while navigating back
             sessionStorage.setItem("admin:newTest:suppressClear", "1");
           }
-        } catch {}
+        } catch { }
 
         // If we came from Test (returnTo present):
         // - When saving a single question (Save Question), show modal and let user click "Go Test" to navigate back.
@@ -693,7 +693,7 @@ function NewQuestionPageInner() {
 
     setIsSaving(true);
 
-  const result = await submitQuestion({ showModal: true, redirectBack: true });
+    const result = await submitQuestion({ showModal: true, redirectBack: true });
 
     setIsSaving(false);
   };
@@ -706,7 +706,7 @@ function NewQuestionPageInner() {
 
     setIsSaving(true);
 
-  const result = await submitQuestion({ showModal: false, redirectBack: false });
+    const result = await submitQuestion({ showModal: false, redirectBack: false });
 
     if (result.success) {
       // Show success toast instead of modal
@@ -716,7 +716,7 @@ function NewQuestionPageInner() {
       setQuestion("");
       setExplanation("");
       setQuestionHeader("");
-  setBatchNo("");
+      setBatchNo("");
       setVideoSolWebURL("");
       setVideoSolMobileURL("");
       setQuestionOptions(undefined);
@@ -732,8 +732,8 @@ function NewQuestionPageInner() {
         languageId: "",
         writeUpId: null,
         graceMarks: 0,
-  allowComments: 0,
-  duration: 0,
+        allowComments: 0,
+        duration: 0,
       });
       setQuestionStatus(1);
 
@@ -778,8 +778,8 @@ function NewQuestionPageInner() {
                   onClick={handleSaveAndNew}
                   disabled={isSaving}
                   className={`px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium transition-colors ${isSaving
-                      ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                    ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
                     }`}
                 >
                   {isSaving ? 'Saving...' : 'Save & New'}
@@ -788,8 +788,8 @@ function NewQuestionPageInner() {
                   onClick={() => handleSubmit()}
                   disabled={isSaving}
                   className={`px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-colors ${isSaving
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-indigo-600 hover:bg-indigo-700'
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-indigo-600 hover:bg-indigo-700'
                     }`}
                 >
                   {isSaving ? 'Saving...' : 'Save Question'}
@@ -905,13 +905,13 @@ function NewQuestionPageInner() {
                   </div>
                 </div>
 
-        {/* Chapter Selection (Optional) */}
+                {/* Chapter Selection (Optional) */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
-          Chapter <span className="text-gray-400 text-xs font-normal">(Optional)</span>
+                    Chapter <span className="text-gray-400 text-xs font-normal">(Optional)</span>
                   </label>
                   <select
-                    
+
                     value={questionsMeta?.chapterId || ''}
                     onChange={(e) => {
                       const newChapterId = Number(e.target.value);
@@ -941,14 +941,14 @@ function NewQuestionPageInner() {
                   )}
                 </div>
 
-        {/* Topic Selection (Optional) */}
+                {/* Topic Selection (Optional) */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
-          Topic <span className="text-gray-400 text-xs font-normal">(Optional)</span>
+                    Topic <span className="text-gray-400 text-xs font-normal">(Optional)</span>
                   </label>
                   <div>
                     <select
-                      
+
                       value={questionsMeta?.topicId || ''}
                       onChange={(e) => {
                         setQuestionsMeta((prev) => ({ ...prev, topicId: Number(e.target.value), questionType: 0 }));
@@ -1333,12 +1333,14 @@ function NewQuestionPageInner() {
                   <div className="space-y-6">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-3">Question Header (Optional)</label>
-                      <input
-                        placeholder="Enter question header or instructions..."
-                        className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-gray-50 focus:bg-white"
-                        onChange={(e) => setQuestionHeader(e.target.value)}
-                        value={questionHeader}
-                      />
+                      <div className="border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 transition-all duration-200">
+                        <RichTextEditor
+                          onChange={(content) => setQuestionHeader(content)}
+                          initialContent={questionHeader}
+                          placeholder="Enter question header or instructions..."
+                          height={72}
+                        />
+                      </div>
                       <p className="text-xs text-gray-500 mt-2">Optional: Add instructions or context for the question</p>
                     </div>
                     <div>
@@ -1464,8 +1466,8 @@ function NewQuestionPageInner() {
                     onClick={handleSaveAndNew}
                     disabled={isSaving}
                     className={`flex-1 px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium transition-colors ${isSaving
-                        ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
-                        : 'bg-white text-gray-700 hover:bg-gray-50'
+                      ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
                       }`}
                   >
                     {isSaving ? 'Saving...' : 'Save & New'}
@@ -1474,8 +1476,8 @@ function NewQuestionPageInner() {
                     onClick={() => handleSubmit()}
                     disabled={isSaving}
                     className={`flex-1 px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-colors ${isSaving
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-indigo-600 hover:bg-indigo-700'
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-indigo-600 hover:bg-indigo-700'
                       }`}
                   >
                     {isSaving ? 'Saving...' : 'Save Question'}

@@ -258,8 +258,8 @@ export default function EditQuestionPage() {
 				duration: questionsMeta.duration || 0,
 				difficultyLevelId: questionsMeta.difficulty,
 				questionTypeId: questionsMeta.questionType,
-					questionTypeName: currentTypeLabel || undefined,
-					chapterId: questionsMeta.chapterId || 0,
+				questionTypeName: currentTypeLabel || undefined,
+				chapterId: questionsMeta.chapterId || 0,
 				// Backend expects SubjectID as the most specific node: use Topic when selected; else Subject
 				subjectId: questionsMeta.topicId ? questionsMeta.topicId : questionsMeta.subjectId,
 				// TopicId should be the selected Topic, or fall back to Subject when no Topic chosen
@@ -443,7 +443,14 @@ export default function EditQuestionPage() {
 									</div>
 								</div>
 								<div className="p-4 space-y-6"><div><label className="block text-sm font-semibold text-gray-700 mb-3">Question Header (Optional)</label>
-									<input value={questionHeader} onChange={(e) => setQuestionHeader(e.target.value)} placeholder="Enter question header or instructions..." className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-gray-50 focus:bg-white" />
+									<div className="border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500">
+										<RichTextEditor
+											onChange={(content) => setQuestionHeader(content)}
+											initialContent={questionHeader}
+											placeholder="Enter question header or instructions..."
+											height={72}
+										/>
+									</div>
 								</div>
 									<div><label className="block text-sm font-semibold text-gray-700 mb-3">Question <span className="text-red-500">*</span></label>
 										<div className="border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500">
