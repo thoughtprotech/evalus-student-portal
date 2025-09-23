@@ -15,6 +15,15 @@ interface TextOrHtmlProps {
 
 export function TextOrHtml({ content, className = "", inheritColor = false, unstyled = false }: TextOrHtmlProps) {
   const containsHtml = /<\/?[a-z][\s\S]*>/i.test(content);
+  // Helper: detect if content is a single root <p>...</p> so we can avoid double wrapping with prose styles
+  const singleParagraph = /^\s*<p[ >][\s\S]*<\/p>\s*$/i.test(content.trim());
+  // Strip outer <p> if we know we'll wrap in a block to prevent <p> inside <p> or nested block warnings.
+  let normalized = content;
+  if (singleParagraph) {
+    // capture inner content of first-level p only
+    const match = normalized.match(/^\s*<p[ ^>]*>([\s\S]*?)<\/p>\s*$/i);
+    if (match) normalized = match[1];
+  }
   const style = inheritColor ? { color: "inherit" as const } : undefined;
 
   if (containsHtml) {
@@ -36,12 +45,16 @@ export function TextOrHtml({ content, className = "", inheritColor = false, unst
       },
     };
 
+    const parsed = parse(normalized, options);
     if (unstyled) {
-      // Render inline so parent link color applies cleanly
-      return <span className={`whitespace-pre-wrap max-w-full ${className}`.trim()} style={style}>{parse(content, options)}</span>;
+      return <span className={`whitespace-pre-wrap max-w-full ${className}`.trim()} style={style}>{parsed}</span>;
+    }
+    // If original was a single paragraph, render inline span to avoid an extra block wrapper that could cause nested <p>
+    if (singleParagraph) {
+      return <span className={`editor-content whitespace-pre-wrap max-w-full ${className}`.trim()} style={style}>{parsed}</span>;
     }
     const wrapperClass = `editor-content prose prose-sm whitespace-pre-wrap max-w-full ${className}`.trim();
-    return <div className={wrapperClass} style={style}>{parse(content, options)}</div>;
+    return <div className={wrapperClass} style={style}>{parsed}</div>;
   }
 
   const plainClass = unstyled

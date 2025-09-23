@@ -5,12 +5,12 @@ import { ApiResponse, StartSessionResponse } from "@/utils/api/types";
 import { endpoints } from "@/utils/api/endpoints";
 
 export async function startCandidateTestSessionAction(
-  testRegistrationId: number,
+  testId: number,
   userName: string | null
 ): Promise<ApiResponse<StartSessionResponse>> {
   try {
     const { data } = await apiHandler(endpoints.startTestSession, {
-      testRegistrationId,
+      testId,
       userName,
     });
 

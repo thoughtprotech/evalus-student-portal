@@ -54,7 +54,7 @@ export default function ExamStartPage() {
   const handleProceed = async () => {
     const userName = await getUserAction();
     const response = await startCandidateTestSessionAction(
-      Number(registrationId),
+      Number(id),
       userName
     );
     if (response.status === 200) {
@@ -147,9 +147,9 @@ export default function ExamStartPage() {
                           <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white text-gray-700 ring-1 ring-inset ring-gray-200 text-[11px] font-semibold">
                             {i + 1}
                           </span>
-                          <p className="text-gray-800 text-[13px] leading-5">
+                          <div className="text-gray-800 text-[13px] leading-5">
                             <TextOrHtml content={line} />
-                          </p>
+                          </div>
                         </li>
                       ))}
                     </ol>

@@ -112,6 +112,7 @@ export interface GetQuestionByIdResponse {
 export interface GetTestMetaDataRequest {
   testId: number;
   testResponseId: number;
+  userName: string; // newly required by backend for metadata scoping
 }
 
 export interface TestMetaDataInterface {
@@ -460,7 +461,7 @@ export interface DeleteCandidateRequest {
 }
 
 export interface StartSessionRequest {
-  testRegistrationId: number;
+  testId: number;
   userName: string | null;
 }
 

@@ -967,7 +967,8 @@ export const endpoints = {
   } as Endpoint<SubmitQuestionRequest, SubmitQuestionResponse>,
 
   getTestMetaData: {
-    path: ({ testId, testResponseId }) => `/api/Tests/${testId}/meta-payload?testResponseId=${testResponseId}`,
+    path: ({ testId, testResponseId, userName }) =>
+      `/api/Tests/${testId}/meta-payload?userName=${encodeURIComponent(userName)}&testResponseId=${testResponseId}`,
     method: "GET",
     type: "CLOSE",
   } as Endpoint<GetTestMetaDataRequest, GetTestMetaDataResponse>,

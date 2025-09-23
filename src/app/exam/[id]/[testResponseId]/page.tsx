@@ -443,10 +443,16 @@ export default function ExamPage() {
     useState<GetTestMetaDataResponse | null>(null);
 
   const fetchTestMetaData = async () => {
-    // setLoaded(false);
+    const userName = await getUserAction();
+    if (!userName) {
+      toast.error("Unable to determine user");
+      return;
+    }
+
     const res = await fetchTestMetaDataAction(
       Number(id),
-      Number(testResponseId)
+      Number(testResponseId),
+      userName
     );
     const { data, status } = res;
     if (status === 200 && data) {

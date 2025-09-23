@@ -26,6 +26,9 @@ class SignalRClient {
   private url: string | null = null;
   private options: SignalRClientOptions | null = null;
   private handlers: Map<string, Set<SignalREventHandler>> = new Map();
+  private startingPromise: Promise<void> | null = null;
+  private explicitDisconnect = false;
+  private pendingStop = false;
 
   // Singleton accessor
   public static getInstance(): SignalRClient {
@@ -37,6 +40,16 @@ class SignalRClient {
 
   // Initialize or reuse existing connection settings
   public async connect(options: SignalRClientOptions): Promise<void> {
+    if (!options?.url || typeof options.url !== 'string') {
+      throw new Error("SignalR connect: 'url' is required");
+    }
+
+    // Serialize concurrent start attempts
+    if (this.startingPromise) {
+      // Wait for existing start to finish (avoid parallel negotiation)
+      return this.startingPromise;
+    }
+
     // If already connected to same URL, no-op
     if (
       this.connection &&
@@ -55,10 +68,11 @@ class SignalRClient {
     this.url = options.url;
     this.options = options;
 
+    const forceWs = typeof window !== 'undefined' && (window as any)?.__FORCE_SIGNALR_WS__;
     const builder = new HubConnectionBuilder()
       .withUrl(options.url, {
         accessTokenFactory: options.accessTokenFactory,
-        transport: options.transport,
+        transport: forceWs ? 1 : options.transport, // 1 = WebSockets enum value
       })
       .withAutomaticReconnect(options.reconnectDelays ?? [0, 2000, 5000, 10000])
       .configureLogging(options.logLevel ?? LogLevel.Information);
@@ -72,13 +86,74 @@ class SignalRClient {
       }
     }
 
-    // Start connection
-    await this.connection.start();
+    const startWithRetry = async () => {
+      const maxAttempts = 4;
+      let attempt = 0;
+      let lastErr: any = null;
+      while (attempt < maxAttempts) {
+        try {
+          await this.connection!.start();
+          lastErr = null;
+          break;
+        } catch (err: any) {
+          lastErr = err;
+          const msg = (err?.message || "").toLowerCase();
+            // eslint-disable-next-line no-console
+          console.warn(`[SignalR] start attempt ${attempt + 1} failed: ${msg}`);
+          if (msg.includes("negotia") || msg.includes("stopped during negotiation") || msg.includes("transport")) {
+            const backoff = Math.min(1000 * Math.pow(2, attempt), 4000);
+            await new Promise(r => setTimeout(r, backoff));
+            attempt++;
+            continue;
+          }
+          break; // non-retryable
+        }
+      }
+      if (lastErr) throw lastErr;
+    };
+
+    this.explicitDisconnect = false;
+    this.startingPromise = startWithRetry()
+      .then(() => {
+        // eslint-disable-next-line no-console
+        console.info('[SignalR] connected');
+        if (this.pendingStop) {
+          // A disconnect was requested while starting – perform it now
+            // eslint-disable-next-line no-console
+          console.warn('[SignalR] pending stop executing right after connect');
+          return this.disconnect();
+        }
+        if (this.connection) {
+          this.connection.onclose((err) => {
+            if (this.explicitDisconnect) return; // user initiated
+            // eslint-disable-next-line no-console
+            console.warn('[SignalR] connection closed, scheduling reconnect', err?.message);
+            // Fire and forget reconnect
+            setTimeout(() => {
+              if (this.connection && this.connection.state === HubConnectionState.Disconnected) {
+                this.connect(this.options! ).catch(e => console.error('[SignalR] reconnect failed', e));
+              }
+            }, 1000);
+          });
+        }
+      })
+      .finally(() => {
+        this.startingPromise = null;
+      });
+
+    return this.startingPromise;
   }
 
   public async disconnect(): Promise<void> {
+    this.explicitDisconnect = true;
+    // If a start is inflight, mark pending stop and return; it will stop after connect.
+    if (this.startingPromise) {
+      this.pendingStop = true;
+      return;
+    }
     await this.safeStop();
     this.connection = null;
+    this.pendingStop = false;
     // Keep handlers map so reconnect preserves them
   }
 
