@@ -140,7 +140,9 @@ export default function ProfilePage() {
       delete updatedCandidate.users;
 
       // Remove sensitive fields that shouldn't be updated during profile updates
-      delete updatedUser.password; // Don't send password field to prevent re-encryption issues
+      if (field !== "password") {
+        delete updatedUser.password; // Don't send password field to prevent re-encryption issues unless we're updating it
+      }
       delete updatedUser.createdBy;
       delete updatedUser.createdDate;
       delete updatedUser.modifiedBy;
