@@ -38,8 +38,8 @@ export default function ProfilePage() {
   const [candidate, setCandidate] = useState<any>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const router = useRouter();
-  // Get username and setUserPhoto from UserContext
-  const { username: userName, setUserPhoto } = require("@/contexts/UserContext").useUser();
+  // Get username, setUserPhoto, and setDisplayName from UserContext
+  const { username: userName, setUserPhoto, setDisplayName } = require("@/contexts/UserContext").useUser();
 
   const fetchCandidate = async () => {
     const { status, data } = await fetchCandidateAction(userName);
@@ -161,7 +161,7 @@ export default function ProfilePage() {
         await fetchCandidate();
         // Update the displayName in UserContext if it was changed
         if (field === "displayName") {
-          // The displayName will be updated when fetchCandidate is called
+          setDisplayName(text);
         }
       } else {
         console.error("Profile update failed:", result.message);
