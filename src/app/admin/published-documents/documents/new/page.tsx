@@ -87,8 +87,8 @@ export default function NewPublishedDocumentPage() {
                 publishedDocumentFolderId: Number(form.publishedDocumentFolderId),
                 documentName: form.documentName.trim(),
                 documentUrl: url,
-                validFrom: new Date(form.validFrom).toISOString(),
-                validTo: new Date(form.validTo).toISOString(),
+                validFrom: form.validFrom,
+                validTo: form.validTo,
             };
             const res = await createPublishedDocumentAction(payload as any);
             if (res.status < 200 || res.status >= 300) throw new Error(res.message || 'Create failed');
