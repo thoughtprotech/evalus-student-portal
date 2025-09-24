@@ -6,10 +6,12 @@ import {
 } from "@/app/actions/dashboard/user";
 import { EditableImage } from "@/components/EditableImage";
 import EditableText from "@/components/EditableText";
-import { User, Mail, MapPin, StickyNote } from "lucide-react";
+import { User, Mail, MapPin, StickyNote, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import UpdatePassword from "./_components/UpdatePassword";
 import Loader from "@/components/Loader";
+import { getUserRoleAction } from "@/app/actions/getUserRole";
+import { useRouter } from "next/navigation";
 
 interface Candidate {
   CandidateID: number;
@@ -33,6 +35,8 @@ export default function ProfilePage() {
   const [loaded, setLoaded] = useState<boolean>(false);
   const [user, setUser] = useState<any>(null);
   const [candidate, setCandidate] = useState<any>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const router = useRouter();
   // Get username and setUserPhoto from UserContext
   const { username: userName, setUserPhoto } = require("@/contexts/UserContext").useUser();
 
@@ -66,7 +70,21 @@ export default function ProfilePage() {
 
   useEffect(() => {
     fetchCandidate();
+    fetchUserRole();
   }, []);
+
+  const fetchUserRole = async () => {
+    const role = await getUserRoleAction();
+    setUserRole(role);
+  };
+
+  const handleCancel = () => {
+    if (userRole === "ADMIN") {
+      router.push("/admin");
+    } else {
+      router.push("/dashboard");
+    }
+  };
 
   const handleImageUpdate = async (formdata: FormData) => {
     // Upload the image and get the public URL
@@ -324,6 +342,18 @@ export default function ProfilePage() {
             )}
           </div>
           {/* Notes section removed */}
+        </div>
+
+        {/* Cancel Button at the bottom */}
+        <div className="w-full flex justify-center mt-8">
+          <button
+            onClick={handleCancel}
+            className="flex items-center justify-center gap-2 px-8 py-3 min-w-[200px] bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors shadow-md"
+            title="Cancel and return to dashboard"
+          >
+            <X className="w-5 h-5" />
+            Cancel
+          </button>
         </div>
       </div>
     </div>
