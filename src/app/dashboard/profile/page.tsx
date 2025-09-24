@@ -3,6 +3,7 @@
 import {
   fetchCandidateAction,
   updateCandidateAction,
+  updateUserProfileAction,
 } from "@/app/actions/dashboard/user";
 import { EditableImage } from "@/components/EditableImage";
 import EditableText from "@/components/EditableText";
@@ -124,37 +125,50 @@ export default function ProfilePage() {
   };
 
   const handleUserUpdate = async (text: string, field: string) => {
-    // PATCH API endpoint: /api/Users/{userName}/both
-    // Print PATCH payload for debugging
-    // Build JSON Patch document
-    // Build simple JSON payload for PUT
-    let updatedUser = { ...user };
-    let updatedCandidate = { ...candidate };
-    if (user && field in user) {
-      updatedUser[field] = text;
-    } else if (candidate && field in candidate) {
-      updatedCandidate[field] = text;
+    try {
+      // Build JSON payload for PUT
+      let updatedUser = { ...user };
+      let updatedCandidate = { ...candidate };
+      if (user && field in user) {
+        updatedUser[field] = text;
+      } else if (candidate && field in candidate) {
+        updatedCandidate[field] = text;
+      }
+      // Remove navigation arrays if present
+      delete updatedUser.users;
+      delete updatedUser.userlogs;
+      delete updatedCandidate.users;
+
+      // Remove sensitive fields that shouldn't be updated during profile updates
+      delete updatedUser.password; // Don't send password field to prevent re-encryption issues
+      delete updatedUser.createdBy;
+      delete updatedUser.createdDate;
+      delete updatedUser.modifiedBy;
+      delete updatedUser.modifiedDate;
+      delete updatedCandidate.createdBy;
+      delete updatedCandidate.createdDate;
+      delete updatedCandidate.modifiedBy;
+      delete updatedCandidate.modifiedDate;
+
+      const putPayload = {
+        user: updatedUser,
+        candidateRegistration: updatedCandidate,
+      };
+
+      // Use server action to avoid CORS issues
+      const result = await updateUserProfileAction(userName, putPayload);
+      if (result.status) {
+        await fetchCandidate();
+        // Update the displayName in UserContext if it was changed
+        if (field === "displayName") {
+          // The displayName will be updated when fetchCandidate is called
+        }
+      } else {
+        console.error("Profile update failed:", result.message);
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
     }
-    // Remove navigation arrays if present
-    delete updatedUser.users;
-    delete updatedUser.userlogs;
-    delete updatedCandidate.users;
-    const putPayload = {
-      user: updatedUser,
-      candidateRegistration: updatedCandidate,
-    };
-    console.log("=== PUT /api/Users/", userName, "/both payload ===", JSON.stringify(putPayload, null, 2));
-    const { API_BASE_URL: baseUrl } = require("@/utils/env").env;
-    console.log("Sending PUT request to:", `${baseUrl}/api/Users/${userName}/both`);
-    const res = await fetch(`${baseUrl}/api/Users/${userName}/both`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(putPayload),
-    });
-    console.log("PUT response status:", res.status);
-    if (res.ok) fetchCandidate();
   };
 
   if (!loaded) {

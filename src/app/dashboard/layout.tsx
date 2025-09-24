@@ -20,7 +20,7 @@ import { logoutAction } from "../actions/authentication/logout";
 import { DropDown } from "@/components/DropDown";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { getUserAction } from "../actions/getUser";
+import { getUserDisplayNameAction } from "../actions/authentication/getUserDisplayName";
 import { GetSidebarMenusResponse } from "@/utils/api/types";
 import { fetchSideBarMenuAction } from "../actions/dashboard/sideBarMenu";
 import Loader from "@/components/Loader";
@@ -37,12 +37,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   );
   const [sideBarLoader, setSideBarLoader] = useState<boolean>(false);
 
-  const { username, userPhoto, setUsername, setCurrentGroupId } = useUser();
+  const { username, displayName, userPhoto, setUsername, setDisplayName, setUserPhoto, setCurrentGroupId } = useUser();
 
   const getUser = async () => {
-    const user = await getUserAction();
-    if (user) {
-      setUsername(user);
+    const userData = await getUserDisplayNameAction();
+    if (userData) {
+      setUsername(userData.username); // Keep username for API calls
+      setDisplayName(userData.displayName); // Use displayName for UI
+      setUserPhoto(userData.userPhoto || null); // Set user photo
     }
   };
 
@@ -281,17 +283,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                   {typeof userPhoto === 'string' && userPhoto !== '' && userPhoto !== 'null' ? (
                     <img
                       src={userPhoto}
-                      alt={username}
+                      alt={displayName || username}
                       className="w-7 h-7 md:w-9 md:h-9 rounded-full object-cover border border-gray-300"
                       onError={e => { e.currentTarget.style.display = 'none'; }}
                     />
                   ) : (
                     <div className="w-7 h-7 md:w-9 md:h-9 bg-indigo-200 text-indigo-800 rounded-full flex items-center justify-center font-bold text-sm shadow-inner">
-                      {username.charAt(0).toUpperCase()}
+                      {(displayName || username).charAt(0).toUpperCase()}
                     </div>
                   )}
                   <h1 className="text-xs md:text-base font-bold text-gray-600">
-                    {username}
+                    {displayName || username}
                   </h1>
                 </div>
               }
