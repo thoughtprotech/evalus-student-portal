@@ -7,16 +7,41 @@ import { ArrowLeft, PackagePlus, Check } from "lucide-react";
 import toast from "react-hot-toast";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { createProductAction } from "@/app/actions/admin/products";
+import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
+import type { GetLanguagesResponse } from "@/utils/api/types";
 
 export default function NewProductPage() {
   const router = useRouter();
   const [form, setForm] = useState({
     productName: "",
-    language: "English",
-    isActive: true,
+    language: "",
+    isActive: 1,
   });
+  const [languages, setLanguages] = useState<GetLanguagesResponse[]>([]);
+  const [langLoading, setLangLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setLangLoading(true);
+      try {
+        const res = await fetchLanguagesAction();
+        if (mounted && res.status === 200 && res.data) {
+          const active = res.data.filter((l) => Number(l.isActive) === 1);
+          setLanguages(active);
+          if (!form.language && active.length) {
+            setForm(f => ({ ...f, language: active[0].language }));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch languages:", err);
+      }
+      setLangLoading(false);
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -32,7 +57,7 @@ export default function NewProductPage() {
   const buildPayload = () => ({
     productName: form.productName.trim(),
     language: form.language.trim(),
-    isActive: form.isActive ? 1 : 0,
+    isActive: Number(form.isActive),
     createdBy: "admin",
     modifiedBy: "admin"
   });
@@ -51,25 +76,11 @@ export default function NewProductPage() {
     setIsSaving(false);
   };
 
-  const handleSaveAndNew = async () => {
-    if (isSaving) return; if (!validate()) return;
-    setIsSaving(true);
-    const res = await createProductAction(buildPayload());
-    const ok = res.status >= 200 && res.status < 300;
-    if (ok) {
-      toast.success("Product created! Add another...");
-      setForm({ productName: "", language: form.language, isActive: true });
-    } else {
-      toast.error(res.message || "Failed to create product");
-    }
-    setIsSaving(false);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="w-[85%] mx-auto px-6 py-4">
+        <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Link href="/admin/products" className="text-gray-500 hover:text-gray-700 transition-colors">
@@ -83,39 +94,36 @@ export default function NewProductPage() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Link href="/admin/products" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Back to Products</Link>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleSaveAndNew}
-                  disabled={isSaving}
-                  className={`px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium transition-colors ${isSaving ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
-                >
-                  {isSaving ? 'Saving...' : 'Save & New'}
-                </button>
-                <button
-                  onClick={handleSubmit}
-                  disabled={isSaving}
-                  className={`px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-colors ${isSaving ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
-                >
-                  {isSaving ? 'Saving...' : 'Save Product'}
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => router.push('/admin/products')}
+                className="px-4 py-2 rounded-lg text-gray-700 text-sm font-medium border border-gray-300 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isSaving}
+                className={`px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-colors ${isSaving ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+              >
+                {isSaving ? 'Creating...' : 'Create'}
+              </button>
             </div>
           </div>
         </div>
       </div>
       {/* Main Content */}
-      <div className="w-[85%] mx-auto px-6 py-8">
+      <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="w-full bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <form onSubmit={handleSubmit} className="space-y-6" autoComplete="off">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Product Name <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   name="productName"
                   required
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 focus:bg-white"
                   placeholder="Enter product name"
                   value={form.productName}
                   onChange={handleChange}
@@ -124,39 +132,48 @@ export default function NewProductPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Language <span className="text-red-500">*</span></label>
-                <input
-                  type="text"
+                <select
                   name="language"
                   required
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-gray-50 focus:bg-white"
-                  placeholder="e.g. English"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 focus:bg-white"
                   value={form.language}
                   onChange={handleChange}
-                />
+                  disabled={langLoading}
+                >
+                  <option value="" disabled>Select language</option>
+                  {languages.map(l => (
+                    <option key={l.language} value={l.language}>{l.language}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status <span className="text-red-500">*</span></label>
+                <select
+                  name="isActive"
+                  required
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                  value={form.isActive}
+                  onChange={handleChange}
+                >
+                  <option value={1}>Active</option>
+                  <option value={0}>Inactive</option>
+                </select>
               </div>
             </div>
-            <div className="flex items-center gap-2 pt-2">
-              <input
-                id="isActive"
-                type="checkbox"
-                checked={form.isActive}
-                onChange={(e) => setForm(prev => ({ ...prev, isActive: e.target.checked }))}
-                className="h-4 w-4 text-green-600 border-gray-300 rounded"
-              />
-              <label htmlFor="isActive" className="text-sm text-gray-700">Active</label>
-            </div>
-            {/* Bottom buttons intentionally omitted; actions in header like candidates */}
           </form>
         </div>
       </div>
       <ConfirmationModal
         isOpen={showSuccessModal}
         onConfirm={() => { setShowSuccessModal(false); router.push('/admin/products'); }}
-        onCancel={() => {}}
+        onCancel={() => {
+          setShowSuccessModal(false);
+          setForm({ productName: "", language: form.language, isActive: 1 });
+        }}
         title="Product Created Successfully! ✅"
-        message="Your product has been successfully created."
+        message="Your product has been successfully created. What would you like to do next?"
         confirmText="Go to Products"
-        cancelText=""
+        cancelText="Create Another"
         variant="success"
         className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200"
       />
