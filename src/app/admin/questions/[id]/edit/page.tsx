@@ -233,6 +233,88 @@ export default function EditQuestionPage() {
 		if (!questionsMeta.subjectId) { toast.error("Subject is required"); return null; }
 		if (!questionsMeta.difficulty) { toast.error("Difficulty required"); return null; }
 		if (!questionsMeta.marks) { toast.error("Marks required"); return null; }
+
+		// Validate answer options based on question type
+		const validateByType = () => {
+			const ans = questionOptions?.answer;
+			const opts = questionOptions?.options;
+
+			switch (currentTypeLabel) {
+				case QUESTION_TYPES.SINGLE_MCQ:
+				case QUESTION_TYPES.MULTIPLE_MCQ: {
+					if (!opts || !Array.isArray(opts) || opts.length === 0) {
+						return { ok: false, msg: "Options are required" };
+					}
+					if (!ans || !Array.isArray(ans) || ans.length === 0) {
+						return { ok: false, msg: "Please select at least one correct answer" };
+					}
+					return { ok: true };
+				}
+				case QUESTION_TYPES.MATCH_PAIRS_SINGLE:
+				case QUESTION_TYPES.MATCH_PAIRS_MULTIPLE: {
+					if (!opts || !Array.isArray(opts) || opts.length < 2) {
+						return { ok: false, msg: "Match pair columns are required" };
+					}
+					const left = opts[0] || [];
+					const right = opts[1] || [];
+					if (!Array.isArray(left) || !Array.isArray(right) || left.length === 0 || right.length === 0) {
+						return { ok: false, msg: "Both match pair columns must have options" };
+					}
+					if (!ans || (Array.isArray(ans) && ans.length === 0)) {
+						return { ok: false, msg: "Please select answer pairs" };
+					}
+					return { ok: true };
+				}
+				case QUESTION_TYPES.TRUEFALSE: {
+					if (!ans || !Array.isArray(ans) || ans.length === 0) {
+						return { ok: false, msg: "Please select True or False" };
+					}
+					return { ok: true };
+				}
+				case QUESTION_TYPES.NUMERIC: {
+					if (ans === undefined || ans === null || ans === "") {
+						return { ok: false, msg: "Numeric answer is required" };
+					}
+					const text = String(ans).trim();
+					if (!text) {
+						return { ok: false, msg: "Numeric answer cannot be empty" };
+					}
+					return { ok: true };
+				}
+				case QUESTION_TYPES.FILL_ANSWER: {
+					if (ans === undefined || ans === null) {
+						return { ok: false, msg: "Answer is required" };
+					}
+					const text = String(ans).trim();
+					if (!text) {
+						return { ok: false, msg: "Answer cannot be empty" };
+					}
+					return { ok: true };
+				}
+				case QUESTION_TYPES.WRITE_UP: {
+					// No answer required for Write Up type
+					return { ok: true };
+				}
+				default: {
+					// Generic validation for other types
+					if (ans === undefined || ans === null) {
+						return { ok: false, msg: "Answer is required" };
+					}
+					const text = Array.isArray(ans) ? ans.join("") : String(ans ?? "");
+					if (!text.trim()) {
+						return { ok: false, msg: "Answer is required" };
+					}
+					return { ok: true };
+				}
+			}
+		};
+
+		const validation = validateByType();
+		if (!validation.ok) {
+			toast.error(validation.msg || "Please complete the answer options");
+			return null;
+		}
+
 		let optionsStr = ""; let answerStr = ""; const qo = questionOptions;
 		if (currentTypeLabel === QUESTION_TYPES.SINGLE_MCQ) { optionsStr = JSON.stringify({ type: "mcq-single", options: qo?.options || [] }); answerStr = JSON.stringify(qo?.answer || []); }
 		else if (currentTypeLabel === QUESTION_TYPES.MULTIPLE_MCQ) { optionsStr = JSON.stringify({ type: "mcq-multiple", options: qo?.options || [] }); answerStr = JSON.stringify(qo?.answer || []); }
