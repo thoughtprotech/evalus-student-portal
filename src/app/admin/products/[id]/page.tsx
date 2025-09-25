@@ -116,23 +116,12 @@ export default function EditProductPage() {
           </div>
           <div className="flex items-center gap-3">
             <button onClick={() => router.back()} className="px-3 py-2 text-sm rounded-lg border border-gray-300 bg-white hover:bg-gray-50">Cancel</button>
-            <button onClick={submit} disabled={saving} className={`px-4 py-2 text-sm rounded-lg text-white font-medium ${saving ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"}`}>{saving ? "Updating..." : "Update"}</button>
+            <button onClick={submit} disabled={saving} className="px-4 py-2 text-sm rounded-lg text-white font-medium bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">Update</button>
           </div>
         </div>
       </div>
       <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 space-y-6 relative">
-          {saving && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-sm rounded-lg">
-              <div className="flex flex-col items-center gap-3">
-                <div className="relative">
-                  <div className="absolute -inset-3 bg-gradient-to-r from-indigo-200 via-blue-200 to-indigo-200 opacity-30 blur-xl animate-pulse rounded-full" />
-                  <Package className="relative w-8 h-8 text-green-600 animate-pulse" />
-                </div>
-                <p className="text-xs font-medium text-gray-600">Saving...</p>
-              </div>
-            </div>
-          )}
           <form onSubmit={submit} className="flex flex-col gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Product Name <span className="text-red-500">*</span></label>
