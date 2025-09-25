@@ -145,7 +145,7 @@ export default function SubjectsPage() {
                     checked={selectionRef.current.has(row.id)}
                     ref={el => { if (el) el.indeterminate = state === 'partial'; }}
                     onChange={() => toggleNode(row.id)}
-                    className="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    className="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                 />
             </div>
         );
