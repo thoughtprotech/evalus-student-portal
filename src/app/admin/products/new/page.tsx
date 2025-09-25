@@ -9,9 +9,11 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { createProductAction } from "@/app/actions/admin/products";
 import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
 import type { GetLanguagesResponse } from "@/utils/api/types";
+import { useUser } from "@/contexts/UserContext";
 
 export default function NewProductPage() {
   const router = useRouter();
+  const { username, displayName } = useUser();
   const [form, setForm] = useState({
     productName: "",
     language: "",
@@ -58,8 +60,9 @@ export default function NewProductPage() {
     productName: form.productName.trim(),
     language: form.language.trim(),
     isActive: Number(form.isActive),
-    createdBy: "admin",
-    modifiedBy: "admin"
+    createdBy: username || displayName || "Unknown User",
+    modifiedBy: username || displayName || "Unknown User",
+    createdDate: new Date().toISOString()
   });
 
   const handleSubmit = async (e?: FormEvent) => {

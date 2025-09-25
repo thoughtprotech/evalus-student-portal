@@ -11,10 +11,12 @@ import toast from "react-hot-toast";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
 import type { GetLanguagesResponse } from "@/utils/api/types";
+import { useUser } from "@/contexts/UserContext";
 
 export default function EditProductPage() {
   const params = useParams();
   const router = useRouter();
+  const { username, displayName } = useUser();
   const productId = Number(params?.id);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -92,8 +94,8 @@ export default function EditProductPage() {
       productName: form.productName.trim(),
       language: form.language.trim(),
       isActive: Number(form.isActive),
-      createdBy: form.createdBy || 'admin',
-      modifiedBy: 'admin',
+      createdBy: form.createdBy || username || displayName || 'Unknown User',
+      modifiedBy: username || displayName || 'Unknown User',
     } as any;
     const res = await updateProductAction(productId, payload);
     if (res.status === 200 && !res.error) {
