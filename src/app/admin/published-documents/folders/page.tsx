@@ -142,7 +142,7 @@ export default function PublishedDocumentFoldersPage() {
     const row: PublishedDocumentFolderRow = p.data;
     const state = getState(row.id);
     return (
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center h-full w-full">
         <input
           type="checkbox"
           aria-label="Select row"
@@ -156,7 +156,7 @@ export default function PublishedDocumentFoldersPage() {
   }, [getState, toggleNode, selectionVersion]);
 
   const columnDefs = useMemo<ColDef<PublishedDocumentFolderRow>[]>(() => [
-    { colId: 'select', headerName: '', width: 46, pinned: 'left', sortable: false, filter: false, suppressMovable: true, resizable: false, lockVisible: true, cellRenderer: SelectionCheckbox },
+    { colId: 'select', headerName: '', width: 44, pinned: 'left', sortable: false, filter: false, suppressMovable: true, resizable: false, lockVisible: true, cellClass: 'no-right-border', headerClass: 'no-right-border', cellRenderer: SelectionCheckbox },
     { field: 'name', headerName: 'Folder Name', minWidth: 220, flex: 1.6, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer },
     { field: 'language', headerName: 'Language', width: 160, sortable: true, filter: 'agTextColumnFilter' },
     { field: 'id', hide: true },

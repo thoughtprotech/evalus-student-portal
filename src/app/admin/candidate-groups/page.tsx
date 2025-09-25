@@ -132,10 +132,25 @@ export default function CandidateGroupsPage() {
   const getState = useCallback((id: number) => { const set = selectionRef.current; const sel = set.has(id); const kids = childrenMapRef.current[id] || []; if (!kids.length) return sel ? 'all' : 'none'; const kidSel = kids.filter(k => set.has(k)).length; if (kidSel === 0 && !sel) return 'none'; if (kidSel === kids.length && sel) return 'all'; return 'partial'; }, []);
   useEffect(() => { setSelectedCount(selectionRef.current.size); }, [selectionVersion]);
 
-  const SelectionCheckbox = useCallback((p: any) => { const row: CandidateGroupRow = p.data; const state = getState(row.id); return (<div className="flex items-center justify-center"><input type="checkbox" aria-label="Select row" checked={selectionRef.current.has(row.id)} ref={el => { if (el) el.indeterminate = state === 'partial'; }} onChange={() => toggleNode(row.id)} className="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" /></div>); }, [getState, toggleNode, selectionVersion]);
+  const SelectionCheckbox = useCallback((p: any) => {
+    const row: CandidateGroupRow = p.data;
+    const state = getState(row.id);
+    return (
+      <div className="flex items-center justify-center h-full w-full">
+        <input
+          type="checkbox"
+          aria-label="Select row"
+          checked={selectionRef.current.has(row.id)}
+          ref={el => { if (el) el.indeterminate = state === 'partial'; }}
+          onChange={() => toggleNode(row.id)}
+          className="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+        />
+      </div>
+    );
+  }, [getState, toggleNode, selectionVersion]);
 
   const columnDefs = useMemo<ColDef<CandidateGroupRow>[]>(() => [
-    { colId: 'select', headerName: '', width: 46, pinned: 'left', sortable: false, filter: false, resizable: false, suppressMovable: true, cellRenderer: SelectionCheckbox },
+    { colId: 'select', headerName: '', width: 44, pinned: 'left', sortable: false, filter: false, resizable: false, suppressMovable: true, cellClass: 'no-right-border', headerClass: 'no-right-border', cellRenderer: SelectionCheckbox },
     { field: 'name', headerName: 'Group', width: 920, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer },
     { field: 'language', headerName: 'Language', width: 480, sortable: true, filter: 'agTextColumnFilter' },
     { field: 'isActive', headerName: 'Status', width: 140, sortable: true, filter: 'agTextColumnFilter', cellRenderer: StatusCell },

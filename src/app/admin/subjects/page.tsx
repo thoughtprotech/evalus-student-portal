@@ -134,9 +134,24 @@ export default function SubjectsPage() {
     const toggleNode = useCallback((id: number) => { selectionRef.current.has(id) ? deselectNode(id) : selectNode(id); }, [selectNode, deselectNode]);
     const getState = useCallback((id: number) => { const set = selectionRef.current; const sel = set.has(id); const kids = childrenMapRef.current[id] || []; if (!kids.length) return sel ? 'all' : 'none'; const kidSel = kids.filter(k => set.has(k)).length; if (kidSel === 0 && !sel) return 'none'; if (kidSel === kids.length && sel) return 'all'; return 'partial'; }, []);
     useEffect(() => { setSelectedCount(selectionRef.current.size); }, [selectionVersion]);
-    const SelectionCheckbox = useCallback((p: any) => { const row: SubjectRow = p.data; const state = getState(row.id); return (<div className="flex items-center justify-center"><input type="checkbox" aria-label="Select row" checked={selectionRef.current.has(row.id)} ref={el => { if (el) el.indeterminate = state === 'partial'; }} onChange={() => toggleNode(row.id)} className="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" /></div>); }, [getState, toggleNode, selectionVersion]);
+    const SelectionCheckbox = useCallback((p: any) => {
+        const row: SubjectRow = p.data;
+        const state = getState(row.id);
+        return (
+            <div className="flex items-center justify-center h-full w-full">
+                <input
+                    type="checkbox"
+                    aria-label="Select row"
+                    checked={selectionRef.current.has(row.id)}
+                    ref={el => { if (el) el.indeterminate = state === 'partial'; }}
+                    onChange={() => toggleNode(row.id)}
+                    className="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                />
+            </div>
+        );
+    }, [getState, toggleNode, selectionVersion]);
     const columnDefs = useMemo<ColDef<SubjectRow>[]>(() => [
-        { colId: 'select', headerName: '', width: 46, pinned: 'left', sortable: false, filter: false, resizable: false, suppressMovable: true, cellRenderer: SelectionCheckbox },
+        { colId: 'select', headerName: '', width: 44, pinned: 'left', sortable: false, filter: false, resizable: false, suppressMovable: true, cellClass: 'no-right-border', headerClass: 'no-right-border', cellRenderer: SelectionCheckbox },
         { field: 'name', headerName: 'Subject', width: 400, minWidth: 320, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer },
         { field: 'type', headerName: 'Type', width: 220, minWidth: 120, sortable: true, filter: 'agTextColumnFilter' },
         { field: 'language', headerName: 'Language', width: 220, minWidth: 110, sortable: true, filter: 'agTextColumnFilter', cellRenderer: LanguageCell },
