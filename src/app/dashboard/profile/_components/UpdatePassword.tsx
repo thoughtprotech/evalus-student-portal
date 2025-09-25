@@ -47,10 +47,10 @@ export default function UpdatePassword({
   return (
     <>
       <button
-        className="px-4 py-2 rounded-md shadow-md cursor-pointer border border-gray-300"
+        className="w-full px-4 py-2 rounded-md shadow-md cursor-pointer border border-gray-300 whitespace-nowrap flex items-center justify-center"
         onClick={() => setIsModalOpen(true)}
       >
-        <h1 className="text-indigo-500 font-bold">Update Password</h1>
+        <span className="text-indigo-500 font-bold text-sm">Update Password</span>
       </button>
       <Modal
         title="Update Password"
