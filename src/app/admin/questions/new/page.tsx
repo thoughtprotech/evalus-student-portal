@@ -1338,7 +1338,7 @@ function NewQuestionPageInner() {
                           onChange={(content) => setQuestionHeader(content)}
                           initialContent={questionHeader}
                           placeholder="Enter question header or instructions..."
-                          height={72}
+
                         />
                       </div>
                       <p className="text-xs text-gray-500 mt-2">Optional: Add instructions or context for the question</p>

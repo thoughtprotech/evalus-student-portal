@@ -530,7 +530,6 @@ export default function EditQuestionPage() {
 											onChange={(content) => setQuestionHeader(content)}
 											initialContent={questionHeader}
 											placeholder="Enter question header or instructions..."
-											height={72}
 										/>
 									</div>
 								</div>
