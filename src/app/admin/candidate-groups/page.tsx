@@ -97,11 +97,37 @@ export default function CandidateGroupsPage() {
 
   const collectDesc = useCallback((id: number, acc: number[] = []) => { acc.push(id); (childrenMapRef.current[id] || []).forEach(c => collectDesc(c, acc)); return acc; }, []);
   const updateAncestors = useCallback((id: number) => {
-    const set = selectionRef.current; let cur = parentMapRef.current[id];
-    while (cur && cur !== 0) { const kids = childrenMapRef.current[cur] || []; const any = kids.some(k => set.has(k)); const all = kids.length > 0 && kids.every(k => set.has(k)); if (!any) set.delete(cur); else if (all) set.add(cur); else set.delete(cur); cur = parentMapRef.current[cur]; }
+    const set = selectionRef.current;
+    let cur = parentMapRef.current[id];
+    while (cur && cur !== 0) {
+      const kids = childrenMapRef.current[cur] || [];
+      const any = kids.some(k => set.has(k));
+      // Only deselect parent if no children are selected, never auto-select parent
+      if (!any) set.delete(cur);
+      cur = parentMapRef.current[cur];
+    }
   }, []);
-  const selectNode = useCallback((id: number) => { const set = selectionRef.current; collectDesc(id).forEach(d => set.add(d)); updateAncestors(id); setSelectionVersion(v => v + 1); }, [collectDesc, updateAncestors]);
-  const deselectNode = useCallback((id: number) => { const set = selectionRef.current; collectDesc(id).forEach(d => set.delete(d)); updateAncestors(id); setSelectionVersion(v => v + 1); }, [collectDesc, updateAncestors]);
+  const selectNode = useCallback((id: number) => {
+    const set = selectionRef.current;
+    const hasChildren = (childrenMapRef.current[id] || []).length > 0;
+
+    if (hasChildren) {
+      // Parent selection: select all descendants
+      collectDesc(id).forEach(d => set.add(d));
+    } else {
+      // Child selection: only select this node
+      set.add(id);
+    }
+
+    updateAncestors(id);
+    setSelectionVersion(v => v + 1);
+  }, [collectDesc, updateAncestors]);
+  const deselectNode = useCallback((id: number) => {
+    const set = selectionRef.current;
+    collectDesc(id).forEach(d => set.delete(d));
+    updateAncestors(id);
+    setSelectionVersion(v => v + 1);
+  }, [collectDesc, updateAncestors]);
   const toggleNode = useCallback((id: number) => { selectionRef.current.has(id) ? deselectNode(id) : selectNode(id); }, [selectNode, deselectNode]);
   const getState = useCallback((id: number) => { const set = selectionRef.current; const sel = set.has(id); const kids = childrenMapRef.current[id] || []; if (!kids.length) return sel ? 'all' : 'none'; const kidSel = kids.filter(k => set.has(k)).length; if (kidSel === 0 && !sel) return 'none'; if (kidSel === kids.length && sel) return 'all'; return 'partial'; }, []);
   useEffect(() => { setSelectedCount(selectionRef.current.size); }, [selectionVersion]);

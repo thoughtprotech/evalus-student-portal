@@ -96,17 +96,32 @@ export default function PublishedDocumentFoldersPage() {
     while (cur && cur !== 0) {
       const kids = childrenMapRef.current[cur] || [];
       const any = kids.some(k => set.has(k));
-      const all = kids.length > 0 && kids.every(k => set.has(k));
-      if (!any) set.delete(cur); else if (all) set.add(cur); else set.delete(cur); // parent is selected only if all children selected
+      // Only deselect parent if no children are selected, never auto-select parent
+      if (!any) set.delete(cur);
       cur = parentMapRef.current[cur];
     }
   }, []);
 
   const selectNode = useCallback((id: number) => {
-    const set = selectionRef.current; collectDesc(id).forEach(d => set.add(d)); updateAncestors(id); setSelectionVersion(v => v + 1);
+    const set = selectionRef.current;
+    const hasChildren = (childrenMapRef.current[id] || []).length > 0;
+
+    if (hasChildren) {
+      // Parent selection: select all descendants
+      collectDesc(id).forEach(d => set.add(d));
+    } else {
+      // Child selection: only select this node
+      set.add(id);
+    }
+
+    updateAncestors(id);
+    setSelectionVersion(v => v + 1);
   }, [collectDesc, updateAncestors]);
   const deselectNode = useCallback((id: number) => {
-    const set = selectionRef.current; collectDesc(id).forEach(d => set.delete(d)); updateAncestors(id); setSelectionVersion(v => v + 1);
+    const set = selectionRef.current;
+    collectDesc(id).forEach(d => set.delete(d));
+    updateAncestors(id);
+    setSelectionVersion(v => v + 1);
   }, [collectDesc, updateAncestors]);
   const toggleNode = useCallback((id: number) => { selectionRef.current.has(id) ? deselectNode(id) : selectNode(id); }, [selectNode, deselectNode]);
 
