@@ -16,7 +16,7 @@ import SubmitSectionModal from "../../_components/SubmitSectionModal";
 interface ExamPageProps {
   loaded: boolean;
   testMetaData: GetTestMetaDataResponse | null;
-  question: GetQuestionByIdResponse | undefined;
+  question: QuestionsMetaDataInterface | undefined;
   currentSection: SectionsMetaDataInterface | null;
   setCurrentSection: Dispatch<SetStateAction<SectionsMetaDataInterface | null>>;
   currentIndex: number;
@@ -24,7 +24,7 @@ interface ExamPageProps {
   clearResponse: () => void;
   handleNextQuestion: () => void;
   toggleMarkForReview: () => void;
-  setQuestion: Dispatch<SetStateAction<GetQuestionByIdResponse | undefined>>;
+  setQuestion: Dispatch<SetStateAction<QuestionsMetaDataInterface | undefined>>;
   sidebarOpen: boolean;
   setSidebarOpen: Dispatch<SetStateAction<boolean>>;
   handleSubmit: () => void;

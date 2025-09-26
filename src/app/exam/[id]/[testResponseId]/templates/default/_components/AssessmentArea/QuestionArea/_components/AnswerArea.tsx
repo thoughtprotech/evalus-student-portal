@@ -1,11 +1,11 @@
-import { GetQuestionByIdResponse } from "@/utils/api/types";
+import { GetQuestionByIdResponse, QuestionsMetaDataInterface } from "@/utils/api/types";
 import RenderOptions from "../../../RenderQuestions";
 
 export default function AnswerArea({
   question,
   setQuestion,
 }: {
-  question: GetQuestionByIdResponse;
+  question: QuestionsMetaDataInterface;
   setQuestion: any;
 }) {
   return (

@@ -126,16 +126,30 @@ export interface TestMetaDataInterface {
     secondaryInstruction: string;
   };
   testTemplateId?: number;
+  testTemplateName: string;
 }
 
 export interface QuestionsMetaDataInterface {
+  // questionId: number;
+  // questionText: string;
+  // questionType: string;
+  // status: string;
+  // options: string;
+  // answer: string;
+  
+  testQuestionId: number;
   questionId: number;
   questionText: string;
+  questionTypeId: string;
+  questionTypeName: string;
   questionType: string;
+  options: string;
   status: string;
-  options: {
-    optionText: string;
-  }[];
+  answer: string;
+  marks: number;
+  negativeMarks: number;
+  graceMarks: number;
+  explanation?: string | null;
 }
 
 export interface SectionsMetaDataInterface {
@@ -471,10 +485,11 @@ export interface StartSessionResponse {
 
 // The full request your client function will accept
 export type SubmitQuestionRequest = {
+  TestId: number;
   testResponseId: number;
   testQuestionId: number;
-  responseJson: string;
-  status: string;
+  testResponseJson: string;
+  testResponseStatus: string;
   comments: string;
   userName: string;
 };
