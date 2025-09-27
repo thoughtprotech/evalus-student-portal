@@ -44,7 +44,7 @@ export default function AssessmentAreaHeader({
       <div>
         <h1 className="text-sm text-gray-600">
           Question {currentIndex + 1} -{" "}
-          {question?.questionsMeta?.questionTypeName}
+          {question?.questionTypeName}
         </h1>
       </div>
       <div className="flex gap-3 items-center">

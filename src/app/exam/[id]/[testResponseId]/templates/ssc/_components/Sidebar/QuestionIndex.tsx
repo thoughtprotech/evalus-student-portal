@@ -13,7 +13,7 @@ export default function QuestionIndex({
   currentIndex: number;
 }) {
   return (
-    <div className="flex flex-col gap-2 border-b border-b-gray-300">
+    <div className="flex flex-col gap-2 border-b border-b-gray-300 max-h-52 overflow-y-auto">
       <div className="grid grid-cols-8 md:grid-cols-4 gap-2 mb-4">
         {questionsMeta?.map((q, index) => (
           <button
