@@ -16,6 +16,7 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { format, parseISO, differenceInMinutes } from "date-fns";
 import { registerTestAction } from "@/app/actions/dashboard/registerTest";
 import { rescheduleTestAction } from "@/app/actions/dashboard/rescheduleTest";
+import { setExamMode } from "@/components/AutoLogout";
 import toast from "react-hot-toast";
 
 interface TestCardsProps {
@@ -105,8 +106,8 @@ export default function TestCards({
   } else if (status === "Missed") {
     linkText = "Reschedule";
     linkIcon = <RotateCcw className="w-5 h-5 ml-2" />;
-  // Open reschedule modal; do not navigate
-  linkHref = `#reschedule-${encodeURIComponent(id)}`;
+    // Open reschedule modal; do not navigate
+    linkHref = `#reschedule-${encodeURIComponent(id)}`;
   } else if (status === "Completed") {
     linkText = "View Report";
     linkIcon = <ArrowRight className="w-5 h-5 ml-2" />;
@@ -123,6 +124,9 @@ export default function TestCards({
     console.log({ registrationId });
 
     e.preventDefault();
+
+    // Set exam mode to prevent auto-logout
+    setExamMode(true);
 
     const features = [
       "toolbar=no",
@@ -141,8 +145,18 @@ export default function TestCards({
 
     if (!popup) {
       console.error("Popup blocked");
+      // Clear exam mode if popup failed to open
+      setExamMode(false);
       return;
     }
+
+    // Monitor popup close to clear exam mode
+    const checkClosed = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(checkClosed);
+        setExamMode(false);
+      }
+    }, 1000);
 
     // when ready, request fullscreen and inject blockers
     popup.addEventListener("load", () => {
@@ -422,8 +436,8 @@ export default function TestCards({
             status === "Up Next"
               ? onClickRegister
               : status === "Missed"
-              ? onClickReschedule
-              : openInPopup
+                ? onClickReschedule
+                : openInPopup
           }
           className={`w-full flex items-center justify-center gap-1 px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${status && actionButtonMapping[status]
             }`}
@@ -461,8 +475,8 @@ export default function TestCards({
               onBlur={() => setStartTouched(true)}
               required
               className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${startTouched && (!proposedStart || isPast)
-                  ? "border-red-500"
-                  : "border-gray-300"
+                ? "border-red-500"
+                : "border-gray-300"
                 }`}
             />
             {startTouched && !proposedStart && (
@@ -518,8 +532,8 @@ export default function TestCards({
               onBlur={() => setReschedTouched(true)}
               required
               className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${reschedTouched && (!rescheduleDate || isPastReschedule)
-                  ? "border-red-500"
-                  : "border-gray-300"
+                ? "border-red-500"
+                : "border-gray-300"
                 }`}
             />
             {reschedTouched && !rescheduleDate && (

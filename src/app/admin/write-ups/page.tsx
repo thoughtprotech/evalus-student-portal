@@ -10,6 +10,7 @@ import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { fetchWriteUpsAction, deleteWriteUpAction, type WriteUpRow } from "@/app/actions/admin/writeUps";
+import { maskAdminId } from "@/utils/urlMasking";
 import { stripHtmlTags } from "@/utils/stripHtmlTags";
 import PaginationControls from "@/components/PaginationControls";
 import Loader from "@/components/Loader"; // general loader (maybe unused now)
@@ -20,7 +21,7 @@ import Toast from "@/components/Toast";
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 function NameCellRenderer(props: { value: string; data: WriteUpRow }) {
-  return <Link href={`/admin/write-ups/${props.data.id}/edit`} className="text-blue-600 hover:underline" title={props.value}>{props.value}</Link>;
+  return <Link href={`/admin/write-ups/${maskAdminId(props.data.id)}/edit`} className="text-blue-600 hover:underline" title={props.value}>{props.value}</Link>;
 }
 
 function StatusCell(props: { value: number }) {

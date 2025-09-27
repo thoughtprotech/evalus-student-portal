@@ -9,13 +9,15 @@ import Toast from "@/components/Toast";
 import EditPageLoader from "@/components/EditPageLoader";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { getTestTypeByIdAction, updateTestTypeAction } from "@/app/actions/admin/test-types";
+import { unmaskAdminId } from "@/utils/urlMasking";
 import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
 import type { GetLanguagesResponse } from "@/utils/api/types";
 import { useUser } from "@/contexts/UserContext";
 
 export default function EditTestTypePage() {
     const params = useParams();
-    const id = Number(params?.id);
+    const maskedId = params?.id as string;
+    const id = unmaskAdminId(maskedId);
     const router = useRouter();
     const { username } = useUser();
     const [loading, setLoading] = useState(true);
@@ -32,6 +34,12 @@ export default function EditTestTypePage() {
     const [langLoading, setLangLoading] = useState(false);
 
     useEffect(() => {
+        if (!id) {
+            setToast({ message: "Invalid test type ID", type: 'error' });
+            setLoading(false);
+            router.push("/admin/tests/types");
+            return;
+        }
         (async () => {
             const res = await getTestTypeByIdAction(id);
             if (res.status === 200 && res.data) {
@@ -60,6 +68,10 @@ export default function EditTestTypePage() {
     }, []);
 
     const submit = async () => {
+        if (!id) {
+            setToast({ message: "Invalid test type ID", type: 'error' });
+            return;
+        }
         if (!type.trim()) { setToast({ message: 'Type is required', type: 'error' }); return; }
         if (!language.trim()) { setToast({ message: 'Language is required', type: 'error' }); return; }
         const nowIso = new Date().toISOString();

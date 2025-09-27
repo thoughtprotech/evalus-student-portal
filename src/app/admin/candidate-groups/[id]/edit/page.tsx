@@ -10,11 +10,13 @@ import { Users, ArrowLeft } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { fetchCandidateGroupsODataAction, updateCandidateGroupAction, type CandidateGroupRow } from "@/app/actions/admin/candidateGroups";
 import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
+import { unmaskAdminId } from "@/utils/urlMasking";
 import type { GetLanguagesResponse } from "@/utils/api/types";
 
 export default function EditCandidateGroupPage() {
   const params = useParams();
-  const id = Number(params?.id);
+  const maskedId = params?.id as string;
+  const id = unmaskAdminId(maskedId);
   const router = useRouter();
   const { username } = useUser();
 
@@ -35,6 +37,12 @@ export default function EditCandidateGroupPage() {
   const [langLoading, setLangLoading] = useState(false);
 
   useEffect(() => {
+    if (!id) {
+      setToast({ message: "Invalid candidate group ID", type: 'error' });
+      setLoading(false);
+      router.push("/admin/candidate-groups");
+      return;
+    }
     let mounted = true;
     (async () => {
       const filter = `CandidateGroupId eq ${id}`;
@@ -82,8 +90,12 @@ export default function EditCandidateGroupPage() {
   }, []);
 
   const submit = async () => {
-  if (!form.name.trim()) { setToast({ message: 'Group name required', type: 'error' }); return; }
-  if (!form.language.trim()) { setToast({ message: 'Language required', type: 'error' }); return; }
+    if (!id) {
+      setToast({ message: "Invalid candidate group ID", type: 'error' });
+      return;
+    }
+    if (!form.name.trim()) { setToast({ message: 'Group name required', type: 'error' }); return; }
+    if (!form.language.trim()) { setToast({ message: 'Language required', type: 'error' }); return; }
     setSaving(true);
     const nowIso = new Date().toISOString();
     // Use backend-preferred camelCase shape; id is provided in URL, and action will set candidateGroupId
@@ -115,31 +127,31 @@ export default function EditCandidateGroupPage() {
       {/* Header + actions */}
       <div className="flex items-start justify-between w-[60%] mx-auto mb-4">
         <div className="flex items-center gap-4">
-          <Link href="/admin/candidate-groups" className="inline-flex items-center text-sm text-indigo-600 hover:underline"><ArrowLeft className="w-4 h-4 mr-1"/> Back</Link>
-          <PageHeader icon={<Users className="w-6 h-6 text-indigo-600" />} title="Edit Candidate Group" showSearch={false} onSearch={()=>{}} />
+          <Link href="/admin/candidate-groups" className="inline-flex items-center text-sm text-indigo-600 hover:underline"><ArrowLeft className="w-4 h-4 mr-1" /> Back</Link>
+          <PageHeader icon={<Users className="w-6 h-6 text-indigo-600" />} title="Edit Candidate Group" showSearch={false} onSearch={() => { }} />
         </div>
         <div className="flex gap-2">
           <Link href="/admin/candidate-groups" className="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50">Cancel</Link>
-          <button disabled={saving} onClick={submit} className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium shadow hover:bg-indigo-700 disabled:opacity-50">{saving?"Saving…":"Update"}</button>
+          <button disabled={saving} onClick={submit} className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium shadow hover:bg-indigo-700 disabled:opacity-50">{saving ? "Saving…" : "Update"}</button>
         </div>
       </div>
 
       {/* Centered card */}
       <div className="w-[60%] mx-auto bg-white shadow-sm border border-gray-200 rounded-lg p-6 space-y-4">
-  {loading ? (
+        {loading ? (
           <div className="py-12 text-center text-sm text-gray-600">Loading…</div>
         ) : (
           <>
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Group Name<span className="text-red-500 ml-0.5">*</span></label>
-              <input value={form.name} onChange={e=>setForm(f=>({...f, name: e.target.value}))} className={inputCls} />
+              <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className={inputCls} />
             </div>
             {/* Parent Id removed from Edit screen as requested */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Language<span className="text-red-500 ml-0.5">*</span></label>
               <select
                 value={form.language}
-                onChange={e=>setForm(f=>({...f, language: e.target.value}))}
+                onChange={e => setForm(f => ({ ...f, language: e.target.value }))}
                 className={selectCls}
                 disabled={langLoading || languages.length === 0}
               >
@@ -151,7 +163,7 @@ export default function EditCandidateGroupPage() {
             </div>
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Status<span className="text-red-500 ml-0.5">*</span></label>
-              <select value={form.isActive} onChange={e=>setForm(f=>({...f, isActive: Number(e.target.value)}))} className={selectCls}>
+              <select value={form.isActive} onChange={e => setForm(f => ({ ...f, isActive: Number(e.target.value) }))} className={selectCls}>
                 <option value={1}>Active</option>
                 <option value={0}>Inactive</option>
               </select>
@@ -160,7 +172,7 @@ export default function EditCandidateGroupPage() {
         )}
       </div>
 
-      <div className="fixed top-4 right-4 z-50 space-y-2">{toast && <Toast message={toast.message} type={toast.type} onClose={()=>setToast(null)} />}</div>
+      <div className="fixed top-4 right-4 z-50 space-y-2">{toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}</div>
       <ConfirmationModal
         isOpen={showSuccess}
         onConfirm={() => { setShowSuccess(false); router.push('/admin/candidate-groups'); }}

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HelpCircle, LoaderPinwheel } from "lucide-react";
 import { Filter, XCircle } from "lucide-react";
 import { fetchQuestionsAction, deleteQuestionAction, type QuestionRow } from "@/app/actions/admin/questions";
+import { maskAdminId } from "@/utils/urlMasking";
 import PageHeader from "@/components/PageHeader";
 import Link from "next/link";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -26,7 +27,7 @@ function NameCellRenderer(props: { value: string; data: QuestionRow }) {
   return (
     <Link
       className="text-blue-600 hover:underline"
-      href={`/admin/questions/${props.data.id}/edit`}
+      href={`/admin/questions/${maskAdminId(props.data.id)}/edit`}
       title={props.value}
     >
       {props.value}
@@ -77,8 +78,8 @@ function IsActiveCellRenderer(props: { value: number | boolean | string }) {
   })();
   return (
     <span className={`px-2 py-1 rounded-full text-xs font-medium ${isActive
-        ? 'bg-green-100 text-green-800'
-        : 'bg-red-100 text-red-800'
+      ? 'bg-green-100 text-green-800'
+      : 'bg-red-100 text-red-800'
       }`}>
       {isActive ? 'Active' : 'InActive'}
     </span>
@@ -206,7 +207,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           buttons: ['apply', 'reset', 'clear']
         },
         width: 140,
-  valueFormatter: (p: any) => (p.value ? String(Number(p.value)) : '0')
+        valueFormatter: (p: any) => (p.value ? String(Number(p.value)) : '0')
       },
       {
         field: "isActive",
@@ -292,7 +293,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
     const fieldMap: Record<string, string> = {
       id: "questionId",
       title: "questionText",
-  batchNo: "BatchNumber",
+      batchNo: "BatchNumber",
       subject: "subject",
       topic: "topic",
       level: "questionDifficultyLevel",
@@ -302,7 +303,7 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
       updatedAt: "modifiedDate",
       createdBy: "createdBy",
     };
-  const orderBy = sort ? `${fieldMap[sort.colId] ?? "modifiedDate"} ${sort.sort}` : "modifiedDate desc";
+    const orderBy = sort ? `${fieldMap[sort.colId] ?? "modifiedDate"} ${sort.sort}` : "modifiedDate desc";
 
     // Build filter from both global search and column filters
     const filters: string[] = [];
@@ -441,44 +442,44 @@ function QuestionsGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
             showTotalCount
           />
           <div className="flex items-center gap-2">
-          {/* Show/Hide filters toggle button */}
-          <button
-            type="button"
-            aria-pressed={showFilters}
-            onClick={() => setShowFilters((v) => !v)}
-            className={
-              `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm transition-colors ` +
-              (showFilters
-                ? `bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100`
-                : `bg-white text-gray-700 border-gray-300 hover:bg-gray-50`)
-            }
-            title={showFilters ? "Hide filters" : "Show filters"}
-          >
-            <Filter className="w-4 h-4" /> {showFilters ? "Hide Filters" : "Show Filters"}
-          </button>
-          {/* Clear all filters + search */}
-          <button
-            onClick={() => {
-              const api = gridApiRef.current as any;
-              const hasSearch = !!(query && query.length);
-              filterModelRef.current = {};
-              // If we will also clear search, guard before calling setFilterModel so the onFilterChanged is skipped
-              if (hasSearch && onClearQuery) {
-                skipNextFilterFetchRef.current = true;
+            {/* Show/Hide filters toggle button */}
+            <button
+              type="button"
+              aria-pressed={showFilters}
+              onClick={() => setShowFilters((v) => !v)}
+              className={
+                `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm transition-colors ` +
+                (showFilters
+                  ? `bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100`
+                  : `bg-white text-gray-700 border-gray-300 hover:bg-gray-50`)
               }
-              api?.setFilterModel?.(null);
-              setFiltersVersion((v) => v + 1);
-              setPage(1);
-              if (hasSearch && onClearQuery) {
-                onClearQuery();
-              }
-            }}
-            className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-            title="Clear search and all column filters"
-            disabled={!query && Object.keys(filterModelRef.current || {}).length === 0}
-          >
-            <XCircle className="w-4 h-4" /> Clear Filters
-          </button>
+              title={showFilters ? "Hide filters" : "Show filters"}
+            >
+              <Filter className="w-4 h-4" /> {showFilters ? "Hide Filters" : "Show Filters"}
+            </button>
+            {/* Clear all filters + search */}
+            <button
+              onClick={() => {
+                const api = gridApiRef.current as any;
+                const hasSearch = !!(query && query.length);
+                filterModelRef.current = {};
+                // If we will also clear search, guard before calling setFilterModel so the onFilterChanged is skipped
+                if (hasSearch && onClearQuery) {
+                  skipNextFilterFetchRef.current = true;
+                }
+                api?.setFilterModel?.(null);
+                setFiltersVersion((v) => v + 1);
+                setPage(1);
+                if (hasSearch && onClearQuery) {
+                  onClearQuery();
+                }
+              }}
+              className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              title="Clear search and all column filters"
+              disabled={!query && Object.keys(filterModelRef.current || {}).length === 0}
+            >
+              <XCircle className="w-4 h-4" /> Clear Filters
+            </button>
           </div>
         </div>
       </div>

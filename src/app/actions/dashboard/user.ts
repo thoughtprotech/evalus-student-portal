@@ -71,3 +71,40 @@ export async function updateCandidateAction(
     return { status: false, message: "Error Updating Candidate" };
   }
 }
+
+// Update user profile with both user and candidateRegistration data
+export async function updateUserProfileAction(
+  userName: string,
+  payload: any
+) {
+  try {
+    const { API_BASE_URL: baseUrl } = require("@/utils/env").env;
+    console.log("=== PUT /api/Users/", userName, "/both payload ===", JSON.stringify(payload, null, 2));
+    const res = await fetch(`${baseUrl}/api/Users/${userName}/both`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    console.log("PUT response status:", res.status);
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Profile update failed with status:", res.status, "Error:", errorText);
+      throw new Error(`Failed to update user profile: ${res.status}`);
+    }
+    const data = await res.json();
+    return {
+      status: true,
+      message: "User profile updated successfully",
+      data,
+    };
+  } catch (error) {
+    console.error("Error Updating User Profile", error);
+    return {
+      status: false,
+      message: "Error Updating User Profile",
+      error: error instanceof Error ? error.message : "Unknown error"
+    };
+  }
+}

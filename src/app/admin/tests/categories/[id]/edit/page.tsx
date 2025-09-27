@@ -6,6 +6,7 @@ import { useRouter, useParams } from "next/navigation";
 import PageHeader from "@/components/PageHeader";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { fetchTestCategoriesODataAction, getTestCategoryByIdAction, updateTestCategoryAction } from "@/app/actions/admin/test-categories";
+import { unmaskAdminId } from "@/utils/urlMasking";
 import { BookOpenText, ArrowLeft, ChevronDown, ChevronUp, Circle, Check, Layers } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
@@ -14,7 +15,8 @@ import type { GetLanguagesResponse } from "@/utils/api/types";
 export default function EditTestCategoryPage() {
     const router = useRouter();
     const params = useParams();
-    const id = Number(params?.id);
+    const maskedId = params?.id as string;
+    const id = unmaskAdminId(maskedId);
     const { username } = useUser();
 
     type Mode = "ROOT" | "SUB";
@@ -39,6 +41,10 @@ export default function EditTestCategoryPage() {
     const canSave = useMemo(() => name.trim().length > 0 && language.trim().length > 0 && (mode === 'ROOT' || !!parentCategory), [name, language, mode, parentCategory]);
 
     const save = async () => {
+        if (id === null) {
+            setSaveError('Invalid category ID');
+            return;
+        }
         if (!canSave) return;
         setSaving(true);
         const nowIso = new Date().toISOString();
@@ -117,6 +123,10 @@ export default function EditTestCategoryPage() {
     useEffect(() => {
         let mounted = true;
         (async () => {
+            if (id === null) {
+                setSaveError('Invalid category ID');
+                return;
+            }
             const res = await getTestCategoryByIdAction(id);
             if (mounted) {
                 if (res.status === 200 && res.data) {

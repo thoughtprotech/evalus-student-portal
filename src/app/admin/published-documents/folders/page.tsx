@@ -13,6 +13,7 @@ import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { fetchPublishedDocumentFoldersODataAction, deletePublishedDocumentFolderAction, type PublishedDocumentFolderRow } from "@/app/actions/admin/publishedDocumentFolders";
+import { maskAdminId } from "@/utils/urlMasking";
 import PaginationControls from "@/components/PaginationControls";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -34,7 +35,7 @@ function NameCellRenderer(props: { value: string; data: PublishedDocumentFolderR
           {expanded ? "−" : "+"}
         </button>
       )}
-      <Link href={`/admin/published-documents/folders/${row.id}/edit`} className="text-blue-600 hover:underline truncate max-w-full" title={props.value}>
+      <Link href={`/admin/published-documents/folders/${maskAdminId(row.id)}/edit`} className="text-blue-600 hover:underline truncate max-w-full" title={props.value}>
         {props.value}
       </Link>
     </div>
@@ -96,17 +97,32 @@ export default function PublishedDocumentFoldersPage() {
     while (cur && cur !== 0) {
       const kids = childrenMapRef.current[cur] || [];
       const any = kids.some(k => set.has(k));
-      const all = kids.length > 0 && kids.every(k => set.has(k));
-      if (!any) set.delete(cur); else if (all) set.add(cur); else set.delete(cur); // parent is selected only if all children selected
+      // Only deselect parent if no children are selected, never auto-select parent
+      if (!any) set.delete(cur);
       cur = parentMapRef.current[cur];
     }
   }, []);
 
   const selectNode = useCallback((id: number) => {
-    const set = selectionRef.current; collectDesc(id).forEach(d => set.add(d)); updateAncestors(id); setSelectionVersion(v => v + 1);
+    const set = selectionRef.current;
+    const hasChildren = (childrenMapRef.current[id] || []).length > 0;
+
+    if (hasChildren) {
+      // Parent selection: select all descendants
+      collectDesc(id).forEach(d => set.add(d));
+    } else {
+      // Child selection: only select this node
+      set.add(id);
+    }
+
+    updateAncestors(id);
+    setSelectionVersion(v => v + 1);
   }, [collectDesc, updateAncestors]);
   const deselectNode = useCallback((id: number) => {
-    const set = selectionRef.current; collectDesc(id).forEach(d => set.delete(d)); updateAncestors(id); setSelectionVersion(v => v + 1);
+    const set = selectionRef.current;
+    collectDesc(id).forEach(d => set.delete(d));
+    updateAncestors(id);
+    setSelectionVersion(v => v + 1);
   }, [collectDesc, updateAncestors]);
   const toggleNode = useCallback((id: number) => { selectionRef.current.has(id) ? deselectNode(id) : selectNode(id); }, [selectNode, deselectNode]);
 
@@ -127,21 +143,21 @@ export default function PublishedDocumentFoldersPage() {
     const row: PublishedDocumentFolderRow = p.data;
     const state = getState(row.id);
     return (
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center h-full w-full">
         <input
           type="checkbox"
           aria-label="Select row"
           checked={selectionRef.current.has(row.id)}
           ref={el => { if (el) el.indeterminate = state === 'partial'; }}
           onChange={() => toggleNode(row.id)}
-          className="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+          className="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
         />
       </div>
     );
   }, [getState, toggleNode, selectionVersion]);
 
   const columnDefs = useMemo<ColDef<PublishedDocumentFolderRow>[]>(() => [
-    { colId: 'select', headerName: '', width: 46, pinned: 'left', sortable: false, filter: false, suppressMovable: true, resizable: false, lockVisible: true, cellRenderer: SelectionCheckbox },
+    { colId: 'select', headerName: '', width: 44, pinned: 'left', sortable: false, filter: false, suppressMovable: true, resizable: false, lockVisible: true, cellClass: 'no-right-border', headerClass: 'no-right-border', cellRenderer: SelectionCheckbox },
     { field: 'name', headerName: 'Folder Name', minWidth: 220, flex: 1.6, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer },
     { field: 'language', headerName: 'Language', width: 160, sortable: true, filter: 'agTextColumnFilter' },
     { field: 'id', hide: true },

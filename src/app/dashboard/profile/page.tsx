@@ -3,13 +3,16 @@
 import {
   fetchCandidateAction,
   updateCandidateAction,
+  updateUserProfileAction,
 } from "@/app/actions/dashboard/user";
 import { EditableImage } from "@/components/EditableImage";
 import EditableText from "@/components/EditableText";
-import { User, Mail, MapPin, StickyNote } from "lucide-react";
+import { User, Mail, MapPin, StickyNote, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import UpdatePassword from "./_components/UpdatePassword";
 import Loader from "@/components/Loader";
+import { getUserRoleAction } from "@/app/actions/getUserRole";
+import { useRouter } from "next/navigation";
 
 interface Candidate {
   CandidateID: number;
@@ -33,8 +36,10 @@ export default function ProfilePage() {
   const [loaded, setLoaded] = useState<boolean>(false);
   const [user, setUser] = useState<any>(null);
   const [candidate, setCandidate] = useState<any>(null);
-  // Get username and setUserPhoto from UserContext
-  const { username: userName, setUserPhoto } = require("@/contexts/UserContext").useUser();
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const router = useRouter();
+  // Get username, setUserPhoto, and setDisplayName from UserContext
+  const { username: userName, setUserPhoto, setDisplayName } = require("@/contexts/UserContext").useUser();
 
   const fetchCandidate = async () => {
     const { status, data } = await fetchCandidateAction(userName);
@@ -66,7 +71,21 @@ export default function ProfilePage() {
 
   useEffect(() => {
     fetchCandidate();
+    fetchUserRole();
   }, []);
+
+  const fetchUserRole = async () => {
+    const role = await getUserRoleAction();
+    setUserRole(role);
+  };
+
+  const handleCancel = () => {
+    if (userRole === "ADMIN") {
+      router.push("/admin");
+    } else {
+      router.push("/dashboard");
+    }
+  };
 
   const handleImageUpdate = async (formdata: FormData) => {
     // Upload the image and get the public URL
@@ -106,37 +125,52 @@ export default function ProfilePage() {
   };
 
   const handleUserUpdate = async (text: string, field: string) => {
-    // PATCH API endpoint: /api/Users/{userName}/both
-    // Print PATCH payload for debugging
-    // Build JSON Patch document
-    // Build simple JSON payload for PUT
-    let updatedUser = { ...user };
-    let updatedCandidate = { ...candidate };
-    if (user && field in user) {
-      updatedUser[field] = text;
-    } else if (candidate && field in candidate) {
-      updatedCandidate[field] = text;
+    try {
+      // Build JSON payload for PUT
+      let updatedUser = { ...user };
+      let updatedCandidate = { ...candidate };
+      if (user && field in user) {
+        updatedUser[field] = text;
+      } else if (candidate && field in candidate) {
+        updatedCandidate[field] = text;
+      }
+      // Remove navigation arrays if present
+      delete updatedUser.users;
+      delete updatedUser.userlogs;
+      delete updatedCandidate.users;
+
+      // Remove sensitive fields that shouldn't be updated during profile updates
+      if (field !== "password") {
+        delete updatedUser.password; // Don't send password field to prevent re-encryption issues unless we're updating it
+      }
+      delete updatedUser.createdBy;
+      delete updatedUser.createdDate;
+      delete updatedUser.modifiedBy;
+      delete updatedUser.modifiedDate;
+      delete updatedCandidate.createdBy;
+      delete updatedCandidate.createdDate;
+      delete updatedCandidate.modifiedBy;
+      delete updatedCandidate.modifiedDate;
+
+      const putPayload = {
+        user: updatedUser,
+        candidateRegistration: updatedCandidate,
+      };
+
+      // Use server action to avoid CORS issues
+      const result = await updateUserProfileAction(userName, putPayload);
+      if (result.status) {
+        await fetchCandidate();
+        // Update the displayName in UserContext if it was changed
+        if (field === "displayName") {
+          setDisplayName(text);
+        }
+      } else {
+        console.error("Profile update failed:", result.message);
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
     }
-    // Remove navigation arrays if present
-    delete updatedUser.users;
-    delete updatedUser.userlogs;
-    delete updatedCandidate.users;
-    const putPayload = {
-      user: updatedUser,
-      candidateRegistration: updatedCandidate,
-    };
-    console.log("=== PUT /api/Users/", userName, "/both payload ===", JSON.stringify(putPayload, null, 2));
-    const { API_BASE_URL: baseUrl } = require("@/utils/env").env;
-    console.log("Sending PUT request to:", `${baseUrl}/api/Users/${userName}/both`);
-    const res = await fetch(`${baseUrl}/api/Users/${userName}/both`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(putPayload),
-    });
-    console.log("PUT response status:", res.status);
-    if (res.ok) fetchCandidate();
   };
 
   if (!loaded) {
@@ -190,8 +224,18 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-          <div>
-            <UpdatePassword handleUserUpdate={handleUserUpdate} />
+          <div className="flex gap-4">
+            <div className="w-40">
+              <UpdatePassword handleUserUpdate={handleUserUpdate} />
+            </div>
+            <button
+              onClick={handleCancel}
+              className="w-40 flex items-center justify-center gap-2 px-4 py-2 rounded-md shadow-md cursor-pointer border border-gray-300 bg-gray-500 text-white hover:bg-gray-600 transition-colors"
+              title="Cancel and return to dashboard"
+            >
+              <X className="w-4 h-4" />
+              <span className="font-bold text-sm">Cancel</span>
+            </button>
           </div>
         </div>
 

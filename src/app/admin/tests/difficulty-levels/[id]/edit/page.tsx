@@ -8,11 +8,13 @@ import Toast from "@/components/Toast";
 import EditPageLoader from "@/components/EditPageLoader";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { getTestDifficultyLevelByIdAction, updateTestDifficultyLevelAction } from "@/app/actions/admin/test-difficulty-levels";
+import { unmaskAdminId } from "@/utils/urlMasking";
 import { useUser } from "@/contexts/UserContext";
 
 export default function EditTestDifficultyLevelPage() {
   const params = useParams();
-  const id = Number(params?.id);
+  const maskedId = params?.id as string;
+  const id = unmaskAdminId(maskedId);
   const router = useRouter();
   const { username } = useUser();
   const [loading, setLoading] = useState(true);
@@ -22,6 +24,12 @@ export default function EditTestDifficultyLevelPage() {
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
+    if (!id) {
+      setToast({ message: "Invalid difficulty level ID", type: 'error' });
+      setLoading(false);
+      router.push("/admin/tests/difficulty-levels");
+      return;
+    }
     (async () => {
       const res = await getTestDifficultyLevelByIdAction(id);
       if (res.status === 200 && res.data) {
@@ -40,6 +48,10 @@ export default function EditTestDifficultyLevelPage() {
   }, [id]);
 
   const submit = async () => {
+    if (!id) {
+      setToast({ message: "Invalid difficulty level ID", type: 'error' });
+      return;
+    }
     if (!form.testDifficultyLevel1.trim()) { setToast({ message: 'Name required', type: 'error' }); return; }
     setSaving(true);
     const nowIso = new Date().toISOString();

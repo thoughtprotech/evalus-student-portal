@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Building2 } from "lucide-react";
 import { Filter, XCircle } from "lucide-react";
 import { fetchCompaniesAction, deleteCompanyAction, type CompanyRow } from "@/app/actions/admin/companies";
+import { maskAdminId } from "@/utils/urlMasking";
 import PageHeader from "@/components/PageHeader";
 import Link from "next/link";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -65,11 +66,10 @@ function PhoneCellRenderer(props: { data: CompanyRow }) {
 function IsActiveCellRenderer(props: { value: number | boolean }) {
   const isActive = Boolean(props.value);
   return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-      isActive 
-        ? 'bg-green-100 text-green-800' 
+    <span className={`px-2 py-1 rounded-full text-xs font-medium ${isActive
+        ? 'bg-green-100 text-green-800'
         : 'bg-red-100 text-red-800'
-    }`}>
+      }`}>
       {isActive ? 'Active' : 'Inactive'}
     </span>
   );
@@ -108,46 +108,46 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
 
   const columnDefs = useMemo<ColDef<CompanyRow>[]>(
     () => [
-      { 
-        headerName: "Company Id", 
+      {
+        headerName: "Company Id",
         valueGetter: (p: any) => {
           const idx = (p?.node?.rowIndex ?? 0) as number;
           return idx + 1 + (page - 1) * pageSize;
-        }, 
-        width: 120, 
-        pinned: 'left', 
-        sortable: false, 
-        filter: false, 
-        resizable: false, 
-        cellClass: 'no-right-border', 
-        headerClass: 'no-right-border' 
+        },
+        width: 120,
+        pinned: 'left',
+        sortable: false,
+        filter: false,
+        resizable: false,
+        cellClass: 'no-right-border',
+        headerClass: 'no-right-border'
       },
-      { 
-        field: "companyName", 
-        headerName: "Company Name", 
-        headerTooltip: "Company Name", 
-        sortable: true, 
-        filter: 'agTextColumnFilter', 
-        filterParams: { 
-          buttons: ['apply','reset','clear'],
+      {
+        field: "companyName",
+        headerName: "Company Name",
+        headerTooltip: "Company Name",
+        sortable: true,
+        filter: 'agTextColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear'],
           debounceMs: 200,
           suppressAndOrCondition: false
-        }, 
-        width: 250, 
-        cellRenderer: CompanyNameCellRenderer, 
-        tooltipField: "companyName", 
-        cellClass: 'no-left-border', 
-        headerClass: 'no-left-border' 
+        },
+        width: 250,
+        cellRenderer: CompanyNameCellRenderer,
+        tooltipField: "companyName",
+        cellClass: 'no-left-border',
+        headerClass: 'no-left-border'
       },
-      { 
-        headerName: "First Name", 
-        headerTooltip: "Contact Person First Name", 
-        sortable: true, 
-        filter: 'agTextColumnFilter', 
-        filterParams: { 
-          buttons: ['apply','reset','clear'],
+      {
+        headerName: "First Name",
+        headerTooltip: "Contact Person First Name",
+        sortable: true,
+        filter: 'agTextColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear'],
           debounceMs: 200
-        }, 
+        },
         width: 200,
         cellRenderer: ContactCellRenderer,
         valueGetter: (params: any) => {
@@ -156,16 +156,16 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           return `${firstName || ''} ${lastName || ''} ${email || ''}`.trim();
         }
       },
-      { 
-        field: "phoneNumber", 
-        headerName: "Phone Number", 
-        headerTooltip: "Phone Numbers", 
-        sortable: true, 
-        filter: 'agTextColumnFilter', 
-        filterParams: { 
-          buttons: ['apply','reset','clear'],
+      {
+        field: "phoneNumber",
+        headerName: "Phone Number",
+        headerTooltip: "Phone Numbers",
+        sortable: true,
+        filter: 'agTextColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear'],
           debounceMs: 200
-        }, 
+        },
         width: 150,
         cellRenderer: PhoneCellRenderer,
         valueGetter: (params: any) => {
@@ -174,15 +174,15 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           return `${phoneNumber || ''} ${cellPhone || ''}`.trim();
         }
       },
-      { 
-        headerName: "Address", 
-          headerTooltip: "Address", 
-        sortable: true, 
-        filter: 'agTextColumnFilter', 
-        filterParams: { 
-          buttons: ['apply','reset','clear'],
+      {
+        headerName: "Address",
+        headerTooltip: "Address",
+        sortable: true,
+        filter: 'agTextColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear'],
           debounceMs: 200
-        }, 
+        },
         width: 180,
         cellRenderer: LocationCellRenderer,
         valueGetter: (params: any) => {
@@ -191,94 +191,94 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           return [city, state, country].filter(Boolean).join(" ");
         }
       },
-      { 
-        field: "email", 
-        headerName: "Email", 
-        headerTooltip: "Email", 
-        sortable: true, 
-        filter: 'agTextColumnFilter', 
-        filterParams: { 
-          buttons: ['apply','reset','clear'],
+      {
+        field: "email",
+        headerName: "Email",
+        headerTooltip: "Email",
+        sortable: true,
+        filter: 'agTextColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear'],
           debounceMs: 200
-        }, 
-        width: 200 
+        },
+        width: 200
       },
-      { 
-        field: "isActive", 
-        headerName: "Status", 
-        headerTooltip: "Active Status", 
-        sortable: true, 
-        filter: 'agTextColumnFilter', 
-        filterParams: { 
-          buttons: ['apply','reset','clear'],
+      {
+        field: "isActive",
+        headerName: "Status",
+        headerTooltip: "Active Status",
+        sortable: true,
+        filter: 'agTextColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear'],
           debounceMs: 200
-        }, 
+        },
         valueGetter: (params: any) => {
           const isActive = Boolean(params.data?.isActive);
           return isActive ? 'Active' : 'Inactive';
         },
-        cellRenderer: IsActiveCellRenderer, 
-        width: 125 
+        cellRenderer: IsActiveCellRenderer,
+        width: 125
       },
-          {
-        field: "createdAt", 
-        headerName: "Created Date", 
-        headerTooltip: "Company Created Date", 
-        sortable: true, 
-        filter: 'agDateColumnFilter', 
-        filterParams: { 
-          buttons: ['apply','reset','clear'], 
+      {
+        field: "createdAt",
+        headerName: "Created Date",
+        headerTooltip: "Company Created Date",
+        sortable: true,
+        filter: 'agDateColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear'],
           browserDatePicker: true,
           debounceMs: 200
-        }, 
-        valueFormatter: ({ value }) => formatDate(value), 
-        width: 140 
-          },
-          {
-              field: "createdBy",
-              headerName: "Created By",
-              headerTooltip: "Created By",
-              sortable: true,
-              filter: 'agTextColumnFilter',
-              filterParams: {
-                  buttons: ['apply', 'reset', 'clear'],
-                  debounceMs: 200
-              },
-              minWidth: 120,
-              flex: 1
-          },
-      { 
-        field: "updatedAt", 
-        headerName: "Modified Date", 
-        headerTooltip: "Company Modified Date", 
-        sortable: true, 
-        filter: 'agDateColumnFilter', 
-        filterParams: { 
-          buttons: ['apply','reset','clear'], 
+        },
+        valueFormatter: ({ value }) => formatDate(value),
+        width: 140
+      },
+      {
+        field: "createdBy",
+        headerName: "Created By",
+        headerTooltip: "Created By",
+        sortable: true,
+        filter: 'agTextColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear'],
+          debounceMs: 200
+        },
+        minWidth: 120,
+        flex: 1
+      },
+      {
+        field: "updatedAt",
+        headerName: "Modified Date",
+        headerTooltip: "Company Modified Date",
+        sortable: true,
+        filter: 'agDateColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear'],
           browserDatePicker: true,
           debounceMs: 200
-        }, 
-        valueFormatter: ({ value }) => formatDate(value), 
-        width: 140 
+        },
+        valueFormatter: ({ value }) => formatDate(value),
+        width: 140
       },
-          {
-              field: "modifiedBy",
-              headerName: "Modified By",
-              headerTooltip: "Modified By",
-              sortable: true,
-              filter: 'agTextColumnFilter',
-              filterParams: {
-                  buttons: ['apply', 'reset', 'clear'],
-                  debounceMs: 200
-              },
-              minWidth: 140,
-              flex: 1
-          },
+      {
+        field: "modifiedBy",
+        headerName: "Modified By",
+        headerTooltip: "Modified By",
+        sortable: true,
+        filter: 'agTextColumnFilter',
+        filterParams: {
+          buttons: ['apply', 'reset', 'clear'],
+          debounceMs: 200
+        },
+        minWidth: 140,
+        flex: 1
+      },
       {
         headerName: "Actions",
         cellRenderer: (props: { data: CompanyRow }) => (
           <div className="flex items-center gap-2 h-full">
-            <Link href={`/admin/companies/${props.data.id}/edit`}>
+            <Link href={`/admin/companies/${maskAdminId(props.data.id)}/edit`}>
               <button
                 type="button"
                 className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
@@ -317,7 +317,7 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
   const fetchPage = useCallback(async () => {
     const reqId = ++lastReqIdRef.current;
     setLoading(true);
-    
+
     const sort = sortModelRef.current?.[0];
     const fieldMap: Record<string, string> = {
       id: "companyId",
@@ -334,24 +334,24 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
       createdAt: "createdDate",
       updatedAt: "modifiedDate",
       createdBy: "createdBy",
-       modifiedBy: "modifiedBy",
+      modifiedBy: "modifiedBy",
     };
-  const orderBy = sort ? `${fieldMap[sort.colId] ?? "modifiedDate"} ${sort.sort}` : "modifiedDate desc";
-    
+    const orderBy = sort ? `${fieldMap[sort.colId] ?? "modifiedDate"} ${sort.sort}` : "modifiedDate desc";
+
     // Build filter from both global search and column filters
     const filters: string[] = [];
     const search = (query ?? "").trim();
     if (search) filters.push(`contains(companyName,'${search.replace(/'/g, "''")}')`);
-    
+
     const filterModel = filterModelRef.current || {};
     Object.entries(filterModel).forEach(([field, filterConfig]: [string, any]) => {
       if (!filterConfig) return;
-      
+
       const serverField = fieldMap[field] || field;
-      
+
       if (filterConfig.filterType === 'text' && filterConfig.filter) {
         const value = filterConfig.filter.replace(/'/g, "''");
-        
+
         if (field === 'isActive') {
           const lowerValue = value.toLowerCase();
           if (lowerValue === 'active' || lowerValue === '1' || lowerValue === 'true') {
@@ -361,7 +361,7 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           }
           return;
         }
-        
+
         switch (filterConfig.type) {
           case 'contains':
             filters.push(`contains(${serverField},'${value}')`);
@@ -378,7 +378,7 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         }
       } else if (filterConfig.filter !== undefined) {
         const value = String(filterConfig.filter).replace(/'/g, "''");
-        
+
         if (field === 'isActive') {
           const lowerValue = value.toLowerCase();
           if (lowerValue === 'active' || lowerValue === '1' || lowerValue === 'true') {
@@ -388,15 +388,15 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           }
           return;
         }
-        
+
         filters.push(`contains(${serverField},'${value}')`);
       }
     });
-    
+
     const filter = filters.length ? Array.from(new Set(filters)).join(" and ") : undefined;
 
     const res = await fetchCompaniesAction({ top: pageSize, skip: (page - 1) * pageSize, orderBy, filter });
-    
+
     if (reqId === lastReqIdRef.current) {
       if (res.status === 200 && res.data) {
         setRows(res.data.rows.slice());
@@ -465,45 +465,45 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
             showTotalCount
           />
           <div className="flex items-center gap-2">
-          <button
-            type="button"
-            aria-pressed={showFilters}
-            onClick={() => setShowFilters((v) => !v)}
-            className={
-              `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm transition-colors ` +
-              (showFilters
-                ? `bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100`
-                : `bg-white text-gray-700 border-gray-300 hover:bg-gray-50`)
-            }
-            title={showFilters ? "Hide filters" : "Show filters"}
-          >
-            <Filter className="w-4 h-4" /> {showFilters ? "Hide Filters" : "Show Filters"}
-          </button>
-          <button
-            onClick={() => {
-              const api = gridApiRef.current as any;
-              const hasSearch = !!(query && query.length);
-              filterModelRef.current = {};
-              if (hasSearch && onClearQuery) {
-                skipNextFilterFetchRef.current = true;
+            <button
+              type="button"
+              aria-pressed={showFilters}
+              onClick={() => setShowFilters((v) => !v)}
+              className={
+                `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm transition-colors ` +
+                (showFilters
+                  ? `bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100`
+                  : `bg-white text-gray-700 border-gray-300 hover:bg-gray-50`)
               }
-              api?.setFilterModel?.(null);
-              setFiltersVersion((v) => v + 1);
-              setPage(1);
-              if (hasSearch && onClearQuery) {
-                onClearQuery();
-              }
-            }}
-            className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-            title="Clear search and all column filters"
-            disabled={!query && Object.keys(filterModelRef.current || {}).length === 0}
-          >
-            <XCircle className="w-4 h-4" /> Clear Filters
-          </button>
+              title={showFilters ? "Hide filters" : "Show filters"}
+            >
+              <Filter className="w-4 h-4" /> {showFilters ? "Hide Filters" : "Show Filters"}
+            </button>
+            <button
+              onClick={() => {
+                const api = gridApiRef.current as any;
+                const hasSearch = !!(query && query.length);
+                filterModelRef.current = {};
+                if (hasSearch && onClearQuery) {
+                  skipNextFilterFetchRef.current = true;
+                }
+                api?.setFilterModel?.(null);
+                setFiltersVersion((v) => v + 1);
+                setPage(1);
+                if (hasSearch && onClearQuery) {
+                  onClearQuery();
+                }
+              }}
+              className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              title="Clear search and all column filters"
+              disabled={!query && Object.keys(filterModelRef.current || {}).length === 0}
+            >
+              <XCircle className="w-4 h-4" /> Clear Filters
+            </button>
           </div>
         </div>
       </div>
-      
+
       {(query || Object.keys(filterModelRef.current || {}).length > 0) && (
         <div className="mb-3 flex items-center flex-wrap gap-2 flex-none">
           <span className="text-xs text-gray-500">Active filters:</span>
@@ -517,7 +517,7 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
             </button>
           ) : null}
           {Object.entries(filterModelRef.current as Record<string, any>).map(([key, m]) => {
-            const nameMap: Record<string,string> = {
+            const nameMap: Record<string, string> = {
               id: 'ID', companyName: 'Company Name', email: 'Email', phoneNumber: 'Phone',
               isActive: 'Status', createdAt: 'Created Date', updatedAt: 'Updated Date', createdBy: 'Created By'
             };
@@ -529,7 +529,7 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
               const t = c.type || c.filterType || 'contains';
               const isDateKey = key === 'createdAt' || key === 'updatedAt';
               const val = c.filter ?? c.dateFrom ?? '';
-              
+
               if (isDateKey) {
                 if (t === 'inRange') return `${labelBase}: ${formatDate(c.dateFrom)} → ${formatDate(c.dateTo)}`;
                 if (val) return `${labelBase}: ${formatDate(val)}`;
@@ -581,74 +581,74 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           </button>
         </div>
       )}
-      
+
       <div className="flex-1 min-h-0">
-      {loading ? (
-        <Loader />
-      ) : rows.length === 0 ? (
-        <div className="bg-white shadow rounded-md border border-gray-300 p-8 h-full overflow-auto">
-          <div className="text-center">
-            <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Companies Found</h3>
-            <p className="text-gray-500 mb-4">
-              No companies found. Try adjusting your search criteria or add new companies.
-            </p>
-            <Link href="/admin/companies/new">
-              <button className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-md transition-colors duration-300">
-                Add New Company
-              </button>
-            </Link>
+        {loading ? (
+          <Loader />
+        ) : rows.length === 0 ? (
+          <div className="bg-white shadow rounded-md border border-gray-300 p-8 h-full overflow-auto">
+            <div className="text-center">
+              <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Companies Found</h3>
+              <p className="text-gray-500 mb-4">
+                No companies found. Try adjusting your search criteria or add new companies.
+              </p>
+              <Link href="/admin/companies/new">
+                <button className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-md transition-colors duration-300">
+                  Add New Company
+                </button>
+              </Link>
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className="h-full min-h-0">
-        <AgGridReact<CompanyRow>
-          columnDefs={columnDefs}
-          defaultColDef={defaultColDef}
-          rowData={rows}
-          onGridReady={onGridReady}
-          onSortChanged={onSortChanged}
-          onFilterChanged={() => {
-            const api = gridApiRef.current as any;
-            if (!api) return;
-            
-            const fm = api.getFilterModel?.() as any;
-            filterModelRef.current = fm || {};
-            setFiltersVersion((v) => v + 1);
-            
-            if (filterDebounceRef.current) {
-              clearTimeout(filterDebounceRef.current);
-            }
-            
-            filterDebounceRef.current = setTimeout(() => {
-              if (!skipNextFilterFetchRef.current) {
-                setPage(1);
-              }
-              skipNextFilterFetchRef.current = false;
-            }, 300);
-          }}
-          onSelectionChanged={() => {
-            const api = gridApiRef.current;
-            if (!api) return;
-            const selected = api.getSelectedRows?.() as CompanyRow[];
-            setSelectedCount(selected?.length || 0);
-          }}
-      pagination={false}
-          rowSelection={{ mode: 'multiRow', checkboxes: true }}
-          selectionColumnDef={{ pinned: 'left', width: 44, headerName: '', resizable: false, cellClass: 'no-right-border', headerClass: 'no-right-border', suppressMovable: true }}
-          animateRows
-          headerHeight={36}
-          rowHeight={48}
-          tooltipShowDelay={300}
-          suppressMenuHide={false}
-          suppressRowDeselection={true}
-          stopEditingWhenCellsLoseFocus={true}
-          theme="legacy"
-        />
-        </div>
-    )}
-    </div>
-      
+        ) : (
+          <div className="h-full min-h-0">
+            <AgGridReact<CompanyRow>
+              columnDefs={columnDefs}
+              defaultColDef={defaultColDef}
+              rowData={rows}
+              onGridReady={onGridReady}
+              onSortChanged={onSortChanged}
+              onFilterChanged={() => {
+                const api = gridApiRef.current as any;
+                if (!api) return;
+
+                const fm = api.getFilterModel?.() as any;
+                filterModelRef.current = fm || {};
+                setFiltersVersion((v) => v + 1);
+
+                if (filterDebounceRef.current) {
+                  clearTimeout(filterDebounceRef.current);
+                }
+
+                filterDebounceRef.current = setTimeout(() => {
+                  if (!skipNextFilterFetchRef.current) {
+                    setPage(1);
+                  }
+                  skipNextFilterFetchRef.current = false;
+                }, 300);
+              }}
+              onSelectionChanged={() => {
+                const api = gridApiRef.current;
+                if (!api) return;
+                const selected = api.getSelectedRows?.() as CompanyRow[];
+                setSelectedCount(selected?.length || 0);
+              }}
+              pagination={false}
+              rowSelection={{ mode: 'multiRow', checkboxes: true }}
+              selectionColumnDef={{ pinned: 'left', width: 44, headerName: '', resizable: false, cellClass: 'no-right-border', headerClass: 'no-right-border', suppressMovable: true }}
+              animateRows
+              headerHeight={36}
+              rowHeight={48}
+              tooltipShowDelay={300}
+              suppressMenuHide={false}
+              suppressRowDeselection={true}
+              stopEditingWhenCellsLoseFocus={true}
+              theme="legacy"
+            />
+          </div>
+        )}
+      </div>
+
       <style jsx global>{`
         .ag-theme-alpine.ag-theme-evalus .ag-cell.no-right-border,
         .ag-theme-alpine.ag-theme-evalus .ag-header-cell.no-right-border {
@@ -663,11 +663,11 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
           display: none !important;
         }
       `}</style>
-      
+
       <ConfirmationModal
         title="Confirm Delete"
-        message={pendingDelete.length > 0 
-          ? pendingDelete.length === 1 
+        message={pendingDelete.length > 0
+          ? pendingDelete.length === 1
             ? `Are you sure you want to delete "${pendingDelete[0].companyName}"? This action cannot be undone.`
             : `Are you sure you want to delete ${pendingDelete.length} companies? This action cannot be undone.`
           : ""
@@ -680,39 +680,39 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         onConfirm={async () => {
           if (pendingDelete.length === 0) return;
           setDeleting(true);
-          
+
           try {
             const deletePromises = pendingDelete.map(company => deleteCompanyAction(company.id));
             const results = await Promise.all(deletePromises);
-            
+
             const failedDeletes = results.filter(res => res.status !== 200);
-            
+
             if (failedDeletes.length === 0) {
-              setToast({ 
-                message: pendingDelete.length === 1 
-                  ? "Company deleted successfully." 
-                  : `${pendingDelete.length} companies deleted successfully.`, 
-                type: "success" 
+              setToast({
+                message: pendingDelete.length === 1
+                  ? "Company deleted successfully."
+                  : `${pendingDelete.length} companies deleted successfully.`,
+                type: "success"
               });
             } else {
-              setToast({ 
-                message: `${failedDeletes.length} companies failed to delete.`, 
-                type: "error" 
+              setToast({
+                message: `${failedDeletes.length} companies failed to delete.`,
+                type: "error"
               });
             }
-            
+
             fetchPage();
           } catch (error) {
             setToast({ message: "Delete operation failed", type: "error" });
           }
-          
+
           setDeleting(false);
           setConfirmOpen(false);
           setPendingDelete([]);
         }}
       />
-      
-  <div className="fixed top-4 right-4 z-50 space-y-2">
+
+      <div className="fixed top-4 right-4 z-50 space-y-2">
         {toast ? (
           <Toast
             message={toast.message}

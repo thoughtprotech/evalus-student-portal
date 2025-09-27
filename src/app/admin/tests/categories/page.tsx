@@ -13,6 +13,7 @@ import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { fetchTestCategoriesODataAction, deleteTestCategoryAction, type TestCategoryRow } from "@/app/actions/admin/test-categories";
+import { maskAdminId } from "@/utils/urlMasking";
 import PaginationControls from "@/components/PaginationControls";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -34,7 +35,7 @@ function NameCellRenderer(props: { value: string; data: TestCategoryRow }) {
                     {expanded ? "−" : "+"}
                 </button>
             )}
-            <Link href={`/admin/tests/categories/${row.id}/edit`} className="text-blue-600 hover:underline truncate max-w-full" title={props.value}>
+            <Link href={`/admin/tests/categories/${maskAdminId(row.id)}/edit`} className="text-blue-600 hover:underline truncate max-w-full" title={props.value}>
                 {props.value}
             </Link>
         </div>
@@ -95,15 +96,59 @@ export default function TestCategoriesPage() {
     }, [rows]);
     useEffect(() => { rebuildMaps(); }, [rebuildMaps]);
     const collectDesc = useCallback((id: number, acc: number[] = []): number[] => { acc.push(id); (childrenMapRef.current[id] || []).forEach(c => collectDesc(c, acc)); return acc; }, []);
-    const updateAncestors = useCallback((id: number) => { const set = selectionRef.current; let cur = parentMapRef.current[id]; while (cur && cur !== 0) { const kids = childrenMapRef.current[cur] || []; const any = kids.some(k => set.has(k)); const all = kids.length > 0 && kids.every(k => set.has(k)); if (!any) set.delete(cur); else if (all) set.add(cur); else set.delete(cur); cur = parentMapRef.current[cur]; } }, []);
-    const selectNode = useCallback((id: number) => { const set = selectionRef.current; collectDesc(id).forEach(d => set.add(d)); updateAncestors(id); setSelectionVersion(v => v + 1); }, [collectDesc, updateAncestors]);
-    const deselectNode = useCallback((id: number) => { const set = selectionRef.current; collectDesc(id).forEach(d => set.delete(d)); updateAncestors(id); setSelectionVersion(v => v + 1); }, [collectDesc, updateAncestors]);
+    const updateAncestors = useCallback((id: number) => {
+        const set = selectionRef.current;
+        let cur = parentMapRef.current[id];
+        while (cur && cur !== 0) {
+            const kids = childrenMapRef.current[cur] || [];
+            const any = kids.some(k => set.has(k));
+            // Only deselect parent if no children are selected, never auto-select parent
+            if (!any) set.delete(cur);
+            cur = parentMapRef.current[cur];
+        }
+    }, []);
+    const selectNode = useCallback((id: number) => {
+        const set = selectionRef.current;
+        const hasChildren = (childrenMapRef.current[id] || []).length > 0;
+
+        if (hasChildren) {
+            // Parent selection: select all descendants
+            collectDesc(id).forEach(d => set.add(d));
+        } else {
+            // Child selection: only select this node
+            set.add(id);
+        }
+
+        updateAncestors(id);
+        setSelectionVersion(v => v + 1);
+    }, [collectDesc, updateAncestors]);
+    const deselectNode = useCallback((id: number) => {
+        const set = selectionRef.current;
+        collectDesc(id).forEach(d => set.delete(d));
+        updateAncestors(id);
+        setSelectionVersion(v => v + 1);
+    }, [collectDesc, updateAncestors]);
     const toggleNode = useCallback((id: number) => { selectionRef.current.has(id) ? deselectNode(id) : selectNode(id); }, [selectNode, deselectNode]);
     const getState = useCallback((id: number) => { const set = selectionRef.current; const sel = set.has(id); const kids = childrenMapRef.current[id] || []; if (!kids.length) return sel ? 'all' : 'none'; const kidSel = kids.filter(k => set.has(k)).length; if (kidSel === 0 && !sel) return 'none'; if (kidSel === kids.length && sel) return 'all'; return 'partial'; }, []);
     useEffect(() => { setSelectedCount(selectionRef.current.size); }, [selectionVersion]);
-    const SelectionCheckbox = useCallback((p: any) => { const row: TestCategoryRow = p.data; const state = getState(row.id); return (<div className="flex items-center justify-center"><input type="checkbox" aria-label="Select row" checked={selectionRef.current.has(row.id)} ref={el => { if (el) el.indeterminate = state === 'partial'; }} onChange={() => toggleNode(row.id)} className="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" /></div>); }, [getState, toggleNode, selectionVersion]);
+    const SelectionCheckbox = useCallback((p: any) => {
+        const row: TestCategoryRow = p.data;
+        const state = getState(row.id);
+        return (
+            <div className="flex items-center justify-center h-full w-full">
+                <input
+                    type="checkbox"
+                    aria-label="Select row"
+                    checked={selectionRef.current.has(row.id)}
+                    ref={el => { if (el) el.indeterminate = state === 'partial'; }}
+                    onChange={() => toggleNode(row.id)}
+                    className="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                />
+            </div>
+        );
+    }, [getState, toggleNode, selectionVersion]);
     const columnDefs = useMemo<ColDef<TestCategoryRow>[]>(() => [
-        { colId: 'select', headerName: '', width: 46, pinned: 'left', sortable: false, filter: false, resizable: false, suppressMovable: true, cellRenderer: SelectionCheckbox },
+        { colId: 'select', headerName: '', width: 44, pinned: 'left', sortable: false, filter: false, resizable: false, suppressMovable: true, cellClass: 'no-right-border', headerClass: 'no-right-border', cellRenderer: SelectionCheckbox },
         { field: 'name', headerName: 'Category', width: 920, sortable: true, filter: 'agTextColumnFilter', cellRenderer: NameCellRenderer },
         { field: 'type', headerName: 'Type', width: 200, sortable: true, filter: 'agTextColumnFilter' },
         { field: 'language', headerName: 'Language', width: 240, sortable: true, filter: 'agTextColumnFilter' },

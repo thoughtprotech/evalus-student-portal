@@ -45,7 +45,7 @@ const navItems: NavItem[] = [
 const hasSubMenu = (label: string) => label === 'Questions';
 
 interface NavbarProps {
-  username: string;
+  username: string; // This will now receive displayName from the layout
   userPhoto?: string | null;
 }
 

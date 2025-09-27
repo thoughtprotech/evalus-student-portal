@@ -8,6 +8,7 @@ import {
   deleteTestAction,
   type TestRow,
 } from "@/app/actions/admin/tests";
+import { maskAdminId } from "@/utils/urlMasking";
 import PageHeader from "@/components/PageHeader";
 import PageUnderConstruction from "@/components/PageUnderConstruction";
 import { TabsContent, TabsList, TabsRoot } from "@/components/Tabs";
@@ -39,7 +40,7 @@ function NameCellRenderer(props: { value: string; data: TestRow }) {
   return (
     <Link
       className="text-blue-600 hover:underline"
-  href={`/admin/tests/edit/${props.data.id}`}
+      href={`/admin/tests/edit/${maskAdminId(props.data.id)}`}
       onClick={() => {
         try {
           sessionStorage.removeItem("admin:newTest:model");
@@ -47,7 +48,7 @@ function NameCellRenderer(props: { value: string; data: TestRow }) {
           sessionStorage.removeItem("admin:newTest:suppressClear");
           sessionStorage.removeItem("admin:newTest:preselectedIds");
           sessionStorage.removeItem("admin:newTest:selectedQuestions");
-        } catch {}
+        } catch { }
       }}
       title={props.value}
     >
@@ -70,11 +71,10 @@ function formatDate(value?: string) {
 function IsActiveCellRenderer(props: { value: number | boolean }) {
   const isActive = Boolean(props.value);
   return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-      isActive 
-        ? 'bg-green-100 text-green-800' 
+    <span className={`px-2 py-1 rounded-full text-xs font-medium ${isActive
+        ? 'bg-green-100 text-green-800'
         : 'bg-red-100 text-red-800'
-    }`}>
+      }`}>
       {isActive ? 'Active' : 'Inactive'}
     </span>
   );
@@ -87,12 +87,12 @@ function TestStatusCellRenderer(props: { value?: string }) {
     c === 'published'
       ? 'bg-green-100 text-green-800'
       : c === 'new'
-      ? 'bg-red-100 text-red-800'
-      : c === 'on hold' || c === 'onhold'
-      ? 'bg-amber-100 text-amber-800'
-      : c === 'cancelled' || c === 'canceled'
-      ? 'bg-red-100 text-red-800'
-      : 'bg-gray-100 text-gray-800';
+        ? 'bg-red-100 text-red-800'
+        : c === 'on hold' || c === 'onhold'
+          ? 'bg-amber-100 text-amber-800'
+          : c === 'cancelled' || c === 'canceled'
+            ? 'bg-red-100 text-red-800'
+            : 'bg-gray-100 text-gray-800';
   return <span className={`px-2 py-1 rounded-full text-xs font-medium ${cls}`}>{v || '-'}</span>;
 }
 
@@ -446,8 +446,8 @@ function TestsGrid({
       ? dateExpr("TestStartDate", fm.startDate)
       : null;
     const fmEnd = fm.endDate ? dateExpr("TestEndDate", fm.endDate) : null;
-  const fmStatus = fm.status ? booleanExpr("IsActive", fm.status) : null;
-  const fmTestStatus = fm.testStatus ? textExpr("TestStatus", fm.testStatus) : null;
+    const fmStatus = fm.status ? booleanExpr("IsActive", fm.status) : null;
+    const fmTestStatus = fm.testStatus ? textExpr("TestStatus", fm.testStatus) : null;
     const fmQuestions = fm.questions
       ? numberExpr("TestQuestions@odata.count", fm.questions)
       : null;
@@ -467,8 +467,8 @@ function TestsGrid({
     if (fmName) filters.push(fmName);
     if (fmStart) filters.push(fmStart);
     if (fmEnd) filters.push(fmEnd);
-  if (fmStatus) filters.push(fmStatus);
-  if (fmTestStatus) filters.push(fmTestStatus);
+    if (fmStatus) filters.push(fmStatus);
+    if (fmTestStatus) filters.push(fmTestStatus);
     if (fmQuestions) filters.push(fmQuestions);
     if (fmLevel) filters.push(fmLevel);
     if (fmCandidates) filters.push(fmCandidates);
@@ -487,9 +487,9 @@ function TestsGrid({
     // Only apply if this is the latest request
     if (reqId === lastReqIdRef.current) {
       if (res.status === 200 && res.data) {
-  setRows(res.data.rows.slice());
-  // Clear selection when data refreshes
-  setSelectedRow(null);
+        setRows(res.data.rows.slice());
+        // Clear selection when data refreshes
+        setSelectedRow(null);
         setTotal(res.data.total);
       }
       setLoading(false);
@@ -532,7 +532,7 @@ function TestsGrid({
                   sessionStorage.removeItem("admin:newTest:suppressClear");
                   sessionStorage.removeItem("admin:newTest:preselectedIds");
                   sessionStorage.removeItem("admin:newTest:selectedQuestions");
-                } catch {}
+                } catch { }
               }}
             >
               <PlusCircle className="w-4 h-4" /> New
@@ -700,9 +700,8 @@ function TestsGrid({
                   return `${labelBase}`;
                 }
                 if (t === "inRange")
-                  return `${labelBase}: ${c.dateFrom ?? c.filter} → ${
-                    c.dateTo ?? c.filterTo
-                  }`;
+                  return `${labelBase}: ${c.dateFrom ?? c.filter} → ${c.dateTo ?? c.filterTo
+                    }`;
                 if (val) return `${labelBase}: ${t} '${val}'`;
                 return `${labelBase}`;
               })();
@@ -843,8 +842,8 @@ function TestsGrid({
         }
         isOpen={confirmOpen}
         variant="danger"
-  className="max-w-md"
-  messageClassName="text-xs"
+        className="max-w-md"
+        messageClassName="text-xs"
         confirmText={deleting ? "Deleting..." : "Delete"}
         cancelText="Cancel"
         onCancel={() => {
@@ -879,8 +878,8 @@ function TestsGrid({
         message={
           publishConfirmOpen && pendingPublish
             ? `Do you want to Publish "${pendingPublish.name}" with Start Date - ${formatDate(
-                pendingPublish.startDate
-              )} and End Date - ${formatDate(pendingPublish.endDate)}?`
+              pendingPublish.startDate
+            )} and End Date - ${formatDate(pendingPublish.endDate)}?`
             : ""
         }
         isOpen={publishConfirmOpen}
