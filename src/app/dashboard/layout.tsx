@@ -128,6 +128,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         sessionStorage.removeItem("admin:newTest:suppressClear");
         sessionStorage.removeItem("admin:newTest:preselectedIds");
         sessionStorage.removeItem("admin:newTest:selectedQuestions");
+        try { localStorage.removeItem("__evalus_last_activity"); } catch { }
       } catch { }
       router.push("/");
     } else {
