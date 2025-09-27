@@ -9,6 +9,7 @@ import Toast from "@/components/Toast";
 import PaginationControls from "@/components/PaginationControls";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { fetchTestTypesAdminAction, deleteTestTypeAction, type TestTypeRow } from "@/app/actions/admin/test-types";
+import { maskAdminId } from "@/utils/urlMasking";
 
 import { AgGridReact } from "ag-grid-react";
 import type { ColDef, GridApi } from "ag-grid-community";
@@ -20,7 +21,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 function TypeCellRenderer(props: { value: string; data: TestTypeRow }) {
     return (
-        <Link className="text-blue-600 hover:underline" href={`/admin/tests/types/${props.data.id}/edit`} title={props.value}>
+        <Link className="text-blue-600 hover:underline" href={`/admin/tests/types/${maskAdminId(props.data.id)}/edit`} title={props.value}>
             {props.value}
         </Link>
     );

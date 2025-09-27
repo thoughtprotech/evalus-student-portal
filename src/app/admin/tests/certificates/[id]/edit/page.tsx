@@ -10,6 +10,7 @@ import Toast from "@/components/Toast";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { getTestCertificateByIdAction, updateTestCertificateAction } from "@/app/actions/admin/test-certificates";
 import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
+import { unmaskAdminId } from "@/utils/urlMasking";
 import { useUser } from "@/contexts/UserContext";
 import type { GetLanguagesResponse } from "@/utils/api/types";
 
@@ -17,7 +18,8 @@ export default function EditTestCertificatePage() {
     const router = useRouter();
     const params = useParams();
     const { username } = useUser();
-    const id = Number(params.id);
+    const maskedId = params.id as string;
+    const id = unmaskAdminId(maskedId);
 
     const [form, setForm] = useState({ testCertificateName: "", testCertificateTemplates: "", language: "", isActive: 1 });
     const [originalData, setOriginalData] = useState<{ createdBy?: string; createdDate?: string } | null>(null);
@@ -41,7 +43,12 @@ export default function EditTestCertificatePage() {
     }, []);
 
     useEffect(() => {
-        if (!id || isNaN(id)) return;
+        if (!id) {
+            setToast({ message: "Invalid certificate ID", type: 'error' });
+            setLoading(false);
+            router.push("/admin/tests/certificates");
+            return;
+        }
         (async () => {
             setLoading(true);
             const res = await getTestCertificateByIdAction(id);
@@ -64,6 +71,10 @@ export default function EditTestCertificatePage() {
     }, [id]);
 
     const submit = async () => {
+        if (!id) {
+            setToast({ message: "Invalid certificate ID", type: 'error' });
+            return;
+        }
         if (!form.testCertificateName.trim()) { setToast({ message: 'Name is required', type: 'error' }); return; }
         if (!form.testCertificateTemplates.trim()) { setToast({ message: 'Template is required', type: 'error' }); return; }
         if (!form.language.trim()) { setToast({ message: 'Language is required', type: 'error' }); return; }

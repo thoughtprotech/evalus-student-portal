@@ -9,6 +9,7 @@ import Toast from "@/components/Toast";
 import PaginationControls from "@/components/PaginationControls";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { fetchTestCertificatesAction, deleteTestCertificateAction, type TestCertificateRow } from "@/app/actions/admin/test-certificates";
+import { maskAdminId } from "@/utils/urlMasking";
 
 // AG Grid
 import { AgGridReact } from "ag-grid-react";
@@ -21,7 +22,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 function NameCellRenderer(props: { value: string; data: TestCertificateRow }) {
     return (
-        <Link className="text-blue-600 hover:underline" href={`/admin/tests/certificates/${props.data.id}/edit`} title={props.value}>
+        <Link className="text-blue-600 hover:underline" href={`/admin/tests/certificates/${maskAdminId(props.data.id)}/edit`} title={props.value}>
             {props.value}
         </Link>
     );

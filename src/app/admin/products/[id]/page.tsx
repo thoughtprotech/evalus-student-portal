@@ -3,6 +3,7 @@
 import { useEffect, useState, FormEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { fetchProductByIdAction, updateProductAction, ProductDto } from "@/app/actions/admin/products";
+import { unmaskAdminId } from "@/utils/urlMasking";
 import Loader from "@/components/Loader";
 import Link from "next/link";
 import { ArrowLeft, Package } from "lucide-react";
@@ -17,7 +18,8 @@ export default function EditProductPage() {
   const params = useParams();
   const router = useRouter();
   const { username, displayName } = useUser();
-  const productId = Number(params?.id);
+  const maskedId = params?.id as string;
+  const productId = unmaskAdminId(maskedId);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -52,6 +54,12 @@ export default function EditProductPage() {
   }, []);
 
   useEffect(() => {
+    if (!productId) {
+      toast.error("Invalid product ID");
+      setLoading(false);
+      router.push("/admin/products");
+      return;
+    }
     let mounted = true;
     (async () => {
       try {
@@ -88,7 +96,13 @@ export default function EditProductPage() {
   };
 
   const submit = async (e?: FormEvent) => {
-    if (e) e.preventDefault(); if (!validate()) return; setSaving(true);
+    if (e) e.preventDefault();
+    if (!productId) {
+      toast.error("Invalid product ID");
+      return;
+    }
+    if (!validate()) return;
+    setSaving(true);
     const payload = {
       productId,
       productName: form.productName.trim(),

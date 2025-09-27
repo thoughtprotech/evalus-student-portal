@@ -9,12 +9,14 @@ import EditPageLoader from "@/components/EditPageLoader";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
 import { getQuestionDifficultyLevelByIdAction, updateQuestionDifficultyLevelAction } from "@/app/actions/admin/question-difficulty-levels";
+import { unmaskAdminId } from "@/utils/urlMasking";
 import { useUser } from "@/contexts/UserContext";
 import type { GetLanguagesResponse } from "@/utils/api/types";
 
 export default function EditDifficultyLevelPage() {
   const params = useParams();
-  const id = Number(params?.id);
+  const maskedId = params?.id as string;
+  const id = unmaskAdminId(maskedId);
   const router = useRouter();
   const { username } = useUser();
   const [loading, setLoading] = useState(true);
@@ -26,6 +28,12 @@ export default function EditDifficultyLevelPage() {
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
+    if (!id) {
+      setToast({ message: "Invalid difficulty level ID", type: 'error' });
+      setLoading(false);
+      router.push("/admin/questions/difficulty-levels");
+      return;
+    }
     (async () => {
       const res = await getQuestionDifficultyLevelByIdAction(id);
       if (res.status === 200 && res.data) {
@@ -56,6 +64,10 @@ export default function EditDifficultyLevelPage() {
   }, []);
 
   const submit = async () => {
+    if (!id) {
+      setToast({ message: "Invalid difficulty level ID", type: 'error' });
+      return;
+    }
     if (!form.questionDifficultylevel1.trim()) { setToast({ message: 'Name required', type: 'error' }); return; }
     if (!form.language.trim()) { setToast({ message: 'Language required', type: 'error' }); return; }
     setSaving(true);
@@ -118,12 +130,12 @@ export default function EditDifficultyLevelPage() {
         isOpen={showSuccess}
         onConfirm={() => { setShowSuccess(false); router.push('/admin/questions/difficulty-levels'); }}
         onCancel={() => { setShowSuccess(false); router.push('/admin/questions/difficulty-levels'); }}
-  title="Question Updated Successfully!"
-  message="Your changes have been saved."
-  confirmText="Go to List"
+        title="Question Updated Successfully!"
+        message="Your changes have been saved."
+        confirmText="Go to List"
         cancelText=""
-  variant="success"
-  className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200"
+        variant="success"
+        className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200"
       />
     </div>
   );

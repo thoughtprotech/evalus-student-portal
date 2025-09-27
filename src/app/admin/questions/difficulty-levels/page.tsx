@@ -9,6 +9,7 @@ import Toast from "@/components/Toast";
 import PaginationControls from "@/components/PaginationControls";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { fetchQuestionDifficultyLevelsAction, deleteQuestionDifficultyLevelAction, type DifficultyLevelRow } from "@/app/actions/admin/question-difficulty-levels";
+import { maskAdminId } from "@/utils/urlMasking";
 
 // AG Grid
 import { AgGridReact } from "ag-grid-react";
@@ -21,7 +22,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 function NameCellRenderer(props: { value: string; data: DifficultyLevelRow }) {
   return (
-    <Link href={`/admin/questions/difficulty-levels/${props.data.id}/edit`} className="text-blue-600 hover:underline" title={props.value}>
+    <Link href={`/admin/questions/difficulty-levels/${maskAdminId(props.data.id)}/edit`} className="text-blue-600 hover:underline" title={props.value}>
       {props.value}
     </Link>
   );
@@ -95,8 +96,8 @@ export default function QuestionDifficultyLevelsPage() {
         const value = cfg.filter.replace(/'/g, "''");
         if (field === 'isActive') {
           const v = value.toLowerCase();
-          if (["active","1","true"].includes(v)) { filters.push(`${serverField} eq 1`); return; }
-          if (["inactive","0","false"].includes(v)) { filters.push(`${serverField} eq 0`); return; }
+          if (["active", "1", "true"].includes(v)) { filters.push(`${serverField} eq 1`); return; }
+          if (["inactive", "0", "false"].includes(v)) { filters.push(`${serverField} eq 0`); return; }
         }
         switch (cfg.type) {
           case 'startsWith': filters.push(`startswith(${serverField},'${value}')`); break;
@@ -108,8 +109,8 @@ export default function QuestionDifficultyLevelsPage() {
         const value = String(cfg.filter).replace(/'/g, "''");
         if (field === 'isActive') {
           const v = value.toLowerCase();
-          if (["active","1","true"].includes(v)) { filters.push(`${serverField} eq 1`); return; }
-          if (["inactive","0","false"].includes(v)) { filters.push(`${serverField} eq 0`); return; }
+          if (["active", "1", "true"].includes(v)) { filters.push(`${serverField} eq 1`); return; }
+          if (["inactive", "0", "false"].includes(v)) { filters.push(`${serverField} eq 0`); return; }
         }
         filters.push(`contains(${serverField},'${value}')`);
       }
@@ -198,7 +199,7 @@ export default function QuestionDifficultyLevelsPage() {
         <ConfirmationModal
           isOpen={confirmOpen}
           title="Confirm Delete"
-          message={(function(){
+          message={(function () {
             if (!pendingDelete.length) return 'No items selected.';
             return pendingDelete.length === 1 ? `Delete \"${pendingDelete[0].name}\"?` : `Delete ${pendingDelete.length} items?`;
           })()}

@@ -10,12 +10,14 @@ import EditPageLoader from "@/components/EditPageLoader";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { getTestSectionByIdAction, updateTestSectionAction } from "@/app/actions/admin/test-sections";
 import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
+import { unmaskAdminId } from "@/utils/urlMasking";
 import { useUser } from "@/contexts/UserContext";
 import type { GetLanguagesResponse } from "@/utils/api/types";
 
 export default function EditTestSectionPage() {
   const params = useParams();
-  const id = Number(params?.id);
+  const maskedId = params?.id as string;
+  const id = unmaskAdminId(maskedId);
   const router = useRouter();
   const { username } = useUser();
   const [loading, setLoading] = useState(true);
@@ -27,6 +29,12 @@ export default function EditTestSectionPage() {
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
+    if (!id) {
+      setToast({ message: "Invalid test section ID", type: 'error' });
+      setLoading(false);
+      router.push("/admin/tests/sections");
+      return;
+    }
     (async () => {
       const res = await getTestSectionByIdAction(id);
       if (res.status === 200 && res.data) {
@@ -53,6 +61,10 @@ export default function EditTestSectionPage() {
   }, []);
 
   const submit = async () => {
+    if (!id) {
+      setToast({ message: "Invalid test section ID", type: 'error' });
+      return;
+    }
     if (!form.testSectionName.trim()) { setToast({ message: 'Section Name is required', type: 'error' }); return; }
     if (!form.language.trim()) { setToast({ message: 'Language is required', type: 'error' }); return; }
     setSaving(true);

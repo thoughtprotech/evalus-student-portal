@@ -13,6 +13,7 @@ import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { fetchTestCategoriesODataAction, deleteTestCategoryAction, type TestCategoryRow } from "@/app/actions/admin/test-categories";
+import { maskAdminId } from "@/utils/urlMasking";
 import PaginationControls from "@/components/PaginationControls";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -34,7 +35,7 @@ function NameCellRenderer(props: { value: string; data: TestCategoryRow }) {
                     {expanded ? "−" : "+"}
                 </button>
             )}
-            <Link href={`/admin/tests/categories/${row.id}/edit`} className="text-blue-600 hover:underline truncate max-w-full" title={props.value}>
+            <Link href={`/admin/tests/categories/${maskAdminId(row.id)}/edit`} className="text-blue-600 hover:underline truncate max-w-full" title={props.value}>
                 {props.value}
             </Link>
         </div>

@@ -10,10 +10,12 @@ import EditPageLoader from "@/components/EditPageLoader";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import DateTimePicker from "@/components/form/DateTimePicker";
 import { getSpotlightByIdAction, updateSpotlightAction } from "@/app/actions/admin/spotlights";
+import { unmaskAdminId } from "@/utils/urlMasking";
 
 export default function EditSpotlightPage() {
     const params = useParams();
-    const id = Number(params?.id);
+    const maskedId = params?.id as string;
+    const id = unmaskAdminId(maskedId);
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -27,6 +29,13 @@ export default function EditSpotlightPage() {
     const [addedDate, setAddedDate] = useState<string>("");
 
     useEffect(() => {
+        // Validate masked ID first
+        if (id === null) {
+            setToast({ message: 'Invalid spotlight ID', type: 'error' });
+            setLoading(false);
+            return;
+        }
+
         (async () => {
             const res = await getSpotlightByIdAction(id);
             if (res.status === 200 && res.data) {
@@ -43,6 +52,10 @@ export default function EditSpotlightPage() {
     }, [id]);
 
     const submit = async () => {
+        if (id === null) {
+            setToast({ message: 'Invalid spotlight ID', type: 'error' });
+            return;
+        }
         if (!name.trim()) { setToast({ message: 'Name is required', type: 'error' }); return; }
         if (!validFrom || !validTo) { setToast({ message: 'Valid From and Valid To are required', type: 'error' }); return; }
         if (new Date(validFrom) > new Date(validTo)) { setToast({ message: 'Valid To should be after Valid From', type: 'error' }); return; }

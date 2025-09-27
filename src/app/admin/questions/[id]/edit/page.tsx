@@ -14,6 +14,7 @@ import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLan
 import { fetchWriteUpsAction } from "@/app/actions/dashboard/spotlight/fetchWriteUps";
 import { fetchDifficultyLevelsAction } from "@/app/actions/dashboard/questions/fetchDifficultyLevels";
 import { updateQuestionAction } from "@/app/actions/dashboard/questions/updateQuestion";
+import { unmaskAdminId } from "@/utils/urlMasking";
 import type { GetQuestionTypesResponse, GetSubjectsResponse, GetTopicsResponse, GetLanguagesResponse, GetWriteUpsResponse, GetDifficultyLevelsResponse, CreateQuestionRequest } from "@/utils/api/types";
 import { ArrowLeft, HelpCircle, Smartphone, Monitor } from "lucide-react";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -23,7 +24,8 @@ export default function EditQuestionPage() {
 	const params = useParams();
 	const router = useRouter();
 	const search = useSearchParams();
-	const id = Number(params?.id);
+	const maskedId = params?.id as string;
+	const id = unmaskAdminId(maskedId);
 	const returnTo = search?.get("returnTo") || "";
 
 	const [loading, setLoading] = useState(true);
@@ -365,6 +367,10 @@ export default function EditQuestionPage() {
 	};
 
 	const handleUpdate = async () => {
+		if (!id) {
+			toast.error("Invalid question ID");
+			return;
+		}
 		if (saving) return;
 		const payload = buildPayload();
 		if (!payload) return; setSaving(true); const res = await updateQuestionAction(id, payload); setSaving(false);

@@ -8,6 +8,7 @@ import EditPageLoader from "@/components/EditPageLoader";
 import { fetchCandidateByIdAction, updateCandidateAction } from "@/app/actions/admin/candidates/updateCandidate";
 import { fetchCompaniesAction } from "@/app/actions/admin/companies";
 import { fetchRolesAction } from "@/app/actions/admin/roles";
+import { unmaskAdminId } from "@/utils/urlMasking";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
 import { useUser } from "@/contexts/UserContext";
@@ -32,7 +33,8 @@ const COUNTRIES = [
 export default function EditCandidatePage() {
   const params = useParams();
   const router = useRouter();
-  const candidateId = Number(params?.id);
+  const maskedId = params?.id as string;
+  const candidateId = unmaskAdminId(maskedId);
   const { username } = useUser();
 
   const [loading, setLoading] = useState(true);
@@ -85,6 +87,12 @@ export default function EditCandidatePage() {
 
   // Fetch candidate details + companies + group tree
   useEffect(() => {
+    if (!candidateId) {
+      setToast({ message: "Invalid candidate ID", type: 'error' });
+      setLoading(false);
+      router.push("/admin/candidates");
+      return;
+    }
     let mounted = true;
     (async () => {
       try {
@@ -320,6 +328,10 @@ export default function EditCandidatePage() {
   };
 
   const submit = async () => {
+    if (!candidateId) {
+      setToast({ message: "Invalid candidate ID", type: 'error' });
+      return;
+    }
     if (!validate()) return;
     setSaving(true);
     const chosenGroupIds = selectedGroupIds;
@@ -387,8 +399,8 @@ export default function EditCandidatePage() {
                   onClick={submit}
                   disabled={saving}
                   className={`px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-colors ${saving
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-indigo-600 hover:bg-indigo-700"
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-indigo-600 hover:bg-indigo-700"
                     }`}
                 >
                   {saving ? "Saving..." : "Save Candidate"}

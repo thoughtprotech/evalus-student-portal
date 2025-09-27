@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { User } from "lucide-react";
 import { Filter, XCircle, Trash2, PlusCircle } from "lucide-react";
 import { fetchCandidatesAction, deleteCandidateAction, type CandidateRow } from "@/app/actions/admin/candidates";
+import { maskAdminId } from "@/utils/urlMasking";
 import PageHeader from "@/components/PageHeader";
 import Link from "next/link";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -27,7 +28,7 @@ function NameCellRenderer(props: { value: string; data: CandidateRow }) {
     return (
         <Link
             className="text-blue-600 hover:underline"
-            href={`/admin/candidates/${props.data.candidateId}/edit`}
+            href={`/admin/candidates/${maskAdminId(props.data.candidateId)}/edit`}
             title={`Edit ${props.value}`}
         >
             {props.value}
@@ -39,8 +40,8 @@ function IsActiveCellRenderer(props: { value: number | boolean }) {
     const isActive = Boolean(props.value);
     return (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${isActive
-                ? 'bg-green-100 text-green-800'
-                : 'bg-red-100 text-red-800'
+            ? 'bg-green-100 text-green-800'
+            : 'bg-red-100 text-red-800'
             }`}>
             {isActive ? 'Active' : 'Inactive'}
         </span>
@@ -576,13 +577,13 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
                             stopEditingWhenCellsLoseFocus={true}
                             theme="legacy"
                         />
-                                                {loading && <GridOverlayLoader message="Loading candidates..." />}
+                        {loading && <GridOverlayLoader message="Loading candidates..." />}
                     </div>
                 )}
-                                {loading && rows.length === 0 && (
-                                    // For first load ensure height is reserved (grid container already handles). Overlay covers.
-                                    <></>
-                                )}
+                {loading && rows.length === 0 && (
+                    // For first load ensure height is reserved (grid container already handles). Overlay covers.
+                    <></>
+                )}
             </div>
 
             <style jsx global>{`

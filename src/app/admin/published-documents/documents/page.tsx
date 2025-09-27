@@ -16,6 +16,7 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 import { fetchPublishedDocumentsODataAction, deletePublishedDocumentAction, type PublishedDocumentRow } from "@/app/actions/admin/publishedDocuments";
+import { maskAdminId } from "@/utils/urlMasking";
 import { deleteLocalUpload, isLocalUploadUrl } from "@/utils/deleteLocalUpload";
 import { fetchPublishedDocumentFoldersODataAction } from "@/app/actions/admin/publishedDocumentFolders";
 
@@ -62,7 +63,7 @@ export default function PublishedDocumentsPage() {
 
   const columnDefs = useMemo<ColDef<DocumentRow>[]>(() => [
     // Put Document Name first for easier scanning and consistent UX
-    { field: 'documentName', headerName: 'Document Name', width: 940, filter: 'agTextColumnFilter', sortable: true, cellRenderer: (p: { value: string; data: DocumentRow }) => <Link className="text-blue-600 hover:underline" href={`/admin/published-documents/documents/${p.data.id}/edit`}>{p.value}</Link> },
+    { field: 'documentName', headerName: 'Document Name', width: 940, filter: 'agTextColumnFilter', sortable: true, cellRenderer: (p: { value: string; data: DocumentRow }) => <Link className="text-blue-600 hover:underline" href={`/admin/published-documents/documents/${maskAdminId(p.data.id)}/edit`}>{p.value}</Link> },
     { field: 'folderName', headerName: 'Documents Folder', width: 520, filter: 'agTextColumnFilter', sortable: true },
     {
       field: 'documentUrl',

@@ -1,5 +1,6 @@
 import React from "react";
 import TestSteps from "../../new/test-steps";
+import { unmaskAdminId } from "@/utils/urlMasking";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
 import type {
@@ -110,8 +111,8 @@ function normalizeTestToDraft(test: any): any {
         const opts = qObj.Questionoptions ?? qObj.questionoptions ?? qObj.QuestionOptions ?? qObj.questionOptions ?? [];
         const normOpts = Array.isArray(opts)
           ? opts.map((o: any) => ({
-              QuestionText: o?.QuestionText ?? o?.questionText ?? o?.text ?? null,
-            }))
+            QuestionText: o?.QuestionText ?? o?.questionText ?? o?.text ?? null,
+          }))
           : [];
         Question = { Questionoptions: normOpts };
       }
@@ -163,8 +164,17 @@ function normalizeTestToDraft(test: any): any {
 }
 
 export default async function EditTestPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: idStr } = await params;
-  const id = Number(idStr);
+  const { id: maskedId } = await params;
+  const id = unmaskAdminId(maskedId);
+
+  if (!id) {
+    return (
+      <div className="w-[85%] mx-auto px-6 py-8">
+        <div className="text-red-600">Invalid test ID</div>
+      </div>
+    );
+  }
+
   // Load dropdown data in parallel
   const [typesRes, catsRes, instRes, lvlsRes, testRes] = await Promise.all([
     apiHandler(endpoints.getTestTypes, null as any),

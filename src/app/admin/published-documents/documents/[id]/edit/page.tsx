@@ -8,6 +8,7 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { ArrowLeft, BookOpenText, Save } from "lucide-react";
 import { fetchPublishedDocumentFoldersODataAction, type PublishedDocumentFolderRow } from "@/app/actions/admin/publishedDocumentFolders";
 import { getPublishedDocumentByIdAction, updatePublishedDocumentAction } from "@/app/actions/admin/publishedDocuments";
+import { unmaskAdminId } from "@/utils/urlMasking";
 import { uploadToLocal } from "@/utils/uploadToLocal";
 import { deleteLocalUpload, isLocalUploadUrl } from "@/utils/deleteLocalUpload";
 import DateTimePicker from "@/components/form/DateTimePicker";
@@ -24,7 +25,8 @@ type FormState = {
 
 export default function EditPublishedDocumentPage() {
   const params = useParams();
-  const id = Number(params?.id);
+  const maskedId = params?.id as string;
+  const id = unmaskAdminId(maskedId);
   const router = useRouter();
   const [folders, setFolders] = useState<PublishedDocumentFolderRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +38,12 @@ export default function EditPublishedDocumentPage() {
   const inputCls = "w-full border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md px-3 py-2 text-sm bg-white";
 
   useEffect(() => {
+    if (!id) {
+      setError("Invalid document ID");
+      setLoading(false);
+      router.push("/admin/published-documents/documents");
+      return;
+    }
     let mounted = true;
     (async () => {
       try {
@@ -78,6 +86,10 @@ export default function EditPublishedDocumentPage() {
   };
 
   const save = async () => {
+    if (!id) {
+      setError("Invalid document ID");
+      return;
+    }
     if (!canSave) { setError('Provide a file or a URL, and fill Valid From and Valid To'); return; }
     setSaving(true);
     try {
