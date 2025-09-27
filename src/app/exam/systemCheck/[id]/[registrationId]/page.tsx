@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useExamMode } from "@/hooks/useExamMode";
 import {
   CheckCircle,
   XCircle,
@@ -32,6 +33,9 @@ interface ExtendedNavigator extends Navigator {
 export default function SystemCheckPage() {
   const { id, registrationId } = useParams();
   const router = useRouter();
+
+  // Prevent auto-logout during exam
+  useExamMode();
 
   // The check steps
   const [steps, setSteps] = useState<Step[]>([
@@ -213,9 +217,8 @@ export default function SystemCheckPage() {
             </div>
             <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
               <div
-                className={`h-1.5 rounded-full transition-all duration-500 ${
-                  checking ? "bg-indigo-500" : "bg-emerald-500"
-                }`}
+                className={`h-1.5 rounded-full transition-all duration-500 ${checking ? "bg-indigo-500" : "bg-emerald-500"
+                  }`}
                 style={{ width: `${progressPct}%` }}
               />
             </div>
@@ -239,9 +242,8 @@ export default function SystemCheckPage() {
                           {steps[0].name}
                         </span>
                         <span
-                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10.5px] ring-1 ring-inset ${
-                            statusTone[steps[0].status]
-                          }`}
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10.5px] ring-1 ring-inset ${statusTone[steps[0].status]
+                            }`}
                         >
                           {steps[0].status}
                         </span>
@@ -267,9 +269,8 @@ export default function SystemCheckPage() {
                           {steps[1].name}
                         </span>
                         <span
-                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10.5px] ring-1 ring-inset ${
-                            statusTone[steps[1].status]
-                          }`}
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10.5px] ring-1 ring-inset ${statusTone[steps[1].status]
+                            }`}
                         >
                           {steps[1].status}
                         </span>
@@ -295,9 +296,8 @@ export default function SystemCheckPage() {
                           {steps[2].name}
                         </span>
                         <span
-                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10.5px] ring-1 ring-inset ${
-                            statusTone[steps[2].status]
-                          }`}
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10.5px] ring-1 ring-inset ${statusTone[steps[2].status]
+                            }`}
                         >
                           {steps[2].status}
                         </span>

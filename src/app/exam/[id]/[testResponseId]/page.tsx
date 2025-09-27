@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useExamMode } from "@/hooks/useExamMode";
 import {
   GetQuestionByIdResponse,
   GetTestMetaDataResponse,
@@ -27,6 +28,10 @@ import SSCTemplate from "./templates/ssc/page";
 
 export default function ExamPage() {
   const { id, testResponseId } = useParams();
+
+  // Prevent auto-logout during exam
+  useExamMode();
+
   const [loaded, setLoaded] = useState<boolean>(false);
   const [template, setTemplate] = useState<number | null>();
 
@@ -627,7 +632,7 @@ export default function ExamPage() {
       // If this screen owns the connection lifecycle, you can also disconnect here.
       // If multiple pages share the same singleton connection, you might choose to leave it connected.
       // For exam-only usage, it's reasonable to stop on unmount:
-      signalRClient.disconnect().catch(() => {});
+      signalRClient.disconnect().catch(() => { });
       isMounted = false;
     };
   }, [testResponseId]);

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useExamMode } from "@/hooks/useExamMode";
 import mockInstructions from "@/mock/mockInstructions.json";
 import { startCandidateTestSessionAction } from "@/app/actions/exam/session/startCandidateTestSession";
 import toast from "react-hot-toast";
@@ -28,6 +29,9 @@ const instructionsMap: Record<string, InstructionData> = mockInstructions;
 export default function ExamStartPage() {
   const { id, registrationId } = useParams();
   const router = useRouter();
+
+  // Prevent auto-logout during exam
+  useExamMode();
   const [instructionData, setInstructionData] = useState<
     GetInstructionsByTestIdResponse[] | undefined
   >();
@@ -189,11 +193,10 @@ export default function ExamStartPage() {
             <button
               onClick={handleProceed}
               disabled={!agreed}
-              className={`w-full py-2.5 rounded-md font-semibold transition-colors cursor-pointer ${
-                agreed
+              className={`w-full py-2.5 rounded-md font-semibold transition-colors cursor-pointer ${agreed
                   ? "bg-indigo-600 hover:bg-indigo-700 text-white"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
-              }`}
+                }`}
             >
               <span className="inline-flex items-center justify-center gap-2">
                 <CheckSquare className="h-4 w-4" />
