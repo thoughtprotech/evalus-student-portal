@@ -1,5 +1,5 @@
 import { TextOrHtml } from "@/components/TextOrHtml";
-import { GetQuestionByIdResponse } from "@/utils/api/types";
+import { GetQuestionByIdResponse, QuestionsMetaDataInterface } from "@/utils/api/types";
 import DirectionsArea from "./DirectionsArea";
 import ScrollXToggleButton from "@/components/ScrollXToggleButton";
 import ScrollToggleButton from "@/components/ScrollToggleButton";
@@ -7,7 +7,7 @@ import ScrollToggleButton from "@/components/ScrollToggleButton";
 export default function QuestionArea({
   question,
 }: {
-  question: GetQuestionByIdResponse;
+  question: QuestionsMetaDataInterface;
 }) {
   return (
     <div className="w-full flex flex-col gap-4 h-full pr-4 relative">
@@ -22,7 +22,7 @@ export default function QuestionArea({
           </div>
           <div>
             <div className="text-md sm:text-lg font-medium">
-              <TextOrHtml content={question.question} />
+              <TextOrHtml content={question.questionText} />
             </div>
           </div>
           <ScrollXToggleButton containerSelector="#questionBox" />

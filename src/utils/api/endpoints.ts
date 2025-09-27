@@ -961,8 +961,8 @@ export const endpoints = {
   } as Endpoint<StartSessionRequest, StartSessionResponse>,
 
   submitQuestion: {
-    path: () => `/api/TestSessions/answer`,
-    method: "PUT",
+    path: ({TestId}) => `/api/TestSessions/${TestId}/answers`,
+    method: "POST",
     type: "CLOSE",
   } as Endpoint<SubmitQuestionRequest, SubmitQuestionResponse>,
 

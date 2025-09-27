@@ -5,6 +5,7 @@ import { ApiResponse, SubmitQuestionResponse } from "@/utils/api/types";
 import { endpoints } from "@/utils/api/endpoints";
 
 export async function submitQuestionAction(
+  TestId: number,
   testResponseId: number,
   testQuestionId: number,
   responseJson: string,
@@ -19,11 +20,12 @@ export async function submitQuestionAction(
     };
 
     const res = await apiHandler(endpoints.submitQuestion, {
+      TestId,
       testResponseId,
       testQuestionId,
       comments,
-      responseJson,
-      status,
+      testResponseJson: responseJson,
+      testResponseStatus: status,
       userName,
     });
     return {
