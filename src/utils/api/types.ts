@@ -496,7 +496,7 @@ export type SubmitQuestionRequest = {
 export interface SubmitQuestionResponse {}
 
 export interface SubmitTestRequest {
-  testResponseId: number;
+  testId: number; // replaced testResponseId per new keying strategy
   userName: string;
 }
 

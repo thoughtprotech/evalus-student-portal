@@ -397,14 +397,17 @@ export default function ExamPage() {
 
   const submitTest = async () => {
     const username = await getUserAction();
-
     if (!username) {
       toast.error("Something Went Wrong");
+      return;
     }
-
+    if (!testMetaData?.testMeta?.testId) {
+      toast.error("Test not ready");
+      return;
+    }
     const response = await endCandidateSessionAction(
-      Number(testResponseId),
-      username!
+      testMetaData.testMeta.testId,
+      username
     );
 
     if (response.status === 200) {
