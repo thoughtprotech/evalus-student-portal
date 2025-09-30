@@ -235,6 +235,8 @@ export interface GetCandidateTestResponse {
   testId: number;
   // Optional id from registration table if candidate already registered
   testRegistrationId: number;
+  testDurationMinutes: number;
+  testDurationForHandicappedMinutes: number
 }
 
 export interface GetCandidateStarredTestRequest {

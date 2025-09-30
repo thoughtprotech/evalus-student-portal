@@ -21,6 +21,8 @@ export async function fetchCandidateTestList(
         ? endpoints.getCandidateTests
         : endpoints.getStudentDashboardTests;
 
+      console.log(`USING ENDPOINT: ${endpoint.path}`);
+
       const { status, error, data, errorMessage, message } = await apiHandler(
         endpoint,
         useGroup ? ({ username, groupId } as any) : ({ username } as any)
@@ -67,6 +69,7 @@ export async function fetchCandidateTestList(
             testCandidateRegistrationStatus: finalStatus,
             testId: t.testId || t.TestId || t.id,
             testRegistrationId:
+             
               t.testRegistrationId ||
               t.TestRegistrationId ||
               t.TestRegistrationID ||
@@ -74,6 +77,9 @@ export async function fetchCandidateTestList(
               t.RegistrationId ||
               t.RegistrationID ||
               0,
+            testDurationMinutes: t.testDurationMinutes,
+            testDurationForHandicappedMinutes:
+              t.testDurationForHandicappedMinutes,
           } as GetCandidateTestResponse;
         });
       } else if (data && typeof data === "object") {
@@ -125,6 +131,9 @@ export async function fetchCandidateTestList(
                 testEndDate: t.testEndDate || t.EndDate || t.TestEndDate,
                 testCandidateRegistrationStatus: finalStatus,
                 testId: t.testId || t.TestId || t.id,
+                testDurationMinutes: t.testDurationMinutes,
+                testDurationForHandicappedMinutes:
+                  t.testDurationForHandicappedMinutes,
                 testRegistrationId:
                   t.testRegistrationId ||
                   t.TestRegistrationId ||

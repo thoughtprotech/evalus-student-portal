@@ -13,11 +13,21 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { format, parseISO, differenceInMinutes } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { registerTestAction } from "@/app/actions/dashboard/registerTest";
 import { rescheduleTestAction } from "@/app/actions/dashboard/rescheduleTest";
 import { setExamMode } from "@/components/AutoLogout";
 import toast from "react-hot-toast";
+
+function formatDurationToHHMM(minutes: number) {
+  // console.log({ minutes });
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  // Pad with leading zeros for HH:MM format
+  const hh = hours.toString().padStart(2, "0");
+  const mm = mins.toString().padStart(2, "0");
+  return `${hh}:${mm}`;
+}
 
 interface TestCardsProps {
   id: string;
@@ -25,17 +35,20 @@ interface TestCardsProps {
   startDateTimeString?: string;
   endDateTimeString?: string;
   status?:
-  | "Registered"
-  | "Completed"
-  | "Cancelled"
-  | "In Progress"
-  | "Missed"
-  | "Up Next"
-  | undefined;
+    | "Registered"
+    | "Completed"
+    | "Cancelled"
+    | "In Progress"
+    | "Missed"
+    | "Up Next"
+    | undefined;
   bookmarked?: boolean; // initial state from parent (optional)
   registrationId: number;
   onRegistered?: () => Promise<void> | void; // callback to refresh dashboard after registration
   onToggleStar?: (testId: number, nowStarred: boolean) => void | Promise<void>; // allow parent sync
+  testDurationMinutes: number;
+  testDurationForHandicappedMinutes: number;
+  test: any;
 }
 
 export default function TestCards({
@@ -48,13 +61,17 @@ export default function TestCards({
   registrationId,
   onRegistered,
   onToggleStar,
+  testDurationMinutes,
+  testDurationForHandicappedMinutes,
+  test,
 }: TestCardsProps) {
-  // Parse ISO date strings
+  console.log({ test });
+
+  // Parse ISO date strings for display
   let formattedStartDate;
   let formattedStartTime;
   let formattedEndDate;
   let formattedEndTime;
-  let formattedDuration;
 
   if (startDateTimeString && endDateTimeString) {
     const startDate = parseISO(startDateTimeString);
@@ -64,23 +81,17 @@ export default function TestCards({
     formattedStartTime = format(startDate, "p"); // e.g., 10:00 AM
     formattedEndDate = format(endDate, "PPP");
     formattedEndTime = format(endDate, "p");
-
-    const durationInMinutes = differenceInMinutes(endDate, startDate);
-    const hours = Math.floor(durationInMinutes / 60);
-    const minutes = durationInMinutes % 60;
-    formattedDuration =
-      hours > 0
-        ? `${hours}h ${minutes > 0 ? `${minutes}m` : ""}`
-        : `${minutes}m`;
   }
+
+  // Format duration as HH:MM
+  const formattedDuration = formatDurationToHHMM(testDurationMinutes);
+  const formattedHandicapDuration = formatDurationToHHMM(testDurationForHandicappedMinutes);
 
   // Map status to action button colors
   const actionButtonMapping: Record<any, string> = {
-    // Registered button should be blue like its tab icon
     Registered: "bg-blue-600 hover:bg-blue-700",
     "In Progress": "bg-blue-600 hover:bg-blue-700",
-    // Up Next should use purple per requirement (matching tab icon)
-    "Up Next": "bg-purple-600 hover:bg-purple-700",
+    "Up Next": "bg-blue-600 hover:bg-blue-700",
     Missed: "bg-orange-600 hover:bg-orange-700",
     Cancelled: "bg-red-600 hover:bg-red-700",
     Completed: "bg-green-600 hover:bg-green-700",
@@ -96,9 +107,9 @@ export default function TestCards({
     linkIcon = <Play className="w-5 h-5 ml-2" />;
     linkHref = `/exam/systemCheck/${encodeURIComponent(id)}/${registrationId}`;
   } else if (status === "Up Next") {
-    linkText = "Register"; // per requirement
-    linkIcon = <PenSquare className="w-5 h-5 ml-2" />;
-    linkHref = `#register-${encodeURIComponent(id)}`; // no navigation; modal opens
+    linkText = "Start";
+    linkIcon = <Play className="w-5 h-5 ml-2" />;
+    linkHref = `/exam/systemCheck/${encodeURIComponent(id)}/${registrationId}`;
   } else if (status === "In Progress") {
     linkText = "Resume";
     linkIcon = <CalendarCheckIcon className="w-5 h-5 ml-2" />;
@@ -119,7 +130,7 @@ export default function TestCards({
   }
 
   const openInPopup = (e: React.MouseEvent) => {
-    if (status !== "Registered") return;
+    if (status !== "Up Next") return;
 
     console.log({ registrationId });
 
@@ -157,47 +168,28 @@ export default function TestCards({
         setExamMode(false);
       }
     }, 1000);
-
-    // when ready, request fullscreen and inject blockers
+    
     popup.addEventListener("load", () => {
-      // Fullscreen
       popup.document.documentElement
         .requestFullscreen()
         .catch(() => console.warn("Fullscreen denied"));
 
-      // Block right-click
-      // popup.document.addEventListener("contextmenu", (ev) =>
-      //   ev.preventDefault()
-      // );
-
-      // Block common DevTools shortcuts
-      // popup.document.addEventListener("keydown", (ev) => {
-      //   if (
-      //     ev.key === "F12" ||
-      //     (ev.ctrlKey && ev.shiftKey && ["I", "J", "C"].includes(ev.key)) ||
-      //     (ev.ctrlKey && ev.key === "u")
-      //   ) {
-      //     ev.preventDefault();
-      //   }
-      // });
-
-      // Re-request fullscreen if user exits
       popup.document.addEventListener("fullscreenchange", () => {
         if (!popup.document.fullscreenElement) {
-          popup.document.documentElement.requestFullscreen().catch(() => { });
+          popup.document.documentElement.requestFullscreen().catch(() => {});
         }
       });
     });
   };
 
-  // Modal state for Up Next registration
   const [showRegisterModal, setShowRegisterModal] = useState(false);
-  // Pre-fill with server provided start (if future) else current datetime local (rounded to minutes)
+
   const defaultLocal = () => {
     const d = new Date();
     d.setSeconds(0, 0);
     return d.toISOString().slice(0, 16);
   };
+
   const initialStart = (() => {
     if (startDateTimeString) {
       try {
@@ -205,7 +197,7 @@ export default function TestCards({
         if (isFinite(s.getTime()) && s.getTime() > Date.now() - 60000) {
           return s.toISOString().slice(0, 16);
         }
-      } catch { }
+      } catch {}
     }
     return defaultLocal();
   })();
@@ -240,6 +232,7 @@ export default function TestCards({
     ? new Date(rescheduleDate).getTime() < Date.now() - 60000
     : true;
   const [registering, setRegistering] = useState(false);
+
   const confirmRegistration = async () => {
     setStartTouched(true);
     if (!proposedStart || isPast || registering) return;
@@ -258,9 +251,7 @@ export default function TestCards({
         if (onRegistered) {
           try {
             await onRegistered();
-          } catch {
-            /* ignore */
-          }
+          } catch {}
         }
       } else {
         toast.error(res.errorMessage || res.message || "Registration failed");
@@ -323,24 +314,30 @@ export default function TestCards({
     if (starLoading) return;
     setStarLoading(true);
     try {
-      // Dynamic import server action wrapper via fetch (since server actions can't be called directly client-side)
-      const res = await fetch('/api/internal/star-tests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ testId: Number(id), makeStarred: !starred })
+      const res = await fetch("/api/internal/star-tests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ testId: Number(id), makeStarred: !starred }),
       });
       if (res.ok) {
         const now = !starred;
         setStarred(now);
         if (onToggleStar) {
-          try { await onToggleStar(Number(id), now); } catch { /* ignore */ }
+          try {
+            await onToggleStar(Number(id), now);
+          } catch {}
         }
       } else {
-        // best effort toast if available
-        try { (await import('react-hot-toast')).toast.error('Failed to update star'); } catch { /* ignore */ }
+        try {
+          (await import("react-hot-toast")).toast.error(
+            "Failed to update star"
+          );
+        } catch {}
       }
     } catch {
-      try { (await import('react-hot-toast')).toast.error('Failed to update star'); } catch { /* ignore */ }
+      try {
+        (await import("react-hot-toast")).toast.error("Failed to update star");
+      } catch {}
     } finally {
       setStarLoading(false);
     }
@@ -352,7 +349,9 @@ export default function TestCards({
       <input type="hidden" name="testRegistrationId" value={registrationId} />
       {/* Test Title */}
       <div className="w-full border-b border-b-gray-300 pb-4">
-        <h1 className="text-2xl font-bold text-gray-800 truncate text-ellipsis">
+        <h1 className="text-2xl font-bold text-gray-800 truncate text-ellipsis"
+        title={name}
+        >
           {name}
         </h1>
       </div>
@@ -413,16 +412,23 @@ export default function TestCards({
         <h1 className="text-sm text-gray-600 font-bold">
           Duration: {formattedDuration}
         </h1>
+        <h1 className="text-sm text-gray-600 font-bold">
+          Handicap Duration: {formattedHandicapDuration}
+        </h1>
         <div className="flex items-center gap-4">
           {starred ? (
             <BookmarkCheck
               onClick={toggleStar}
-              className={`text-indigo-600 cursor-pointer hover:text-indigo-700 duration-300 ${starLoading ? 'opacity-50 pointer-events-none' : ''}`}
+              className={`text-indigo-600 cursor-pointer hover:text-indigo-700 duration-300 ${
+                starLoading ? "opacity-50 pointer-events-none" : ""
+              }`}
             />
           ) : (
             <Bookmark
               onClick={toggleStar}
-              className={`text-gray-500 cursor-pointer hover:text-indigo-700 duration-300 ${starLoading ? 'opacity-50 pointer-events-none' : ''}`}
+              className={`text-gray-500 cursor-pointer hover:text-indigo-700 duration-300 ${
+                starLoading ? "opacity-50 pointer-events-none" : ""
+              }`}
             />
           )}
         </div>
@@ -432,15 +438,12 @@ export default function TestCards({
       <div className="w-full">
         <a
           href={linkHref}
-          onClick={
-            status === "Up Next"
-              ? onClickRegister
-              : status === "Missed"
-                ? onClickReschedule
-                : openInPopup
-          }
-          className={`w-full flex items-center justify-center gap-1 px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${status && actionButtonMapping[status]
-            }`}
+          onClick={openInPopup}
+          className={`${
+            status === "Missed" && "hidden"
+          } w-full flex items-center justify-center gap-1 px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${
+            status && actionButtonMapping[status]
+          }`}
         >
           {linkText}
           {linkIcon}
@@ -474,10 +477,11 @@ export default function TestCards({
               onChange={(e) => setProposedStart(e.target.value)}
               onBlur={() => setStartTouched(true)}
               required
-              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${startTouched && (!proposedStart || isPast)
-                ? "border-red-500"
-                : "border-gray-300"
-                }`}
+              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${
+                startTouched && (!proposedStart || isPast)
+                  ? "border-red-500"
+                  : "border-gray-300"
+              }`}
             />
             {startTouched && !proposedStart && (
               <p className="text-xs text-red-600">

@@ -28,14 +28,14 @@ export default function Index() {
   } = useUser();
   const [loaded, setLoaded] = useState<boolean>(false);
   // Default tab: Up Next for normal dashboard, Registered when viewing a group
-  const [currentTab, setCurrentTab] = useState<number>(groupSelected ? 0 : 2);
+  const [currentTab, setCurrentTab] = useState<number>(groupSelected ? 0 : 0);
   const [searchQuery, setSearchQuery] = useState("");
   const [testList, setTestList] = useState<GetCandidateTestResponse[]>([]);
   const [starredIds, setStarredIds] = useState<number[]>([]);
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(20); // default 20 cards per page
 
-  const tabs = ["Registered", "In Progress", "Up Next", "Completed", "Missed"];
+  const tabs = ["Up Next", "Completed", "Missed"];
 
   const fetchTestList = async () => {
     const res = await fetchCandidateTestList(Number(currentGroupId), {
@@ -68,7 +68,7 @@ export default function Index() {
 
   // When groupSelected toggles, reset the default tab per requirement
   useEffect(() => {
-    setCurrentTab(groupSelected ? 0 : 2);
+    setCurrentTab(groupSelected ? 0 : 0);
   }, [groupSelected]);
 
   // Derive the filtered test list based on the current tab and search query
@@ -194,6 +194,9 @@ export default function Index() {
                     }}
                     registrationId={test.testRegistrationId}
                     onToggleStar={async () => { await fetchStarred(); }}
+                    testDurationMinutes={test.testDurationMinutes}
+                    testDurationForHandicappedMinutes={test.testDurationForHandicappedMinutes}
+                    test={test}
                   />
                 </div>
               ))}
