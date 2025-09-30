@@ -14,6 +14,7 @@ import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLan
 import { fetchWriteUpsAction } from "@/app/actions/dashboard/spotlight/fetchWriteUps";
 import { fetchDifficultyLevelsAction } from "@/app/actions/dashboard/questions/fetchDifficultyLevels";
 import { updateQuestionAction } from "@/app/actions/dashboard/questions/updateQuestion";
+import { unmaskAdminId } from "@/utils/urlMasking";
 import type { GetQuestionTypesResponse, GetSubjectsResponse, GetTopicsResponse, GetLanguagesResponse, GetWriteUpsResponse, GetDifficultyLevelsResponse, CreateQuestionRequest } from "@/utils/api/types";
 import { ArrowLeft, HelpCircle, Smartphone, Monitor } from "lucide-react";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -23,7 +24,8 @@ export default function EditQuestionPage() {
 	const params = useParams();
 	const router = useRouter();
 	const search = useSearchParams();
-	const id = Number(params?.id);
+	const maskedId = params?.id as string;
+	const id = unmaskAdminId(maskedId);
 	const returnTo = search?.get("returnTo") || "";
 
 	const [loading, setLoading] = useState(true);
@@ -40,6 +42,7 @@ export default function EditQuestionPage() {
 	const [difficultyLevels, setDifficultyLevels] = useState<GetDifficultyLevelsResponse[]>([]);
 
 	const [question, setQuestion] = useState("");
+	const [batchNo, setBatchNo] = useState<string>("");
 	const [questionHeader, setQuestionHeader] = useState("");
 	const [explanation, setExplanation] = useState("");
 	const [videoSolWebURL, setVideoSolWebURL] = useState("");
@@ -146,6 +149,12 @@ export default function EditQuestionPage() {
 					allowComments: (q as any).allowCandidateComments === 1 || (q as any).allowComments === 1 || (q as any).questionsMeta?.allowCandidateComments === 1 ? 1 : 0,
 				}));
 				setQuestionStatus((q as any).isActive === 0 ? 0 : 1);
+				{
+					const qq: any = q as any;
+					const meta: any = qq.questionsMeta ?? {};
+					const bn = qq.batchNo ?? qq.BatchNo ?? qq.BatchNumber ?? qq.batchno ?? qq.batchnumber ?? meta.batchNo ?? meta.BatchNo ?? meta.BatchNumber ?? meta.batchno ?? meta.batchnumber ?? "";
+					setBatchNo(typeof bn === 'string' ? bn : String(bn ?? ""));
+				}
 
 				try {
 					// Handle options coming either as raw JSON strings or already structured inside q.options
@@ -222,9 +231,92 @@ export default function EditQuestionPage() {
 		if (!currentTypeLabel) { toast.error("Question Type required"); return null; }
 		if (!question.trim()) { toast.error("Question is required"); return null; }
 		if (!questionsMeta.languageId) { toast.error("Language is required"); return null; }
-		if (!questionsMeta.subjectId || !questionsMeta.chapterId || !questionsMeta.topicId) { toast.error("Subject hierarchy incomplete"); return null; }
+		// Only Subject is required; Chapter/Topic are optional
+		if (!questionsMeta.subjectId) { toast.error("Subject is required"); return null; }
 		if (!questionsMeta.difficulty) { toast.error("Difficulty required"); return null; }
 		if (!questionsMeta.marks) { toast.error("Marks required"); return null; }
+
+		// Validate answer options based on question type
+		const validateByType = () => {
+			const ans = questionOptions?.answer;
+			const opts = questionOptions?.options;
+
+			switch (currentTypeLabel) {
+				case QUESTION_TYPES.SINGLE_MCQ:
+				case QUESTION_TYPES.MULTIPLE_MCQ: {
+					if (!opts || !Array.isArray(opts) || opts.length === 0) {
+						return { ok: false, msg: "Options are required" };
+					}
+					if (!ans || !Array.isArray(ans) || ans.length === 0) {
+						return { ok: false, msg: "Please select at least one correct answer" };
+					}
+					return { ok: true };
+				}
+				case QUESTION_TYPES.MATCH_PAIRS_SINGLE:
+				case QUESTION_TYPES.MATCH_PAIRS_MULTIPLE: {
+					if (!opts || !Array.isArray(opts) || opts.length < 2) {
+						return { ok: false, msg: "Match pair columns are required" };
+					}
+					const left = opts[0] || [];
+					const right = opts[1] || [];
+					if (!Array.isArray(left) || !Array.isArray(right) || left.length === 0 || right.length === 0) {
+						return { ok: false, msg: "Both match pair columns must have options" };
+					}
+					if (!ans || (Array.isArray(ans) && ans.length === 0)) {
+						return { ok: false, msg: "Please select answer pairs" };
+					}
+					return { ok: true };
+				}
+				case QUESTION_TYPES.TRUEFALSE: {
+					if (!ans || !Array.isArray(ans) || ans.length === 0) {
+						return { ok: false, msg: "Please select True or False" };
+					}
+					return { ok: true };
+				}
+				case QUESTION_TYPES.NUMERIC: {
+					if (ans === undefined || ans === null || ans === "") {
+						return { ok: false, msg: "Numeric answer is required" };
+					}
+					const text = String(ans).trim();
+					if (!text) {
+						return { ok: false, msg: "Numeric answer cannot be empty" };
+					}
+					return { ok: true };
+				}
+				case QUESTION_TYPES.FILL_ANSWER: {
+					if (ans === undefined || ans === null) {
+						return { ok: false, msg: "Answer is required" };
+					}
+					const text = String(ans).trim();
+					if (!text) {
+						return { ok: false, msg: "Answer cannot be empty" };
+					}
+					return { ok: true };
+				}
+				case QUESTION_TYPES.WRITE_UP: {
+					// No answer required for Write Up type
+					return { ok: true };
+				}
+				default: {
+					// Generic validation for other types
+					if (ans === undefined || ans === null) {
+						return { ok: false, msg: "Answer is required" };
+					}
+					const text = Array.isArray(ans) ? ans.join("") : String(ans ?? "");
+					if (!text.trim()) {
+						return { ok: false, msg: "Answer is required" };
+					}
+					return { ok: true };
+				}
+			}
+		};
+
+		const validation = validateByType();
+		if (!validation.ok) {
+			toast.error(validation.msg || "Please complete the answer options");
+			return null;
+		}
+
 		let optionsStr = ""; let answerStr = ""; const qo = questionOptions;
 		if (currentTypeLabel === QUESTION_TYPES.SINGLE_MCQ) { optionsStr = JSON.stringify({ type: "mcq-single", options: qo?.options || [] }); answerStr = JSON.stringify(qo?.answer || []); }
 		else if (currentTypeLabel === QUESTION_TYPES.MULTIPLE_MCQ) { optionsStr = JSON.stringify({ type: "mcq-multiple", options: qo?.options || [] }); answerStr = JSON.stringify(qo?.answer || []); }
@@ -241,6 +333,7 @@ export default function EditQuestionPage() {
 			explanation: explanation.trim(),
 			videoSolURL: videoSolWebURL || videoSolMobileURL || undefined,
 			videoSolMobileURL: videoSolMobileURL || undefined,
+			...(batchNo?.trim() ? { batchNo: batchNo.trim(), BatchNo: batchNo.trim(), BatchNumber: batchNo.trim() } : {}),
 			questionsMeta: {
 				tags: questionsMeta.tags,
 				marks: questionsMeta.marks,
@@ -249,14 +342,17 @@ export default function EditQuestionPage() {
 				duration: questionsMeta.duration || 0,
 				difficultyLevelId: questionsMeta.difficulty,
 				questionTypeId: questionsMeta.questionType,
-					questionTypeName: currentTypeLabel || undefined,
-					chapterId: questionsMeta.chapterId || 0,
-				subjectId: questionsMeta.topicId || questionsMeta.subjectId,
-				topicId: questionsMeta.topicId,
+				questionTypeName: currentTypeLabel || undefined,
+				chapterId: questionsMeta.chapterId || 0,
+				// Backend expects SubjectID as the most specific node: use Topic when selected; else Subject
+				subjectId: questionsMeta.topicId ? questionsMeta.topicId : questionsMeta.subjectId,
+				// TopicId should be the selected Topic, or fall back to Subject when no Topic chosen
+				topicId: questionsMeta.topicId || questionsMeta.subjectId || 0,
 				language: questionsMeta.languageId,
 				writeUpId: questionsMeta.writeUpId,
 				headerText: questionHeader,
 				allowCandidateComments: questionsMeta.allowComments,
+				...(batchNo?.trim() ? { batchNo: batchNo.trim(), BatchNo: batchNo.trim(), BatchNumber: batchNo.trim() } : {}),
 			},
 			options: { options: optionsStr, answer: answerStr },
 			isActive: questionStatus,
@@ -271,6 +367,10 @@ export default function EditQuestionPage() {
 	};
 
 	const handleUpdate = async () => {
+		if (!id) {
+			toast.error("Invalid question ID");
+			return;
+		}
 		if (saving) return;
 		const payload = buildPayload();
 		if (!payload) return; setSaving(true); const res = await updateQuestionAction(id, payload); setSaving(false);
@@ -280,7 +380,7 @@ export default function EditQuestionPage() {
 
 	// Keep page mounted; show an overlay loader to match test page style.
 
-	const completedCount = [questionsMeta.languageId, questionsMeta.subjectId, questionsMeta.chapterId, questionsMeta.topicId, questionsMeta.questionType, questionsMeta.difficulty].filter(Boolean).length;
+	const completedCount = [questionsMeta.languageId, questionsMeta.subjectId, questionsMeta.questionType, questionsMeta.difficulty].filter(Boolean).length;
 
 	return (
 		<div className="min-h-screen bg-gray-50 relative">
@@ -344,11 +444,11 @@ export default function EditQuestionPage() {
 									<select value={questionsMeta.subjectId || ''} onChange={(e) => { const sid = Number(e.target.value); setChapters(buildChapters(sid)); setQuestionsMeta(p => ({ ...p, subjectId: sid, chapterId: 0, topicId: 0 })); }} disabled={!questionsMeta.languageId} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-50 disabled:text-gray-500"><option value="">Select subject</option>{subjects.map(s => <option key={s.subjectId} value={s.subjectId}>{s.subjectName}</option>)}</select>
 								</div>
 								<div className="space-y-2">
-									<label className="block text-sm font-medium text-gray-700">Chapter <span className="text-red-500">*</span></label>
+									<label className="block text-sm font-medium text-gray-700">Chapter <span className="text-gray-400 text-xs font-normal">(Optional)</span></label>
 									<select value={questionsMeta.chapterId || ''} onChange={(e) => { const cid = Number(e.target.value); const t = buildTopicsForChapter(cid); setTopics(t); setQuestionsMeta(p => ({ ...p, chapterId: cid, topicId: 0 })); }} disabled={!questionsMeta.subjectId} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-50 disabled:text-gray-500"><option value="">Select chapter</option>{chapters.map(c => <option key={c.subjectId} value={c.subjectId}>{c.subjectName}</option>)}</select>
 								</div>
 								<div className="space-y-2">
-									<label className="block text-sm font-medium text-gray-700">Topic <span className="text-red-500">*</span></label>
+									<label className="block text-sm font-medium text-gray-700">Topic <span className="text-gray-400 text-xs font-normal">(Optional)</span></label>
 									<select value={questionsMeta.topicId || ''} onChange={(e) => setQuestionsMeta(p => ({ ...p, topicId: Number(e.target.value) }))} disabled={!questionsMeta.chapterId} className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-50 disabled:text-gray-500"><option value="">Select topic</option>{topics.map(t => <option key={t.topicId} value={t.topicId}>{t.topicName}</option>)}</select>
 								</div>
 								<div className="space-y-2">
@@ -389,6 +489,7 @@ export default function EditQuestionPage() {
 								<div className="space-y-4 pt-4 border-t border-gray-200">
 									<h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2"><div className="w-4 h-4 bg-purple-100 rounded flex items-center justify-center"><span className="text-purple-600 text-xs font-bold">+</span></div>Additional Options</h3>
 									<div className="space-y-3">
+										<div className="space-y-1"><label className="block text-xs font-medium text-gray-600">Batch No</label><input value={batchNo} onChange={(e) => setBatchNo(e.target.value)} placeholder="Enter batch number (optional)" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" /></div>
 										<div className="space-y-1"><label className="block text-xs font-medium text-gray-600">Tags</label><input value={questionsMeta.tags} onChange={(e) => setQuestionsMeta(p => ({ ...p, tags: e.target.value }))} placeholder="Add tags (comma separated)" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" /></div>
 										<div className="space-y-1">
 											<label className="block text-xs font-medium text-gray-600">Question Status</label>
@@ -407,11 +508,19 @@ export default function EditQuestionPage() {
 					<div className="col-span-12 lg:col-span-8 xl:col-span-9">
 						<div className="space-y-6">
 							<div className="bg-white rounded-lg shadow-sm border border-gray-200">
-								<div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-blue-50"><div className="flex items-center justify-between"><div className="flex items-center gap-2"><div className="w-6 h-6 bg-indigo-100 rounded-md flex items-center justify-center"><span className="text-indigo-600 text-sm font-bold">📊</span></div><span className="text-sm font-semibold text-gray-900">Configuration Progress</span></div><span className="text-sm text-gray-600 font-medium">{completedCount}/6 Complete</span></div></div>
+								<div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-blue-50"><div className="flex items-center justify-between"><div className="flex items-center gap-2"><div className="w-6 h-6 bg-indigo-100 rounded-md flex items-center justify-center"><span className="text-indigo-600 text-sm font-bold">📊</span></div><span className="text-sm font-semibold text-gray-900">Configuration Progress</span></div><span className="text-sm text-gray-600 font-medium">{completedCount}/4 Complete</span></div></div>
 								<div className="p-4"><div className="space-y-3">
 									<div className="w-full bg-gray-200 rounded-full h-2">
-										<div className="bg-gradient-to-r from-indigo-500 to-blue-600 h-2 rounded-full" style={{ width: `${(completedCount / 6) * 100}%` }} /></div>
-									<div className="grid grid-cols-3 md:grid-cols-6 gap-2">{[{ key: 'languageId', label: 'Language', value: questionsMeta.languageId }, { key: 'subjectId', label: 'Subject', value: questionsMeta.subjectId }, { key: 'chapterId', label: 'Chapter', value: questionsMeta.chapterId }, { key: 'topicId', label: 'Topic', value: questionsMeta.topicId }, { key: 'questionType', label: 'Type', value: questionsMeta.questionType }, { key: 'difficulty', label: 'Difficulty', value: questionsMeta.difficulty }].map(i => <div key={i.key} className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${i.value ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}><div className={`w-3 h-3 rounded-full ${i.value ? 'bg-green-500' : 'bg-gray-300'}`}>{i.value ? <span className="text-white text-xs block w-full text-center leading-3">✓</span> : null}</div><span className="font-medium">{i.label}</span></div>)}</div></div></div>
+										<div className="bg-gradient-to-r from-indigo-500 to-blue-600 h-2 rounded-full" style={{ width: `${(completedCount / 4) * 100}%` }} /></div>
+									<div className="grid grid-cols-3 md:grid-cols-6 gap-2">{[
+										{ key: 'languageId', label: 'Language', value: questionsMeta.languageId },
+										{ key: 'subjectId', label: 'Subject', value: questionsMeta.subjectId },
+										{ key: 'chapterId', label: 'Chapter (Optional)', value: questionsMeta.chapterId },
+										{ key: 'topicId', label: 'Topic (Optional)', value: questionsMeta.topicId },
+										{ key: 'questionType', label: 'Type', value: questionsMeta.questionType },
+										{ key: 'difficulty', label: 'Difficulty', value: questionsMeta.difficulty }
+									].map(i => <div key={i.key} className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs ${i.value ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}><div className={`w-3 h-3 rounded-full ${i.value ? 'bg-green-500' : 'bg-gray-300'}`}>{i.value ? <span className="text-white text-xs block w-full text-center leading-3">✓</span> : null}</div><span className="font-medium">{i.label}</span></div>)}
+									</div></div></div>
 							</div>
 							<div className="bg-white rounded-lg shadow-sm border border-gray-200">
 								<div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
@@ -422,7 +531,13 @@ export default function EditQuestionPage() {
 									</div>
 								</div>
 								<div className="p-4 space-y-6"><div><label className="block text-sm font-semibold text-gray-700 mb-3">Question Header (Optional)</label>
-									<input value={questionHeader} onChange={(e) => setQuestionHeader(e.target.value)} placeholder="Enter question header or instructions..." className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-gray-50 focus:bg-white" />
+									<div className="border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500">
+										<RichTextEditor
+											onChange={(content) => setQuestionHeader(content)}
+											initialContent={questionHeader}
+											placeholder="Enter question header or instructions..."
+										/>
+									</div>
 								</div>
 									<div><label className="block text-sm font-semibold text-gray-700 mb-3">Question <span className="text-red-500">*</span></label>
 										<div className="border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500">

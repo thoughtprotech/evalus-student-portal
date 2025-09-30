@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, ChangeEvent, FormEvent, useEffect, useRef } from "react";
+import { useState, ChangeEvent, FormEvent, useEffect, useRef, useLayoutEffect } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -10,6 +10,9 @@ import { createCandidateAction } from "@/app/actions/dashboard/candidates/create
 import { fetchCompaniesAction } from "@/app/actions/admin/companies";
 import { fetchCandidatesAction } from "@/app/actions/admin/candidates";
 import { fetchRolesAction } from "@/app/actions/admin/roles";
+import { apiHandler } from "@/utils/api/client";
+import { endpoints } from "@/utils/api/endpoints";
+import { useUser } from "@/contexts/UserContext";
 
 // Indian States (sample, add more as needed)
 const STATES = [
@@ -35,6 +38,7 @@ const ROLES1 = [
 ];
 
 export default function AddCandidatePage() {
+  const { username } = useUser();
   const inputCls = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition";
   const selectCls = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition";
   const textareaCls = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition";
@@ -52,16 +56,16 @@ export default function AddCandidatePage() {
     notes: "",
     companyId: "", // store as string in form, convert later
     candidateGroupIds: [] as string[], // multi-select values as strings
-      isActive: true,
-      userLogin: [
-          {
-              userName: "",
-              password: "",
-              displayName: "",
-              role: "",
-              userPhoto: null as File | null,
-          }
-      ]
+    isActive: true,
+    userLogin: [
+      {
+        userName: "",
+        password: "",
+        displayName: "",
+        role: "",
+        userPhoto: null as File | null,
+      }
+    ]
   });
   const [userLogin, setUserLogin] = useState({
     userName: "",
@@ -75,9 +79,21 @@ export default function AddCandidatePage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [companies, setCompanies] = useState<{ id: number; name: string }[]>([]);
   const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
-  const [groups, setGroups] = useState<{id:number; name:string}[]>([]);
+  // Candidate Groups hierarchy (parent -> child)
+  type GroupNode = { id: number; name: string; children?: GroupNode[] };
+  const [groupTree, setGroupTree] = useState<GroupNode[]>([]);
+  // Hierarchical selection state
+  const [selectedGroupIds, setSelectedGroupIds] = useState<number[]>([]);
+  const [expandedMap, setExpandedMap] = useState<Record<number, boolean>>({});
+  const [idToNode, setIdToNode] = useState<Record<number, GroupNode>>({});
   const [userPhotoPreview, setUserPhotoPreview] = useState<string | null>(null);
   const userPhotoInputRef = useRef<HTMLInputElement>(null);
+  // Preserve scroll position for tree container
+  const treeScrollRef = useRef<HTMLDivElement>(null);
+  const lastScrollTopRef = useRef(0);
+  const onTreeScroll = () => {
+    if (treeScrollRef.current) lastScrollTopRef.current = treeScrollRef.current.scrollTop;
+  };
   const router = useRouter();
 
   /*
@@ -89,100 +105,108 @@ export default function AddCandidatePage() {
   };
   */
 
-    const handleInputChange = (
-        e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-        index?: number // optional index for userLogin
+  const handleInputChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+    index?: number // optional index for userLogin
+  ) => {
+    const { name, value } = e.target;
+
+    setForm((prev) => {
+      // If we are updating a userLogin field
+      if (typeof index === "number") {
+        return {
+          ...prev,
+          userLogin: prev.userLogin.map((u, i) =>
+            i === index ? { ...u, [name]: value } : u
+          ),
+        };
+      }
+
+      // Otherwise update top-level form field
+      return { ...prev, [name]: value };
+    });
+  };
+
+  /*
+    const handleUserLoginChange = (
+      e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
     ) => {
-        const { name, value } = e.target;
-
-        setForm((prev) => {
-            // If we are updating a userLogin field
-            if (typeof index === "number") {
-                return {
-                    ...prev,
-                    userLogin: prev.userLogin.map((u, i) =>
-                        i === index ? { ...u, [name]: value } : u
-                    ),
-                };
-            }
-
-            // Otherwise update top-level form field
-            return { ...prev, [name]: value };
-        });
+      const { name, value, type } = e.target;
+      setUserLogin((prev) => ({
+        ...prev,
+        [name]: type === "file" ? (e.target as any).files?.[0] : value,
+      }));
     };
+  
+    // Restore scroll position on rerenders that change the tree/selection
+    useLayoutEffect(() => {
+      const el = treeScrollRef.current;
+      if (el) {
+        el.scrollTop = lastScrollTopRef.current;
+      }
+    }, [selectedGroupIds, expandedMap, groupTree]);
+  
+    */
 
-/*
   const handleUserLoginChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    index: number
   ) => {
     const { name, value, type } = e.target;
-    setUserLogin((prev) => ({
+
+    setForm((prev) => ({
       ...prev,
-      [name]: type === "file" ? (e.target as any).files?.[0] : value,
+      userLogin: prev.userLogin.map((u, i) =>
+        i === index
+          ? {
+            ...u,
+            [name]:
+              type === "file"
+                ? (e.target as HTMLInputElement).files?.[0] ?? null
+                : value,
+          }
+          : u
+      ),
     }));
   };
 
-  */
 
-    const handleUserLoginChange = (
-        e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-        index: number
-    ) => {
-        const { name, value, type } = e.target;
-
-        setForm((prev) => ({
-            ...prev,
-            userLogin: prev.userLogin.map((u, i) =>
-                i === index
-                    ? {
-                        ...u,
-                        [name]:
-                            type === "file"
-                                ? (e.target as HTMLInputElement).files?.[0] ?? null
-                                : value,
-                    }
-                    : u
-            ),
+  /*
+    // For file input (user photo)
+    const handleUserPhotoChange = (e: ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files && e.target.files[0]) {
+        setUserLogin((prev) => ({
+          ...prev,
+          userPhoto: e.target.files![0],
         }));
+        setUserPhotoPreview(URL.createObjectURL(e.target.files[0]));
+      }
     };
+    */
 
-
-/*
-  // For file input (user photo)
-  const handleUserPhotoChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleUserPhotoChange = (e: ChangeEvent<HTMLInputElement>, index: number) => {
     if (e.target.files && e.target.files[0]) {
-      setUserLogin((prev) => ({
+      const file = e.target.files[0];
+
+      // update userLogin[index].userPhoto
+      setForm((prev) => ({
         ...prev,
-        userPhoto: e.target.files![0],
+        userLogin: prev.userLogin.map((u, i) =>
+          i === index ? { ...u, userPhoto: file } : u
+        ),
       }));
-      setUserPhotoPreview(URL.createObjectURL(e.target.files[0]));
+
+      // if you only need one preview
+      setUserPhotoPreview(URL.createObjectURL(file));
+
+      // 👉 if you want previews per user (array), use state like:
+      // setUserPhotoPreview((prev) => {
+      //   const updated = [...prev];
+      //   updated[index] = URL.createObjectURL(file);
+      //   return updated;
+      // });
     }
   };
-  */
-
-    const handleUserPhotoChange = (e: ChangeEvent<HTMLInputElement>, index: number) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-
-            // update userLogin[index].userPhoto
-            setForm((prev) => ({
-                ...prev,
-                userLogin: prev.userLogin.map((u, i) =>
-                    i === index ? { ...u, userPhoto: file } : u
-                ),
-            }));
-
-            // if you only need one preview
-            setUserPhotoPreview(URL.createObjectURL(file));
-
-            // 👉 if you want previews per user (array), use state like:
-            // setUserPhotoPreview((prev) => {
-            //   const updated = [...prev];
-            //   updated[index] = URL.createObjectURL(file);
-            //   return updated;
-            // });
-        }
-    };
 
 
 
@@ -216,6 +240,9 @@ export default function AddCandidatePage() {
 
     setIsSaving(true);
 
+    // Use selected group ids from the hierarchical selector
+    const chosenGroupIds = selectedGroupIds;
+
     // Prepare payload (adjust as per your API)
     const payload = {
       firstName: form.firstName.trim(),
@@ -230,17 +257,19 @@ export default function AddCandidatePage() {
       country: form.country.trim(),
       notes: form.notes.trim(),
       companyId: form.companyId ? Number(form.companyId) : 0,
-      candidateGroupIds: form.candidateGroupIds.map((id) => Number(id)),
-        isActive: form.isActive ? 1 : 0,
-        userLogin: [
-            {
-                userName: form.userLogin[0].userName,
-                password: form.userLogin[0].password,
-                displayName: form.userLogin[0].displayName,
-                role: form.userLogin[0].role,
-                userPhoto: form.userLogin[0].userPhoto,
-            }
-        ]
+      candidateGroupIds: chosenGroupIds,
+      createdBy: username || "system",
+      modifiedBy: username || "system",
+      isActive: form.isActive ? 1 : 0,
+      userLogin: [
+        {
+          userName: form.userLogin[0].userName,
+          password: form.userLogin[0].password,
+          displayName: form.userLogin[0].displayName,
+          role: form.userLogin[0].role,
+          userPhoto: form.userLogin[0].userPhoto,
+        }
+      ]
     };
 
     const res = await createCandidateAction(payload);
@@ -261,6 +290,8 @@ export default function AddCandidatePage() {
 
     setIsSaving(true);
 
+    const chosenGroupIds = selectedGroupIds;
+
     const payload = {
       firstName: form.firstName.trim(),
       lastName: form.lastName.trim(),
@@ -274,17 +305,19 @@ export default function AddCandidatePage() {
       country: form.country.trim(),
       notes: form.notes.trim(),
       companyId: form.companyId ? Number(form.companyId) : 0,
-      candidateGroupIds: form.candidateGroupIds.map((id) => Number(id)),
-        isActive: form.isActive ? 1 : 0,
-        userLogin: [
-            {
-                userName: form.userLogin[0].userName,
-                password: form.userLogin[0].password,
-                displayName: form.userLogin[0].displayName,
-                role: form.userLogin[0].role,
-                userPhoto: form.userLogin[0].userPhoto,
-            }
-        ]
+      candidateGroupIds: chosenGroupIds,
+      createdBy: username || "system",
+      modifiedBy: username || "system",
+      isActive: form.isActive ? 1 : 0,
+      userLogin: [
+        {
+          userName: form.userLogin[0].userName,
+          password: form.userLogin[0].password,
+          displayName: form.userLogin[0].displayName,
+          role: form.userLogin[0].role,
+          userPhoto: form.userLogin[0].userPhoto,
+        }
+      ]
     };
 
     const res = await createCandidateAction(payload);
@@ -307,53 +340,187 @@ export default function AddCandidatePage() {
         notes: "",
         companyId: "",
         candidateGroupIds: [],
-          isActive: true,
-          userLogin: [
-              {
-                  userName: "",
-                  password: "",
-                  displayName: "",
-                  role: "",
-                  userPhoto: null as File | null,
-              }
-          ]
+        isActive: true,
+        userLogin: [
+          {
+            userName: "",
+            password: "",
+            displayName: "",
+            role: "",
+            userPhoto: null as File | null,
+          }
+        ]
       });
+      // Reset selected groups
+      setSelectedGroupIds([]);
     } else {
       toast.error(errorMessage || "Failed to create candidate");
     }
     setIsSaving(false);
   };
 
+  // Load companies, roles and candidate group hierarchy
   useEffect(() => {
     (async () => {
       try {
-        const [compRes, candRes,rolesRes] = await Promise.all([
+        const [compRes, rolesRes, groupRes] = await Promise.all([
           fetchCompaniesAction({ top: 100, skip: 0 }),
-            fetchCandidatesAction({ top: 200, skip: 0 }),
-            fetchRolesAction({ top: 200, skip: 0 })
+          fetchRolesAction({ top: 200, skip: 0 }),
+          apiHandler(endpoints.getCandidateGroupTreeOData, null as any),
         ]);
-        if (compRes.data?.rows) {
-          setCompanies(compRes.data.rows.map(r => ({ id: r.id, name: r.companyName })));
-          }
 
-          if (rolesRes.data?.rows) {    
-              setRoles(rolesRes.data.rows.map((r:any) => ({ id: r.name, name: r.name })));
-          }
-        // Derive groups placeholder (unique candidateGroup values)
-        if (candRes.data?.rows) {
-          const map = new Map<string, number>();
-          candRes.data.rows.forEach((r:any) => {
-            if (r.candidateGroup && !map.has(r.candidateGroup)) {
-              map.set(r.candidateGroup, map.size + 1);
-            }
-          });
-          setGroups(Array.from(map.entries()).map(([name, id]) => ({ id, name })));
+        if (compRes.data?.rows) {
+          setCompanies(compRes.data.rows.map((r) => ({ id: r.id, name: r.companyName })));
         }
+        if (rolesRes.data?.rows) {
+          setRoles(rolesRes.data.rows.map((r: any) => ({ id: r.name, name: r.name })));
+        }
+
+        // Normalize group tree response to { id, name, children[] }
+        const raw = (groupRes?.data as any)?.value ?? groupRes?.data ?? [];
+        const pickChildren = (n: any): any[] => {
+          const candidates = [
+            n?.children,
+            n?.Children,
+            n?.childrens,
+            n?.ChildNodes,
+            n?.Items,
+            n?.Nodes,
+            n?.Groups,
+            n?.Subgroups,
+          ];
+          for (const c of candidates) if (Array.isArray(c)) return c;
+          return [];
+        };
+        const norm = (nodes: any[]): GroupNode[] =>
+          (nodes || [])
+            .map((n) => {
+              const id = Number(
+                n?.CandidateGroupId ?? n?.candidateGroupId ?? n?.CandidateGroupID ?? n?.GroupId ?? n?.GroupID ?? n?.Id ?? n?.id
+              );
+              const name =
+                n?.GroupName ?? n?.CandidateGroupName ?? n?.name ?? n?.Group ?? n?.Name ?? n?.Title ?? n?.Label ??
+                (Number.isFinite(id) ? `Group ${id}` : "Group");
+              if (!Number.isFinite(id)) return null;
+              return { id, name: String(name), children: norm(pickChildren(n)) } as GroupNode;
+            })
+            .filter(Boolean) as GroupNode[];
+
+        const tree = Array.isArray(raw) ? norm(raw) : [];
+        setGroupTree(tree);
+        // Build id->node map for fast lookups
+        const map: Record<number, GroupNode> = {};
+        const walk = (nodes: GroupNode[]) => {
+          for (const n of nodes) {
+            map[n.id] = n;
+            if (n.children?.length) walk(n.children);
+          }
+        };
+        walk(tree);
+        setIdToNode(map);
       } catch (e) {
-        console.error('Init load failed', e);
+        console.error("Init load failed", e);
       }
     })();
   }, []);
+
+  // Helpers for hierarchical UI
+  const collectDescendants = (node: GroupNode): number[] => {
+    const ids: number[] = [];
+    (node.children || []).forEach((c) => {
+      ids.push(c.id, ...collectDescendants(c));
+    });
+    return ids;
+  };
+
+  // Full selection: node and all descendants selected
+  const isNodeFullySelected = (node: GroupNode, list = selectedGroupIds) => {
+    const allIds = [node.id, ...collectDescendants(node)];
+    return allIds.every((id) => list.includes(id));
+  };
+
+  // Partial selection: some (self or descendants) selected, but not fully
+  const isNodeIndeterminate = (node: GroupNode) => {
+    const desc = collectDescendants(node);
+    const anySelected = selectedGroupIds.includes(node.id) || desc.some((id) => selectedGroupIds.includes(id));
+    return anySelected && !isNodeFullySelected(node);
+  };
+
+  // Remove any parent ids that are not fully selected given current list
+  const normalizeSelection = (list: number[]) => {
+    const set = new Set(list);
+    const visit = (nodes: GroupNode[]) => {
+      for (const n of nodes) {
+        if (set.has(n.id) && !isNodeFullySelected(n, Array.from(set))) {
+          set.delete(n.id);
+        }
+        if (n.children?.length) visit(n.children);
+      }
+    };
+    visit(groupTree);
+    return Array.from(set);
+  };
+
+  const isChecked = (id: number) => {
+    const node = idToNode[id];
+    return node ? isNodeFullySelected(node) : selectedGroupIds.includes(id);
+  };
+
+  const toggleSelectNode = (node: GroupNode) => {
+    const allIds = [node.id, ...collectDescendants(node)];
+    setSelectedGroupIds((prev) => {
+      const currentlyAllSelected = isNodeFullySelected(node, prev);
+      const next = currentlyAllSelected
+        ? prev.filter((id) => !allIds.includes(id))
+        : Array.from(new Set([...prev, ...allIds]));
+      return normalizeSelection(next);
+    });
+  };
+
+  const toggleExpand = (id: number) =>
+    setExpandedMap((m) => ({ ...m, [id]: !m[id] }));
+
+  const TreeNode = ({ node, level }: { node: GroupNode; level: number }) => {
+    const hasChildren = (node.children || []).length > 0;
+    const expanded = expandedMap[node.id] ?? level < 1; // expand roots by default
+    const cbRef = useRef<HTMLInputElement>(null);
+    useEffect(() => {
+      if (cbRef.current) cbRef.current.indeterminate = isNodeIndeterminate(node);
+    }, [selectedGroupIds, node]);
+    return (
+      <div>
+        <div className="flex items-center gap-2 py-1" style={{ paddingLeft: level * 16 }}>
+          {hasChildren ? (
+            <button
+              type="button"
+              onClick={() => toggleExpand(node.id)}
+              className="h-5 w-5 flex items-center justify-center rounded hover:bg-gray-100 border border-gray-200 text-xs"
+              aria-label={expanded ? "Collapse" : "Expand"}
+            >
+              {expanded ? "-" : "+"}
+            </button>
+          ) : (
+            <span className="h-5 w-5" />
+          )}
+          <input
+            type="checkbox"
+            ref={cbRef}
+            checked={isChecked(node.id)}
+            onChange={() => toggleSelectNode(node)}
+            className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+          />
+          <span className="text-sm text-gray-800">{node.name}</span>
+        </div>
+        {hasChildren && expanded && (
+          <div>
+            {node.children!.map((c) => (
+              <TreeNode key={c.id} node={c} level={level + 1} />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -388,22 +555,20 @@ export default function AddCandidatePage() {
                 <button
                   onClick={handleSaveAndNew}
                   disabled={isSaving}
-                  className={`px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium transition-colors ${
-                    isSaving
+                  className={`px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium transition-colors ${isSaving
                       ? "bg-gray-50 text-gray-400 cursor-not-allowed"
                       : "bg-white text-gray-700 hover:bg-gray-50"
-                  }`}
+                    }`}
                 >
                   {isSaving ? "Saving..." : "Save & New"}
                 </button>
                 <button
                   onClick={handleSubmit}
                   disabled={isSaving}
-                  className={`px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-colors ${
-                    isSaving
+                  className={`px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-colors ${isSaving
                       ? "bg-gray-400 cursor-not-allowed"
                       : "bg-indigo-600 hover:bg-indigo-700"
-                  }`}
+                    }`}
                 >
                   {isSaving ? "Saving..." : "Save Candidate"}
                 </button>
@@ -413,8 +578,8 @@ export default function AddCandidatePage() {
         </div>
       </div>
 
-  {/* Main Content */}
-  <div className="w-[85%] mx-auto px-6 py-8">
+      {/* Main Content */}
+      <div className="w-[85%] mx-auto px-6 py-8">
         <div className="w-full bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <form
             onSubmit={handleSubmit}
@@ -511,25 +676,8 @@ export default function AddCandidatePage() {
                 </select>
               </div>
             </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1">
-                  Candidate Groups (multi-select)
-                </label>
-                <select
-                  multiple
-                  name="candidateGroupIds"
-                  aria-label="Candidate Groups"
-                  className={`w-full h-32 border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition`}
-                  value={form.candidateGroupIds}
-                  onChange={(e) => {
-                    const options = Array.from(e.target.selectedOptions).map(o => o.value);
-                    setForm(prev => ({ ...prev, candidateGroupIds: options }));
-                  }}
-                >
-                  {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-                </select>
-              </div>
               <div className="flex items-center gap-2 pt-6">
                 <input
                   id="isActive"
@@ -540,6 +688,7 @@ export default function AddCandidatePage() {
                 />
                 <label htmlFor="isActive" className="text-sm text-gray-800">Active</label>
               </div>
+              <div></div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-800 mb-1">
@@ -692,9 +841,9 @@ export default function AddCandidatePage() {
                     onChange={(e) => handleUserLoginChange(e, 0)}
                   >
                     <option value="">Select role</option>
-                                      {roles.map((role) => (
-                                          <option key={role.id} value={role.id}>
-                                              {role.name}
+                    {roles.map((role) => (
+                      <option key={role.id} value={role.id}>
+                        {role.name}
                       </option>
                     ))}
                   </select>
@@ -710,7 +859,7 @@ export default function AddCandidatePage() {
                   accept="image/*"
                   ref={userPhotoInputRef}
                   className={inputCls}
-                  onChange={(e) => handleUserPhotoChange(e,0)}
+                  onChange={(e) => handleUserPhotoChange(e, 0)}
                 />
                 {userPhotoPreview && (
                   <div className="mt-2">
@@ -725,6 +874,25 @@ export default function AddCandidatePage() {
             </div>
             {/* --- End User Login Section --- */}
 
+            {/* --- Register Test Groups Section --- */}
+            <div className="mt-8">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Register Test Groups</h2>
+              <div className="border border-gray-200 rounded-lg bg-white">
+                <div className="flex items-center justify-between px-3 py-2 border-b bg-gray-50 rounded-t-lg">
+                  <div className="text-sm text-gray-700">Select one or more groups to register</div>
+                  <div className="text-xs text-gray-500">Selected: {selectedGroupIds.length}</div>
+                </div>
+                <div ref={treeScrollRef} onScroll={onTreeScroll} className="max-h-72 overflow-auto py-2">
+                  {groupTree.length === 0 ? (
+                    <div className="px-4 py-8 text-sm text-gray-500">No groups available</div>
+                  ) : (
+                    groupTree.map((n) => <TreeNode key={n.id} node={n} level={0} />)
+                  )}
+                </div>
+              </div>
+            </div>
+            {/* --- End Register Test Groups Section --- */}
+
             {/* Bottom action buttons removed as per requirement (only header actions retained) */}
           </form>
         </div>
@@ -737,7 +905,7 @@ export default function AddCandidatePage() {
           setShowSuccessModal(false);
           router.push("/admin/candidates");
         }}
-        onCancel={() => {}}
+        onCancel={() => { }}
         title="Candidate Created Successfully! 🎉"
         message="Your candidate has been successfully created and saved to the database."
         confirmText="Go to Candidates"

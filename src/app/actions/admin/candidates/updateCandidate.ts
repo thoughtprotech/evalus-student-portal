@@ -20,6 +20,8 @@ export interface CandidateUpdatePayload {
   isActive?: number; // 0|1
   companyId?: number;
   candidateGroupIds?: number[];
+  createdBy?: string;
+  modifiedBy?: string;
 }
 
 export async function fetchCandidateByIdAction(candidateId: number): Promise<ApiResponse<any>> {
@@ -33,7 +35,20 @@ export async function fetchCandidateByIdAction(candidateId: number): Promise<Api
 
 export async function updateCandidateAction(payload: CandidateUpdatePayload): Promise<ApiResponse<null>> {
   try {
-    const apiPayload = { ...payload };
+  const apiPayload: any = { ...payload };
+    // Mirror audit/user fields in multiple casings for backend compatibility
+    const auditUser = apiPayload.modifiedBy || apiPayload.createdBy;
+    if (auditUser) {
+      apiPayload.userName = auditUser;
+      apiPayload.UserName = auditUser;
+    }
+    if (apiPayload.createdBy) apiPayload.CreatedBy = apiPayload.createdBy;
+    if (apiPayload.modifiedBy) apiPayload.ModifiedBy = apiPayload.modifiedBy;
+    if (apiPayload.createdDate) apiPayload.CreatedDate = apiPayload.createdDate;
+    if (apiPayload.modifiedDate) apiPayload.ModifiedDate = apiPayload.modifiedDate;
+    if (Array.isArray(apiPayload.candidateGroupIds)) {
+      apiPayload.CandidateGroupIds = apiPayload.candidateGroupIds;
+    }
     const res = await apiHandler(endpoints.updateCandidate, apiPayload as any);
     if (!res.error) {
       return { status: res.status, message: res.message || "Candidate updated", error: false, data: null };

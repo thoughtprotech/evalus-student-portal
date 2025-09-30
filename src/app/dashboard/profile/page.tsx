@@ -3,13 +3,16 @@
 import {
   fetchCandidateAction,
   updateCandidateAction,
+  updateUserProfileAction,
 } from "@/app/actions/dashboard/user";
 import { EditableImage } from "@/components/EditableImage";
 import EditableText from "@/components/EditableText";
-import { Mail, MapPin, StickyNote } from "lucide-react";
+import { User, Mail, MapPin, StickyNote, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import UpdatePassword from "./_components/UpdatePassword";
 import Loader from "@/components/Loader";
+import { getUserRoleAction } from "@/app/actions/getUserRole";
+import { useRouter } from "next/navigation";
 
 interface Candidate {
   CandidateID: number;
@@ -31,39 +34,142 @@ interface Candidate {
 
 export default function ProfilePage() {
   const [loaded, setLoaded] = useState<boolean>(false);
-  const [candidate, setCandidate] = useState<Candidate>();
+  const [user, setUser] = useState<any>(null);
+  const [candidate, setCandidate] = useState<any>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const router = useRouter();
+  // Get username, setUserPhoto, and setDisplayName from UserContext
+  const { username: userName, setUserPhoto, setDisplayName } = require("@/contexts/UserContext").useUser();
 
   const fetchCandidate = async () => {
-    const { status, data, message } = await fetchCandidateAction(1);
-    if (status) {
-      setCandidate(data as Candidate);
+    const { status, data } = await fetchCandidateAction(userName);
+    if (status && data) {
+      setUser(data.user);
+      setCandidate(data.candidateRegistration);
+      // Check if userPhoto exists physically
+      if (data.user?.userPhoto) {
+        try {
+          const imgRes = await fetch(data.user.userPhoto);
+          if (imgRes.status === 404) {
+            setUserPhoto(null);
+            // Also update user object so EditableImage gets null src
+            setUser((prev: any) => ({ ...prev, userPhoto: null }));
+          } else {
+            setUserPhoto(data.user.userPhoto);
+          }
+        } catch {
+          setUserPhoto(null);
+          setUser((prev: any) => ({ ...prev, userPhoto: null }));
+        }
+      } else {
+        setUserPhoto(null);
+        setUser((prev: any) => ({ ...prev, userPhoto: null }));
+      }
       setLoaded(true);
     }
   };
 
   useEffect(() => {
     fetchCandidate();
+    fetchUserRole();
   }, []);
 
-  const handleImageUpdate = async (formdata: FormData) => {
-    const { status, data, message } = await updateCandidateAction(
-      candidate!.CandidateID,
-      formdata
-    );
-    if (status) {
-      // Profile image updated successfully
+  const fetchUserRole = async () => {
+    const role = await getUserRoleAction();
+    setUserRole(role);
+  };
+
+  const handleCancel = () => {
+    if (userRole === "ADMIN") {
+      router.push("/admin");
+    } else {
+      router.push("/dashboard");
     }
   };
 
+  const handleImageUpdate = async (formdata: FormData) => {
+    // Upload the image and get the public URL
+    let newUserPhoto = user?.userPhoto ?? "";
+    if (formdata.has("file")) {
+      // Delete old image if it exists and is a profile image
+      if (user?.userPhoto && typeof user.userPhoto === 'string' && user.userPhoto.includes('/uploads/profiles/')) {
+        // Extract the relevant path for deletion
+        let relativePath = user.userPhoto;
+        // If userPhoto is a full URL, extract the path
+        if (relativePath.startsWith('http')) {
+          try {
+            const urlObj = new URL(relativePath);
+            relativePath = urlObj.pathname;
+          } catch { }
+        }
+        await fetch(`/api/uploads?path=${relativePath}`, { method: 'DELETE' });
+      }
+      const file = formdata.get("file");
+      if (file && file instanceof File) {
+        // Upload the file and get the public URL
+        const { url } = await (await import("@/utils/uploadToLocal")).uploadToLocal(file);
+        if (url && url.startsWith("/uploads/profiles/")) {
+          // Store only the relevant path
+          newUserPhoto = url;
+        }
+      }
+    }
+    const payload = {
+      ...user,
+      userPhoto: newUserPhoto,
+      candidate: candidate,
+    };
+    console.log("Image Update Payload:", payload);
+    const { status } = await updateCandidateAction(userName, payload);
+    if (status) fetchCandidate();
+  };
+
   const handleUserUpdate = async (text: string, field: string) => {
-    const formData = new FormData();
-    formData.append(field, text);
-    const { status, data, message } = await updateCandidateAction(
-      candidate!.CandidateID,
-      formData
-    );
-    if (status) {
-      // Profile field updated successfully
+    try {
+      // Build JSON payload for PUT
+      let updatedUser = { ...user };
+      let updatedCandidate = { ...candidate };
+      if (user && field in user) {
+        updatedUser[field] = text;
+      } else if (candidate && field in candidate) {
+        updatedCandidate[field] = text;
+      }
+      // Remove navigation arrays if present
+      delete updatedUser.users;
+      delete updatedUser.userlogs;
+      delete updatedCandidate.users;
+
+      // Remove sensitive fields that shouldn't be updated during profile updates
+      if (field !== "password") {
+        delete updatedUser.password; // Don't send password field to prevent re-encryption issues unless we're updating it
+      }
+      delete updatedUser.createdBy;
+      delete updatedUser.createdDate;
+      delete updatedUser.modifiedBy;
+      delete updatedUser.modifiedDate;
+      delete updatedCandidate.createdBy;
+      delete updatedCandidate.createdDate;
+      delete updatedCandidate.modifiedBy;
+      delete updatedCandidate.modifiedDate;
+
+      const putPayload = {
+        user: updatedUser,
+        candidateRegistration: updatedCandidate,
+      };
+
+      // Use server action to avoid CORS issues
+      const result = await updateUserProfileAction(userName, putPayload);
+      if (result.status) {
+        await fetchCandidate();
+        // Update the displayName in UserContext if it was changed
+        if (field === "displayName") {
+          setDisplayName(text);
+        }
+      } else {
+        console.error("Profile update failed:", result.message);
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
     }
   };
 
@@ -72,164 +178,196 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="w-full h-full flex flex-col items-center gap-6">
-      <div className="w-full max-w-4xl flex flex-col lg:flex lg:flex-row justify-between lg:items-center gap-4">
-        <div className=" flex items-center gap-8">
-          {candidate && (
-            <EditableImage
-              firstName={candidate.FirstName}
-              lastName={candidate.LastName}
-              src={candidate.IUserPhoto}
-              onEdit={handleImageUpdate}
-            />
-          )}
-          <div className="flex flex-col">
-            <div className="flex flex-col">
-              {candidate && (
-                <EditableText
-                  text={candidate.LastName}
-                  onSubmit={(text) => handleUserUpdate(text, "LastName")}
-                  className="text-xl font-bold text-indigo-600"
-                  inputClassName="p-2 border border-gray-300 rounded-md"
-                />
-              )}
-              {candidate && (
-                <EditableText
-                  text={candidate.FirstName}
-                  onSubmit={(text) => handleUserUpdate(text, "FirstName")}
-                  className="text-5xl font-bold text-gray-800"
-                  inputClassName="text-5xl p-2 border border-gray-300 rounded-md"
-                />
-              )}
-            </div>
-            <div className="text-xl font-medium text-gray-600">
-              {candidate && (
-                <EditableText
-                  text={candidate.DisplayName}
-                  onSubmit={(text) => handleUserUpdate(text, "DisplayName")}
-                  className="text-xl font-bold text-gray-800"
-                  inputClassName="w-fit p-2 border border-gray-300 rounded-md"
-                />
-              )}
-            </div>
-          </div>
-        </div>
-        <div>
-          <UpdatePassword handleUserUpdate={handleUserUpdate} />
-        </div>
+    <div className="w-full h-full flex flex-col items-center bg-gray-50 min-h-screen">
+      <div className="w-full bg-white shadow-md py-6 mb-8">
+        <h1 className="text-3xl font-bold text-center text-indigo-700">Profile Information</h1>
       </div>
-
-      <div className="w-full max-w-4xl flex flex-col gap-6">
-        <div className="bg-white p-4 rounded-lg shadow-md flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <Mail className="text-indigo-500" />
-            <h2 className="font-semibold text-lg text-gray-800">
-              Contact Information
-            </h2>
+      <div className="w-full max-w-4xl flex flex-col items-center gap-6">
+        <div className="w-full flex flex-col lg:flex lg:flex-row justify-between lg:items-center gap-4">
+          <div className="flex items-center gap-8">
+            {user && (
+              <EditableImage
+                firstName={candidate?.firstName || user?.firstName}
+                lastName={candidate?.lastName || user?.lastName}
+                src={user.userPhoto}
+                onEdit={handleImageUpdate}
+              />
+            )}
+            <div className="flex flex-col">
+              <div className="flex flex-col">
+                {candidate && (
+                  <EditableText
+                    text={candidate.lastName}
+                    onSubmit={(text) => handleUserUpdate(text, "lastName")}
+                    className="text-xl font-bold text-indigo-600"
+                    inputClassName="p-2 border border-gray-300 rounded-md"
+                  />
+                )}
+                {candidate && (
+                  <EditableText
+                    text={candidate.firstName}
+                    onSubmit={(text) => handleUserUpdate(text, "firstName")}
+                    className="text-5xl font-bold text-gray-800"
+                    inputClassName="text-5xl p-2 border border-gray-300 rounded-md"
+                  />
+                )}
+              </div>
+              <div className="text-xl font-medium text-gray-600">
+                {user && (
+                  <EditableText
+                    text={user.displayName}
+                    onSubmit={(text) => handleUserUpdate(text, "displayName")}
+                    className="text-xl font-bold text-gray-800"
+                    inputClassName="w-fit p-2 border border-gray-300 rounded-md"
+                  />
+                )}
+              </div>
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex gap-4">
+            <div className="w-40">
+              <UpdatePassword handleUserUpdate={handleUserUpdate} />
+            </div>
+            <button
+              onClick={handleCancel}
+              className="w-40 flex items-center justify-center gap-2 px-4 py-2 rounded-md shadow-md cursor-pointer border border-gray-300 bg-gray-500 text-white hover:bg-gray-600 transition-colors"
+              title="Cancel and return to dashboard"
+            >
+              <X className="w-4 h-4" />
+              <span className="font-bold text-sm">Cancel</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="w-full flex flex-col gap-6">
+          {/* Account Information Section */}
+          <div className="bg-white p-4 rounded-lg shadow-md flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <User className="text-indigo-500" />
+              <h2 className="font-semibold text-lg text-gray-800">Account Information</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {user && (
+                <>
+                  <div>
+                    <h3 className="font-medium text-gray-600">Display Name</h3>
+                    <EditableText
+                      text={user.displayName}
+                      onSubmit={(text) => handleUserUpdate(text, "displayName")}
+                      className="text-lg text-gray-800"
+                      inputClassName="w-full p-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-600">User Name</h3>
+                    <div className="text-lg text-gray-800 p-2">{user.userName}</div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+          {/* Contact Information Section */}
+          <div className="bg-white p-4 rounded-lg shadow-md flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <Mail className="text-indigo-500" />
+              <h2 className="font-semibold text-lg text-gray-800">Contact Information</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {candidate && (
+                <>
+                  <div>
+                    <h3 className="font-medium text-gray-600">Email</h3>
+                    <EditableText
+                      text={candidate.email}
+                      onSubmit={(text) => handleUserUpdate(text, "email")}
+                      className="text-lg text-gray-800"
+                      inputClassName="w-full p-2 border border-gray-300 rounded-md"
+                      type="email"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-600">Phone Number</h3>
+                    <EditableText
+                      text={candidate.phoneNumber}
+                      onSubmit={(text) => handleUserUpdate(text, "phoneNumber")}
+                      className="text-lg text-gray-800"
+                      inputClassName="w-full p-2 border border-gray-300 rounded-md"
+                      type="phone"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-600">Cell Phone</h3>
+                    <EditableText
+                      text={candidate.cellPhone}
+                      onSubmit={(text) => handleUserUpdate(text, "cellPhone")}
+                      className="text-lg text-gray-800"
+                      inputClassName="w-full p-2 border border-gray-300 rounded-md"
+                      type="phone"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-md flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <MapPin className="text-red-500" />
+              <h2 className="font-semibold text-lg text-gray-800">Address</h2>
+            </div>
             {candidate && (
               <>
-                <div>
-                  <h3 className="font-medium text-gray-600">Email</h3>
-                  <EditableText
-                    text={candidate.Email}
-                    onSubmit={(text) => handleUserUpdate(text, "Email")}
-                    className="text-lg text-gray-800"
-                    inputClassName="w-full p-2 border border-gray-300 rounded-md"
-                    type="email"
-                  />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-600">Phone Number</h3>
-                  <EditableText
-                    text={candidate.PhoneNumber}
-                    onSubmit={(text) => handleUserUpdate(text, "PhoneNumber")}
-                    className="text-lg text-gray-800"
-                    inputClassName="w-full p-2 border border-gray-300 rounded-md"
-                    type="phone"
-                  />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-600">Cell Phone</h3>
-                  <EditableText
-                    text={candidate.CellPhone}
-                    onSubmit={(text) => handleUserUpdate(text, "CellPhone")}
-                    className="text-lg text-gray-800"
-                    inputClassName="w-full p-2 border border-gray-300 rounded-md"
-                    type="phone"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="font-medium text-gray-600">Street Address</h3>
+                    <EditableText
+                      text={candidate.address}
+                      onSubmit={(text) => handleUserUpdate(text, "address")}
+                      className="text-lg text-gray-800"
+                      inputClassName="w-full p-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-600">City</h3>
+                    <EditableText
+                      text={candidate.city}
+                      onSubmit={(text) => handleUserUpdate(text, "city")}
+                      className="text-lg text-gray-800"
+                      inputClassName="w-full p-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-600">State</h3>
+                    <EditableText
+                      text={candidate.state}
+                      onSubmit={(text) => handleUserUpdate(text, "state")}
+                      className="text-lg text-gray-800"
+                      inputClassName="w-full p-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-600">Postal Code</h3>
+                    <EditableText
+                      text={candidate.postalCode}
+                      onSubmit={(text) => handleUserUpdate(text, "postalCode")}
+                      className="text-lg text-gray-800"
+                      inputClassName="w-full p-2 border border-gray-300 rounded-md"
+                      type="number"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-600">Country</h3>
+                    <EditableText
+                      text={candidate.country}
+                      onSubmit={(text) => handleUserUpdate(text, "country")}
+                      className="text-lg text-gray-800"
+                      inputClassName="w-full p-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
                 </div>
               </>
             )}
           </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-lg shadow-md flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <MapPin className="text-red-500" />
-            <h2 className="font-semibold text-lg text-gray-800">Address</h2>
-          </div>
-          {candidate && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="font-medium text-gray-600">Street Address</h3>
-                  <EditableText
-                    text={candidate.Address}
-                    onSubmit={(text) => handleUserUpdate(text, "Address")}
-                    className="text-lg text-gray-800"
-                    inputClassName="w-full p-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-600">City</h3>
-                  <EditableText
-                    text={candidate.City}
-                    onSubmit={(text) => handleUserUpdate(text, "City")}
-                    className="text-lg text-gray-800"
-                    inputClassName="w-full p-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-600">State</h3>
-                  <EditableText
-                    text={candidate.State}
-                    onSubmit={(text) => handleUserUpdate(text, "State")}
-                    className="text-lg text-gray-800"
-                    inputClassName="w-full p-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-600">Postal Code</h3>
-                  <EditableText
-                    text={candidate.PostalCode}
-                    onSubmit={(text) => handleUserUpdate(text, "PostalCode")}
-                    className="text-lg text-gray-800"
-                    inputClassName="w-full p-2 border border-gray-300 rounded-md"
-                    type="number"
-                  />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-600">Country</h3>
-                  <EditableText
-                    text={candidate.Country}
-                    onSubmit={(text) => handleUserUpdate(text, "Country")}
-                    className="text-lg text-gray-800"
-                    inputClassName="w-full p-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-
-        <div className="bg-white p-4 rounded-lg shadow-md">
-          <div className="flex items-center gap-2">
-            <StickyNote className="text-yellow-500" />
-            <h2 className="font-semibold text-lg text-gray-800">Notes</h2>
-          </div>
-          <h1 className="text-lg text-gray-800">{candidate?.Notes}</h1>
+          {/* Notes section removed */}
         </div>
       </div>
     </div>

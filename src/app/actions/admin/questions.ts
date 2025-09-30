@@ -14,6 +14,7 @@ export interface QuestionRow {
   level: string;
   createdAt: string;
   updatedAt: string;
+  batchNo?: string;
   additionalExplanation?: string;
   videoSolutionWeburl?: string;
   videoSolutionMobileurl?: string;
@@ -38,6 +39,9 @@ interface ApiQuestionItem {
   isActive: number | string;
   language: string;
   questionOptionId: number;
+  batchNo?: string; // may be BatchNo or BatchNumber depending on API
+  BatchNo?: string;
+  BatchNumber?: string;
   // New (backend now returns these audit fields)
   createdBy?: string | null;
   modifiedBy?: string | null;
@@ -95,6 +99,7 @@ function mapToRows(items: ApiQuestionItem[]): QuestionRow[] {
       level: item.questionDifficultyLevel || "N/A",
       createdAt: item.createdDate || "",
       updatedAt: item.modifiedDate || "",
+  batchNo: (item as any).batchNo ?? (item as any).BatchNo ?? (item as any).BatchNumber ?? (item as any).batchnumber ?? undefined,
       language: item.language || "English",
       // Use normalized numeric value (0/1) so UI Boolean casting is reliable
       isActive: normalizedIsActive,
@@ -151,6 +156,9 @@ export async function fetchQuestionsAction(
           "isActive": "isActive",
           "createdDate": "createdDate",
           "modifiedDate": "modifiedDate",
+          "batchNo": "batchNo",
+          "BatchNo": "BatchNo",
+          "BatchNumber": "BatchNumber",
         };
 
         const mappedField = fieldMap[field] || field;

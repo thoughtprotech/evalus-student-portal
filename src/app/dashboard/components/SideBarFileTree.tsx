@@ -61,29 +61,45 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Render children of a parent. Original code filtered by relation === 'SELF',
-  // but current API response supplies empty relation strings, so nothing rendered.
-  // Fallback: treat any item whose parentId matches as a child unless it is also a top-level root.
-  const renderChildren = (parentId: number) => {
-    const children = tree[parentId] || [];
-    return children
-      .filter((c) => c.parentId === parentId) // defensive
-      .map((child) => (
+  // Recursive node renderer so nested children (grandchildren and beyond) are shown
+  const renderNode = (node: CandidateGroup, level: number) => {
+    const kids = tree[node.candidateGroupId] || [];
+    const hasChildren = kids.length > 0;
+    const isOpen = !!expanded[node.candidateGroupId];
+
+    return (
+      <div key={node.candidateGroupId} className="w-full">
         <div
-          key={child.candidateGroupId}
-          className="flex items-center ml-4 px-2 py-1 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
+          className={`flex items-center justify-between px-2 py-1 hover:bg-gray-100 rounded-md cursor-pointer transition-colors`}
+          style={{ marginLeft: `${Math.min(level, 3) * 16}px` }}
           onClick={() => {
-            router.push("/dashboard");
-            setCurrentGroupId(child.candidateGroupId.toString());
-            setGroupSelected(true);
+            if (hasChildren) {
+              toggle(node.candidateGroupId);
+            } else {
+              router.push("/dashboard");
+              setCurrentGroupId(node.candidateGroupId.toString());
+              setGroupSelected(true);
+            }
           }}
         >
-          <Badge size={14} />
-          <h1 className="ml-2 flex items-center space-x-1 text-sm text-gray-700">
-            <span>{child.candidateGroupName}</span>
-          </h1>
+          <div className="flex items-center space-x-2">
+            {hasChildren ? (
+              isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />
+            ) : (
+              <Badge size={14} />
+            )}
+            <span className="text-sm text-gray-800">
+              {node.candidateGroupName}
+            </span>
+          </div>
         </div>
-      ));
+        {hasChildren && isOpen && (
+          <div className="space-y-1">
+            {kids.map((child) => renderNode(child, level + 1))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   // Top-level parents
@@ -125,41 +141,7 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
         <div
           className={`space-y-1 overflow-y-auto pr-1 ${maxListHeight ? `max-h-[${maxListHeight}]` : 'max-h-[50vh]'}`}
         >
-          {roots.map((root) => {
-            const children = tree[root.candidateGroupId] || [];
-            // Consider children existing if any node lists this root as its parent
-            const hasChildren = children.length > 0;
-            const isOpen = !!expanded[root.candidateGroupId];
-            return (
-              <div key={root.candidateGroupId}>
-                <div
-                  className="flex items-center justify-between px-2 py-1 hover:bg-gray-100 rounded-md cursor-pointer transition-colors"
-                  onClick={() => {
-                    if (hasChildren) {
-                      toggle(root.candidateGroupId);
-                    } else {
-                      // Uniform behavior: selecting a leaf top-level group should act like selecting a child
-                      router.push("/dashboard");
-                      setCurrentGroupId(root.candidateGroupId.toString());
-                      setGroupSelected(true);
-                    }
-                  }}
-                >
-                  <div className="flex items-center space-x-2">
-                    {isOpen ? (
-                      <ChevronDown size={14} />
-                    ) : (
-                      <ChevronRight size={14} />
-                    )}
-                    <span className="text-sm font-medium text-gray-800">
-                      {root.candidateGroupName}
-                    </span>
-                  </div>
-                </div>
-                {hasChildren && isOpen && renderChildren(root.candidateGroupId)}
-              </div>
-            );
-          })}
+          {roots.map((root) => renderNode(root, 0))}
         </div>
       )}
     </nav>

@@ -2,6 +2,7 @@ import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLan
 import {
   GetLanguagesResponse,
   GetQuestionByIdResponse,
+  QuestionsMetaDataInterface,
 } from "@/utils/api/types";
 import { useEffect, useState } from "react";
 
@@ -9,7 +10,7 @@ export default function AssessmentAreaHeader({
   question,
   currentIndex,
 }: {
-  question: GetQuestionByIdResponse;
+  question: QuestionsMetaDataInterface;
   currentIndex: number;
 }) {
   const [language, setLanguage] =
@@ -43,18 +44,18 @@ export default function AssessmentAreaHeader({
       <div>
         <h1 className="text-sm text-gray-600">
           Question {currentIndex + 1} -{" "}
-          {question?.questionsMeta?.questionTypeName}
+          {question?.questionType}
         </h1>
       </div>
       <div className="flex gap-3 items-center">
         <div className="flex gap-3 text-xs md:text-sm">
           <h1 className="text-green-500">Mark(s)</h1>
-          <h1>{question.questionsMeta.marks}</h1>
+          <h1>{question.marks}</h1>
         </div>
         <h1 className="text-gray-500">|</h1>
         <div className="flex gap-3 text-xs md:text-sm pr-1">
           <h1 className="text-red-500 text-nowrap">Negative Mark(s)</h1>
-          <h1>{question.questionsMeta.negativeMarks}</h1>
+          <h1>{question.negativeMarks}</h1>
         </div>
         <h1 className="text-gray-500">|</h1>
         <div>

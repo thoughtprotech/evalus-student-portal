@@ -28,9 +28,22 @@ export async function registerTestAction(req: { testId: number; testDate: string
         }
 
         const nowIso = new Date().toISOString();
-        // Backend expects PascalCase property names (EF Core DTO). Include both cases for safety.
+        // Send camelCase as primary (per backend payload spec), include PascalCase duplicates for safety
         const payload: any = {
-            // PascalCase
+            // camelCase
+            testRegistrationId: 0,
+            userName: username,
+            testId: req.testId,
+            testDate: req.testDate,
+            testStatus: "Registered",
+            comments: req.comments || "",
+            language: req.language || "English",
+            isActive: 1,
+            createdBy: username,
+            createdDate: nowIso,
+            modifiedBy: username,
+            modifiedDate: nowIso,
+            // PascalCase duplicates
             TestRegistrationId: 0,
             UserName: username,
             TestId: req.testId,

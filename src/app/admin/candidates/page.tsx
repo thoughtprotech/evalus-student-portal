@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { User } from "lucide-react";
 import { Filter, XCircle, Trash2, PlusCircle } from "lucide-react";
 import { fetchCandidatesAction, deleteCandidateAction, type CandidateRow } from "@/app/actions/admin/candidates";
+import { maskAdminId } from "@/utils/urlMasking";
 import PageHeader from "@/components/PageHeader";
 import Link from "next/link";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -27,7 +28,7 @@ function NameCellRenderer(props: { value: string; data: CandidateRow }) {
     return (
         <Link
             className="text-blue-600 hover:underline"
-            href={`/admin/candidates/${props.data.candidateId}/edit`}
+            href={`/admin/candidates/${maskAdminId(props.data.candidateId)}/edit`}
             title={`Edit ${props.value}`}
         >
             {props.value}
@@ -39,8 +40,8 @@ function IsActiveCellRenderer(props: { value: number | boolean }) {
     const isActive = Boolean(props.value);
     return (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${isActive
-                ? 'bg-green-100 text-green-800'
-                : 'bg-red-100 text-red-800'
+            ? 'bg-green-100 text-green-800'
+            : 'bg-red-100 text-red-800'
             }`}>
             {isActive ? 'Active' : 'Inactive'}
         </span>
@@ -48,9 +49,28 @@ function IsActiveCellRenderer(props: { value: number | boolean }) {
 }
 
 function CandidateGroupCellRenderer(props: { value: string }) {
+    const raw = props.value || '';
+    const groups = raw
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+
+    // Show only first 2 groups in the pill; if more, display "+N more" and add full list as tooltip
+    const shown = groups.slice(0, 2).join(', ');
+    const extraCount = Math.max(0, groups.length - 2);
+    const display = groups.length === 0
+        ? 'Default'
+        : extraCount > 0
+            ? `${shown} +${extraCount} more`
+            : shown;
+    const tooltip = groups.length > 2 ? groups.join(', ') : raw || 'Default';
+
     return (
-        <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
-            {props.value || 'Default'}
+        <span
+            className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium"
+            title={tooltip}
+        >
+            {display}
         </span>
     );
 }
@@ -356,7 +376,7 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
                             setPendingDelete(selected);
                             setConfirmOpen(true);
                         }}
-                        disabled={deleting}
+                        disabled={deleting || selectedCount === 0}
                         className="inline-flex items-center justify-center gap-2 w-32 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50"
                         title="Delete selected candidates"
                     >
@@ -368,50 +388,52 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
                         </span>
                     )}
                 </div>
-                <PaginationControls
-                    page={page}
-                    pageSize={pageSize}
-                    total={total}
-                    onPageChange={setPage}
-                    onPageSizeChange={(s: number) => { setPageSize(s); setPage(1); }}
-                    pageSizeOptions={[15, 25, 50]}
-                    showTotalCount
-                />
-                <div className="flex items-center gap-2">
-                    <button
-                        type="button"
-                        onClick={() => setShowFilters((v) => !v)}
-                        className={
-                            `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm transition-colors ` +
-                            (showFilters
-                                ? `bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100`
-                                : `bg-white text-gray-700 border-gray-300 hover:bg-gray-50`)
-                        }
-                        title={showFilters ? "Hide filters" : "Show filters"}
-                    >
-                        <Filter className="w-4 h-4" /> {showFilters ? "Hide Filters" : "Show Filters"}
-                    </button>
-                    <button
-                        onClick={() => {
-                            const api = gridApiRef.current as any;
-                            const hasSearch = !!(query && query.length);
-                            filterModelRef.current = {};
-                            if (hasSearch && onClearQuery) {
-                                skipNextFilterFetchRef.current = true;
+                <div className="flex items-center gap-3">
+                    <PaginationControls
+                        page={page}
+                        pageSize={pageSize}
+                        total={total}
+                        onPageChange={setPage}
+                        onPageSizeChange={(s: number) => { setPageSize(s); setPage(1); }}
+                        pageSizeOptions={[15, 25, 50]}
+                        showTotalCount
+                    />
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setShowFilters((v) => !v)}
+                            className={
+                                `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm transition-colors ` +
+                                (showFilters
+                                    ? `bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100`
+                                    : `bg-white text-gray-700 border-gray-300 hover:bg-gray-50`)
                             }
-                            api?.setFilterModel?.(null);
-                            setFiltersVersion((v) => v + 1);
-                            setPage(1);
-                            if (hasSearch && onClearQuery) {
-                                onClearQuery();
-                            }
-                        }}
-                        className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                        title="Clear search and all column filters"
-                        disabled={!query && Object.keys(filterModelRef.current || {}).length === 0}
-                    >
-                        <XCircle className="w-4 h-4" /> Clear Filters
-                    </button>
+                            title={showFilters ? "Hide filters" : "Show filters"}
+                        >
+                            <Filter className="w-4 h-4" /> {showFilters ? "Hide Filters" : "Show Filters"}
+                        </button>
+                        <button
+                            onClick={() => {
+                                const api = gridApiRef.current as any;
+                                const hasSearch = !!(query && query.length);
+                                filterModelRef.current = {};
+                                if (hasSearch && onClearQuery) {
+                                    skipNextFilterFetchRef.current = true;
+                                }
+                                api?.setFilterModel?.(null);
+                                setFiltersVersion((v) => v + 1);
+                                setPage(1);
+                                if (hasSearch && onClearQuery) {
+                                    onClearQuery();
+                                }
+                            }}
+                            className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                            title="Clear search and all column filters"
+                            disabled={!query && Object.keys(filterModelRef.current || {}).length === 0}
+                        >
+                            <XCircle className="w-4 h-4" /> Clear Filters
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -555,13 +577,13 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
                             stopEditingWhenCellsLoseFocus={true}
                             theme="legacy"
                         />
-                                                {loading && <GridOverlayLoader message="Loading candidates..." />}
+                        {loading && <GridOverlayLoader message="Loading candidates..." />}
                     </div>
                 )}
-                                {loading && rows.length === 0 && (
-                                    // For first load ensure height is reserved (grid container already handles). Overlay covers.
-                                    <></>
-                                )}
+                {loading && rows.length === 0 && (
+                    // For first load ensure height is reserved (grid container already handles). Overlay covers.
+                    <></>
+                )}
             </div>
 
             <style jsx global>{`

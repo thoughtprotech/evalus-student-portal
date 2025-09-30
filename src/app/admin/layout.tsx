@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect } from "react";
 import Navbar from "./components/Navbar";
-import { getUserAction } from "../actions/getUser";
+import { getUserDisplayNameAction } from "../actions/authentication/getUserDisplayName";
 import { useUser } from "@/contexts/UserContext";
 
 export default function AdminDashboardLayout({
@@ -10,12 +10,14 @@ export default function AdminDashboardLayout({
 }: {
   children: ReactNode;
 }) {
-  const { username, setUsername } = useUser();
+  const { username, displayName, userPhoto, setUsername, setDisplayName, setUserPhoto } = useUser();
 
   const getUser = async () => {
-    const user = await getUserAction();
-    if (user) {
-      setUsername(user);
+    const userData = await getUserDisplayNameAction();
+    if (userData) {
+      setUsername(userData.username); // Keep username for API calls
+      setDisplayName(userData.displayName); // Use displayName for UI
+      setUserPhoto(userData.userPhoto || null); // Set user photo
     }
   };
 
@@ -27,7 +29,10 @@ export default function AdminDashboardLayout({
     <div className="flex flex-col h-screen overflow-hidden">
       {/* Navbar stays fixed at top and receives server‐side username */}
       <header className="flex-none">
-        <Navbar username={username} />
+        <Navbar
+          username={displayName || username}
+          userPhoto={userPhoto}
+        />
       </header>
 
       {/* Content fills remaining space and scrolls */}

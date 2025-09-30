@@ -1,9 +1,8 @@
 import React, { JSX } from "react";
-import Image from "next/image";
 
 /**
  * useAvatar returns a JSX element representing the user's avatar.
- * If an imageSrc is provided, it renders a circular Image.
+ * If an imageSrc is provided, it renders a circular image using regular HTML img tag.
  * Otherwise, it generates initials and a deterministic background color.
  */
 export function useAvatar(
@@ -12,15 +11,23 @@ export function useAvatar(
   imageSrc?: string | null,
   size = 64
 ): JSX.Element {
-  // If an image is provided, render it directly
-  if (imageSrc) {
+  // If an image is provided, render it directly using regular HTML img tag
+  const [imgError, setImgError] = React.useState(false);
+  if (imageSrc && imageSrc !== 'null' && imageSrc !== '' && !imgError) {
     return (
-      <Image
+      <img
         src={imageSrc}
         alt={`${firstName} ${lastName}`}
         width={size}
         height={size}
-        className="rounded-full object-cover"
+        className="rounded-full object-cover border border-gray-300"
+        style={{
+          width: size,
+          height: size,
+          objectFit: "cover",
+          aspectRatio: "1 / 1"
+        }}
+        onError={() => setImgError(true)}
       />
     );
   }

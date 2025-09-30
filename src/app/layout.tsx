@@ -3,6 +3,7 @@ import { Lexend } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { UserProvider } from "@/contexts/UserContext";
+import AutoLogout from "@/components/AutoLogout";
 import { User, Mail, Briefcase, Calendar } from "lucide-react";
 
 const lexend = Lexend({
@@ -23,7 +24,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${lexend.variable} antialiased font-main`}>
-        <UserProvider>{children}</UserProvider>
+        <UserProvider>
+          <AutoLogout />
+          {children}
+        </UserProvider>
         <Toaster />
       </body>
     </html>

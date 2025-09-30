@@ -3,9 +3,9 @@
 import { SubmitHandler, useForm } from "react-hook-form";
 import Modal from "@/components/Modal";
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 type PasswordUpdateForm = {
-  currentPassword: string;
   newPassword: string;
   confirmPassword: string;
 };
@@ -16,6 +16,8 @@ export default function UpdatePassword({
   handleUserUpdate: (text: string, field: string) => void;
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const {
     handleSubmit,
     formState: { errors },
@@ -23,14 +25,18 @@ export default function UpdatePassword({
     watch,
     register,
   } = useForm<PasswordUpdateForm>({
-    mode: "onBlur", // Validation will trigger when input loses focus
+    mode: "onBlur",
+    defaultValues: {
+      newPassword: "",
+      confirmPassword: "",
+    },
   });
 
   const onSubmit: SubmitHandler<PasswordUpdateForm> = async (data) => {
-    // Here you'd make the API call to update the password
+    // Only send newPassword
     handleUserUpdate(data.newPassword, "password");
-    setIsModalOpen(false); // Close the modal after submit
-    reset(); // Reset form fields
+    setIsModalOpen(false);
+    reset();
   };
 
   const handleCloseForm = () => {
@@ -41,39 +47,19 @@ export default function UpdatePassword({
   return (
     <>
       <button
-        className="px-4 py-2 rounded-md shadow-md cursor-pointer border border-gray-300"
+        className="w-full px-4 py-2 rounded-md shadow-md cursor-pointer border border-gray-300 whitespace-nowrap flex items-center justify-center"
         onClick={() => setIsModalOpen(true)}
       >
-        <h1 className="text-indigo-500 font-bold">Update Password</h1>
+        <span className="text-indigo-500 font-bold text-sm">Update Password</span>
       </button>
       <Modal
         title="Update Password"
         isOpen={isModalOpen}
         closeModal={handleCloseForm}
+        className="max-w-md"
       >
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-          {/* Current Password */}
-          <div className="flex flex-col items-start gap-2">
-            <label
-              htmlFor="currentPassword"
-              className="block text-sm font-semibold"
-            >
-              Current Password
-            </label>
-            <input
-              id="currentPassword"
-              type="password"
-              className="w-full p-2 border border-gray-300 shadow-md rounded-md"
-              {...register("currentPassword", {
-                required: "Current password is required",
-              })}
-            />
-            {errors.currentPassword && (
-              <p className="text-red-500 text-xs font-bold">
-                {errors.currentPassword.message}
-              </p>
-            )}
-          </div>
+          {/* Current Password field removed */}
 
           {/* New Password */}
           <div className="flex flex-col items-start gap-2">
@@ -81,16 +67,26 @@ export default function UpdatePassword({
               htmlFor="newPassword"
               className="block text-sm font-semibold"
             >
-              New Password
+              New Password <span className="text-red-500">*</span>
             </label>
-            <input
-              id="newPassword"
-              type="password"
-              className="w-full p-2 border border-gray-300 shadow-md rounded-md"
-              {...register("newPassword", {
-                required: "New password is required",
-              })}
-            />
+            <div className="relative w-full">
+              <input
+                id="newPassword"
+                type={showNew ? "text" : "password"}
+                className="w-full p-2 border border-gray-300 shadow-md rounded-md pr-10"
+                {...register("newPassword", {
+                  required: "New password is required",
+                })}
+              />
+              <button
+                type="button"
+                className="absolute right-2 top-2 text-gray-500"
+                tabIndex={-1}
+                onClick={() => setShowNew((v) => !v)}
+              >
+                {showNew ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
             {errors.newPassword && (
               <p className="text-red-500 text-xs font-bold">
                 {errors.newPassword.message}
@@ -104,18 +100,28 @@ export default function UpdatePassword({
               htmlFor="confirmPassword"
               className="block text-sm font-semibold"
             >
-              Confirm Password
+              Confirm Password <span className="text-red-500">*</span>
             </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              className="w-full p-2 border border-gray-300 shadow-md rounded-md"
-              {...register("confirmPassword", {
-                required: "Confirm password is required",
-                validate: (value) =>
-                  value === watch("newPassword") || "Passwords do not match",
-              })}
-            />
+            <div className="relative w-full">
+              <input
+                id="confirmPassword"
+                type={showConfirm ? "text" : "password"}
+                className="w-full p-2 border border-gray-300 shadow-md rounded-md pr-10"
+                {...register("confirmPassword", {
+                  required: "Confirm password is required",
+                  validate: (value) =>
+                    value === watch("newPassword") || "Passwords do not match",
+                })}
+              />
+              <button
+                type="button"
+                className="absolute right-2 top-2 text-gray-500"
+                tabIndex={-1}
+                onClick={() => setShowConfirm((v) => !v)}
+              >
+                {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
             {errors.confirmPassword && (
               <p className="text-red-500 text-xs font-bold">
                 {errors.confirmPassword.message}
@@ -125,7 +131,7 @@ export default function UpdatePassword({
 
           <div className="w-full flex gap-4">
             <button
-              className="w-full px-4 py-2 rounded-md shadow-md cursor-pointer bg-green-600 text-white font-bold"
+              className="w-full px-4 py-2 rounded-md shadow-md cursor-pointer bg-blue-600 text-white font-bold"
               type="submit"
             >
               Save

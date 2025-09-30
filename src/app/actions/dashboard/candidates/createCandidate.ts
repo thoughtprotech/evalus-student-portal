@@ -59,6 +59,20 @@ export async function createCandidateAction(
        userLogin: payload.userLogin
     };
 
+    // Provide audit fields in both common casings for backend compatibility
+    const auditUser = apiPayload.modifiedBy || apiPayload.createdBy || 'system';
+    apiPayload.userName = auditUser;
+    apiPayload.UserName = auditUser;
+    apiPayload.CreatedBy = apiPayload.createdBy;
+    apiPayload.ModifiedBy = apiPayload.modifiedBy;
+    apiPayload.CreatedDate = apiPayload.createdDate;
+    apiPayload.ModifiedDate = apiPayload.modifiedDate;
+
+    // Some backends expect PascalCase CandidateGroupIds as well
+    if (Array.isArray(apiPayload.candidateGroupIds)) {
+      apiPayload.CandidateGroupIds = apiPayload.candidateGroupIds;
+    }
+
     const { status, error, data, errorMessage, message } = await apiHandler(
       endpoints.createCandidate,
       apiPayload

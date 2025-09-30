@@ -23,7 +23,9 @@ export function EditableImage({
   className,
 }: EditableImageProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const avatar = useAvatar(firstName, lastName, src, size);
+  // Treat 'null', null, undefined, or empty string as no image
+  const validSrc = src && src !== 'null' && src !== '' ? src : undefined;
+  const avatar = useAvatar(firstName, lastName, validSrc, size);
   const handleIconClick = () => {
     inputRef.current?.click();
   };

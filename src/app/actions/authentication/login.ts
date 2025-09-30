@@ -25,12 +25,13 @@ export async function loginAction(
     if (res.status === 200) {
       const { data } = res;
 
+      // Set token as a session cookie (no maxAge) so it's cleared when the browser process exits.
       (await cookies()).set("token", data!.token, {
         httpOnly: true,
         secure: true,
         path: "/",
         sameSite: "lax",
-        maxAge: 60 * 60 * 24,
+        // intentionally no maxAge -> session cookie
       });
 
       const decoded: any = jwt.decode(data?.token!);

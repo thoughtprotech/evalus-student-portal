@@ -8,6 +8,7 @@ import {
   deleteTestAction,
   type TestRow,
 } from "@/app/actions/admin/tests";
+import { maskAdminId } from "@/utils/urlMasking";
 import PageHeader from "@/components/PageHeader";
 import PageUnderConstruction from "@/components/PageUnderConstruction";
 import { TabsContent, TabsList, TabsRoot } from "@/components/Tabs";
@@ -39,7 +40,7 @@ function NameCellRenderer(props: { value: string; data: TestRow }) {
   return (
     <Link
       className="text-blue-600 hover:underline"
-  href={`/admin/tests/edit/${props.data.id}`}
+      href={`/admin/tests/edit/${maskAdminId(props.data.id)}`}
       onClick={() => {
         try {
           sessionStorage.removeItem("admin:newTest:model");
@@ -47,7 +48,7 @@ function NameCellRenderer(props: { value: string; data: TestRow }) {
           sessionStorage.removeItem("admin:newTest:suppressClear");
           sessionStorage.removeItem("admin:newTest:preselectedIds");
           sessionStorage.removeItem("admin:newTest:selectedQuestions");
-        } catch {}
+        } catch { }
       }}
       title={props.value}
     >
@@ -70,11 +71,10 @@ function formatDate(value?: string) {
 function IsActiveCellRenderer(props: { value: number | boolean }) {
   const isActive = Boolean(props.value);
   return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-      isActive 
-        ? 'bg-green-100 text-green-800' 
+    <span className={`px-2 py-1 rounded-full text-xs font-medium ${isActive
+        ? 'bg-green-100 text-green-800'
         : 'bg-red-100 text-red-800'
-    }`}>
+      }`}>
       {isActive ? 'Active' : 'Inactive'}
     </span>
   );
@@ -87,12 +87,12 @@ function TestStatusCellRenderer(props: { value?: string }) {
     c === 'published'
       ? 'bg-green-100 text-green-800'
       : c === 'new'
-      ? 'bg-sky-100 text-sky-800'
-      : c === 'on hold' || c === 'onhold'
-      ? 'bg-amber-100 text-amber-800'
-      : c === 'cancelled' || c === 'canceled'
-      ? 'bg-red-100 text-red-800'
-      : 'bg-gray-100 text-gray-800';
+        ? 'bg-red-100 text-red-800'
+        : c === 'on hold' || c === 'onhold'
+          ? 'bg-amber-100 text-amber-800'
+          : c === 'cancelled' || c === 'canceled'
+            ? 'bg-red-100 text-red-800'
+            : 'bg-gray-100 text-gray-800';
   return <span className={`px-2 py-1 rounded-full text-xs font-medium ${cls}`}>{v || '-'}</span>;
 }
 
@@ -287,13 +287,13 @@ function TestsGrid({
       candidates: "TestAssignments@odata.count",
       category: "TestCategory/TestCategoryName",
       template: "TestTemplate/TestTemplateName",
-  code: "TestCode",
-  testStatus: "TestStatus",
+      code: "TestCode",
+      testStatus: "TestStatus",
     };
-    // Default order: latest modified/created first
+    // Default order: latest created first
     const orderBy = sort
-      ? `${fieldMap[sort.colId] ?? "ModifiedDate"} ${sort.sort}`
-      : "ModifiedDate desc";
+      ? `${fieldMap[sort.colId] ?? "CreatedDate"} ${sort.sort}`
+      : "CreatedDate desc";
     const filters: string[] = [];
     const search = (query ?? "").trim();
     if (search)
@@ -446,8 +446,8 @@ function TestsGrid({
       ? dateExpr("TestStartDate", fm.startDate)
       : null;
     const fmEnd = fm.endDate ? dateExpr("TestEndDate", fm.endDate) : null;
-  const fmStatus = fm.status ? booleanExpr("IsActive", fm.status) : null;
-  const fmTestStatus = fm.testStatus ? textExpr("TestStatus", fm.testStatus) : null;
+    const fmStatus = fm.status ? booleanExpr("IsActive", fm.status) : null;
+    const fmTestStatus = fm.testStatus ? textExpr("TestStatus", fm.testStatus) : null;
     const fmQuestions = fm.questions
       ? numberExpr("TestQuestions@odata.count", fm.questions)
       : null;
@@ -467,8 +467,8 @@ function TestsGrid({
     if (fmName) filters.push(fmName);
     if (fmStart) filters.push(fmStart);
     if (fmEnd) filters.push(fmEnd);
-  if (fmStatus) filters.push(fmStatus);
-  if (fmTestStatus) filters.push(fmTestStatus);
+    if (fmStatus) filters.push(fmStatus);
+    if (fmTestStatus) filters.push(fmTestStatus);
     if (fmQuestions) filters.push(fmQuestions);
     if (fmLevel) filters.push(fmLevel);
     if (fmCandidates) filters.push(fmCandidates);
@@ -487,9 +487,9 @@ function TestsGrid({
     // Only apply if this is the latest request
     if (reqId === lastReqIdRef.current) {
       if (res.status === 200 && res.data) {
-  setRows(res.data.rows.slice());
-  // Clear selection when data refreshes
-  setSelectedRow(null);
+        setRows(res.data.rows.slice());
+        // Clear selection when data refreshes
+        setSelectedRow(null);
         setTotal(res.data.total);
       }
       setLoading(false);
@@ -523,7 +523,7 @@ function TestsGrid({
           {/* Actions: New, Publish and Delete */}
           <Link href="/admin/tests/new">
             <button
-              className="inline-flex items-center justify-center gap-2 w-28 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 w-32 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700 cursor-pointer"
               title="Create new test"
               onClick={() => {
                 try {
@@ -532,7 +532,7 @@ function TestsGrid({
                   sessionStorage.removeItem("admin:newTest:suppressClear");
                   sessionStorage.removeItem("admin:newTest:preselectedIds");
                   sessionStorage.removeItem("admin:newTest:selectedQuestions");
-                } catch {}
+                } catch { }
               }}
             >
               <PlusCircle className="w-4 h-4" /> New
@@ -559,7 +559,7 @@ function TestsGrid({
               setPublishConfirmOpen(true);
             }}
             disabled={!selectedRow || String(selectedRow.testStatus ?? "").toLowerCase() !== "new"}
-            className="inline-flex items-center justify-center gap-2 w-28 px-3 py-2 rounded-md bg-emerald-600 text-white text-sm shadow hover:bg-emerald-700 disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 w-32 px-3 py-2 rounded-md bg-emerald-600 text-white text-sm shadow hover:bg-emerald-700 disabled:opacity-50 cursor-pointer"
             title="Publish selected test"
           >
             <Rocket className="w-4 h-4" /> Publish
@@ -578,66 +578,68 @@ function TestsGrid({
               setConfirmOpen(true);
             }}
             disabled={deleting || !selectedRow}
-            className="inline-flex items-center justify-center gap-2 w-28 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 w-32 px-3 py-2 rounded-md bg-red-600 text-white text-sm shadow hover:bg-red-700 disabled:opacity-50 cursor-pointer"
             title="Delete selected test"
           >
             <Trash2 className="w-4 h-4" /> {deleting ? "Deleting..." : "Delete"}
           </button>
         </div>
-        <PaginationControls
-          page={page}
-          pageSize={pageSize}
-          total={total}
-          onPageChange={setPage}
-          onPageSizeChange={(s) => {
-            setPageSize(s);
-            setPage(1);
-          }}
-          pageSizeOptions={[15, 25, 50, 100]}
-          showTotalCount
-        />
-        <div className="flex items-center gap-2">
-          {/* Show/Hide filters toggle button */}
-          <button
-            type="button"
-            aria-pressed={showFilters}
-            onClick={() => setShowFilters((v) => !v)}
-            className={
-              `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm transition-colors ` +
-              (showFilters
-                ? `bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100`
-                : `bg-white text-gray-700 border-gray-300 hover:bg-gray-50`)
-            }
-            title={showFilters ? "Hide filters" : "Show filters"}
-          >
-            <Filter className="w-4 h-4" />{" "}
-            {showFilters ? "Hide Filters" : "Show Filters"}
-          </button>
-          {/* Clear all filters + search */}
-          <button
-            onClick={() => {
-              const api = gridApiRef.current as any;
-              const hasSearch = !!(query && query.length);
-              filterModelRef.current = {};
-              // If we will also clear search, guard before calling setFilterModel so the onFilterChanged is skipped
-              if (hasSearch && onClearQuery) {
-                skipNextFilterFetchRef.current = true;
-              }
-              api?.setFilterModel?.(null);
-              setFiltersVersion((v) => v + 1);
+        <div className="flex items-center gap-3">
+          <PaginationControls
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+            onPageSizeChange={(s) => {
+              setPageSize(s);
               setPage(1);
-              if (hasSearch && onClearQuery) {
-                onClearQuery();
-              }
             }}
-            className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-            title="Clear search and all column filters"
-            disabled={
-              !query && Object.keys(filterModelRef.current || {}).length === 0
-            }
-          >
-            <XCircle className="w-4 h-4" /> Clear Filters
-          </button>
+            pageSizeOptions={[15, 25, 50, 100]}
+            showTotalCount
+          />
+          <div className="flex items-center gap-2">
+            {/* Show/Hide filters toggle button */}
+            <button
+              type="button"
+              aria-pressed={showFilters}
+              onClick={() => setShowFilters((v) => !v)}
+              className={
+                `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm transition-colors ` +
+                (showFilters
+                  ? `bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100`
+                  : `bg-white text-gray-700 border-gray-300 hover:bg-gray-50`)
+              }
+              title={showFilters ? "Hide filters" : "Show filters"}
+            >
+              <Filter className="w-4 h-4" />{" "}
+              {showFilters ? "Hide Filters" : "Show Filters"}
+            </button>
+            {/* Clear all filters + search */}
+            <button
+              onClick={() => {
+                const api = gridApiRef.current as any;
+                const hasSearch = !!(query && query.length);
+                filterModelRef.current = {};
+                // If we will also clear search, guard before calling setFilterModel so the onFilterChanged is skipped
+                if (hasSearch && onClearQuery) {
+                  skipNextFilterFetchRef.current = true;
+                }
+                api?.setFilterModel?.(null);
+                setFiltersVersion((v) => v + 1);
+                setPage(1);
+                if (hasSearch && onClearQuery) {
+                  onClearQuery();
+                }
+              }}
+              className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              title="Clear search and all column filters"
+              disabled={
+                !query && Object.keys(filterModelRef.current || {}).length === 0
+              }
+            >
+              <XCircle className="w-4 h-4" /> Clear Filters
+            </button>
+          </div>
         </div>
       </div>
       {/* Active filter chips */}
@@ -698,9 +700,8 @@ function TestsGrid({
                   return `${labelBase}`;
                 }
                 if (t === "inRange")
-                  return `${labelBase}: ${c.dateFrom ?? c.filter} → ${
-                    c.dateTo ?? c.filterTo
-                  }`;
+                  return `${labelBase}: ${c.dateFrom ?? c.filter} → ${c.dateTo ?? c.filterTo
+                    }`;
                 if (val) return `${labelBase}: ${t} '${val}'`;
                 return `${labelBase}`;
               })();
@@ -841,8 +842,8 @@ function TestsGrid({
         }
         isOpen={confirmOpen}
         variant="danger"
-  className="max-w-md"
-  messageClassName="text-xs"
+        className="max-w-md"
+        messageClassName="text-xs"
         confirmText={deleting ? "Deleting..." : "Delete"}
         cancelText="Cancel"
         onCancel={() => {
@@ -877,8 +878,8 @@ function TestsGrid({
         message={
           publishConfirmOpen && pendingPublish
             ? `Do you want to Publish "${pendingPublish.name}" with Start Date - ${formatDate(
-                pendingPublish.startDate
-              )} and End Date - ${formatDate(pendingPublish.endDate)}?`
+              pendingPublish.startDate
+            )} and End Date - ${formatDate(pendingPublish.endDate)}?`
             : ""
         }
         isOpen={publishConfirmOpen}

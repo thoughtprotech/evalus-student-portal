@@ -26,11 +26,13 @@ export default function TitleWithTimer({
         durationMs={Math.max(0, formattedTimeTest * 60_000)}
         onComplete={onTestTimeUp}
       />
-      <TimerChip
-        title="Section Time Left"
-        durationMs={Math.max(0, formattedTimeSection * 60_000)}
-        onComplete={onSectionTimeUp}
-      />
+      {formattedTimeSection && (
+        <TimerChip
+          title="Section Time Left"
+          durationMs={Math.max(0, formattedTimeSection * 60_000)}
+          onComplete={onSectionTimeUp}
+        />
+      )}
     </div>
   );
 }

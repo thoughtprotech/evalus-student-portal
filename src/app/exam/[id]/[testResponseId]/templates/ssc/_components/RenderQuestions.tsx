@@ -1,5 +1,8 @@
 import { TextOrHtml } from "@/components/TextOrHtml";
-import { GetQuestionByIdResponse } from "@/utils/api/types";
+import {
+  GetQuestionByIdResponse,
+  QuestionsMetaDataInterface,
+} from "@/utils/api/types";
 import { QUESTION_TYPES } from "@/utils/constants";
 import clsx from "clsx";
 import { Dispatch, SetStateAction, useCallback, useState } from "react";
@@ -19,8 +22,8 @@ export default function RenderOptions({
   question,
   setQuestion,
 }: {
-  question: GetQuestionByIdResponse;
-  setQuestion: Dispatch<SetStateAction<GetQuestionByIdResponse | undefined>>;
+  question: QuestionsMetaDataInterface;
+  setQuestion: Dispatch<SetStateAction<QuestionsMetaDataInterface | undefined>>;
 }) {
   const [selectedOptions, setSelectedOptions] = useState<Set<number>>(
     new Set()
@@ -51,7 +54,7 @@ export default function RenderOptions({
         const result = await deleteQuestionOptionAction(optionToDelete);
         if (result.success) {
           // Remove the option from the question
-          const options = JSON.parse(question.options.options);
+          const options = JSON.parse(question.options);
           options.splice(optionToDelete, 1);
           setQuestion((prev) =>
             prev
@@ -65,7 +68,7 @@ export default function RenderOptions({
         const result = await deleteMultipleQuestionOptionsAction(optionIndices);
         if (result.success) {
           // Remove selected options from the question
-          const options = JSON.parse(question.options.options);
+          const options = JSON.parse(question.options);
           const filteredOptions = options.filter(
             (_: any, index: number) => !selectedOptions.has(index)
           );
@@ -91,7 +94,7 @@ export default function RenderOptions({
     deleteMode,
     optionToDelete,
     selectedOptions,
-    question.options.options,
+    question.options,
     setQuestion,
   ]);
 
@@ -115,7 +118,7 @@ export default function RenderOptions({
   const clearSelection = useCallback(() => {
     setSelectedOptions(new Set());
   }, []);
-  switch (question?.questionsMeta?.questionTypeName) {
+  switch (question?.questionTypeName) {
     case QUESTION_TYPES.SINGLE_MCQ:
       return (
         <div className="flex flex-col gap-3">
@@ -138,7 +141,7 @@ export default function RenderOptions({
           {/* Question Options */}
           <div className="flex flex-col gap-2">
             {(function () {
-              const raw = JSON.parse(question!.options.options);
+              const raw = JSON.parse(question!.options);
               const list: string[] = Array.isArray(raw)
                 ? raw
                 : raw?.options ?? [];
@@ -147,7 +150,7 @@ export default function RenderOptions({
               // Parse current answers safely
               let currentAnswers: string[] = [];
               try {
-                const parsed = JSON.parse(question!.options.answer || "[]");
+                const parsed = JSON.parse(question!.answer || "[]");
                 currentAnswers = Array.isArray(parsed) ? parsed : [];
               } catch {
                 currentAnswers = [];
@@ -177,10 +180,7 @@ export default function RenderOptions({
                         }
                         return {
                           ...prev,
-                          options: {
-                            ...prev.options,
-                            answer: JSON.stringify([option]),
-                          },
+                          answer: JSON.stringify([option]),
                         };
                       });
                     }}
@@ -208,7 +208,7 @@ export default function RenderOptions({
             // Parse existing answers
             let answers: string[];
             try {
-              answers = JSON.parse(prev.options.answer || "[]");
+              answers = JSON.parse(prev.answer || "[]");
               if (!Array.isArray(answers)) answers = [];
             } catch {
               answers = [];
@@ -228,10 +228,7 @@ export default function RenderOptions({
 
             return {
               ...prev,
-              options: {
-                ...prev.options,
-                answer: JSON.stringify(newAnswers),
-              },
+              answer: JSON.stringify(newAnswers),
             };
           });
         },
@@ -254,7 +251,7 @@ export default function RenderOptions({
           {/* Question Options */}
           <div className="flex flex-col gap-2">
             {(function () {
-              const raw = JSON.parse(question!.options.options);
+              const raw = JSON.parse(question!.options);
               const list: string[] = Array.isArray(raw)
                 ? raw
                 : raw?.options ?? [];
@@ -263,7 +260,7 @@ export default function RenderOptions({
               // Parse current answers safely
               let currentAnswers: string[] = [];
               try {
-                const parsed = JSON.parse(question!.options.answer || "[]");
+                const parsed = JSON.parse(question!.answer || "[]");
                 currentAnswers = Array.isArray(parsed) ? parsed : [];
               } catch {
                 currentAnswers = [];
@@ -339,7 +336,7 @@ export default function RenderOptions({
       );
     case QUESTION_TYPES.MATCH_PAIRS_SINGLE: {
       // Support both legacy array [[left...],[right...]] and new object {type,left,right}
-      const raw = JSON.parse(question!.options.options);
+      const raw = JSON.parse(question!.options);
       const opts = Array.isArray(raw)
         ? { left: raw[0] ?? [], right: raw[1] ?? [] }
         : { left: raw.left ?? [], right: raw.right ?? [] };
@@ -365,14 +362,14 @@ export default function RenderOptions({
                   {opts.right.map((row: string, idx: number) => (
                     <div
                       className={`rounded-md border p-2 border-gray-300 cursor-pointer ${
-                        JSON.parse(question!.options.answer)[index] === row
+                        JSON.parse(question!.answer)[index] === row
                           ? "border-indigo-600 bg-indigo-100 text-indigo-900"
                           : "border-gray-300 hover:bg-gray-100"
                       }`}
                       key={idx}
                       onClick={() => {
                         let updatedAnswer: string[] = JSON.parse(
-                          question!.options.answer
+                          question!.answer
                         );
                         if (updatedAnswer.includes(row)) {
                           const rplIdx = updatedAnswer.indexOf(row);
@@ -385,10 +382,7 @@ export default function RenderOptions({
                           }
                           return {
                             ...prev,
-                            options: {
-                              ...prev.options,
-                              answer: JSON.stringify(updatedAnswer),
-                            },
+                            answer: JSON.stringify(updatedAnswer),
                           };
                         });
                       }}
@@ -408,7 +402,7 @@ export default function RenderOptions({
         <div className="w-full flex flex-col gap-5">
           <div className="w-full max-w-1/4 flex justify-between gap-2">
             {(function () {
-              const raw = JSON.parse(question!.options.options);
+              const raw = JSON.parse(question!.options);
               const left: string[] = Array.isArray(raw)
                 ? raw[0] ?? []
                 : raw?.left ?? [];
@@ -428,7 +422,7 @@ export default function RenderOptions({
           </div>
           <div>
             {(() => {
-              const raw = JSON.parse(question!.options.options);
+              const raw = JSON.parse(question!.options);
               const left: string[] = Array.isArray(raw)
                 ? raw[0] ?? []
                 : raw?.left ?? [];
@@ -442,9 +436,7 @@ export default function RenderOptions({
                     {rightList.map((row: string, idx: number) => (
                       <div
                         className={`rounded-md border p-2 border-gray-300 cursor-pointer ${
-                          JSON.parse(question!.options.answer)[index].includes(
-                            row
-                          )
+                          JSON.parse(question!.answer)[index].includes(row)
                             ? "border-indigo-600 bg-indigo-100 text-indigo-900"
                             : "border-gray-300 hover:bg-gray-100"
                         }`}
@@ -454,9 +446,7 @@ export default function RenderOptions({
                             if (!prev) return prev;
 
                             // 1. Parse the existing 2D userAnswer array
-                            const answers: string[][] = JSON.parse(
-                              prev.options.answer
-                            );
+                            const answers: string[][] = JSON.parse(prev.answer);
 
                             // 2. Work on a fresh copy of the sub-array at [index]
                             const selection = [...answers[index]];
@@ -475,10 +465,7 @@ export default function RenderOptions({
                             // 5. Write back the updated 2D array as a JSON string
                             return {
                               ...prev,
-                              options: {
-                                ...prev.options,
-                                answer: JSON.stringify(answers),
-                              },
+                              answer: JSON.stringify(answers),
                             };
                           });
                         }}
@@ -505,14 +492,11 @@ export default function RenderOptions({
                 }
                 return {
                   ...prev,
-                  options: {
-                    ...prev.options,
-                    answer: e.target.value,
-                  },
+                  answer: e.target.value,
                 };
               });
             }}
-            value={question?.options.answer}
+            value={question?.answer}
           />
         </div>
       );
@@ -524,7 +508,7 @@ export default function RenderOptions({
             inputMode="decimal"
             pattern="\d*(\.\d*)?"
             className="w-full rounded-md border border-gray-300 px-4 py-2"
-            value={question?.options.answer ?? ""}
+            value={question?.answer ?? ""}
             onChange={(e) => {
               const val = e.target.value;
               // allow empty string or valid numeric/float
@@ -533,10 +517,7 @@ export default function RenderOptions({
                   if (!prev) return prev;
                   return {
                     ...prev,
-                    options: {
-                      ...prev.options,
-                      answer: val,
-                    },
+                    answer: val,
                   };
                 });
               }
@@ -550,7 +531,7 @@ export default function RenderOptions({
           <label
             className={clsx(
               "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base",
-              question!.options.answer === "True"
+              question!.answer === "True"
                 ? "border-indigo-600 bg-indigo-100 text-indigo-900"
                 : "border-gray-300 hover:bg-gray-100"
             )}
@@ -567,10 +548,7 @@ export default function RenderOptions({
                   }
                   return {
                     ...prev,
-                    options: {
-                      ...prev.options,
-                      answer: "True",
-                    },
+                    answer: "True",
                   };
                 });
               }}
@@ -580,7 +558,7 @@ export default function RenderOptions({
           <label
             className={clsx(
               "block border rounded-md px-4 py-2 cursor-pointer transition-all text-sm sm:text-base",
-              question!.options.answer === "False"
+              question!.answer === "False"
                 ? "border-indigo-600 bg-indigo-100 text-indigo-900"
                 : "border-gray-300 hover:bg-gray-100"
             )}
@@ -597,10 +575,7 @@ export default function RenderOptions({
                   }
                   return {
                     ...prev,
-                    options: {
-                      ...prev.options,
-                      answer: "False",
-                    },
+                    answer: "False",
                   };
                 });
               }}
@@ -615,17 +590,14 @@ export default function RenderOptions({
           <input
             type="text"
             className="w-full rounded-md border border-gray-300 px-4 py-2"
-            value={question?.options.answer ?? ""}
+            value={question?.answer ?? ""}
             onChange={(e) => {
               const val = e.target.value;
               setQuestion((prev) => {
                 if (!prev) return prev;
                 return {
                   ...prev,
-                  options: {
-                    ...prev.options,
-                    answer: val,
-                  },
+                  answer: val,
                 };
               });
             }}

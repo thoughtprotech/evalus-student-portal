@@ -1,5 +1,6 @@
 import React from "react";
 import TestSteps from "../../new/test-steps";
+import { unmaskAdminId } from "@/utils/urlMasking";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
 import type {
@@ -110,8 +111,8 @@ function normalizeTestToDraft(test: any): any {
         const opts = qObj.Questionoptions ?? qObj.questionoptions ?? qObj.QuestionOptions ?? qObj.questionOptions ?? [];
         const normOpts = Array.isArray(opts)
           ? opts.map((o: any) => ({
-              QuestionText: o?.QuestionText ?? o?.questionText ?? o?.text ?? null,
-            }))
+            QuestionText: o?.QuestionText ?? o?.questionText ?? o?.text ?? null,
+          }))
           : [];
         Question = { Questionoptions: normOpts };
       }
@@ -128,6 +129,21 @@ function normalizeTestToDraft(test: any): any {
       };
     })
     .filter((x) => x.TestQuestionId > 0);
+
+  // TestAssignedSections mapping (Step 1) - handle both PascalCase and camelCase variants
+  const sections = Array.isArray(src.TestAssignedSections ?? src.testAssignedSections)
+    ? (src.TestAssignedSections ?? src.testAssignedSections)
+    : [];
+  d.TestAssignedSections = sections.map((s: any) => ({
+    TestAssignedSectionId: s.TestAssignedSectionId ?? s.testAssignedSectionId ?? null,
+    TestSectionId: s.TestSectionId ?? s.testSectionId ?? null,
+    TestId: s.TestId ?? s.testId ?? d.TestId ?? null,
+    SectionOrder: s.SectionOrder ?? s.sectionOrder ?? null,
+    SectionMinTimeDuration: s.SectionMinTimeDuration ?? s.sectionMinTimeDuration ?? null,
+    SectionMaxTimeDuration: s.SectionMaxTimeDuration ?? s.sectionMaxTimeDuration ?? null,
+    // Include any other fields that might be present
+    ...s,
+  }));
 
   // Derive totals for Step 1 pre-population only if not provided by API
   if (!("TotalQuestions" in d) || d.TotalQuestions == null) {
@@ -147,8 +163,18 @@ function normalizeTestToDraft(test: any): any {
   return d;
 }
 
-export default async function EditTestPage({ params }: { params: { id: string } }) {
-  const id = Number(params.id);
+export default async function EditTestPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: maskedId } = await params;
+  const id = unmaskAdminId(maskedId);
+
+  if (!id) {
+    return (
+      <div className="w-[85%] mx-auto px-6 py-8">
+        <div className="text-red-600">Invalid test ID</div>
+      </div>
+    );
+  }
+
   // Load dropdown data in parallel
   const [typesRes, catsRes, instRes, lvlsRes, testRes] = await Promise.all([
     apiHandler(endpoints.getTestTypes, null as any),

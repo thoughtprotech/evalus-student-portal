@@ -47,6 +47,7 @@ export default function AssessmentFooter({
   };
 
   useEffect(() => {
+    console.log({ formattedTimeSection });
     fetchUserName();
   }, []);
 
@@ -150,11 +151,13 @@ export default function AssessmentFooter({
               }
             </h1>
           </div>
-          <TimerChip
-            title="Section Time Left"
-            durationMs={Math.max(0, formattedTimeSection * 60_000)}
-            onComplete={onSectionTimeUp}
-          />
+          {Number.isFinite(formattedTimeSection) && (
+            <TimerChip
+              title="Section Time Left"
+              durationMs={Math.max(0, formattedTimeSection * 60_000)}
+              onComplete={onSectionTimeUp}
+            />
+          )}
         </div>
       </div>
       {/* Modals */}

@@ -112,6 +112,7 @@ export interface GetQuestionByIdResponse {
 export interface GetTestMetaDataRequest {
   testId: number;
   testResponseId: number;
+  userName: string; // newly required by backend for metadata scoping
 }
 
 export interface TestMetaDataInterface {
@@ -125,16 +126,30 @@ export interface TestMetaDataInterface {
     secondaryInstruction: string;
   };
   testTemplateId?: number;
+  testTemplateName: string;
 }
 
 export interface QuestionsMetaDataInterface {
+  // questionId: number;
+  // questionText: string;
+  // questionType: string;
+  // status: string;
+  // options: string;
+  // answer: string;
+  
+  testQuestionId: number;
   questionId: number;
   questionText: string;
+  questionTypeId: string;
+  questionTypeName: string;
   questionType: string;
+  options: string;
   status: string;
-  options: {
-    optionText: string;
-  }[];
+  answer: string;
+  marks: number;
+  negativeMarks: number;
+  graceMarks: number;
+  explanation?: string | null;
 }
 
 export interface SectionsMetaDataInterface {
@@ -157,6 +172,8 @@ export interface CreateQuestionRequest {
   // Audit fields (added to allow passing logged in user like Products actions)
   createdBy?: string; // server may derive if omitted
   modifiedBy?: string; // for create we'll mirror createdBy
+  // Optional batch identifier for grouping/imports
+  batchNo?: string;
   questionsMeta: {
     tags: string;
     marks: number;
@@ -460,7 +477,7 @@ export interface DeleteCandidateRequest {
 }
 
 export interface StartSessionRequest {
-  testRegistrationId: number;
+  testId: number;
   userName: string | null;
 }
 
@@ -470,17 +487,18 @@ export interface StartSessionResponse {
 
 // The full request your client function will accept
 export type SubmitQuestionRequest = {
+  TestId: number;
   testResponseId: number;
   testQuestionId: number;
-  responseJson: string;
-  status: string;
+  testResponseJson: string;
+  testResponseStatus: string;
   comments: string;
   userName: string;
 };
 export interface SubmitQuestionResponse {}
 
 export interface SubmitTestRequest {
-  testResponseId: number;
+  testId: number; // replaced testResponseId per new keying strategy
   userName: string;
 }
 

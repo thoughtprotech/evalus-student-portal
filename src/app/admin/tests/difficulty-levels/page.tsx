@@ -9,6 +9,7 @@ import Toast from "@/components/Toast";
 import PaginationControls from "@/components/PaginationControls";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { fetchTestDifficultyLevelsAction, deleteTestDifficultyLevelAction, type TestDifficultyLevelRow } from "@/app/actions/admin/test-difficulty-levels";
+import { maskAdminId } from "@/utils/urlMasking";
 
 import { AgGridReact } from "ag-grid-react";
 import type { ColDef, GridApi } from "ag-grid-community";
@@ -20,7 +21,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 function NameCellRenderer(props: { value: string; data: TestDifficultyLevelRow }) {
   return (
-    <Link href={`/admin/tests/difficulty-levels/${props.data.id}/edit`} className="text-blue-600 hover:underline" title={props.value}>
+    <Link href={`/admin/tests/difficulty-levels/${maskAdminId(props.data.id)}/edit`} className="text-blue-600 hover:underline" title={props.value}>
       {props.value}
     </Link>
   );
@@ -55,8 +56,8 @@ export default function TestDifficultyLevelsPage() {
     { field: 'language', headerName: 'Language', minWidth: 120, sortable: true, filter: 'agTextColumnFilter' },
     { field: 'isActive', headerName: 'Status', minWidth: 110, sortable: true, filter: 'agTextColumnFilter', cellRenderer: StatusCell },
     { field: 'createdBy', headerName: 'Created By', minWidth: 140, sortable: true, filter: 'agTextColumnFilter' },
-  { field: 'createdDate', headerName: 'Created Date', minWidth: 140, sortable: true, valueFormatter: p => formatDate(p.value as any) },
-  { field: 'modifiedDate', headerName: 'Modified Date', minWidth: 160, sortable: true, valueFormatter: p => formatDate(p.value as any) },
+    { field: 'createdDate', headerName: 'Created Date', minWidth: 140, sortable: true, valueFormatter: p => formatDate(p.value as any) },
+    { field: 'modifiedDate', headerName: 'Modified Date', minWidth: 160, sortable: true, valueFormatter: p => formatDate(p.value as any) },
     { field: 'id', hide: true },
   ], [showFilters]);
 
@@ -65,11 +66,11 @@ export default function TestDifficultyLevelsPage() {
   const buildFilter = () => {
     const filters: string[] = [];
     const fm = filterModelRef.current || {};
-  Object.entries(fm).forEach(([field, cfg]: any) => {
+    Object.entries(fm).forEach(([field, cfg]: any) => {
       if (!cfg) return;
       const map: Record<string, string> = {
         name: 'TestDifficultyLevel1',
-    language: 'Language',
+        language: 'Language',
         isActive: 'IsActive',
         createdDate: 'CreatedDate',
         modifiedDate: 'ModifiedDate',
@@ -79,8 +80,8 @@ export default function TestDifficultyLevelsPage() {
         const value = cfg.filter.replace(/'/g, "''");
         if (field === 'isActive') {
           const v = value.toLowerCase();
-          if (["active","1","true"].includes(v)) { filters.push(`${serverField} eq 1`); return; }
-          if (["inactive","0","false"].includes(v)) { filters.push(`${serverField} eq 0`); return; }
+          if (["active", "1", "true"].includes(v)) { filters.push(`${serverField} eq 1`); return; }
+          if (["inactive", "0", "false"].includes(v)) { filters.push(`${serverField} eq 0`); return; }
         }
         switch (cfg.type) {
           case 'startsWith': filters.push(`startswith(${serverField},'${value}')`); break;
@@ -92,13 +93,13 @@ export default function TestDifficultyLevelsPage() {
         const value = String(cfg.filter).replace(/'/g, "''");
         if (field === 'isActive') {
           const v = value.toLowerCase();
-          if (["active","1","true"].includes(v)) { filters.push(`${serverField} eq 1`); return; }
-          if (["inactive","0","false"].includes(v)) { filters.push(`${serverField} eq 0`); return; }
+          if (["active", "1", "true"].includes(v)) { filters.push(`${serverField} eq 1`); return; }
+          if (["inactive", "0", "false"].includes(v)) { filters.push(`${serverField} eq 0`); return; }
         }
         filters.push(`contains(${serverField},'${value}')`);
       }
     });
-  if (query.trim()) filters.push(`contains(TestDifficultyLevel1,'${query.trim().replace(/'/g, "''")}')`);
+    if (query.trim()) filters.push(`contains(TestDifficultyLevel1,'${query.trim().replace(/'/g, "''")}')`);
     return filters.length ? filters.join(' and ') : undefined;
   };
 
@@ -136,7 +137,7 @@ export default function TestDifficultyLevelsPage() {
           <div className="flex items-center gap-3 flex-wrap">
             <Link href="/admin/tests/difficulty-levels/new"><button className="inline-flex items-center gap-2 w-32 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700"><PlusCircle className="w-4 h-4" /> New</button></Link>
             <button
-              disabled={deleting}
+              disabled={deleting || selectedCount === 0}
               onClick={() => {
                 const sel = gridApiRef.current?.getSelectedRows?.() as TestDifficultyLevelRow[];
                 if (!sel?.length) { setToast({ message: 'Select rows to delete', type: 'info' }); return; }
@@ -181,7 +182,7 @@ export default function TestDifficultyLevelsPage() {
         <ConfirmationModal
           isOpen={confirmOpen}
           title="Confirm Delete"
-          message={(function(){
+          message={(function () {
             if (!pendingDelete.length) return 'No items selected.';
             return pendingDelete.length === 1 ? `Delete \"${pendingDelete[0].name}\"?` : `Delete ${pendingDelete.length} items?`;
           })()}

@@ -39,12 +39,12 @@ export const QUESTION_STATUS: {
 };
 
 export const TEST_TEMPLATE_MAPPING = {
-  Default: 0,
+  Default: "Default",
   Banking: 4,
   Railways: 5,
   Cat: 6,
   CSIR: 7,
-  SSC: 8,
+  SSC: "SSC",
   GATE: 9,
   IIT: 10,
   MBA: 11,

@@ -1,10 +1,10 @@
 import { TextOrHtml } from "@/components/TextOrHtml";
-import { GetQuestionByIdResponse } from "@/utils/api/types";
+import { GetQuestionByIdResponse, QuestionsMetaDataInterface } from "@/utils/api/types";
 
 export default function DirectionsArea({
   question,
 }: {
-  question: GetQuestionByIdResponse;
+  question: QuestionsMetaDataInterface;
 }) {
   return (
     <>

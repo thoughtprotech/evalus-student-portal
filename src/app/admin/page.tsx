@@ -121,8 +121,7 @@ export default function AdminDashboard() {
 
   const fetchRecentActivities = async () => {
     const res = await fetchAdminDashboardRecentActivititesAction();
-
-    if (res.status === 200) {
+    if (res && typeof res.status !== 'undefined' && res.status === 200) {
       setRecentActivities(res.data);
     } else {
       toast.error("Something Went Wrong");
@@ -229,11 +228,10 @@ export default function AdminDashboard() {
               <button
                 key={key}
                 onClick={() => setActiveTab(key)}
-                className={`flex items-center space-x-2 px-4 py-2 transition rounded-md cursor-pointer whitespace-nowrap ${
-                  activeTab === key
+                className={`flex items-center space-x-2 px-4 py-2 transition rounded-md cursor-pointer whitespace-nowrap ${activeTab === key
                     ? "bg-indigo-100 text-indigo-700"
                     : "text-gray-700 hover:bg-indigo-50"
-                }`}
+                  }`}
               >
                 <Icon className="w-5 h-5" />
                 <span>{label}</span>

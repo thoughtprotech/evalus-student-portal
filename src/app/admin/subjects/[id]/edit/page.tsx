@@ -10,10 +10,12 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { useUser } from "@/contexts/UserContext";
 import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
 import type { GetLanguagesResponse } from "@/utils/api/types";
+import { unmaskAdminId } from "@/utils/urlMasking";
 
 export default function EditSubjectPage() {
     const params = useParams();
-    const id = Number(params?.id);
+    const maskedId = params?.id as string;
+    const id = unmaskAdminId(maskedId);
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -25,6 +27,13 @@ export default function EditSubjectPage() {
     const { username } = useUser();
 
     useEffect(() => {
+        // Validate masked ID first
+        if (id === null) {
+            setToast({ message: 'Invalid subject ID', type: 'error' });
+            setLoading(false);
+            return;
+        }
+
         (async () => {
             const res = await fetchSubjectsAdminAction();
             if (res.status === 200 && res.data) {
@@ -40,6 +49,10 @@ export default function EditSubjectPage() {
     }, [id]);
 
     const submit = async () => {
+        if (id === null) {
+            setToast({ message: 'Invalid subject ID', type: 'error' });
+            return;
+        }
         if (!form.subjectName.trim()) { setToast({ message: 'Name required', type: 'error' }); return; }
         if (!form.language.trim()) { setToast({ message: 'Language required', type: 'error' }); return; }
         setSaving(true);
@@ -86,7 +99,7 @@ export default function EditSubjectPage() {
             <div className="flex items-start justify-between w-[60%] mx-auto mb-4">
                 <div className="flex items-center gap-4">
                     <Link href="/admin/subjects" className="inline-flex items-center text-sm text-indigo-600 hover:underline"><ArrowLeft className="w-4 h-4 mr-1" /> Back</Link>
-                    <PageHeader title="Edit Subject" icon={<BookOpen className="w-6 h-6 text-indigo-600" />} showSearch={false} onSearch={()=>{}} />
+                    <PageHeader title="Edit Subject" icon={<BookOpen className="w-6 h-6 text-indigo-600" />} showSearch={false} onSearch={() => { }} />
                 </div>
                 <div className="flex gap-2">
                     <button onClick={() => router.push('/admin/subjects')} className="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50">Cancel</button>
