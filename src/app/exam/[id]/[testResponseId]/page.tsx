@@ -28,7 +28,7 @@ import SSCTemplate from "./templates/ssc/page";
 export default function ExamPage() {
   const { id, testResponseId } = useParams();
   const [loaded, setLoaded] = useState<boolean>(false);
-  const [template, setTemplate] = useState<number | null>();
+  const [template, setTemplate] = useState<string | null>();
 
   const [question, setQuestion] = useState<GetQuestionByIdResponse>();
   const [showModal, setShowModal] = useState(false);
@@ -450,7 +450,7 @@ export default function ExamPage() {
     );
     const { data, status } = res;
     if (status === 200 && data) {
-      const templateId: number | undefined = data.testMeta.testTemplateId;
+      // const templateId: number | undefined = data.testMeta.testTemplateId;
       if (!template) {
         setTemplate(null);
       } else {
