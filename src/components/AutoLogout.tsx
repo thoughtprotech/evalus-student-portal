@@ -12,6 +12,10 @@ const IDLE_TIMEOUT = 10 * 60 * 1000; // 10 minutes
 const LAST_ACTIVITY_KEY = "__evalus_last_activity";
 const EXAM_MODE_KEY = "__evalus_exam_mode";
 
+// Cross-tab logout synchronization keys (matching useAutoLogout.ts)
+const SESSION_STATE_KEY = "__evalus_session_state";
+const LOGOUT_TRIGGER_KEY = "__evalus_logout_trigger";
+
 // Utility functions for managing exam mode
 export const setExamMode = (active: boolean) => {
     try {
@@ -124,6 +128,28 @@ export default function AutoLogout() {
             }
         };
 
+        // Listen for cross-tab logout events
+        const handleStorageChange = (e: StorageEvent) => {
+            // Handle logout trigger from other tabs
+            if (e.key === LOGOUT_TRIGGER_KEY && e.newValue) {
+                try {
+                    const trigger = JSON.parse(e.newValue);
+                    console.log("🔄 Cross-tab logout triggered:", trigger.reason);
+                    clearTimer();
+                    router.push("/");
+                } catch (err) {
+                    console.warn("Failed to parse logout trigger:", err);
+                }
+            }
+
+            // Handle session state changes from other tabs
+            if (e.key === SESSION_STATE_KEY && e.newValue === 'logged_out') {
+                console.log("🔄 Session marked as logged out from another tab");
+                clearTimer();
+                router.push("/");
+            }
+        };
+
         // Check if user was idle before page reload/reopen
         try {
             const raw = localStorage.getItem(LAST_ACTIVITY_KEY);
@@ -155,29 +181,6 @@ export default function AutoLogout() {
 
         events.forEach((ev) => window.addEventListener(ev, onActivity, { passive: true }));
 
-        const onVisibilityChange = () => {
-            // Don't logout on visibility change if exam is in progress
-            if (document.visibilityState === "hidden" && !isExamMode()) {
-                // Don't logout immediately when tab becomes hidden
-                // This can happen when minimizing browser window, which is not the same as switching tabs
-                // Only logout after a delay to distinguish between minimize/maximize vs actual tab switch
-                console.log("👁️ Tab hidden - starting delayed logout check");
-
-                // Set a timeout to check if the tab is still hidden after a delay
-                setTimeout(() => {
-                    // If still hidden after delay and not in exam mode, then likely a real tab switch
-                    if (document.visibilityState === "hidden" && !isExamMode()) {
-                        console.log("👁️ Tab still hidden after delay - logging out");
-                        doBeaconLogout();
-                    } else {
-                        console.log("👁️ Tab became visible again - logout cancelled");
-                    }
-                }, 2000); // 2 second delay to allow for minimize/maximize cycles
-            } else if (document.visibilityState === "hidden") {
-                console.log("👁️ Tab hidden but exam in progress - logout blocked");
-            }
-        };
-
         const onPageHide = () => {
             // Only logout if not in exam mode
             if (!isExamMode()) {
@@ -192,16 +195,16 @@ export default function AutoLogout() {
             }
         };
 
-        document.addEventListener("visibilitychange", onVisibilityChange);
         window.addEventListener("pagehide", onPageHide, { passive: true });
         window.addEventListener("beforeunload", onBeforeUnload);
+        window.addEventListener("storage", handleStorageChange);
 
         return () => {
             clearTimer();
             events.forEach((ev) => window.removeEventListener(ev, onActivity));
-            document.removeEventListener("visibilitychange", onVisibilityChange);
             window.removeEventListener("pagehide", onPageHide);
             window.removeEventListener("beforeunload", onBeforeUnload);
+            window.removeEventListener("storage", handleStorageChange);
         };
     }, [startTimer, clearTimer, router]);
 
