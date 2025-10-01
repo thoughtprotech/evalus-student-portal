@@ -84,6 +84,7 @@ export default function ExamPage() {
         );
 
         if (response.status === 202) {
+          await fetchTestMetaData();
           if (currentSection?.questions[currentIndex + 1]) {
             // fetchQuestionById(
             //   currentSection?.questions[currentIndex + 1].questionId!
@@ -93,7 +94,6 @@ export default function ExamPage() {
           } else {
             setSubmitSectionModal(true);
           }
-          fetchTestMetaData();
         } else {
           toast.error("Something Went Wrong");
         }
@@ -541,6 +541,7 @@ export default function ExamPage() {
       setCurrentSection(nextSection);
       // fetchQuestionById(nextSection?.questions[0]?.questionId!);
       setCurrentIndex(0);
+      setQuestion(nextSection?.questions[0]);
     }
   };
 
@@ -616,7 +617,7 @@ export default function ExamPage() {
       // If this screen owns the connection lifecycle, you can also disconnect here.
       // If multiple pages share the same singleton connection, you might choose to leave it connected.
       // For exam-only usage, it's reasonable to stop on unmount:
-      signalRClient.disconnect().catch(() => { });
+      signalRClient.disconnect().catch(() => {});
       isMounted = false;
     };
   }, [testResponseId]);

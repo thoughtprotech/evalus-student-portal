@@ -120,7 +120,7 @@ export default function SSCTemplate({
                     currentIndex={currentIndex}
                   />
 
-                  <div className="w-full h-full flex flex-col gap-5 pt-2">
+                  <div className="w-full h-full overflow-y-auto flex flex-col gap-5 pt-2">
                     <div className="relative w-full h-fit">
                       <QuestionArea question={question} />
                     </div>
