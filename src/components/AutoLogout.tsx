@@ -158,8 +158,21 @@ export default function AutoLogout() {
         const onVisibilityChange = () => {
             // Don't logout on visibility change if exam is in progress
             if (document.visibilityState === "hidden" && !isExamMode()) {
-                console.log("👁️ Tab hidden - logging out");
-                doBeaconLogout();
+                // Don't logout immediately when tab becomes hidden
+                // This can happen when minimizing browser window, which is not the same as switching tabs
+                // Only logout after a delay to distinguish between minimize/maximize vs actual tab switch
+                console.log("👁️ Tab hidden - starting delayed logout check");
+
+                // Set a timeout to check if the tab is still hidden after a delay
+                setTimeout(() => {
+                    // If still hidden after delay and not in exam mode, then likely a real tab switch
+                    if (document.visibilityState === "hidden" && !isExamMode()) {
+                        console.log("👁️ Tab still hidden after delay - logging out");
+                        doBeaconLogout();
+                    } else {
+                        console.log("👁️ Tab became visible again - logout cancelled");
+                    }
+                }, 2000); // 2 second delay to allow for minimize/maximize cycles
             } else if (document.visibilityState === "hidden") {
                 console.log("👁️ Tab hidden but exam in progress - logout blocked");
             }
