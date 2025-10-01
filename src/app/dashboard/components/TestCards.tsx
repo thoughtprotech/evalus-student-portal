@@ -35,13 +35,13 @@ interface TestCardsProps {
   startDateTimeString?: string;
   endDateTimeString?: string;
   status?:
-    | "Registered"
-    | "Completed"
-    | "Cancelled"
-    | "In Progress"
-    | "Missed"
-    | "Up Next"
-    | undefined;
+  | "Registered"
+  | "Completed"
+  | "Cancelled"
+  | "In Progress"
+  | "Missed"
+  | "Up Next"
+  | undefined;
   bookmarked?: boolean; // initial state from parent (optional)
   registrationId: number;
   onRegistered?: () => Promise<void> | void; // callback to refresh dashboard after registration
@@ -130,56 +130,50 @@ export default function TestCards({
   }
 
   const openInPopup = (e: React.MouseEvent) => {
-    if (status !== "Up Next") return;
-
-    console.log({ registrationId });
+    // Allow all statuses to open system check
+    console.log({ registrationId, status, testId: test.testId });
 
     e.preventDefault();
 
     // Set exam mode to prevent auto-logout
     setExamMode(true);
 
-    const features = [
-      "toolbar=no",
-      "menubar=no",
-      "location=no",
-      "status=no",
-      "resizable=yes",
-      "scrollbars=yes",
-      `width=${window.screen.width}`,
-      `height=${window.screen.height}`,
-      `top=0`,
-      `left=0`,
-    ].join(",");
+    // Always open system check - use registrationId if available, otherwise use 0
+    const regId = registrationId && registrationId > 0 ? registrationId : 0;
+    const systemCheckUrl = `/exam/systemCheck/${test.testId}/${regId}`;
 
-    const popup = window.open(linkHref, "_blank", features);
+    console.log("🚀 Opening system check URL:", systemCheckUrl);
 
-    if (!popup) {
-      console.error("Popup blocked");
-      // Clear exam mode if popup failed to open
-      setExamMode(false);
-      return;
-    }
+    // Try popup first, if blocked or fails, use direct navigation
+    try {
+      const popup = window.open(systemCheckUrl, "_blank", "width=1200,height=800,scrollbars=yes,resizable=yes");
 
-    // Monitor popup close to clear exam mode
-    const checkClosed = setInterval(() => {
-      if (popup.closed) {
-        clearInterval(checkClosed);
-        setExamMode(false);
+      if (!popup || popup.closed || typeof popup.closed === "undefined") {
+        console.warn("Popup blocked - using direct navigation");
+        // Popup blocked, navigate directly in current tab
+        window.location.href = systemCheckUrl;
+        return;
       }
-    }, 1000);
-    
-    popup.addEventListener("load", () => {
-      popup.document.documentElement
-        .requestFullscreen()
-        .catch(() => console.warn("Fullscreen denied"));
 
-      popup.document.addEventListener("fullscreenchange", () => {
-        if (!popup.document.fullscreenElement) {
-          popup.document.documentElement.requestFullscreen().catch(() => {});
+      // Monitor popup close to clear exam mode
+      const checkClosed = setInterval(() => {
+        try {
+          if (popup.closed) {
+            clearInterval(checkClosed);
+            setExamMode(false);
+          }
+        } catch (error) {
+          // Cross-origin error, popup might be on different domain
+          clearInterval(checkClosed);
+          setExamMode(false);
         }
-      });
-    });
+      }, 1000);
+
+    } catch (error) {
+      console.error("Error opening popup:", error);
+      // Fallback to direct navigation
+      window.location.href = systemCheckUrl;
+    }
   };
 
   const [showRegisterModal, setShowRegisterModal] = useState(false);
@@ -197,7 +191,7 @@ export default function TestCards({
         if (isFinite(s.getTime()) && s.getTime() > Date.now() - 60000) {
           return s.toISOString().slice(0, 16);
         }
-      } catch {}
+      } catch { }
     }
     return defaultLocal();
   })();
@@ -251,7 +245,7 @@ export default function TestCards({
         if (onRegistered) {
           try {
             await onRegistered();
-          } catch {}
+          } catch { }
         }
       } else {
         toast.error(res.errorMessage || res.message || "Registration failed");
@@ -325,19 +319,19 @@ export default function TestCards({
         if (onToggleStar) {
           try {
             await onToggleStar(Number(id), now);
-          } catch {}
+          } catch { }
         }
       } else {
         try {
           (await import("react-hot-toast")).toast.error(
             "Failed to update star"
           );
-        } catch {}
+        } catch { }
       }
     } catch {
       try {
         (await import("react-hot-toast")).toast.error("Failed to update star");
-      } catch {}
+      } catch { }
     } finally {
       setStarLoading(false);
     }
@@ -350,7 +344,7 @@ export default function TestCards({
       {/* Test Title */}
       <div className="w-full border-b border-b-gray-300 pb-4">
         <h1 className="text-2xl font-bold text-gray-800 truncate text-ellipsis"
-        title={name}
+          title={name}
         >
           {name}
         </h1>
@@ -419,16 +413,14 @@ export default function TestCards({
           {starred ? (
             <BookmarkCheck
               onClick={toggleStar}
-              className={`text-indigo-600 cursor-pointer hover:text-indigo-700 duration-300 ${
-                starLoading ? "opacity-50 pointer-events-none" : ""
-              }`}
+              className={`text-indigo-600 cursor-pointer hover:text-indigo-700 duration-300 ${starLoading ? "opacity-50 pointer-events-none" : ""
+                }`}
             />
           ) : (
             <Bookmark
               onClick={toggleStar}
-              className={`text-gray-500 cursor-pointer hover:text-indigo-700 duration-300 ${
-                starLoading ? "opacity-50 pointer-events-none" : ""
-              }`}
+              className={`text-gray-500 cursor-pointer hover:text-indigo-700 duration-300 ${starLoading ? "opacity-50 pointer-events-none" : ""
+                }`}
             />
           )}
         </div>
@@ -439,11 +431,9 @@ export default function TestCards({
         <a
           href={linkHref}
           onClick={openInPopup}
-          className={`${
-            status === "Missed" && "hidden"
-          } w-full flex items-center justify-center gap-1 px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${
-            status && actionButtonMapping[status]
-          }`}
+          className={`${status === "Missed" && "hidden"
+            } w-full flex items-center justify-center gap-1 px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${status && actionButtonMapping[status]
+            }`}
         >
           {linkText}
           {linkIcon}
@@ -477,11 +467,10 @@ export default function TestCards({
               onChange={(e) => setProposedStart(e.target.value)}
               onBlur={() => setStartTouched(true)}
               required
-              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${
-                startTouched && (!proposedStart || isPast)
+              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${startTouched && (!proposedStart || isPast)
                   ? "border-red-500"
                   : "border-gray-300"
-              }`}
+                }`}
             />
             {startTouched && !proposedStart && (
               <p className="text-xs text-red-600">

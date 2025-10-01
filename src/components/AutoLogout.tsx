@@ -16,10 +16,8 @@ const EXAM_MODE_KEY = "__evalus_exam_mode";
 export const setExamMode = (active: boolean) => {
     try {
         if (active) {
-            console.log("🔒 Exam mode ACTIVATED - Auto-logout disabled");
             localStorage.setItem(EXAM_MODE_KEY, "true");
         } else {
-            console.log("🔓 Exam mode DEACTIVATED - Auto-logout enabled");
             localStorage.removeItem(EXAM_MODE_KEY);
         }
     } catch (e) {
@@ -105,41 +103,28 @@ export default function AutoLogout() {
                 const url = "/api/auth/logout";
                 const payload = JSON.stringify({ username: null });
 
-                // prefer sendBeacon
-                if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
-                    try {
-                        const blob = new Blob([payload], { type: "application/json" });
-                        navigator.sendBeacon(url, blob);
-                        return;
-                    } catch { }
+                // Use sendBeacon (most reliable for page unload)
+                if (navigator?.sendBeacon) {
+                    const blob = new Blob([payload], { type: "application/json" });
+                    navigator.sendBeacon(url, blob);
+                    return;
                 }
 
-                // try fetch keepalive
+                // Fallback to fetch with keepalive
                 if (typeof fetch === "function") {
-                    try {
-                        fetch(url, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: payload,
-                            keepalive: true,
-                        }).catch(() => { });
-                        return;
-                    } catch { }
+                    fetch(url, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: payload,
+                        keepalive: true,
+                    }).catch(() => { });
                 }
-
-                // last resort: synchronous XHR
-                try {
-                    const xhr = new XMLHttpRequest();
-                    xhr.open("POST", url, false);
-                    xhr.setRequestHeader("Content-Type", "application/json");
-                    xhr.send(payload);
-                } catch { }
             } catch (e) {
                 // ignore
             }
         };
 
-        // On mount check persisted last activity to detect full browser close + reopen
+        // Check if user was idle before page reload/reopen
         try {
             const raw = localStorage.getItem(LAST_ACTIVITY_KEY);
             if (raw) {
@@ -147,7 +132,7 @@ export default function AutoLogout() {
                 if (!Number.isNaN(ts)) {
                     const age = Date.now() - ts;
                     if (age >= IDLE_TIMEOUT && !isExamMode()) {
-                        // last activity older than threshold -> force logout immediately (unless in exam mode)
+                        // User was idle before reload - logout immediately
                         doBeaconLogout();
                         logoutAction().catch(() => { });
                         router.push("/");
@@ -181,22 +166,16 @@ export default function AutoLogout() {
         };
 
         const onPageHide = () => {
-            // Don't logout on page hide if exam is in progress
+            // Only logout if not in exam mode
             if (!isExamMode()) {
-                console.log("📄 Page hide - logging out");
                 doBeaconLogout();
-            } else {
-                console.log("📄 Page hide but exam in progress - logout blocked");
             }
         };
 
         const onBeforeUnload = () => {
-            // Don't logout on before unload if exam is in progress
+            // Only logout if not in exam mode
             if (!isExamMode()) {
-                console.log("🔄 Before unload - logging out");
                 doBeaconLogout();
-            } else {
-                console.log("🔄 Before unload but exam in progress - logout blocked");
             }
         };
 

@@ -34,7 +34,8 @@ export default function SystemCheckPage() {
   const { id, registrationId } = useParams();
   const router = useRouter();
 
-  // Prevent auto-logout during exam
+  console.log("SystemCheck: Page loaded with params:", { id, registrationId });
+
   useExamMode();
 
   // The check steps

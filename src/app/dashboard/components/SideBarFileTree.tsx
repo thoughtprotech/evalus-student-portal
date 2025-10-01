@@ -76,9 +76,13 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
             if (hasChildren) {
               toggle(node.candidateGroupId);
             } else {
-              router.push("/dashboard");
+              // Set the group context without navigating away from current page
               setCurrentGroupId(node.candidateGroupId.toString());
               setGroupSelected(true);
+              // Only navigate if we're not already on the dashboard
+              if (window.location.pathname !== "/dashboard") {
+                router.push("/dashboard");
+              }
             }
           }}
         >
@@ -113,8 +117,8 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
       {/* Root toggler */}
       <div
         className={`w-full flex items-center space-x-3 p-2 font-semibold transition-all rounded-lg ${new RegExp(regExp).test(pathname)
-            ? "text-indigo-600"
-            : "text-gray-600"
+          ? "text-indigo-600"
+          : "text-gray-600"
           } hover:bg-indigo-100 hover:text-indigo-600`}
         onClick={toggleRoot}
       >

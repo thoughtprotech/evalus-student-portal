@@ -362,9 +362,9 @@ function SidebarItem({ onClick, category }: SidebarItemProps) {
   return (
     <div className="flex flex-col">
       <div className="w-full flex items-center justify-between gap-2">
-        <a
-          onClick={onClick}
+        <Link
           href={category.href}
+          onClick={onClick}
           className={`w-full flex items-center space-x-3 p-2 font-semibold transition-all rounded-lg ${pathname === category.href ? "text-indigo-600" : "text-gray-600"
             } hover:bg-indigo-100 hover:text-indigo-600`}
         >
@@ -372,7 +372,7 @@ function SidebarItem({ onClick, category }: SidebarItemProps) {
           <span className="whitespace-nowrap transition-opacity duration-300">
             {category.name}
           </span>
-        </a>
+        </Link>
         {category.menu && category.menu.length > 0 && (
           <div>
             {!isMenuOpen ? (
@@ -469,7 +469,7 @@ function SidebarItemMobile({ icon: Icon, label, href, onClick }: any) {
     onClick && onClick();
   };
   return (
-    <a
+    <Link
       href={href}
       onClick={handleClick}
       className={`flex items-center space-x-3 px-2 py-3 font-bold ${pathname === href ? "text-indigo-600" : "text-gray-600"
@@ -477,6 +477,6 @@ function SidebarItemMobile({ icon: Icon, label, href, onClick }: any) {
     >
       <Icon className="w-6 h-6 min-w-[24px]" />
       <span className="whitespace-nowrap">{label}</span>
-    </a>
+    </Link>
   );
 }

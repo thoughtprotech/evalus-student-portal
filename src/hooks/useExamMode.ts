@@ -7,13 +7,17 @@ import { setExamMode } from "@/components/AutoLogout";
  */
 export const useExamMode = () => {
     useEffect(() => {
-        console.log("🎯 useExamMode: Component mounted - activating exam mode");
+        // Only run on client-side
+        if (typeof window === 'undefined') return;
+
+        console.log("useExamMode: Activating exam mode to prevent auto-logout");
+
         // Set exam mode when component mounts
         setExamMode(true);
 
         // Clear exam mode when component unmounts
         return () => {
-            console.log("🎯 useExamMode: Component unmounting - deactivating exam mode");
+            console.log("useExamMode: Deactivating exam mode");
             setExamMode(false);
         };
     }, []);
