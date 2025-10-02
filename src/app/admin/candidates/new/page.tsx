@@ -346,7 +346,6 @@ export default function AddCandidatePage() {
     const isSuccess = status >= 200 && status < 300 && !error;
 
     if (isSuccess) {
-      toast.success("Candidate created! Add another...");
       setForm({
         firstName: "",
         lastName: "",
