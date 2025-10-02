@@ -230,6 +230,25 @@ export default function AddCandidatePage() {
       toast.error("Phone number is required");
       return false;
     }
+
+    // User Login validation
+    if (!form.userLogin[0].userName.trim()) {
+      toast.error("User name is required");
+      return false;
+    }
+    if (!form.userLogin[0].password.trim()) {
+      toast.error("Password is required");
+      return false;
+    }
+    if (!form.userLogin[0].displayName.trim()) {
+      toast.error("Display name is required");
+      return false;
+    }
+    if (!form.userLogin[0].role.trim()) {
+      toast.error("Role is required");
+      return false;
+    }
+
     return true;
   };
 
@@ -556,8 +575,8 @@ export default function AddCandidatePage() {
                   onClick={handleSaveAndNew}
                   disabled={isSaving}
                   className={`px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium transition-colors ${isSaving
-                      ? "bg-gray-50 text-gray-400 cursor-not-allowed"
-                      : "bg-white text-gray-700 hover:bg-gray-50"
+                    ? "bg-gray-50 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-gray-700 hover:bg-gray-50"
                     }`}
                 >
                   {isSaving ? "Saving..." : "Save & New"}
@@ -566,8 +585,8 @@ export default function AddCandidatePage() {
                   onClick={handleSubmit}
                   disabled={isSaving}
                   className={`px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-colors ${isSaving
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-indigo-600 hover:bg-indigo-700"
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-indigo-600 hover:bg-indigo-700"
                     }`}
                 >
                   {isSaving ? "Saving..." : "Save Candidate"}
@@ -791,7 +810,7 @@ export default function AddCandidatePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-800 mb-1">
-                    User Name
+                    User Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -804,7 +823,7 @@ export default function AddCandidatePage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-800 mb-1">
-                    Password
+                    Password <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="password"
@@ -819,7 +838,7 @@ export default function AddCandidatePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-800 mb-1">
-                    Display Name
+                    Display Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -832,7 +851,7 @@ export default function AddCandidatePage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-800 mb-1">
-                    Role
+                    Role <span className="text-red-500">*</span>
                   </label>
                   <select
                     name="role"

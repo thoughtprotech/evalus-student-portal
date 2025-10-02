@@ -324,6 +324,13 @@ export default function EditCandidatePage() {
     if (!form.phoneNumber.trim()) { setToast({ message: "Phone required", type: "error" }); return false; }
     if (!form.companyId) { setToast({ message: "Company required", type: "error" }); return false; }
     if (chosenGroupIds.length === 0) { setToast({ message: "At least one group required", type: "error" }); return false; }
+
+    // User Login validation
+    if (!userLogin.userName.trim()) { setToast({ message: "User name is required", type: "error" }); return false; }
+    if (!userLogin.password.trim()) { setToast({ message: "Password is required", type: "error" }); return false; }
+    if (!userLogin.displayName.trim()) { setToast({ message: "Display name is required", type: "error" }); return false; }
+    if (!userLogin.role.trim()) { setToast({ message: "Role is required", type: "error" }); return false; }
+
     return true;
   };
 
@@ -520,7 +527,7 @@ export default function EditCandidatePage() {
               <h2 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">User Login</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-800 mb-1">User Name</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">User Name <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     name="userName"
@@ -531,7 +538,7 @@ export default function EditCandidatePage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-800 mb-1">Password</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Password <span className="text-red-500">*</span></label>
                   <input
                     type="password"
                     name="password"
@@ -544,7 +551,7 @@ export default function EditCandidatePage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-800 mb-1">Display Name</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Display Name <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     name="displayName"
@@ -555,7 +562,7 @@ export default function EditCandidatePage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-800 mb-1">Role</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Role <span className="text-red-500">*</span></label>
                   <select
                     name="role"
                     className={selectCls}
