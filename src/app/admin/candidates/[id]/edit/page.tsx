@@ -411,6 +411,7 @@ export default function EditCandidatePage() {
       displayName: userLogin.displayName.trim(),
       role: userLogin.role.trim(),
       userPhoto: userLogin.userPhoto,
+      isActive: form.isActive ? 1 : 0, // Pass isActive to user payload
     };
 
     // Only include password if it's not the placeholder and user is updating it
@@ -619,29 +620,17 @@ export default function EditCandidatePage() {
                     Password {!userLogin.hasPassword && <span className="text-red-500">*</span>}
                     {userLogin.hasPassword && <span className="text-xs text-gray-500">(Leave blank to keep current)</span>}
                   </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="password"
-                      name="password"
-                      className={inputCls}
-                      placeholder={userLogin.hasPassword ? "Enter new password to change" : "Enter password"}
-                      value={userLogin.password}
-                      onChange={handleUserLoginChange}
-                    />
-                    {userLogin.hasPassword && (
-                      <button
-                        type="button"
-                        onClick={handleKeepExistingPassword}
-                        className="px-3 py-2 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-300 transition-colors whitespace-nowrap"
-                        title="Keep existing password"
-                      >
-                        Keep Current
-                      </button>
-                    )}
-                  </div>
+                  <input
+                    type="password"
+                    name="password"
+                    className={inputCls}
+                    placeholder={userLogin.hasPassword ? "Enter new password to change" : "Enter password"}
+                    value={userLogin.password}
+                    onChange={handleUserLoginChange}
+                  />
                   {userLogin.hasPassword && (
                     <p className="text-xs text-gray-500 mt-1">
-                      User has an existing password. Enter a new password to change it, or click "Keep Current" to preserve the existing password.
+                      User has an existing password. Enter a new password to change it, or leave blank to preserve the existing password.
                     </p>
                   )}
                 </div>

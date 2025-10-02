@@ -28,6 +28,7 @@ export interface CandidateUpdatePayload {
     displayName: string;
     role: string;
     userPhoto?: File | null;
+    isActive?: number; // 0|1
   }>;
 }
 
@@ -56,8 +57,18 @@ export async function updateCandidateAction(payload: CandidateUpdatePayload): Pr
     if (Array.isArray(apiPayload.candidateGroupIds)) {
       apiPayload.CandidateGroupIds = apiPayload.candidateGroupIds;
     }
+    // Mirror isActive field with different casings for backend compatibility
+    if (apiPayload.isActive !== undefined) {
+      apiPayload.IsActive = apiPayload.isActive;
+    }
     if (Array.isArray(apiPayload.userLogin)) {
       apiPayload.UserLogin = apiPayload.userLogin;
+      // Ensure isActive is properly set for each user in userLogin
+      apiPayload.UserLogin = apiPayload.userLogin.map((user: any) => ({
+        ...user,
+        IsActive: user.isActive !== undefined ? user.isActive : apiPayload.isActive,
+        isActive: user.isActive !== undefined ? user.isActive : apiPayload.isActive,
+      }));
     }
     const res = await apiHandler(endpoints.updateCandidate, apiPayload as any);
     if (!res.error) {
