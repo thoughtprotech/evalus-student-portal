@@ -27,7 +27,7 @@ export interface CandidateUpdatePayload {
     password?: string;
     displayName: string;
     role: string;
-    userPhoto?: File | null;
+    userPhoto?: string | null;
     isActive?: number; // 0|1
   }>;
 }

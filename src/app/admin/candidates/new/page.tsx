@@ -13,6 +13,7 @@ import { fetchRolesAction } from "@/app/actions/admin/roles";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
 import { useUser } from "@/contexts/UserContext";
+import { uploadToLocal } from "@/utils/uploadToLocal";
 
 // Indian States (sample, add more as needed)
 const STATES = [
@@ -63,7 +64,7 @@ export default function AddCandidatePage() {
         password: "",
         displayName: "",
         role: "",
-        userPhoto: null as File | null,
+        userPhoto: null as string | null,
       }
     ]
   });
@@ -72,7 +73,7 @@ export default function AddCandidatePage() {
     password: "",
     displayName: "",
     role: "",
-    userPhoto: null as File | null,
+    userPhoto: null as string | null,
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -184,27 +185,28 @@ export default function AddCandidatePage() {
     };
     */
 
-  const handleUserPhotoChange = (e: ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleUserPhotoChange = async (e: ChangeEvent<HTMLInputElement>, index: number) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
 
-      // update userLogin[index].userPhoto
-      setForm((prev) => ({
-        ...prev,
-        userLogin: prev.userLogin.map((u, i) =>
-          i === index ? { ...u, userPhoto: file } : u
-        ),
-      }));
+      try {
+        // Upload the file and get the public URL
+        const { url } = await uploadToLocal(file);
 
-      // if you only need one preview
-      setUserPhotoPreview(URL.createObjectURL(file));
+        // update userLogin[index].userPhoto with the URL
+        setForm((prev) => ({
+          ...prev,
+          userLogin: prev.userLogin.map((u, i) =>
+            i === index ? { ...u, userPhoto: url } : u
+          ),
+        }));
 
-      // 👉 if you want previews per user (array), use state like:
-      // setUserPhotoPreview((prev) => {
-      //   const updated = [...prev];
-      //   updated[index] = URL.createObjectURL(file);
-      //   return updated;
-      // });
+        // Set preview using the uploaded URL
+        setUserPhotoPreview(url);
+      } catch (error) {
+        console.error('File upload failed:', error);
+        toast.error('Photo upload failed. Please try again.');
+      }
     }
   };
 
@@ -366,7 +368,7 @@ export default function AddCandidatePage() {
             password: "",
             displayName: "",
             role: "",
-            userPhoto: null as File | null,
+            userPhoto: null as string | null,
           }
         ]
       });

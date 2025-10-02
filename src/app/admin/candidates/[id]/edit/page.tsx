@@ -14,6 +14,7 @@ import { endpoints } from "@/utils/api/endpoints";
 import { useUser } from "@/contexts/UserContext";
 import Toast from "@/components/Toast";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import { uploadToLocal } from "@/utils/uploadToLocal";
 
 interface CompanyOption { id: number; name: string; }
 type GroupNode = { id: number; name: string; children?: GroupNode[] };
@@ -66,7 +67,7 @@ export default function EditCandidatePage() {
       password: "",
       displayName: "",
       role: "",
-      userPhoto: null as File | null,
+      userPhoto: null as string | null,
       hasPassword: false,
     }]
   });
@@ -75,7 +76,7 @@ export default function EditCandidatePage() {
     password: "",
     displayName: "",
     role: "",
-    userPhoto: null as File | null,
+    userPhoto: null as string | null,
     hasPassword: false,
   });
   const [userPhotoPreview, setUserPhotoPreview] = useState<string | null>(null);
@@ -193,7 +194,7 @@ export default function EditCandidatePage() {
               password: hasPassword ? "****" : "",
               displayName: userLoginData.displayName || c.displayName || "",
               role: userLoginData.role || c.role || "",
-              userPhoto: null,
+              userPhoto: userLoginData.userPhoto || c.userPhoto || null,
               hasPassword: hasPassword,
             }]
           });
@@ -203,9 +204,13 @@ export default function EditCandidatePage() {
             password: hasPassword ? "****" : "",
             displayName: userLoginData.displayName || c.displayName || "",
             role: userLoginData.role || c.role || "",
-            userPhoto: null,
+            userPhoto: userLoginData.userPhoto || c.userPhoto || null,
             hasPassword: hasPassword,
           });
+          // Set preview if existing photo exists
+          if (userLoginData.userPhoto || c.userPhoto) {
+            setUserPhotoPreview(userLoginData.userPhoto || c.userPhoto);
+          }
         }
       } catch (e: any) {
         setToast({ message: e.message || "Failed to load candidate", type: "error" });
@@ -339,23 +344,44 @@ export default function EditCandidatePage() {
   };
 
   // For file input (user photo)
-  const handleUserPhotoChange = (e: React.ChangeEvent<HTMLInputElement>, index: number = 0) => {
+  const handleUserPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number = 0) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
 
-      setUserLogin((prev) => ({
-        ...prev,
-        userPhoto: file,
-      }));
+      try {
+        // Delete old image if it exists and is a profile image
+        if (userLogin.userPhoto && userLogin.userPhoto.includes('/uploads/profiles/')) {
+          let relativePath = userLogin.userPhoto;
+          // If userPhoto is a full URL, extract the path
+          if (relativePath.startsWith('http')) {
+            try {
+              const urlObj = new URL(relativePath);
+              relativePath = urlObj.pathname;
+            } catch { }
+          }
+          await fetch(`/api/uploads?path=${relativePath}`, { method: 'DELETE' });
+        }
 
-      setForm((prev) => ({
-        ...prev,
-        userLogin: prev.userLogin.map((u, i) =>
-          i === index ? { ...u, userPhoto: file } : u
-        ),
-      }));
+        // Upload the file and get the public URL
+        const { url } = await uploadToLocal(file);
 
-      setUserPhotoPreview(URL.createObjectURL(file));
+        setUserLogin((prev) => ({
+          ...prev,
+          userPhoto: url,
+        }));
+
+        setForm((prev) => ({
+          ...prev,
+          userLogin: prev.userLogin.map((u, i) =>
+            i === index ? { ...u, userPhoto: url } : u
+          ),
+        }));
+
+        setUserPhotoPreview(url);
+      } catch (error) {
+        console.error('File upload failed:', error);
+        setToast({ message: 'Photo upload failed. Please try again.', type: 'error' });
+      }
     }
   };
 
