@@ -22,6 +22,13 @@ export interface CandidateUpdatePayload {
   candidateGroupIds?: number[];
   createdBy?: string;
   modifiedBy?: string;
+  userLogin?: Array<{
+    userName: string;
+    password?: string;
+    displayName: string;
+    role: string;
+    userPhoto?: File | null;
+  }>;
 }
 
 export async function fetchCandidateByIdAction(candidateId: number): Promise<ApiResponse<any>> {
@@ -35,7 +42,7 @@ export async function fetchCandidateByIdAction(candidateId: number): Promise<Api
 
 export async function updateCandidateAction(payload: CandidateUpdatePayload): Promise<ApiResponse<null>> {
   try {
-  const apiPayload: any = { ...payload };
+    const apiPayload: any = { ...payload };
     // Mirror audit/user fields in multiple casings for backend compatibility
     const auditUser = apiPayload.modifiedBy || apiPayload.createdBy;
     if (auditUser) {
@@ -48,6 +55,9 @@ export async function updateCandidateAction(payload: CandidateUpdatePayload): Pr
     if (apiPayload.modifiedDate) apiPayload.ModifiedDate = apiPayload.modifiedDate;
     if (Array.isArray(apiPayload.candidateGroupIds)) {
       apiPayload.CandidateGroupIds = apiPayload.candidateGroupIds;
+    }
+    if (Array.isArray(apiPayload.userLogin)) {
+      apiPayload.UserLogin = apiPayload.userLogin;
     }
     const res = await apiHandler(endpoints.updateCandidate, apiPayload as any);
     if (!res.error) {

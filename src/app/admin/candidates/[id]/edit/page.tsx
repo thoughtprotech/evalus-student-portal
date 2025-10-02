@@ -61,6 +61,14 @@ export default function EditCandidatePage() {
     companyId: "",
     candidateGroupIds: [] as string[],
     isActive: true,
+    userLogin: [{
+      userName: "",
+      password: "",
+      displayName: "",
+      role: "",
+      userPhoto: null as File | null,
+      hasPassword: false,
+    }]
   });
   const [userLogin, setUserLogin] = useState({
     userName: "",
@@ -68,6 +76,7 @@ export default function EditCandidatePage() {
     displayName: "",
     role: "",
     userPhoto: null as File | null,
+    hasPassword: false,
   });
   const [userPhotoPreview, setUserPhotoPreview] = useState<string | null>(null);
   const userPhotoInputRef = useRef<HTMLInputElement>(null);
@@ -160,6 +169,10 @@ export default function EditCandidatePage() {
           setExpandedMap((m) => ({ ...m, ...Object.fromEntries(Array.from(expandSet).map((id) => [id, true])) }));
         }
         if (mounted) {
+          // Extract userLogin data from API response
+          const userLoginData = c.userLogin && c.userLogin[0] ? c.userLogin[0] : {};
+          const hasPassword = userLoginData.hasPassword || false;
+
           setForm({
             firstName: c.firstName || "",
             lastName: c.lastName || "",
@@ -175,14 +188,23 @@ export default function EditCandidatePage() {
             companyId: c.companyId ? String(c.companyId) : "",
             candidateGroupIds: [],
             isActive: c.isActive === 1 || c.isActive === true,
+            userLogin: [{
+              userName: userLoginData.userName || c.userName || "",
+              password: hasPassword ? "****" : "",
+              displayName: userLoginData.displayName || c.displayName || "",
+              role: userLoginData.role || c.role || "",
+              userPhoto: null,
+              hasPassword: hasPassword,
+            }]
           });
           // Load userLogin fields from candidate data if available
           setUserLogin({
-            userName: c.userName || "",
-            password: "",
-            displayName: c.displayName || "",
-            role: c.role || "",
+            userName: userLoginData.userName || c.userName || "",
+            password: hasPassword ? "****" : "",
+            displayName: userLoginData.displayName || c.displayName || "",
+            role: userLoginData.role || c.role || "",
             userPhoto: null,
+            hasPassword: hasPassword,
           });
         }
       } catch (e: any) {
@@ -296,24 +318,57 @@ export default function EditCandidatePage() {
   };
 
   const handleUserLoginChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    index: number = 0
   ) => {
     const { name, value, type } = e.target;
+    const fileValue = type === "file" ? (e.target as any).files?.[0] : value;
+
+    // Update both userLogin state and form.userLogin array
     setUserLogin((prev) => ({
       ...prev,
-      [name]: type === "file" ? (e.target as any).files?.[0] : value,
+      [name]: fileValue,
+    }));
+
+    setForm((prev) => ({
+      ...prev,
+      userLogin: prev.userLogin.map((u, i) =>
+        i === index ? { ...u, [name]: fileValue } : u
+      ),
     }));
   };
 
   // For file input (user photo)
-  const handleUserPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUserPhotoChange = (e: React.ChangeEvent<HTMLInputElement>, index: number = 0) => {
     if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+
       setUserLogin((prev) => ({
         ...prev,
-        userPhoto: e.target.files![0],
+        userPhoto: file,
       }));
-      setUserPhotoPreview(URL.createObjectURL(e.target.files[0]));
+
+      setForm((prev) => ({
+        ...prev,
+        userLogin: prev.userLogin.map((u, i) =>
+          i === index ? { ...u, userPhoto: file } : u
+        ),
+      }));
+
+      setUserPhotoPreview(URL.createObjectURL(file));
     }
+  };
+
+  // Helper function to clear password (keep existing)
+  const handleKeepExistingPassword = () => {
+    const newPassword = "****";
+    setUserLogin(prev => ({ ...prev, password: newPassword }));
+    setForm(prev => ({
+      ...prev,
+      userLogin: prev.userLogin.map((u, i) =>
+        i === 0 ? { ...u, password: newPassword } : u
+      ),
+    }));
   };
 
   const validate = () => {
@@ -327,7 +382,15 @@ export default function EditCandidatePage() {
 
     // User Login validation
     if (!userLogin.userName.trim()) { setToast({ message: "User name is required", type: "error" }); return false; }
-    if (!userLogin.password.trim()) { setToast({ message: "Password is required", type: "error" }); return false; }
+    // Only validate password if hasPassword is false (new user) or if password is being changed (not ****)
+    if (!userLogin.hasPassword && !userLogin.password.trim()) {
+      setToast({ message: "Password is required for new user", type: "error" });
+      return false;
+    }
+    if (userLogin.hasPassword && userLogin.password.trim() && userLogin.password !== "****" && userLogin.password.length < 1) {
+      setToast({ message: "Password must be valid if changing", type: "error" });
+      return false;
+    }
     if (!userLogin.displayName.trim()) { setToast({ message: "Display name is required", type: "error" }); return false; }
     if (!userLogin.role.trim()) { setToast({ message: "Role is required", type: "error" }); return false; }
 
@@ -342,6 +405,19 @@ export default function EditCandidatePage() {
     if (!validate()) return;
     setSaving(true);
     const chosenGroupIds = selectedGroupIds;
+    // Prepare user login data - only include password if it's being updated
+    const userLoginPayload: any = {
+      userName: userLogin.userName.trim(),
+      displayName: userLogin.displayName.trim(),
+      role: userLogin.role.trim(),
+      userPhoto: userLogin.userPhoto,
+    };
+
+    // Only include password if it's not the placeholder and user is updating it
+    if (!userLogin.hasPassword || (userLogin.password && userLogin.password !== "****")) {
+      userLoginPayload.password = userLogin.password;
+    }
+
     const payload = {
       candidateId,
       firstName: form.firstName.trim(),
@@ -359,6 +435,7 @@ export default function EditCandidatePage() {
       companyId: Number(form.companyId),
       candidateGroupIds: chosenGroupIds,
       modifiedBy: username || "system",
+      userLogin: [userLoginPayload],
     };
     const res = await updateCandidateAction(payload);
     if (!res.error) {
@@ -538,15 +615,35 @@ export default function EditCandidatePage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-800 mb-1">Password <span className="text-red-500">*</span></label>
-                  <input
-                    type="password"
-                    name="password"
-                    className={inputCls}
-                    placeholder="Enter password"
-                    value={userLogin.password}
-                    onChange={handleUserLoginChange}
-                  />
+                  <label className="block text-sm font-medium text-gray-800 mb-1">
+                    Password {!userLogin.hasPassword && <span className="text-red-500">*</span>}
+                    {userLogin.hasPassword && <span className="text-xs text-gray-500">(Leave blank to keep current)</span>}
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="password"
+                      name="password"
+                      className={inputCls}
+                      placeholder={userLogin.hasPassword ? "Enter new password to change" : "Enter password"}
+                      value={userLogin.password}
+                      onChange={handleUserLoginChange}
+                    />
+                    {userLogin.hasPassword && (
+                      <button
+                        type="button"
+                        onClick={handleKeepExistingPassword}
+                        className="px-3 py-2 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-300 transition-colors whitespace-nowrap"
+                        title="Keep existing password"
+                      >
+                        Keep Current
+                      </button>
+                    )}
+                  </div>
+                  {userLogin.hasPassword && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      User has an existing password. Enter a new password to change it, or click "Keep Current" to preserve the existing password.
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -586,7 +683,7 @@ export default function EditCandidatePage() {
                   accept="image/*"
                   ref={userPhotoInputRef}
                   className={inputCls}
-                  onChange={handleUserPhotoChange}
+                  onChange={(e) => handleUserPhotoChange(e, 0)}
                 />
                 {userPhotoPreview && (
                   <div className="mt-2">
