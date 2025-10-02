@@ -3,6 +3,9 @@
 import { ApiResponse } from "@/utils/api/types";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
+import { fetchCandidateByIdAction } from "./candidates/updateCandidate";
+import { promises as fs } from 'fs';
+import path from 'path';
 
 // Row model consumed by the grid UI
 export interface CandidateRow {
@@ -262,6 +265,60 @@ export async function fetchCandidatesAction(
 
 export async function deleteCandidateAction(candidateId: number): Promise<ApiResponse<null>> {
     try {
+        // First, fetch the candidate details to get the userPhoto URL
+        let userPhotoUrl: string | null = null;
+        try {
+            const candidateRes = await fetchCandidateByIdAction(candidateId);
+            if (!candidateRes.error && candidateRes.data) {
+                // Check if candidate has userLogin with userPhoto
+                if (candidateRes.data.userLogin && Array.isArray(candidateRes.data.userLogin) && candidateRes.data.userLogin.length > 0) {
+                    userPhotoUrl = candidateRes.data.userLogin[0].userPhoto;
+                }
+                // Fallback: check if userPhoto is at the root level
+                if (!userPhotoUrl && candidateRes.data.userPhoto) {
+                    userPhotoUrl = candidateRes.data.userPhoto;
+                }
+            }
+        } catch (fetchError) {
+            console.warn('Failed to fetch candidate details before deletion:', fetchError);
+            // Continue with deletion even if we can't fetch the photo
+        }
+
+        // Delete the photo file if it exists and is a profile image
+        if (userPhotoUrl && userPhotoUrl.includes('/uploads/profiles/')) {
+            try {
+                let relativePath = userPhotoUrl;
+                // If userPhoto is a full URL, extract the path
+                if (relativePath.startsWith('http')) {
+                    try {
+                        const urlObj = new URL(relativePath);
+                        relativePath = urlObj.pathname;
+                    } catch { }
+                }
+
+                // Delete the photo file from the file system
+                if (relativePath.startsWith('/uploads/profiles/')) {
+                    const fileName = path.basename(relativePath);
+                    const profilesDir = path.join(process.cwd(), 'public', 'uploads', 'profiles');
+                    const filePath = path.join(profilesDir, fileName);
+
+                    try {
+                        await fs.unlink(filePath);
+                        console.log(`Deleted photo file: ${filePath}`);
+                    } catch (unlinkError: any) {
+                        if (unlinkError.code !== 'ENOENT') {
+                            console.warn(`Failed to delete photo file: ${filePath}`, unlinkError);
+                        }
+                        // File doesn't exist or other error, continue with candidate deletion
+                    }
+                }
+            } catch (photoError) {
+                console.warn('Error deleting candidate photo:', photoError);
+                // Continue with candidate deletion even if photo deletion fails
+            }
+        }
+
+        // Now delete the candidate from the database
         const res = await apiHandler(endpoints.deleteCandidate, { candidateId });
         if (res.error || (res.status && res.status >= 400)) {
             return {
