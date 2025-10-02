@@ -25,6 +25,7 @@ export async function createCandidateAction(
     companyId?: number;
     candidateGroupIds?: number[]; // new multi group association
     isActive?: number; // 0|1
+    isHandicapped?: number; // 0|1 for specially abled status
     createdBy?: string;
     createdDate?: string;
     modifiedBy?: string;
@@ -48,6 +49,7 @@ export async function createCandidateAction(
       country: payload.country || "",
       notes: payload.notes || "",
       isActive: typeof payload.isActive === 'number' ? payload.isActive : 1,
+      isHandicapped: typeof payload.isHandicapped === 'number' ? payload.isHandicapped : 0,
       createdBy: payload.createdBy || 'system',
       createdDate: payload.createdDate || new Date().toISOString(),
       modifiedBy: payload.modifiedBy || 'system',
@@ -55,8 +57,8 @@ export async function createCandidateAction(
       companyId: typeof payload.companyId === 'number' ? payload.companyId : 0,
       candidateGroupIds: Array.isArray(payload.candidateGroupIds) && payload.candidateGroupIds.length > 0
         ? payload.candidateGroupIds
-            : (payload.candidateGroup ? [0] : []), // fallback; replace logic if mapping candidateGroup name to id,
-       userLogin: payload.userLogin
+        : (payload.candidateGroup ? [0] : []), // fallback; replace logic if mapping candidateGroup name to id,
+      userLogin: payload.userLogin
     };
 
     // Provide audit fields in both common casings for backend compatibility

@@ -285,7 +285,7 @@ export default function AddCandidatePage() {
       createdBy: username || "system",
       modifiedBy: username || "system",
       isActive: form.isActive ? 1 : 0,
-      isHandicapped: form.isHandicapped ? 1 : 0,
+      isHandicapped: isHandicappedState ? 1 : 0,
       userLogin: [
         {
           userName: form.userLogin[0].userName,
@@ -296,6 +296,12 @@ export default function AddCandidatePage() {
         }
       ]
     };
+
+    console.log('SAVE ONLY PAYLOAD DEBUG:', {
+      isHandicappedState: isHandicappedState,
+      payloadIsHandicapped: payload.isHandicapped,
+      payloadKeys: Object.keys(payload)
+    });
 
     const res = await createCandidateAction(payload);
     const { status, error, errorMessage } = res;
@@ -353,6 +359,12 @@ export default function AddCandidatePage() {
         }
       ]
     };
+
+    console.log('SAVE AND NEW PAYLOAD DEBUG:', {
+      isHandicappedState: isHandicappedState,
+      payloadIsHandicapped: payload.isHandicapped,
+      payloadKeys: Object.keys(payload)
+    });
 
     const res = await createCandidateAction(payload);
     const { status, error, errorMessage } = res;
@@ -733,11 +745,7 @@ export default function AddCandidatePage() {
                       id="handicapped-no"
                       type="radio"
                       checked={!isHandicappedState}
-                      onChange={() => {
-                        console.log('Setting isHandicapped to false');
-                        setIsHandicappedState(false);
-                        setForm(prev => ({ ...prev, isHandicapped: false }));
-                      }}
+                      onChange={() => setIsHandicappedState(false)}
                       className="h-4 w-4 text-indigo-600 border-gray-300"
                     />
                     <label htmlFor="handicapped-no" className="text-sm text-gray-800">No</label>
@@ -747,11 +755,7 @@ export default function AddCandidatePage() {
                       id="handicapped-yes"
                       type="radio"
                       checked={isHandicappedState}
-                      onChange={() => {
-                        console.log('Setting isHandicapped to true');
-                        setIsHandicappedState(true);
-                        setForm(prev => ({ ...prev, isHandicapped: true }));
-                      }}
+                      onChange={() => setIsHandicappedState(true)}
                       className="h-4 w-4 text-indigo-600 border-gray-300"
                     />
                     <label htmlFor="handicapped-yes" className="text-sm text-gray-800">Yes</label>
