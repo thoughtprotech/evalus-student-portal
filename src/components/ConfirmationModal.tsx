@@ -36,9 +36,8 @@ export default function ConfirmationModal({
   return (
     <div className="fixed inset-0 bg-black/40 bg-opacity-40 flex items-center justify-center z-50 p-4">
       <div
-        className={`bg-white w-full rounded-2xl shadow-2xl p-5 sm:p-6 ${
-          className || ""
-        }`}
+        className={`bg-white w-full max-w-md rounded-2xl shadow-2xl p-5 sm:p-6 ${className || ""
+          }`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-modal-title"
@@ -47,13 +46,12 @@ export default function ConfirmationModal({
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <div
-                className={`flex-shrink-0 rounded-full p-2 ${
-                  variant === "danger"
+                className={`flex-shrink-0 rounded-full p-2 ${variant === "danger"
                     ? "bg-red-100 text-red-600"
                     : variant === "success"
-                    ? "bg-green-100 text-green-600"
-                    : "bg-blue-100 text-blue-600"
-                }`}
+                      ? "bg-green-100 text-green-600"
+                      : "bg-blue-100 text-blue-600"
+                  }`}
               >
                 {variant === "danger" ? (
                   <AlertTriangle className="w-6 h-6" />
@@ -91,15 +89,14 @@ export default function ConfirmationModal({
               onConfirm();
             }}
             disabled={confirmDisabled}
-            className={`min-w-28 px-4 py-2 rounded-md text-white ${
-              confirmDisabled
+            className={`min-w-28 px-4 py-2 rounded-md text-white ${confirmDisabled
                 ? "bg-indigo-400 cursor-not-allowed opacity-70"
                 : variant === "danger"
-                ? "bg-red-600 hover:bg-red-700 cursor-pointer"
-                : variant === "success"
-                ? "bg-green-600 hover:bg-green-700 cursor-pointer"
-                : "bg-indigo-600 hover:bg-indigo-700 cursor-pointer"
-            }`}
+                  ? "bg-red-600 hover:bg-red-700 cursor-pointer"
+                  : variant === "success"
+                    ? "bg-green-600 hover:bg-green-700 cursor-pointer"
+                    : "bg-indigo-600 hover:bg-indigo-700 cursor-pointer"
+              }`}
           >
             {confirmText}
           </button>

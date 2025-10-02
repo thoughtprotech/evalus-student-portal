@@ -143,6 +143,15 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
                 flex: 1.5
             },
             {
+                field: "userName",
+                headerName: "UserName",
+                headerTooltip: "User Name",
+                sortable: true,
+                filter: 'agTextColumnFilter',
+                filterParams: { buttons: ['apply', 'reset', 'clear'] },
+                width: 150
+            },
+            {
                 field: "phoneNumber",
                 headerName: "Phone Number",
                 headerTooltip: "Phone Number",
@@ -271,6 +280,7 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
             firstName: 'firstName',
             lastName: 'lastName',
             email: 'email',
+            userName: 'userName',
             phoneNumber: 'phoneNumber',
             cellPhone: 'cellPhone',
             address: 'address',
@@ -290,7 +300,7 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
         const search = (query ?? '').trim();
         if (search) {
             const esc = search.replace(/'/g, "''");
-            filters.push(`(contains(firstName,'${esc}') or contains(lastName,'${esc}') or contains(email,'${esc}'))`);
+            filters.push(`(contains(firstName,'${esc}') or contains(lastName,'${esc}') or contains(email,'${esc}') or contains(userName,'${esc}'))`);
         }
 
         const filterModel = filterModelRef.current || {};
@@ -452,7 +462,7 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
                     {Object.entries(filterModelRef.current as Record<string, any>).map(([key, m]) => {
                         const nameMap: Record<string, string> = {
                             candidateId: 'Candidate ID', firstName: 'First Name', lastName: 'Last Name',
-                            email: 'Email', phoneNumber: 'Phone Number', cellPhone: 'Cell Phone',
+                            email: 'Email', userName: 'User Name', phoneNumber: 'Phone Number', cellPhone: 'Cell Phone',
                             address: 'Address', city: 'City', state: 'State', postalCode: 'Postal Code',
                             country: 'Country', candidateGroup: 'Candidate Group', notes: 'Notes',
                             isActive: 'Status', createdDate: 'Created Date', modifiedDate: 'Modified Date',

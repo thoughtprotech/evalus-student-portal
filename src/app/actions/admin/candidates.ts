@@ -10,6 +10,7 @@ export interface CandidateRow {
     firstName: string;
     lastName: string;
     email: string;
+    userName: string;
     phoneNumber: string;
     cellPhone: string;
     address: string;
@@ -32,6 +33,19 @@ interface ApiCandidateItem {
     firstName: string;
     lastName: string;
     email: string;
+    userName?: string;
+    userLogin?: Array<{
+        userName: string;
+        displayName?: string;
+        email?: string;
+        role?: string;
+        language?: string;
+        region?: string;
+        timeZone?: string;
+        isActive?: boolean;
+        createdBy?: string;
+        createdDate?: string;
+    }>;
     phoneNumber?: string;
     cellPhone?: string;
     address?: string;
@@ -88,19 +102,20 @@ function mapToRows(items: ApiCandidateItem[], groupNameById: Record<number, stri
         if (!resolvedId || resolvedId === 0) {
             // Keep mapping but leave id as 0 if backend omitted
         }
-                // Derive candidate group display string
-                const idList = Array.isArray((item as any).candidateGroupIds)
-                    ? ((item as any).candidateGroupIds as any[]).map((n) => Number(n)).filter((n) => Number.isFinite(n))
-                    : [];
-                const groupNames = idList.length > 0
-                    ? idList.map((id) => groupNameById[id] || `Group ${id}`).join(", ")
-                    : (item.candidateGroupName || "");
+        // Derive candidate group display string
+        const idList = Array.isArray((item as any).candidateGroupIds)
+            ? ((item as any).candidateGroupIds as any[]).map((n) => Number(n)).filter((n) => Number.isFinite(n))
+            : [];
+        const groupNames = idList.length > 0
+            ? idList.map((id) => groupNameById[id] || `Group ${id}`).join(", ")
+            : (item.candidateGroupName || "");
 
-                const mapped = {
+        const mapped = {
             candidateId: resolvedId,
             firstName: item.firstName || "",
             lastName: item.lastName || "",
             email: item.email || "",
+            userName: item.userName || (item.userLogin && item.userLogin.length > 0 ? item.userLogin[0].userName : "") || "",
             phoneNumber: item.phoneNumber || "",
             cellPhone: item.cellPhone || "",
             address: item.address || "",
@@ -108,7 +123,7 @@ function mapToRows(items: ApiCandidateItem[], groupNameById: Record<number, stri
             state: item.state || "",
             postalCode: item.postalCode || "",
             country: item.country || "",
-                        candidateGroup: groupNames || "",
+            candidateGroup: groupNames || "",
             notes: item.notes || "",
             isActive: item.isActive || 0,
             createdBy: item.createdBy || "System",
@@ -186,7 +201,7 @@ export async function fetchCandidatesAction(
                 modifiedDate: 'modifiedDate'
             };
             const mapped = fieldMap[field] || field;
-            allItems.sort((a:any, b:any) => {
+            allItems.sort((a: any, b: any) => {
                 const av = a[mapped];
                 const bv = b[mapped];
                 if (av == null && bv != null) return -1;
@@ -212,12 +227,12 @@ export async function fetchCandidatesAction(
                         const [, fld, val] = eqMatch; const raw = item[fld];
                         if (/^\d+$/.test(val)) return Number(raw) === Number(val);
                         if (val === 'true' || val === 'false') return Boolean(raw) === (val === 'true');
-                        const sval = val.replace(/^'|'$/g,''); return String(raw).toLowerCase() === sval.toLowerCase();
+                        const sval = val.replace(/^'|'$/g, ''); return String(raw).toLowerCase() === sval.toLowerCase();
                     }
                     const startsWithMatch = f.match(/startswith\((\w+),'(.+?)'\)/);
-                    if (startsWithMatch) { const [, fld, val] = startsWithMatch; return String(item[fld]||'').toLowerCase().startsWith(val.toLowerCase()); }
+                    if (startsWithMatch) { const [, fld, val] = startsWithMatch; return String(item[fld] || '').toLowerCase().startsWith(val.toLowerCase()); }
                     const endsWithMatch = f.match(/endswith\((\w+),'(.+?)'\)/);
-                    if (endsWithMatch) { const [, fld, val] = endsWithMatch; return String(item[fld]||'').toLowerCase().endsWith(val.toLowerCase()); }
+                    if (endsWithMatch) { const [, fld, val] = endsWithMatch; return String(item[fld] || '').toLowerCase().endsWith(val.toLowerCase()); }
                     const lower = f.toLowerCase();
                     return Object.values(item).some(v => String(v).toLowerCase().includes(lower));
                 });
@@ -227,8 +242,8 @@ export async function fetchCandidatesAction(
         const total = allItems.length;
         const top = params.top ?? 15;
         const skip = params.skip ?? 0;
-    const pageSlice = allItems.slice(skip, skip + top);
-    const mappedRows = mapToRows(pageSlice, groupNameById);
+        const pageSlice = allItems.slice(skip, skip + top);
+        const mappedRows = mapToRows(pageSlice, groupNameById);
 
         return {
             status: 200,
