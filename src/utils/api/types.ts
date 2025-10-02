@@ -136,7 +136,7 @@ export interface QuestionsMetaDataInterface {
   // status: string;
   // options: string;
   // answer: string;
-  
+
   testQuestionId: number;
   questionId: number;
   questionText: string;
@@ -236,7 +236,7 @@ export interface GetCandidateTestResponse {
   // Optional id from registration table if candidate already registered
   testRegistrationId: number;
   testDurationMinutes: number;
-  testDurationForHandicappedMinutes: number
+  testDurationForHandicappedMinutes: number;
 }
 
 export interface GetCandidateStarredTestRequest {
@@ -586,4 +586,30 @@ export interface AdminDashboardAnallyticsResponse {
 export interface AdminDashboardRecentActivitiesResponse {
   activity: string;
   type: "test" | "question" | "candidate";
+}
+
+export interface CandidateAnalyticsSummaryRequest {
+  username: string;
+}
+
+export interface CandidateAnalyticsSummaryResponse {
+  testsCompleted: number;
+  averageScore: number;
+  maxScore: number;
+}
+
+export interface CandidateAnalyticsDetailsRequest {
+  username: string;
+}
+
+export interface CandidateAnalyticsDetailsResponse {
+  testName: string;
+  testDate: string;
+  testScore: string;
+  completionTimeInMinutes: number;
+  testRank: number;
+  testPercentile: number;
+  testResponseId: number;
+  testResultId: number;
+  username: string;
 }

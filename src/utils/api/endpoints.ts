@@ -1,6 +1,10 @@
 import {
   AdminDashboardAnallyticsResponse,
   AdminDashboardRecentActivitiesResponse,
+  CandidateAnalyticsDetailsRequest,
+  CandidateAnalyticsDetailsResponse,
+  CandidateAnalyticsSummaryRequest,
+  CandidateAnalyticsSummaryResponse,
   CreateQuestionRequest,
   Endpoint,
   GetCandidateStarredTestRequest,
@@ -164,19 +168,27 @@ export const endpoints = {
     method: "POST",
     path: () => `/api/StarredUserTests`,
     type: "CLOSE",
-  } as Endpoint<import('./types').StarredUserTestCreateRequest, null>,
+  } as Endpoint<import("./types").StarredUserTestCreateRequest, null>,
 
   deleteStarredUserTest: {
     method: "DELETE",
-    path: ({ testId, userName }: import('./types').StarredUserTestDeleteRequest) => `/api/StarredUserTests/${testId}/${encodeURIComponent(userName)}`,
+    path: ({
+      testId,
+      userName,
+    }: import("./types").StarredUserTestDeleteRequest) =>
+      `/api/StarredUserTests/${testId}/${encodeURIComponent(userName)}`,
     type: "CLOSE",
-  } as Endpoint<import('./types').StarredUserTestDeleteRequest, null>,
+  } as Endpoint<import("./types").StarredUserTestDeleteRequest, null>,
 
   listStarredUserTests: {
     method: "GET",
-    path: ({ username }: import('./types').StarredUserTestListRequest) => `/api/StarredUserTests?username=${encodeURIComponent(username)}`,
+    path: ({ username }: import("./types").StarredUserTestListRequest) =>
+      `/api/StarredUserTests?username=${encodeURIComponent(username)}`,
     type: "CLOSE",
-  } as Endpoint<import('./types').StarredUserTestListRequest, import('./types').StarredUserTestListResponse[]>,
+  } as Endpoint<
+    import("./types").StarredUserTestListRequest,
+    import("./types").StarredUserTestListResponse[]
+  >,
 
   getCandidateCompletedTests: {
     method: "GET",
@@ -195,34 +207,43 @@ export const endpoints = {
   // OData Spotlights listing (for grid filtering/sorting/paging)
   getSpotlightsOData: {
     method: "GET",
-    path: ({ query }: { query?: string }) => `/Odata/Spotlights${query ? (query.startsWith("?") ? query : `?${query}`) : ""}`,
+    path: ({ query }: { query?: string }) =>
+      `/Odata/Spotlights${
+        query ? (query.startsWith("?") ? query : `?${query}`) : ""
+      }`,
     type: "OPEN",
-  } as Endpoint<{ query?: string }, { '@odata.count'?: number; value: any[] }>,
+  } as Endpoint<{ query?: string }, { "@odata.count"?: number; value: any[] }>,
   createSpotlight: {
     method: "POST",
     path: () => `/api/Spotlights`,
     type: "CLOSE",
-  } as Endpoint<{
-    id: number;
-    spotlightName: string;
-    spotlightNameDescription: string;
-    addedDate: string;
-    validFrom: string;
-    validTo: string;
-    addedDay?: number;
-  }, null>,
+  } as Endpoint<
+    {
+      id: number;
+      spotlightName: string;
+      spotlightNameDescription: string;
+      addedDate: string;
+      validFrom: string;
+      validTo: string;
+      addedDay?: number;
+    },
+    null
+  >,
   updateSpotlight: {
     method: "PUT",
     path: ({ id }: { id: number }) => `/api/Spotlights/${id}`,
     type: "CLOSE",
-  } as Endpoint<{ id: number } & {
-    spotlightName: string;
-    spotlightNameDescription: string;
-    addedDate: string;
-    validFrom: string;
-    validTo: string;
-    addedDay?: number;
-  }, null>,
+  } as Endpoint<
+    { id: number } & {
+      spotlightName: string;
+      spotlightNameDescription: string;
+      addedDate: string;
+      validFrom: string;
+      validTo: string;
+      addedDay?: number;
+    },
+    null
+  >,
   getSpotlightById: {
     method: "GET",
     path: ({ id }: { id: number }) => `/api/Spotlights/${id}`,
@@ -251,17 +272,19 @@ export const endpoints = {
     method: "POST",
     path: () => `/api/Subjects`,
     type: "CLOSE",
-  } as Endpoint<import('./types').CreateSubjectRequest, null>,
+  } as Endpoint<import("./types").CreateSubjectRequest, null>,
 
   updateSubject: {
     method: "PUT",
-    path: ({ subjectId }: { subjectId: number }) => `/api/Subjects/${subjectId}`,
+    path: ({ subjectId }: { subjectId: number }) =>
+      `/api/Subjects/${subjectId}`,
     type: "CLOSE",
-  } as Endpoint<import('./types').UpdateSubjectRequest, null>,
+  } as Endpoint<import("./types").UpdateSubjectRequest, null>,
 
   deleteSubject: {
     method: "DELETE",
-    path: ({ subjectId }: { subjectId: number }) => `/api/Subjects/${subjectId}`,
+    path: ({ subjectId }: { subjectId: number }) =>
+      `/api/Subjects/${subjectId}`,
     type: "CLOSE",
   } as Endpoint<{ subjectId: number }, null>,
 
@@ -288,9 +311,12 @@ export const endpoints = {
   // Admin WriteUps full OData listing (supports dynamic query string like Test Instructions)
   getAdminWriteUps: {
     method: "GET",
-    path: ({ query }) => `/Odata/Writeups${query ? (query.startsWith("?") ? query : `?${query}`) : ""}`,
+    path: ({ query }) =>
+      `/Odata/Writeups${
+        query ? (query.startsWith("?") ? query : `?${query}`) : ""
+      }`,
     type: "OPEN",
-  } as Endpoint<{ query?: string }, { '@odata.count'?: number; value: any[] }>,
+  } as Endpoint<{ query?: string }, { "@odata.count"?: number; value: any[] }>,
 
   // WriteUps CRUD
   createWriteUp: {
@@ -335,21 +361,41 @@ export const endpoints = {
 
   updateQuestionDifficultyLevel: {
     method: "PUT",
-    path: ({ questionDifficultylevelId }: { questionDifficultylevelId: number }) => `/api/QuestionDifficultyLevels/${questionDifficultylevelId}`,
+    path: ({
+      questionDifficultylevelId,
+    }: {
+      questionDifficultylevelId: number;
+    }) => `/api/QuestionDifficultyLevels/${questionDifficultylevelId}`,
     type: "CLOSE",
-  } as Endpoint<{ questionDifficultylevelId: number } & Partial<GetDifficultyLevelsResponse>, any>,
+  } as Endpoint<
+    {
+      questionDifficultylevelId: number;
+    } & Partial<GetDifficultyLevelsResponse>,
+    any
+  >,
 
   deleteQuestionDifficultyLevel: {
     method: "DELETE",
-    path: ({ questionDifficultylevelId }: { questionDifficultylevelId: number }) => `/api/QuestionDifficultyLevels/${questionDifficultylevelId}`,
+    path: ({
+      questionDifficultylevelId,
+    }: {
+      questionDifficultylevelId: number;
+    }) => `/api/QuestionDifficultyLevels/${questionDifficultylevelId}`,
     type: "CLOSE",
   } as Endpoint<{ questionDifficultylevelId: number }, null>,
 
   getQuestionDifficultyLevelById: {
     method: "GET",
-    path: ({ questionDifficultylevelId }: { questionDifficultylevelId: number }) => `/api/QuestionDifficultyLevels/${questionDifficultylevelId}`,
+    path: ({
+      questionDifficultylevelId,
+    }: {
+      questionDifficultylevelId: number;
+    }) => `/api/QuestionDifficultyLevels/${questionDifficultylevelId}`,
     type: "CLOSE",
-  } as Endpoint<{ questionDifficultylevelId: number }, GetDifficultyLevelsResponse>,
+  } as Endpoint<
+    { questionDifficultylevelId: number },
+    GetDifficultyLevelsResponse
+  >,
 
   // OData - Question Difficulty Levels filtered by language
   getQuestionDifficultyLevelsOData: {
@@ -381,9 +427,11 @@ export const endpoints = {
     // query should include leading ?params already: e.g., ?$top=25&$skip=0...
     path: ({ query }) => {
       const q = query ? (query.startsWith("?") ? query : `?${query}`) : "";
-      const hasOrder = typeof q === "string" && (/\$orderby=/i.test(q) || /%24orderby=/i.test(q));
+      const hasOrder =
+        typeof q === "string" &&
+        (/\$orderby=/i.test(q) || /%24orderby=/i.test(q));
       const orderClause = "$orderby=CreatedDate desc";
-      const suffix = hasOrder ? "" : (q ? `&${orderClause}` : `?${orderClause}`);
+      const suffix = hasOrder ? "" : q ? `&${orderClause}` : `?${orderClause}`;
       return `/Odata/Tests${q}${suffix}`;
     },
     type: "OPEN",
@@ -461,20 +509,47 @@ export const endpoints = {
   // Admin Test Types full OData listing (grid with paging/filter/sort)
   getAdminTestTypes: {
     method: "GET",
-    path: ({ query }: { query?: string }) => `/Odata/TestTypes${query ? (query.startsWith("?") ? query : `?${query}`) : ""}`,
+    path: ({ query }: { query?: string }) =>
+      `/Odata/TestTypes${
+        query ? (query.startsWith("?") ? query : `?${query}`) : ""
+      }`,
     type: "OPEN",
-  } as Endpoint<{ query?: string }, { '@odata.count'?: number; value: any[] }>,
+  } as Endpoint<{ query?: string }, { "@odata.count"?: number; value: any[] }>,
   // Test Types CRUD
   createTestType: {
     method: "POST",
     path: () => `/api/TestTypes`,
     type: "CLOSE",
-  } as Endpoint<{ testTypeId: number; testType1: string; language: string; isActive: number; createdBy?: string; createdDate?: string; modifiedBy?: string; modifiedDate?: string }, null>,
+  } as Endpoint<
+    {
+      testTypeId: number;
+      testType1: string;
+      language: string;
+      isActive: number;
+      createdBy?: string;
+      createdDate?: string;
+      modifiedBy?: string;
+      modifiedDate?: string;
+    },
+    null
+  >,
   updateTestType: {
     method: "PUT",
     path: ({ id }: { id: number }) => `/api/TestTypes/${id}`,
     type: "CLOSE",
-  } as Endpoint<{ id: number } & { testTypeId: number; testType1: string; language: string; isActive: number; createdBy?: string; createdDate?: string; modifiedBy?: string; modifiedDate?: string }, null>,
+  } as Endpoint<
+    { id: number } & {
+      testTypeId: number;
+      testType1: string;
+      language: string;
+      isActive: number;
+      createdBy?: string;
+      createdDate?: string;
+      modifiedBy?: string;
+      modifiedDate?: string;
+    },
+    null
+  >,
   getTestTypeById: {
     method: "GET",
     path: ({ id }: { id: number }) => `/api/TestTypes/${id}`,
@@ -498,22 +573,54 @@ export const endpoints = {
   // Admin Test Categories full OData listing (tree + paging/filter/sort)
   getAdminTestCategories: {
     method: "GET",
-    path: ({ query }: { query?: string }) => `/Odata/TestCategories${query ? (query.startsWith("?") ? query : `?${query}`) : ""}`,
+    path: ({ query }: { query?: string }) =>
+      `/Odata/TestCategories${
+        query ? (query.startsWith("?") ? query : `?${query}`) : ""
+      }`,
     type: "OPEN",
-  } as Endpoint<{ query?: string }, { '@odata.count'?: number; value: any[] }>,
+  } as Endpoint<{ query?: string }, { "@odata.count"?: number; value: any[] }>,
 
   // Test Categories CRUD
   createTestCategory: {
     method: "POST",
     path: () => `/api/TestCategories`,
     type: "CLOSE",
-  } as Endpoint<{ testCategoryId: number; testCategoryName: string; testCategoryType: string; parentId: number; language: string; isActive: number; createdBy?: string; createdDate?: string; modifiedBy?: string; modifiedDate?: string }, null>,
+  } as Endpoint<
+    {
+      testCategoryId: number;
+      testCategoryName: string;
+      testCategoryType: string;
+      parentId: number;
+      language: string;
+      isActive: number;
+      createdBy?: string;
+      createdDate?: string;
+      modifiedBy?: string;
+      modifiedDate?: string;
+    },
+    null
+  >,
   updateTestCategory: {
     method: "PUT",
     // Use body.testCategoryId to form the path so we don't need an extra 'id' key in JSON body
-    path: ({ testCategoryId }: { testCategoryId: number }) => `/api/TestCategories/${testCategoryId}`,
+    path: ({ testCategoryId }: { testCategoryId: number }) =>
+      `/api/TestCategories/${testCategoryId}`,
     type: "CLOSE",
-  } as Endpoint<{ testCategoryId: number; testCategoryName: string; testCategoryType: string; parentId: number; language: string; isActive: number; createdBy?: string; createdDate?: string; modifiedBy?: string; modifiedDate?: string }, null>,
+  } as Endpoint<
+    {
+      testCategoryId: number;
+      testCategoryName: string;
+      testCategoryType: string;
+      parentId: number;
+      language: string;
+      isActive: number;
+      createdBy?: string;
+      createdDate?: string;
+      modifiedBy?: string;
+      modifiedDate?: string;
+    },
+    null
+  >,
   getTestCategoryById: {
     method: "GET",
     path: ({ id }: { id: number }) => `/api/TestCategories/${id}`,
@@ -537,9 +644,12 @@ export const endpoints = {
   // Admin Test Instructions full OData listing (supports dynamic query string built in action)
   getAdminTestInstructions: {
     method: "GET",
-    path: ({ query }) => `/Odata/TestInstructions${query ? (query.startsWith("?") ? query : `?${query}`) : ""}`,
+    path: ({ query }) =>
+      `/Odata/TestInstructions${
+        query ? (query.startsWith("?") ? query : `?${query}`) : ""
+      }`,
     type: "OPEN",
-  } as Endpoint<{ query?: string }, { '@odata.count'?: number; value: any[] }>,
+  } as Endpoint<{ query?: string }, { "@odata.count"?: number; value: any[] }>,
 
   // Test Instructions CRUD (assumed REST endpoints similar to other entities)
   createTestInstruction: {
@@ -653,9 +763,9 @@ export const endpoints = {
   // Generic Subjects OData listing with dynamic query (server-side filtering/pagination)
   listSubjectsOData: {
     method: "GET",
-    path: ({ query }) => `/Odata/Subjects${query || ''}`,
+    path: ({ query }) => `/Odata/Subjects${query || ""}`,
     type: "OPEN",
-  } as Endpoint<{ query?: string }, { '@odata.count'?: number; value: any[] }>,
+  } as Endpoint<{ query?: string }, { "@odata.count"?: number; value: any[] }>,
 
   // OData - Candidate Group Tree for Step 5 Assign
   getCandidateGroupTreeOData: {
@@ -667,9 +777,12 @@ export const endpoints = {
   // Admin Candidate Groups OData list (supports dynamic query)
   listCandidateGroupsOData: {
     method: "GET",
-    path: ({ query }) => `/api/odata/CandidateGroups${query ? (query.startsWith("?") ? query : `?${query}`) : ""}`,
+    path: ({ query }) =>
+      `/api/odata/CandidateGroups${
+        query ? (query.startsWith("?") ? query : `?${query}`) : ""
+      }`,
     type: "OPEN",
-  } as Endpoint<{ query?: string }, { '@odata.count'?: number; value: any[] }>,
+  } as Endpoint<{ query?: string }, { "@odata.count"?: number; value: any[] }>,
 
   // Candidate Groups CRUD
   createCandidateGroup: {
@@ -723,7 +836,9 @@ export const endpoints = {
       if (Array.isArray(tags) && tags.length > 0) {
         const tagConds = tags
           .filter((t) => typeof t === "string" && t.trim().length > 0)
-          .map((t) => `contains(QuestionTags,'${String(t).replace(/'/g, "''")}')`);
+          .map(
+            (t) => `contains(QuestionTags,'${String(t).replace(/'/g, "''")}')`
+          );
         if (tagConds.length > 0) parts.push(`(${tagConds.join(" or ")})`);
       }
       const filter = encodeURIComponent(parts.join(" and "));
@@ -770,9 +885,19 @@ export const endpoints = {
   // OData - Questions by Batch Number with pagination
   getQuestionsByBatchNumberOData: {
     method: "GET",
-    path: ({ batchNumber, top = 15, skip = 0 }: { batchNumber: string; top?: number; skip?: number }) => {
+    path: ({
+      batchNumber,
+      top = 15,
+      skip = 0,
+    }: {
+      batchNumber: string;
+      top?: number;
+      skip?: number;
+    }) => {
       const bn = (batchNumber ?? "").replace(/'/g, "''");
-      const filter = encodeURIComponent(`IsActive eq 1 and BatchNumber eq '${bn}'`);
+      const filter = encodeURIComponent(
+        `IsActive eq 1 and BatchNumber eq '${bn}'`
+      );
       const expand = encodeURIComponent(
         "Questionoptions($select=QuestionText),Questiondifficultylevel($select=QuestionDifficultylevel1)"
       );
@@ -782,13 +907,17 @@ export const endpoints = {
       return `/api/odata/Questions?$count=true&$top=${top}&$skip=${skip}&$filter=${filter}&$expand=${expand}&$select=${select}`;
     },
     type: "OPEN",
-  } as Endpoint<{ batchNumber: string; top?: number; skip?: number }, { "@odata.count"?: number; value: any[] }>,
+  } as Endpoint<
+    { batchNumber: string; top?: number; skip?: number },
+    { "@odata.count"?: number; value: any[] }
+  >,
 
   // OData - Check if a Question is in use (pre-edit guard)
   isQuestionInUse: {
     method: "GET",
     // Exact OData function signature requested
-    path: ({ testQuestionId }: { testQuestionId: number }) => `/odata/Questions/IsQuestionInUse(testQuestionId=${testQuestionId})`,
+    path: ({ testQuestionId }: { testQuestionId: number }) =>
+      `/odata/Questions/IsQuestionInUse(testQuestionId=${testQuestionId})`,
     type: "OPEN",
   } as Endpoint<{ testQuestionId: number }, any>,
 
@@ -797,7 +926,8 @@ export const endpoints = {
     method: "GET",
     // Use your specific API endpoint for getting questions by language
     path: ({ query }) =>
-      `/Odata/Questions/GetAllQuestionsByLanguage(language=English)${query ? (query.startsWith("?") ? query : `?${query}`) : ""
+      `/Odata/Questions/GetAllQuestionsByLanguage(language=English)${
+        query ? (query.startsWith("?") ? query : `?${query}`) : ""
       }`,
     type: "OPEN",
   } as Endpoint<import("./types").GetQuestionsODataRequest, any[]>,
@@ -857,9 +987,13 @@ export const endpoints = {
   // OData - Active Test Products for Step 5 Assign (dropdown)
   getActiveTestProductsOData: {
     method: "GET",
-    path: () => `/api/odata/TestProducts?$filter=IsActive eq 1&$select=ProductId,ProductName`,
+    path: () =>
+      `/api/odata/TestProducts?$filter=IsActive eq 1&$select=ProductId,ProductName`,
     type: "OPEN",
-  } as Endpoint<null, import('./types').ODataList<{ ProductId: number; ProductName: string }>>,
+  } as Endpoint<
+    null,
+    import("./types").ODataList<{ ProductId: number; ProductName: string }>
+  >,
 
   // OData - Test Sections (for Step 3 bulk assignment)
   getTestSectionsOData: {
@@ -877,9 +1011,12 @@ export const endpoints = {
   // Generic OData listing with dynamic query for grid (supports $top, $skip, $filter, $orderby)
   listTestSectionsOData: {
     method: "GET",
-    path: ({ query }) => `/Odata/TestSections${query ? (query.startsWith("?") ? query : `?${query}`) : ""}`,
+    path: ({ query }) =>
+      `/Odata/TestSections${
+        query ? (query.startsWith("?") ? query : `?${query}`) : ""
+      }`,
     type: "OPEN",
-  } as Endpoint<{ query?: string }, { '@odata.count'?: number; value: any[] }>,
+  } as Endpoint<{ query?: string }, { "@odata.count"?: number; value: any[] }>,
 
   createTestSection: {
     method: "POST",
@@ -935,7 +1072,8 @@ export const endpoints = {
   // Update existing Test Registration (e.g., reschedule without new row)
   updateTestRegistration: {
     method: "PUT",
-    path: ({ testRegistrationId }: { testRegistrationId: number }) => `/api/TestRegistrations/${testRegistrationId}`,
+    path: ({ testRegistrationId }: { testRegistrationId: number }) =>
+      `/api/TestRegistrations/${testRegistrationId}`,
     type: "OPEN",
   } as Endpoint<{ testRegistrationId: number } & any, any>,
 
@@ -961,14 +1099,16 @@ export const endpoints = {
   } as Endpoint<StartSessionRequest, StartSessionResponse>,
 
   submitQuestion: {
-    path: ({TestId}) => `/api/TestSessions/${TestId}/answers`,
+    path: ({ TestId }) => `/api/TestSessions/${TestId}/answers`,
     method: "POST",
     type: "CLOSE",
   } as Endpoint<SubmitQuestionRequest, SubmitQuestionResponse>,
 
   getTestMetaData: {
     path: ({ testId, testResponseId, userName }) =>
-      `/api/Tests/${testId}/meta-payload?userName=${encodeURIComponent(userName)}&testResponseId=${testResponseId}`,
+      `/api/Tests/${testId}/meta-payload?userName=${encodeURIComponent(
+        userName
+      )}&testResponseId=${testResponseId}`,
     method: "GET",
     type: "CLOSE",
   } as Endpoint<GetTestMetaDataRequest, GetTestMetaDataResponse>,
@@ -991,24 +1131,43 @@ export const endpoints = {
     // Absolute or relative? We'll use relative so apiHandler prefixes API_BASE_URL
     path: () => `/odata/PublishedDocuments/GetDocumentsTree()`,
     type: "OPEN",
-  } as Endpoint<null, import('./types').PublishedDocumentTreeItem[]>,
+  } as Endpoint<null, import("./types").PublishedDocumentTreeItem[]>,
   // Admin - Published Document Folders (CRUD + OData list)
   listPublishedDocumentFoldersOData: {
     method: "GET",
     // Matches backend: /odata/PublishedDocumentsFolders
-    path: ({ query }: { query?: string }) => `/odata/PublishedDocumentsFolders${query ? (query.startsWith("?") ? query : `?${query}`) : ""}`,
+    path: ({ query }: { query?: string }) =>
+      `/odata/PublishedDocumentsFolders${
+        query ? (query.startsWith("?") ? query : `?${query}`) : ""
+      }`,
     type: "OPEN",
   } as Endpoint<{ query?: string }, any>,
   createPublishedDocumentFolder: {
     method: "POST",
     path: () => `/api/PublishedDocumentFolder`,
     type: "CLOSE",
-  } as Endpoint<{ id: number; publishedDocumentFolderName: string; parentId: number; language: string }, null>,
+  } as Endpoint<
+    {
+      id: number;
+      publishedDocumentFolderName: string;
+      parentId: number;
+      language: string;
+    },
+    null
+  >,
   updatePublishedDocumentFolder: {
     method: "PUT",
     path: ({ id }: { id: number }) => `/api/PublishedDocumentsFolders/${id}`,
     type: "CLOSE",
-  } as Endpoint<{ id: number; publishedDocumentFolderName: string; parentId: number; language: string }, null>,
+  } as Endpoint<
+    {
+      id: number;
+      publishedDocumentFolderName: string;
+      parentId: number;
+      language: string;
+    },
+    null
+  >,
   deletePublishedDocumentFolder: {
     method: "DELETE",
     path: ({ id }: { id: number }) => `/api/PublishedDocumentsFolders/${id}`,
@@ -1019,21 +1178,44 @@ export const endpoints = {
   listPublishedDocumentsOData: {
     method: "GET",
     // Backend OData: /odata/PublishedDocuments
-    path: ({ query }: { query?: string }) => `/odata/PublishedDocuments${query ? (query.startsWith("?") ? query : `?${query}`) : ""}`,
+    path: ({ query }: { query?: string }) =>
+      `/odata/PublishedDocuments${
+        query ? (query.startsWith("?") ? query : `?${query}`) : ""
+      }`,
     type: "OPEN",
-  } as Endpoint<{ query?: string }, { '@odata.count'?: number; value: any[] }>,
+  } as Endpoint<{ query?: string }, { "@odata.count"?: number; value: any[] }>,
 
   createPublishedDocument: {
     method: "POST",
     path: () => `/api/PublishedDocuments`,
     type: "CLOSE",
-  } as Endpoint<{ id: number; publishedDocumentFolderId: number; documentName: string; documentUrl: string; validFrom?: string; validTo?: string }, null>,
+  } as Endpoint<
+    {
+      id: number;
+      publishedDocumentFolderId: number;
+      documentName: string;
+      documentUrl: string;
+      validFrom?: string;
+      validTo?: string;
+    },
+    null
+  >,
 
   updatePublishedDocument: {
     method: "PUT",
     path: ({ id }: { id: number }) => `/api/PublishedDocuments/${id}`,
     type: "CLOSE",
-  } as Endpoint<{ id: number; publishedDocumentFolderId: number; documentName: string; documentUrl: string; validFrom?: string; validTo?: string }, null>,
+  } as Endpoint<
+    {
+      id: number;
+      publishedDocumentFolderId: number;
+      documentName: string;
+      documentUrl: string;
+      validFrom?: string;
+      validTo?: string;
+    },
+    null
+  >,
 
   getPublishedDocumentById: {
     method: "GET",
@@ -1059,4 +1241,23 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<null, AdminDashboardRecentActivitiesResponse[]>,
 
+  getCandidateAnalyticsSummary: {
+    method: "GET",
+    path: ({ username }) =>
+      `/api/TestAdminDashboard/analytics/completed/summary/${username}`,
+    type: "CLOSE",
+  } as Endpoint<
+    CandidateAnalyticsSummaryRequest,
+    CandidateAnalyticsSummaryResponse
+  >,
+
+  getCandidateAnalyticsDetails: {
+    method: "GET",
+    path: ({ username }) =>
+      `/api/TestAdminDashboard/analytics/completed/details/${username}`,
+    type: "CLOSE",
+  } as Endpoint<
+    CandidateAnalyticsDetailsRequest,
+    CandidateAnalyticsDetailsResponse[]
+  >,
 };

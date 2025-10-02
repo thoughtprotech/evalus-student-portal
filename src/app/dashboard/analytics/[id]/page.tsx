@@ -54,7 +54,7 @@ import formatToDDMMYYYY_HHMM from "@/utils/formatIsoTime";
 import {
   fetchAnalyticsAction,
   TestId,
-} from "@/app/actions/dashboard/analytics";
+} from "@/app/actions/dashboard/analyticsDetail";
 import Loader from "@/components/Loader";
 
 // Type definitions

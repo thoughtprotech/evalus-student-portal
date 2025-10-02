@@ -1,88 +1,94 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { BarChartBig, Trophy, ListChecks } from "lucide-react";
-import AnalyticCard from "./components/AnalyticCard";
 import Loader from "@/components/Loader";
-import { fetchAnalyticsListAction } from "@/app/actions/dashboard/analyticsList";
+import AnalyticCard from "./components/AnalyticCard";
+import {
+  fetchAnalyticsSummaryAction,
+} from "@/app/actions/dashboard/analyticsSummary";
+import { CandidateAnalyticsDetailsResponse } from "@/utils/api/types";
+import { getUserAction } from "@/app/actions/getUser";
+import { fetchAnalyticsDetailsAction } from "@/app/actions/dashboard/analyticsDetail";
 
 export default function AnalyticsDashboard() {
-  const [loaded, setLoaded] = useState<boolean>(false);
-  const [query] = useState("");
-  const [mockTests, setMockTests] = useState<
-    {
-      id: string;
-      name: string;
-      date: string;
-      score: number;
-      totalMarks: number;
-      duration: string;
-    }[]
-  >([]);
-
-  const fetchMockTests = async () => {
-    const res = await fetchAnalyticsListAction();
-    const { data, status } = res;
-    if (status) {
-      setMockTests(data!);
-      setLoaded(true);
-    }
-  };
+  const [loading, setLoading] = useState(true);
+  const [summary, setSummary] = useState<{
+    testsCompleted: number;
+    averageScore: number;
+    maxScore: number;
+  } | null>(null);
+  const [testDetails, setTestDetails] = useState<CandidateAnalyticsDetailsResponse[]>([]);
+  const router = useRouter();
 
   useEffect(() => {
-    fetchMockTests();
+    const fetchData = async () => {
+      setLoading(true);
+
+      const username = await getUserAction();
+      // Fetch summary
+      const summaryRes = await fetchAnalyticsSummaryAction(username!);
+      if (summaryRes.status === 200 && summaryRes.data) {
+        setSummary(summaryRes.data);
+      }
+      // Fetch details
+      const detailsRes = await fetchAnalyticsDetailsAction(username!)
+      if (detailsRes.status === 200) {
+        const detailsData: CandidateAnalyticsDetailsResponse[] = detailsRes.data!;
+        setTestDetails(detailsData);
+      }
+      setLoading(false);
+    };
+    fetchData();
   }, []);
 
-  const filteredTests = mockTests.filter((test) =>
-    test.name.toLowerCase().includes(query.toLowerCase())
-  );
-
-  const totalTests = mockTests.length;
-  const averageScore =
-    mockTests.reduce((sum, test) => sum + test.score, 0) / totalTests;
-  const bestScore = Math.max(...mockTests.map((t) => t.score));
-
-  if (!loaded) {
+  if (loading) {
     return <Loader />;
   }
 
+  const handleDetailClick = (testResponseId: number) => {
+    router.push(`/detailedAnalytics/${testResponseId}`);
+  };
+
   return (
     <div className="w-full h-full space-y-10">
-      {/* Page Header */}
+      {/* Page Header with Summary Stats */}
       <div className="w-full mx-auto">
         <div className="flex flex-col-reverse md:flex-row justify-between items-center gap-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
             <StatCard
               icon={<ListChecks className="w-6 h-6 text-indigo-500" />}
               label="Total Tests Completed"
-              value={totalTests}
+              value={summary?.testsCompleted ?? 0}
             />
             <StatCard
               icon={<BarChartBig className="w-6 h-6 text-green-500" />}
               label="Average Score"
-              value={`${averageScore.toFixed(2)}%`}
+              value={`${summary?.averageScore.toFixed(2) ?? "0"}`}
             />
             <StatCard
               icon={<Trophy className="w-6 h-6 text-yellow-500" />}
               label="Best Score"
-              value={`${bestScore}%`}
+              value={`${summary?.maxScore ?? 0}%`}
             />
           </div>
         </div>
       </div>
 
-      {/* Test Cards */}
+      {/* Test Details Cards */}
       <div className="mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {filteredTests.length > 0 ? (
-          filteredTests.map((test) => (
-            <div key={test.id}>
+        {testDetails.length > 0 ? (
+          testDetails.map((test) => (
+            <div key={test.testResponseId}>
               <AnalyticCard
-                id={test.id}
-                name={test.name}
-                date={test.date}
-                score={test.score}
-                totalMarks={test.totalMarks}
-                duration={test.duration}
+                id={test.testResponseId.toString()}
+                name={test.testName}
+                date={test.testDate}
+                score={parseFloat(test.testScore)}
+                totalMarks={100} // Assuming totalMarks fixed or else add to response/interface if available
+                duration={`${test.completionTimeInMinutes} min`}
+                onClick={() => handleDetailClick(test.testResponseId)}
               />
             </div>
           ))
