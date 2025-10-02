@@ -499,17 +499,6 @@ export default function EditCandidatePage() {
       {/* Main Content */}
       <div className="w-[85%] mx-auto px-6 py-8">
         <div className="w-full bg-white rounded-lg shadow-sm border border-gray-200 p-8 relative">
-          {saving && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-sm rounded-lg">
-              <div className="flex flex-col items-center gap-3">
-                <div className="relative">
-                  <div className="absolute -inset-3 bg-gradient-to-r from-indigo-200 via-blue-200 to-indigo-200 opacity-30 blur-xl animate-pulse rounded-full" />
-                  <Save className="relative w-8 h-8 text-indigo-600 animate-pulse" />
-                </div>
-                <p className="text-xs font-medium text-gray-600">Saving...</p>
-              </div>
-            </div>
-          )}
           <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="space-y-6" autoComplete="off">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
