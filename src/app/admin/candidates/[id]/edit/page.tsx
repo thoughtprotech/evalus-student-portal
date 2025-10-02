@@ -477,7 +477,7 @@ export default function EditCandidatePage() {
                 href="/admin/candidates"
                 className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
               >
-                Back to Candidates
+                Cancel
               </Link>
               <div className="flex items-center gap-3">
                 <button
@@ -488,7 +488,7 @@ export default function EditCandidatePage() {
                     : "bg-indigo-600 hover:bg-indigo-700"
                     }`}
                 >
-                  {saving ? "Saving..." : "Save Candidate"}
+                  {saving ? "Updating..." : "Update Candidate"}
                 </button>
               </div>
             </div>
