@@ -58,6 +58,7 @@ export default function AddCandidatePage() {
     companyId: "", // store as string in form, convert later
     candidateGroupIds: [] as string[], // multi-select values as strings
     isActive: true,
+    isHandicapped: false,
     userLogin: [
       {
         userName: "",
@@ -89,6 +90,8 @@ export default function AddCandidatePage() {
   const [idToNode, setIdToNode] = useState<Record<number, GroupNode>>({});
   const [userPhotoPreview, setUserPhotoPreview] = useState<string | null>(null);
   const userPhotoInputRef = useRef<HTMLInputElement>(null);
+  // Separate state for handicapped to avoid any interference
+  const [isHandicappedState, setIsHandicappedState] = useState(false);
   // Preserve scroll position for tree container
   const treeScrollRef = useRef<HTMLDivElement>(null);
   const lastScrollTopRef = useRef(0);
@@ -282,6 +285,7 @@ export default function AddCandidatePage() {
       createdBy: username || "system",
       modifiedBy: username || "system",
       isActive: form.isActive ? 1 : 0,
+      isHandicapped: form.isHandicapped ? 1 : 0,
       userLogin: [
         {
           userName: form.userLogin[0].userName,
@@ -313,6 +317,14 @@ export default function AddCandidatePage() {
 
     const chosenGroupIds = selectedGroupIds;
 
+    // Debug: Log form state before creating payload
+    console.log('Form state before payload creation:', {
+      isHandicapped: form.isHandicapped,
+      isHandicappedState: isHandicappedState,
+      isActive: form.isActive,
+      isHandicappedValue: isHandicappedState ? 1 : 0
+    });
+
     const payload = {
       firstName: form.firstName.trim(),
       lastName: form.lastName.trim(),
@@ -330,6 +342,7 @@ export default function AddCandidatePage() {
       createdBy: username || "system",
       modifiedBy: username || "system",
       isActive: form.isActive ? 1 : 0,
+      isHandicapped: isHandicappedState ? 1 : 0,
       userLogin: [
         {
           userName: form.userLogin[0].userName,
@@ -361,6 +374,7 @@ export default function AddCandidatePage() {
         companyId: "",
         candidateGroupIds: [],
         isActive: true,
+        isHandicapped: false,
         userLogin: [
           {
             userName: "",
@@ -371,8 +385,9 @@ export default function AddCandidatePage() {
           }
         ]
       });
-      // Reset selected groups
+      // Reset selected groups and handicapped state
       setSelectedGroupIds([]);
+      setIsHandicappedState(false);
     } else {
       toast.error(errorMessage || "Failed to create candidate");
     }
@@ -708,7 +723,41 @@ export default function AddCandidatePage() {
                 />
                 <label htmlFor="isActive" className="text-sm text-gray-800">Active</label>
               </div>
-              <div></div>
+              <div className="pt-6">
+                <label className="block text-sm font-medium text-gray-800 mb-2">
+                  Specially Abled
+                </label>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="handicapped-no"
+                      type="radio"
+                      checked={!isHandicappedState}
+                      onChange={() => {
+                        console.log('Setting isHandicapped to false');
+                        setIsHandicappedState(false);
+                        setForm(prev => ({ ...prev, isHandicapped: false }));
+                      }}
+                      className="h-4 w-4 text-indigo-600 border-gray-300"
+                    />
+                    <label htmlFor="handicapped-no" className="text-sm text-gray-800">No</label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="handicapped-yes"
+                      type="radio"
+                      checked={isHandicappedState}
+                      onChange={() => {
+                        console.log('Setting isHandicapped to true');
+                        setIsHandicappedState(true);
+                        setForm(prev => ({ ...prev, isHandicapped: true }));
+                      }}
+                      className="h-4 w-4 text-indigo-600 border-gray-300"
+                    />
+                    <label htmlFor="handicapped-yes" className="text-sm text-gray-800">Yes</label>
+                  </div>
+                </div>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-800 mb-1">

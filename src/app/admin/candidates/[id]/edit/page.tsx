@@ -62,6 +62,7 @@ export default function EditCandidatePage() {
     companyId: "",
     candidateGroupIds: [] as string[],
     isActive: true,
+    isHandicapped: false,
     userLogin: [{
       userName: "",
       password: "",
@@ -189,6 +190,7 @@ export default function EditCandidatePage() {
             companyId: c.companyId ? String(c.companyId) : "",
             candidateGroupIds: [],
             isActive: c.isActive === 1 || c.isActive === true,
+            isHandicapped: c.isHandicapped === 1 || c.isHandicapped === true,
             userLogin: [{
               userName: userLoginData.userName || c.userName || "",
               password: hasPassword ? "****" : "",
@@ -459,6 +461,7 @@ export default function EditCandidatePage() {
       country: form.country.trim(),
       notes: form.notes.trim(),
       isActive: form.isActive ? 1 : 0,
+      isHandicapped: form.isHandicapped ? 1 : 0,
       companyId: Number(form.companyId),
       candidateGroupIds: chosenGroupIds,
       modifiedBy: username || "system",
@@ -571,7 +574,35 @@ export default function EditCandidatePage() {
                 />
                 <label htmlFor="isActive" className="text-sm text-gray-800">Active</label>
               </div>
-              <div></div>
+              <div className="pt-6">
+                <label className="block text-sm font-medium text-gray-800 mb-2">
+                  Specially Abled
+                </label>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="handicapped-no-edit"
+                      name="isHandicapped"
+                      type="radio"
+                      checked={!form.isHandicapped}
+                      onChange={() => setForm(prev => ({ ...prev, isHandicapped: false }))}
+                      className="h-4 w-4 text-indigo-600 border-gray-300"
+                    />
+                    <label htmlFor="handicapped-no-edit" className="text-sm text-gray-800">No</label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="handicapped-yes-edit"
+                      name="isHandicapped"
+                      type="radio"
+                      checked={form.isHandicapped}
+                      onChange={() => setForm(prev => ({ ...prev, isHandicapped: true }))}
+                      className="h-4 w-4 text-indigo-600 border-gray-300"
+                    />
+                    <label htmlFor="handicapped-yes-edit" className="text-sm text-gray-800">Yes</label>
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>

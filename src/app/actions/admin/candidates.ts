@@ -24,6 +24,7 @@ export interface CandidateRow {
     candidateGroup: string;
     notes: string;
     isActive: number | boolean;
+    isHandicapped: number | boolean;
     createdBy: string;
     createdDate: string;
     modifiedBy: string;
@@ -60,6 +61,7 @@ interface ApiCandidateItem {
     candidateGroupIds?: number[]; // backend can return just IDs; we'll resolve names via group tree
     notes?: string;
     isActive: number;
+    isHandicapped?: number;
     createdDate: string;
     modifiedDate: string;
     createdBy?: string;
@@ -129,6 +131,7 @@ function mapToRows(items: ApiCandidateItem[], groupNameById: Record<number, stri
             candidateGroup: groupNames || "",
             notes: item.notes || "",
             isActive: item.isActive || 0,
+            isHandicapped: item.isHandicapped || 0,
             createdBy: item.createdBy || "System",
             createdDate: item.createdDate || "",
             modifiedBy: item.modifiedBy || "",

@@ -48,6 +48,21 @@ function IsActiveCellRenderer(props: { value: number | boolean }) {
     );
 }
 
+function IsHandicappedCellRenderer(props: { value: number | boolean; data?: any }) {
+    // Check both the value prop and the data prop for maximum compatibility
+    const rawValue = props.value !== undefined ? props.value : props.data?.isHandicapped;
+    const isHandicapped = rawValue === 1 || rawValue === true;
+
+    return (
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${isHandicapped
+            ? 'bg-orange-100 text-orange-800'
+            : 'bg-blue-100 text-blue-800'
+            }`}>
+            {isHandicapped ? 'Yes' : 'No'}
+        </span>
+    );
+}
+
 function CandidateGroupCellRenderer(props: { value: string }) {
     const raw = props.value || '';
     const groups = raw
@@ -150,6 +165,16 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
                 filter: 'agTextColumnFilter',
                 filterParams: { buttons: ['apply', 'reset', 'clear'] },
                 width: 150
+            },
+            {
+                field: "isHandicapped",
+                headerName: "Specially Abled",
+                headerTooltip: "Specially Abled Status",
+                sortable: true,
+                filter: 'agTextColumnFilter',
+                filterParams: { buttons: ['apply', 'reset', 'clear'], debounceMs: 200 },
+                cellRenderer: IsHandicappedCellRenderer,
+                width: 125
             },
             {
                 field: "phoneNumber",
