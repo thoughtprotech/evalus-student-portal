@@ -45,7 +45,7 @@ export default function AnalyticCard({
       <div className="flex gap-3 justify-between py-2">
         <div className="flex flex-col items-center flex-1">
           <Timer className="w-4 h-4 text-green-500" />
-          <span className="text-xs text-gray-400 mt-0.5">Minutes</span>
+          <span className="text-xs text-gray-400 mt-0.5">Completion Time</span>
           <span className="font-bold text-sm text-gray-800">{completionTimeInMinutes}</span>
         </div>
         <div className="flex flex-col items-center flex-1 border-x border-gray-100 px-2">
