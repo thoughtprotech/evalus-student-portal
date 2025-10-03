@@ -48,10 +48,6 @@ export default function AnalyticsDashboard() {
     return <Loader />;
   }
 
-  const handleDetailClick = (testResponseId: number) => {
-    router.push(`/detailedAnalytics/${testResponseId}`);
-  };
-
   return (
     <div className="w-full h-full space-y-10">
       {/* Page Header with Summary Stats */}
