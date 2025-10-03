@@ -3,6 +3,8 @@ import {
   AdminDashboardRecentActivitiesResponse,
   CandidateAnalyticsDetailsRequest,
   CandidateAnalyticsDetailsResponse,
+  CandidateAnalyticsReportHeaderRequest,
+  CandidateAnalyticsReportHeaderResponse,
   CandidateAnalyticsSummaryRequest,
   CandidateAnalyticsSummaryResponse,
   CreateQuestionRequest,
@@ -1259,5 +1261,15 @@ export const endpoints = {
   } as Endpoint<
     CandidateAnalyticsDetailsRequest,
     CandidateAnalyticsDetailsResponse[]
+  >,
+
+   getCandidateAnalyticsReportHeader: {
+    method: "GET",
+    path: ({ testResponseId }) =>
+      `/api/TestResponse/result/${testResponseId}`,
+    type: "CLOSE",
+  } as Endpoint<
+    CandidateAnalyticsReportHeaderRequest,
+    CandidateAnalyticsReportHeaderResponse
   >,
 };

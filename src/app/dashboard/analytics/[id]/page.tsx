@@ -53,6 +53,8 @@ import Link from "next/link";
 import formatToDDMMYYYY_HHMM from "@/utils/formatIsoTime";
 import Loader from "@/components/Loader";
 import { fetchAnalyticsAction } from "@/app/actions/dashboard/analytics";
+import { fetchAnalyticsDetailsHeaderAction } from "@/app/actions/dashboard/analyticsDetailHeader";
+import { CandidateAnalyticsReportHeaderResponse } from "@/utils/api/types";
 
 // Type definitions
 interface TestDetails {
@@ -124,12 +126,14 @@ const formatMinutes = (minutes: number) => {
   return `${secs}s`;
 };
 
-type TestId = "12" | "14" | "3" | "4" | "5"
+type TestId = "93" | "94" | "3" | "4" | "5";
 
 export default function TestDetailsPage() {
   const [loaded, setLoaded] = useState<boolean>(false);
   const { id } = useParams();
   const [testDetails, setTestDetails] = useState<TestDetails | null>(null);
+  const [testMeta, setTestMeta] =
+    useState<CandidateAnalyticsReportHeaderResponse>();
 
   const fetchAnalytics = async () => {
     const res = await fetchAnalyticsAction(id as TestId);
@@ -140,8 +144,18 @@ export default function TestDetailsPage() {
     }
   };
 
+  const fetchData = async () => {
+    const detailsRes = await fetchAnalyticsDetailsHeaderAction(Number(id));
+    if (detailsRes.status === 200) {
+      const detailsData: CandidateAnalyticsReportHeaderResponse =
+        detailsRes.data!;
+      setTestMeta(detailsData!);
+    }
+  };
+
   useEffect(() => {
     if (id) {
+      fetchData();
       fetchAnalytics();
     }
   }, [id]);
@@ -233,39 +247,37 @@ export default function TestDetailsPage() {
             </Link>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-                {name}
+                {testMeta?.testName}
               </h1>
               <div className="flex flex-wrap items-center gap-3 mt-2">
                 <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
                   <TypeOutline className="text-indigo-600 w-4 h-4" />
                   <span className="text-sm text-indigo-700 font-medium">
-                    Type: Assessment
+                    Type: {testMeta?.testType}
                   </span>
                 </div>{" "}
                 <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
                   <Calendar className="text-indigo-600 w-4 h-4" />
-
                   <span className="text-sm text-indigo-700 font-medium">
-                    Date: {formatToDDMMYYYY_HHMM(date)}
+                    Date: {formatToDDMMYYYY_HHMM(testMeta?.testStartDate!)}
                   </span>
                 </div>
                 <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
                   <Clock className="text-indigo-600 w-4 h-4" />
                   <span className="text-sm text-indigo-700 font-medium">
-                    Duration: {duration}
+                    Duration: {testMeta?.testDurationMinutes}
                   </span>
                 </div>
                 <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
                   <Award className="text-indigo-600 w-4 h-4" />
                   <span className="text-sm text-indigo-700 font-medium">
-                    Rank: {userRank}/{totalParticipants}
-                    <span className="ml-1">(Top {percentile}%)</span>
+                    Rank: {testMeta?.testRank}
                   </span>
                 </div>
                 <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
                   <ArrowBigUp className="text-indigo-600 w-4 h-4" />
                   <span className="text-sm text-indigo-700 font-medium">
-                    Test Top Score: 98/100
+                    Test Top Score: {testMeta?.testTopMarks}
                   </span>
                 </div>
               </div>
@@ -274,8 +286,10 @@ export default function TestDetailsPage() {
 
           <div className="flex flex-col items-start">
             <div className="text-6xl font-bold text-gray-800">
-              {score}
-              <span className="text-2xl">/{totalMarks}</span>
+              {testMeta?.testResultTotalMarks}
+              <span className="text-2xl">
+                /{testMeta?.totalMarks}
+              </span>
             </div>
             <div className="text-sm font-bold text-gray-500">My Score</div>
           </div>

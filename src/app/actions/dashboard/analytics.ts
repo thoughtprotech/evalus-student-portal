@@ -9,7 +9,7 @@ import { apiHandler } from "@/utils/api/client";
 import analytics from "../../../mock/mockTestDetails.json";
 
 export async function fetchAnalyticsAction(
-  id: "12" | "14" | "3" | "4" | "5"
+  id: "93" | "94" | "3" | "4" | "5"
 ): Promise<ApiResponse<any>> {
   try {
     // const { status, error, data, errorMessage, message } = await apiHandler(

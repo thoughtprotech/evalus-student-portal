@@ -613,3 +613,20 @@ export interface CandidateAnalyticsDetailsResponse {
   testResultId: number;
   username: string;
 }
+
+export interface CandidateAnalyticsReportHeaderRequest {
+  testResponseId: number;
+}
+
+export interface CandidateAnalyticsReportHeaderResponse {
+  testId: number;
+  testName: string;
+  testType: string;
+  testStartDate: string;
+  testDurationMinutes: number;
+  testDurationForHandicappedMinutes: number;
+  testResultTotalMarks: number;
+  totalMarks: number;
+  testRank: string;
+  testTopMarks: string;
+}
