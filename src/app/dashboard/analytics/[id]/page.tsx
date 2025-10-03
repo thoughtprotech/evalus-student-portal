@@ -51,10 +51,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import formatToDDMMYYYY_HHMM from "@/utils/formatIsoTime";
-import {
-  fetchAnalyticsAction,
-  TestId,
-} from "@/app/actions/dashboard/analyticsDetail";
 import Loader from "@/components/Loader";
 
 // Type definitions
@@ -132,20 +128,20 @@ export default function TestDetailsPage() {
   const { id } = useParams();
   const [testDetails, setTestDetails] = useState<TestDetails | null>(null);
 
-  const fetchAnalytics = async () => {
-    const res = await fetchAnalyticsAction(id as TestId);
-    const { data, status } = res;
-    if (status === 200) {
-      setTestDetails(data);
-      setLoaded(true);
-    }
-  };
+  // const fetchAnalytics = async () => {
+  //   const res = await fetchAnalyticsAction(id as TestId);
+  //   const { data, status } = res;
+  //   if (status === 200) {
+  //     setTestDetails(data);
+  //     setLoaded(true);
+  //   }
+  // };
 
-  useEffect(() => {
-    if (id) {
-      fetchAnalytics();
-    }
-  }, [id]);
+  // useEffect(() => {
+  //   if (id) {
+  //     fetchAnalytics();
+  //   }
+  // }, [id]);
 
   if (!testDetails) return <Loader />;
 

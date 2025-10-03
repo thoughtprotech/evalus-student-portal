@@ -1,64 +1,71 @@
-import formatToDDMMYYYY_HHMM from "@/utils/formatIsoTime";
-import { Calendar, Timer, BarChart2, ArrowRight } from "lucide-react";
+import { Calendar, Timer, BarChart2, ArrowRight, Hash, Percent } from "lucide-react";
 import Link from "next/link";
 
 interface AnalyticCardProps {
-  id: string;
+  id: number;
   name: string;
   date: string;
-  score: number;
-  totalMarks: number;
-  duration: string;
-  onClick?: () => void; // Add onClick as an optional prop
+  testScore: string;
+  completionTimeInMinutes: number;
+  testRank: number;
+  testPercentile: number;
+  testResultId: number;
 }
 
 export default function AnalyticCard({
   id,
   name,
   date,
-  score,
-  totalMarks,
-  duration,
-  onClick, // Destructure onClick
+  testScore,
+  completionTimeInMinutes,
+  testRank,
+  testPercentile,
+  testResultId,
 }: AnalyticCardProps) {
-  const percentage = ((score / totalMarks) * 100).toFixed(1);
-
   return (
     <div
-      className="bg-white border border-gray-200 rounded-xl p-4 shadow-md flex flex-col h-full"
-      onClick={onClick} // Optionally handle onClick on whole card if needed
+      className="bg-white border border-gray-100 rounded-lg p-5 shadow hover:shadow-lg transition flex flex-col h-full w-full"
     >
-      {/* Title */}
-      <h2 className="text-xl font-bold text-gray-900 truncate line-clamp-2">
-        {name}
-      </h2>
-
-      {/* Date and Score */}
-      <div className="mt-2 space-y-2 text-sm flex-grow">
-        <div className="flex items-center gap-2 text-gray-500">
+      {/* Name & Date */}
+      <div className="mb-2">
+        <h2 className="text-xl font-semibold text-gray-900 truncate">{name}</h2>
+        <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
           <Calendar className="w-4 h-4 text-yellow-500" />
-          <span>{formatToDDMMYYYY_HHMM(date)}</span>
-        </div>
-        <div className="flex items-center gap-2 text-gray-700">
-          <BarChart2 className="w-4 h-4 text-green-500" />
-          <span className="font-semibold">Score:</span> {score}/{totalMarks} (
-          {percentage}%)
-        </div>
-        <div className="flex items-center gap-2 text-gray-700">
-          <Timer className="w-4 h-4 text-gray-500" />
-          <span className="font-semibold">Completion Time:</span> {duration}
+          <span>{date}</span>
         </div>
       </div>
-
-      {/* View Report Button */}
-      <div className="pt-4">
-        <Link href={`/dashboard/analytics/${id}`}>
+      {/* Test Score */}
+      <div className="flex items-center justify-between border-y border-gray-100 py-3 my-2">
+        <span className="flex items-center gap-2 text-gray-700">
+          <BarChart2 className="w-5 h-5 text-indigo-500" />
+          <span className="text-base font-bold">{testScore}</span>
+        </span>
+      </div>
+      {/* Metrics */}
+      <div className="flex gap-3 justify-between py-2">
+        <div className="flex flex-col items-center flex-1">
+          <Timer className="w-4 h-4 text-green-500" />
+          <span className="text-xs text-gray-400 mt-0.5">Minutes</span>
+          <span className="font-bold text-sm text-gray-800">{completionTimeInMinutes}</span>
+        </div>
+        <div className="flex flex-col items-center flex-1 border-x border-gray-100 px-2">
+          <Hash className="w-4 h-4 text-blue-500" />
+          <span className="text-xs text-gray-400 mt-0.5">Rank</span>
+          <span className="font-bold text-sm text-gray-800">{testRank}</span>
+        </div>
+        <div className="flex flex-col items-center flex-1">
+          <Percent className="w-4 h-4 text-indigo-500" />
+          <span className="text-xs text-gray-400 mt-0.5">Percentile</span>
+          <span className="font-bold text-sm text-gray-800">{testPercentile}</span>
+        </div>
+      </div>
+      {/* Spacer */}
+      <div className="flex-grow" />
+      <div className="mt-4">
+        <Link href={`/dashboard/analytics/${testResultId}`}>
           <button
-            onClick={(e) => {
-              e.stopPropagation(); // Prevent triggering card onClick if exists
-              onClick?.();
-            }}
-            className="w-full py-2 px-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-2 rounded-md bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2 cursor-pointer"
+            type="button"
           >
             <ArrowRight className="w-5 h-5" />
             View Report

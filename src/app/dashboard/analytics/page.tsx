@@ -5,9 +5,7 @@ import { useRouter } from "next/navigation";
 import { BarChartBig, Trophy, ListChecks } from "lucide-react";
 import Loader from "@/components/Loader";
 import AnalyticCard from "./components/AnalyticCard";
-import {
-  fetchAnalyticsSummaryAction,
-} from "@/app/actions/dashboard/analyticsSummary";
+import { fetchAnalyticsSummaryAction } from "@/app/actions/dashboard/analyticsSummary";
 import { CandidateAnalyticsDetailsResponse } from "@/utils/api/types";
 import { getUserAction } from "@/app/actions/getUser";
 import { fetchAnalyticsDetailsAction } from "@/app/actions/dashboard/analyticsDetail";
@@ -19,7 +17,9 @@ export default function AnalyticsDashboard() {
     averageScore: number;
     maxScore: number;
   } | null>(null);
-  const [testDetails, setTestDetails] = useState<CandidateAnalyticsDetailsResponse[]>([]);
+  const [testDetails, setTestDetails] = useState<
+    CandidateAnalyticsDetailsResponse[]
+  >([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -33,9 +33,10 @@ export default function AnalyticsDashboard() {
         setSummary(summaryRes.data);
       }
       // Fetch details
-      const detailsRes = await fetchAnalyticsDetailsAction(username!)
+      const detailsRes = await fetchAnalyticsDetailsAction(username!);
       if (detailsRes.status === 200) {
-        const detailsData: CandidateAnalyticsDetailsResponse[] = detailsRes.data!;
+        const detailsData: CandidateAnalyticsDetailsResponse[] =
+          detailsRes.data!;
         setTestDetails(detailsData);
       }
       setLoading(false);
@@ -70,7 +71,7 @@ export default function AnalyticsDashboard() {
             <StatCard
               icon={<Trophy className="w-6 h-6 text-yellow-500" />}
               label="Best Score"
-              value={`${summary?.maxScore ?? 0}%`}
+              value={`${summary?.maxScore ?? 0}`}
             />
           </div>
         </div>
@@ -82,13 +83,14 @@ export default function AnalyticsDashboard() {
           testDetails.map((test) => (
             <div key={test.testResponseId}>
               <AnalyticCard
-                id={test.testResponseId.toString()}
+                id={test.testResponseId}
                 name={test.testName}
                 date={test.testDate}
-                score={parseFloat(test.testScore)}
-                totalMarks={100} // Assuming totalMarks fixed or else add to response/interface if available
-                duration={`${test.completionTimeInMinutes} min`}
-                onClick={() => handleDetailClick(test.testResponseId)}
+                testScore={test.testScore}
+                completionTimeInMinutes={test.completionTimeInMinutes}
+                testRank={test.testRank}
+                testPercentile={test.testPercentile}
+                testResultId={test.testResultId}
               />
             </div>
           ))

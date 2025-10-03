@@ -25,7 +25,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${lexend.variable} antialiased font-main`}>
         <UserProvider>
-          {<AutoLogout />}
+          {/* {<AutoLogout />} */}
           {children}
         </UserProvider>
         <Toaster />
