@@ -53,7 +53,7 @@ export default function AnalyticsDashboard() {
       {/* Page Header with Summary Stats */}
       <div className="w-full mx-auto">
         <div className="flex flex-col-reverse md:flex-row justify-between items-center gap-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full max-w-1/2">
             <StatCard
               icon={<ListChecks className="w-6 h-6 text-indigo-500" />}
               label="Total Tests Completed"
