@@ -248,12 +248,6 @@ export interface GetCandidateStarredTestResponse {
   testId: number;
   testName: string;
   description: string;
-  // testStatus:
-  //   | "Registered"
-  //   | "Completed"
-  //   | "Cancelled"
-  //   | "In Progress"
-  //   | "Missed";
 }
 
 // Starred User Tests (new simplified endpoints)

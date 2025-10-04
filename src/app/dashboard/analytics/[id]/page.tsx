@@ -14,6 +14,7 @@ import {
   PieChart,
   Pie,
   Cell,
+  LabelList,
 } from "recharts";
 import {
   Calendar,
@@ -81,26 +82,6 @@ export default function TestDetailsPage() {
       fetchSectionData();
     }
   }, [id]);
-
-  // Prepare data for section-wise charts and KPIs
-  const sectionMarksData =
-    sectionData?.map((section) => ({
-      name: section.testSectionName,
-      marks: section.sectionMyMarks,
-      totalMarks: section.totalSectionMarks,
-    })) || [];
-
-  const sectionAnswerDistData =
-    sectionData?.map((section) => ({
-      name: section.testSectionName,
-      Correct: section.correctAnswersCount,
-      Incorrect: section.inCorrectAnswersCount,
-      Unanswered: section.sectionUnansweredCount,
-    })) || [];
-
-  // Flatten for Pie charts per section (will display one Pie per section)
-  // Instead of multiple Pie charts, create a stacked bar chart for answers per section
-  // For KPIs: section score percentage, correct %, time spent
 
   if (!loaded) {
     return <Loader />;
@@ -204,7 +185,7 @@ export default function TestDetailsPage() {
           <ChartCard
             title="Answer Distribution"
             icon={<PieIcon className="w-5 h-5" />}
-            description="Breakdown of correct, incorrect, and unanswered questions"
+            description="Breakdown of correct and incorrect questions"
           >
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -220,11 +201,11 @@ export default function TestDetailsPage() {
                       value: testMeta?.testInCorrectAnswerCount,
                       color: COLORS[1],
                     },
-                    {
-                      name: "Unanswered",
-                      value: testMeta?.unAnswered,
-                      color: COLORS[2],
-                    },
+                    // {
+                    //   name: "Unanswered",
+                    //   value: testMeta?.unAnswered,
+                    //   color: COLORS[2],
+                    // },
                   ]}
                   dataKey="value"
                   nameKey="name"
@@ -247,11 +228,11 @@ export default function TestDetailsPage() {
                       value: testMeta?.testInCorrectAnswerCount,
                       color: COLORS[1],
                     },
-                    {
-                      name: "Unanswered",
-                      value: testMeta?.unAnswered,
-                      color: COLORS[2],
-                    },
+                    // {
+                    //   name: "Unanswered",
+                    //   value: testMeta?.unAnswered,
+                    //   color: COLORS[2],
+                    // },
                   ].map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
@@ -305,6 +286,12 @@ export default function TestDetailsPage() {
                   ].map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
+                  <LabelList
+                    dataKey="value"
+                    position="center"
+                    fill="#fff"
+                    fontSize={20}
+                  />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -345,9 +332,7 @@ export default function TestDetailsPage() {
           />
         </div>
         {sectionData?.length! > 0 && (
-          <div
-            className="grid grid-cols-2 gap-4"
-          >
+          <div className="grid grid-cols-2 gap-4">
             {/* Overall Time Spent per Section Pie Chart */}
             <ChartCard
               title="Time Spent per Section"
@@ -407,9 +392,16 @@ export default function TestDetailsPage() {
                   <XAxis type="number" />
                   <YAxis dataKey="name" type="category" />
                   <Tooltip
-                    formatter={(value: number) => `${value.toFixed(1)}%`}
+                    formatter={(value: number) => `${value.toFixed(0)}`}
                   />
-                  <Bar dataKey="marks" fill="#4CAF50" name="Marks Scored" />
+                  <Bar dataKey="marks" fill="#4CAF50" name="Marks Scored">
+                    <LabelList
+                      dataKey="marks"
+                      position="center"
+                      fill="#fff"
+                      fontSize={16}
+                    />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </ChartCard>
@@ -438,9 +430,96 @@ export default function TestDetailsPage() {
                   <YAxis dataKey="name" type="category" />
                   <Tooltip />
                   <Legend />
-                  <Bar stackId="a" dataKey="Correct" fill="#4CAF50" />
-                  <Bar stackId="a" dataKey="Incorrect" fill="#F44336" />
-                  <Bar stackId="a" dataKey="Unanswered" fill="#FF9800" />
+                  <Bar stackId="a" dataKey="Correct" fill="#4CAF50">
+                    <LabelList
+                      dataKey="Correct"
+                      position="center"
+                      fill="#fff"
+                      fontSize={16}
+                      content={(props) => {
+                        // Coerce every value with Number()
+                        const cx = Number(props.x) + Number(props.width) / 2;
+                        const cy = Number(props.y) + Number(props.height) / 2;
+                        const value = props.value as number;
+
+                        if (!value) return null;
+
+                        return (
+                          <text
+                            x={cx}
+                            y={cy}
+                            fill="#fff"
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            fontSize={16}
+                            pointerEvents="none"
+                          >
+                            {value}
+                          </text>
+                        );
+                      }}
+                    />
+                  </Bar>
+                  <Bar stackId="a" dataKey="Incorrect" fill="#F44336">
+                    <LabelList
+                      dataKey="Incorrect"
+                      position="center"
+                      fill="#fff"
+                      fontSize={16}
+                      content={(props) => {
+                        // Coerce every value with Number()
+                        const cx = Number(props.x) + Number(props.width) / 2;
+                        const cy = Number(props.y) + Number(props.height) / 2;
+                        const value = props.value as number;
+
+                        if (!value) return null;
+
+                        return (
+                          <text
+                            x={cx}
+                            y={cy}
+                            fill="#fff"
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            fontSize={16}
+                            pointerEvents="none"
+                          >
+                            {value}
+                          </text>
+                        );
+                      }}
+                    />
+                  </Bar>
+                  <Bar stackId="a" dataKey="Unanswered" fill="#FF9800">
+                    <LabelList
+                      dataKey="Unanswered"
+                      position="center"
+                      fill="#fff"
+                      fontSize={16}
+                      content={(props) => {
+                        // Coerce every value with Number()
+                        const cx = Number(props.x) + Number(props.width) / 2;
+                        const cy = Number(props.y) + Number(props.height) / 2;
+                        const value = props.value as number;
+
+                        if (!value) return null;
+
+                        return (
+                          <text
+                            x={cx}
+                            y={cy}
+                            fill="#fff"
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            fontSize={16}
+                            pointerEvents="none"
+                          >
+                            {value}
+                          </text>
+                        );
+                      }}
+                    />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </ChartCard>
@@ -466,7 +545,14 @@ export default function TestDetailsPage() {
                   <XAxis type="number" />
                   <YAxis dataKey="name" type="category" />
                   <Tooltip formatter={(value: number) => `${value} mins`} />
-                  <Bar dataKey="time" fill="#2196F3" name="Time Spent (mins)" />
+                  <Bar dataKey="time" fill="#2196F3" name="Time Spent (mins)">
+                    <LabelList
+                      dataKey="time"
+                      position="center"
+                      fill="#fff"
+                      fontSize={16}
+                    />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </ChartCard>
