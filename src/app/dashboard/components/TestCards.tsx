@@ -35,13 +35,13 @@ interface TestCardsProps {
   startDateTimeString?: string;
   endDateTimeString?: string;
   status?:
-  | "Registered"
-  | "Completed"
-  | "Cancelled"
-  | "In Progress"
-  | "Missed"
-  | "Up Next"
-  | undefined;
+    | "Registered"
+    | "Completed"
+    | "Cancelled"
+    | "In Progress"
+    | "Missed"
+    | "Up Next"
+    | undefined;
   bookmarked?: boolean; // initial state from parent (optional)
   registrationId: number;
   onRegistered?: () => Promise<void> | void; // callback to refresh dashboard after registration
@@ -85,7 +85,9 @@ export default function TestCards({
 
   // Format duration as HH:MM
   const formattedDuration = formatDurationToHHMM(testDurationMinutes);
-  const formattedHandicapDuration = formatDurationToHHMM(testDurationForHandicappedMinutes);
+  const formattedHandicapDuration = formatDurationToHHMM(
+    testDurationForHandicappedMinutes
+  );
 
   // Map status to action button colors
   const actionButtonMapping: Record<any, string> = {
@@ -132,6 +134,7 @@ export default function TestCards({
   const openInPopup = (e: React.MouseEvent) => {
     // Allow all statuses to open system check
     console.log({ registrationId, status, testId: test.testId });
+    if (status !== "Up Next") return;
 
     e.preventDefault();
 
@@ -146,7 +149,11 @@ export default function TestCards({
 
     // Try popup first, if blocked or fails, use direct navigation
     try {
-      const popup = window.open(systemCheckUrl, "_blank", "width=1200,height=800,scrollbars=yes,resizable=yes");
+      const popup = window.open(
+        systemCheckUrl,
+        "_blank",
+        "width=1200,height=800,scrollbars=yes,resizable=yes"
+      );
 
       if (!popup || popup.closed || typeof popup.closed === "undefined") {
         console.warn("Popup blocked - using direct navigation");
@@ -168,7 +175,6 @@ export default function TestCards({
           setExamMode(false);
         }
       }, 1000);
-
     } catch (error) {
       console.error("Error opening popup:", error);
       // Fallback to direct navigation
@@ -191,7 +197,7 @@ export default function TestCards({
         if (isFinite(s.getTime()) && s.getTime() > Date.now() - 60000) {
           return s.toISOString().slice(0, 16);
         }
-      } catch { }
+      } catch {}
     }
     return defaultLocal();
   })();
@@ -245,7 +251,7 @@ export default function TestCards({
         if (onRegistered) {
           try {
             await onRegistered();
-          } catch { }
+          } catch {}
         }
       } else {
         toast.error(res.errorMessage || res.message || "Registration failed");
@@ -265,20 +271,22 @@ export default function TestCards({
       const iso = new Date(rescheduleDate).toISOString();
       const regIdNum = Number(registrationId);
       if (!Number.isFinite(regIdNum) || regIdNum <= 0) {
-        toast.error("Missing registration ID; cannot reschedule without an existing registration.");
+        toast.error(
+          "Missing registration ID; cannot reschedule without an existing registration."
+        );
         return;
       }
       const res = await fetch(`/api/internal/test-registrations/${regIdNum}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           testRegistrationId: regIdNum,
           testId: Number(id),
           testDate: iso,
-          testStatus: 'Registered',
+          testStatus: "Registered",
           comments: rescheduleComments,
-          language: 'English',
-        })
+          language: "English",
+        }),
       });
       if (res.ok) {
         toast.success("Test rescheduled successfully");
@@ -319,19 +327,19 @@ export default function TestCards({
         if (onToggleStar) {
           try {
             await onToggleStar(Number(id), now);
-          } catch { }
+          } catch {}
         }
       } else {
         try {
           (await import("react-hot-toast")).toast.error(
             "Failed to update star"
           );
-        } catch { }
+        } catch {}
       }
     } catch {
       try {
         (await import("react-hot-toast")).toast.error("Failed to update star");
-      } catch { }
+      } catch {}
     } finally {
       setStarLoading(false);
     }
@@ -343,7 +351,8 @@ export default function TestCards({
       <input type="hidden" name="testRegistrationId" value={registrationId} />
       {/* Test Title */}
       <div className="w-full border-b border-b-gray-300 pb-4">
-        <h1 className="text-2xl font-bold text-gray-800 truncate text-ellipsis"
+        <h1
+          className="text-2xl font-bold text-gray-800 truncate text-ellipsis"
           title={name}
         >
           {name}
@@ -413,14 +422,16 @@ export default function TestCards({
           {starred ? (
             <BookmarkCheck
               onClick={toggleStar}
-              className={`text-indigo-600 cursor-pointer hover:text-indigo-700 duration-300 ${starLoading ? "opacity-50 pointer-events-none" : ""
-                }`}
+              className={`text-indigo-600 cursor-pointer hover:text-indigo-700 duration-300 ${
+                starLoading ? "opacity-50 pointer-events-none" : ""
+              }`}
             />
           ) : (
             <Bookmark
               onClick={toggleStar}
-              className={`text-gray-500 cursor-pointer hover:text-indigo-700 duration-300 ${starLoading ? "opacity-50 pointer-events-none" : ""
-                }`}
+              className={`text-gray-500 cursor-pointer hover:text-indigo-700 duration-300 ${
+                starLoading ? "opacity-50 pointer-events-none" : ""
+              }`}
             />
           )}
         </div>
@@ -431,9 +442,11 @@ export default function TestCards({
         <a
           href={linkHref}
           onClick={openInPopup}
-          className={`${status === "Missed" && "hidden"
-            } w-full flex items-center justify-center gap-1 px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${status && actionButtonMapping[status]
-            }`}
+          className={`${
+            status === "Missed" && "hidden"
+          } w-full flex items-center justify-center gap-1 px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${
+            status && actionButtonMapping[status]
+          }`}
         >
           {linkText}
           {linkIcon}
@@ -467,10 +480,11 @@ export default function TestCards({
               onChange={(e) => setProposedStart(e.target.value)}
               onBlur={() => setStartTouched(true)}
               required
-              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${startTouched && (!proposedStart || isPast)
+              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${
+                startTouched && (!proposedStart || isPast)
                   ? "border-red-500"
                   : "border-gray-300"
-                }`}
+              }`}
             />
             {startTouched && !proposedStart && (
               <p className="text-xs text-red-600">
@@ -509,9 +523,16 @@ export default function TestCards({
         cancelText="Cancel"
         confirmDisabled={!rescheduleDate || isPastReschedule || registering}
       >
-        <form className="space-y-5 text-left" onSubmit={(e) => e.preventDefault()}>
+        <form
+          className="space-y-5 text-left"
+          onSubmit={(e) => e.preventDefault()}
+        >
           {/* Hidden field passed along with reschedule update */}
-          <input type="hidden" name="testRegistrationId" value={registrationId} />
+          <input
+            type="hidden"
+            name="testRegistrationId"
+            value={registrationId}
+          />
           <div className="grid gap-2">
             <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
               <span>New Start Date & Time</span>
@@ -524,20 +545,27 @@ export default function TestCards({
               onChange={(e) => setRescheduleDate(e.target.value)}
               onBlur={() => setReschedTouched(true)}
               required
-              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${reschedTouched && (!rescheduleDate || isPastReschedule)
-                ? "border-red-500"
-                : "border-gray-300"
-                }`}
+              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${
+                reschedTouched && (!rescheduleDate || isPastReschedule)
+                  ? "border-red-500"
+                  : "border-gray-300"
+              }`}
             />
             {reschedTouched && !rescheduleDate && (
-              <p className="text-xs text-red-600">Start date/time is required.</p>
+              <p className="text-xs text-red-600">
+                Start date/time is required.
+              </p>
             )}
             {reschedTouched && rescheduleDate && isPastReschedule && (
-              <p className="text-xs text-red-600">Start date/time cannot be in the past.</p>
+              <p className="text-xs text-red-600">
+                Start date/time cannot be in the past.
+              </p>
             )}
           </div>
           <div className="grid gap-2">
-            <label className="text-sm font-medium text-gray-700">Comments</label>
+            <label className="text-sm font-medium text-gray-700">
+              Comments
+            </label>
             <textarea
               value={rescheduleComments}
               onChange={(e) => setRescheduleComments(e.target.value)}

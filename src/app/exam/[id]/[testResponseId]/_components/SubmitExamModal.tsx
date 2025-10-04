@@ -1,4 +1,3 @@
-import ConfirmationModal from "@/components/ConfirmationModal";
 import {
   SectionsMetaDataInterface,
   QuestionsMetaDataInterface,
@@ -22,6 +21,7 @@ import {
   LayoutList,
   Gauge,
 } from "lucide-react";
+import ConfirmationModal from "./ConfirmationModal";
 
 type Props = {
   sections: SectionsMetaDataInterface[];

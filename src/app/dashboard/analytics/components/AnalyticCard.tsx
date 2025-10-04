@@ -42,7 +42,7 @@ export default function AnalyticCard({
         </span>
       </div>
       {/* Metrics */}
-      <div className="flex gap-3 justify-between py-2">
+      <div className="flex gap-3 justify-between py-2 text-center">
         <div className="flex flex-col items-center flex-1">
           <Timer className="w-4 h-4 text-green-500" />
           <span className="text-xs text-gray-400 mt-0.5">Completion Time</span>

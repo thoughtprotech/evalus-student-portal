@@ -1,4 +1,3 @@
-import ConfirmationModal from "@/components/ConfirmationModal";
 import {
   SectionsMetaDataInterface,
   QuestionsMetaDataInterface,
@@ -16,6 +15,7 @@ import {
   Info,
 } from "lucide-react";
 import { TextOrHtml } from "@/components/TextOrHtml";
+import ConfirmationModal from "./ConfirmationModal";
 
 type Props = {
   sections: SectionsMetaDataInterface[];

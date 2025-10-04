@@ -237,6 +237,7 @@ export interface GetCandidateTestResponse {
   testRegistrationId: number;
   testDurationMinutes: number;
   testDurationForHandicappedMinutes: number;
+  testResponseId?: number;
 }
 
 export interface GetCandidateStarredTestRequest {
