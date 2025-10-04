@@ -9,7 +9,7 @@ interface AnalyticCardProps {
   completionTimeInMinutes: number;
   testRank: number;
   testPercentile: number;
-  testResultId: number;
+  testResponseId: number;
 }
 
 export default function AnalyticCard({
@@ -20,7 +20,7 @@ export default function AnalyticCard({
   completionTimeInMinutes,
   testRank,
   testPercentile,
-  testResultId,
+  testResponseId,
 }: AnalyticCardProps) {
   return (
     <div
@@ -62,7 +62,7 @@ export default function AnalyticCard({
       {/* Spacer */}
       <div className="flex-grow" />
       <div className="mt-4">
-        <Link href={`/dashboard/analytics/${testResultId}`}>
+        <Link href={`/dashboard/analytics/${testResponseId}`}>
           <button
             className="w-full py-2 rounded-md bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2 cursor-pointer"
             type="button"

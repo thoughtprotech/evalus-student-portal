@@ -6,7 +6,7 @@ import {
 } from "@/utils/api/types";
 import { endpoints } from "@/utils/api/endpoints";
 import { apiHandler } from "@/utils/api/client";
-import analytics from "../../../mock/mockTestDetails.json";
+import analytics from "../../../../mock/mockTestDetails.json";
 
 export async function fetchAnalyticsAction(
   id: "93" | "94" | "3" | "4" | "5"

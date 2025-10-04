@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import { BarChartBig, Trophy, ListChecks } from "lucide-react";
 import Loader from "@/components/Loader";
 import AnalyticCard from "./components/AnalyticCard";
-import { fetchAnalyticsSummaryAction } from "@/app/actions/dashboard/analyticsSummary";
+import { fetchAnalyticsSummaryAction } from "@/app/actions/dashboard/analytics/analyticsSummary";
 import { CandidateAnalyticsDetailsResponse } from "@/utils/api/types";
 import { getUserAction } from "@/app/actions/getUser";
-import { fetchAnalyticsDetailsAction } from "@/app/actions/dashboard/analyticsDetail";
+import { fetchAnalyticsDetailsAction } from "@/app/actions/dashboard/analytics/analyticsDetail";
 
 export default function AnalyticsDashboard() {
   const [loading, setLoading] = useState(true);
@@ -86,7 +86,7 @@ export default function AnalyticsDashboard() {
                 completionTimeInMinutes={test.completionTimeInMinutes}
                 testRank={test.testRank}
                 testPercentile={test.testPercentile}
-                testResultId={test.testResultId}
+                testResponseId={test.testResponseId}
               />
             </div>
           ))

@@ -625,8 +625,30 @@ export interface CandidateAnalyticsReportHeaderResponse {
   testStartDate: string;
   testDurationMinutes: number;
   testDurationForHandicappedMinutes: number;
-  testResultTotalMarks: number;
+  completionTimeInMinutes: number;
+  averageTimePerQuestion: number;
+  myMarks: number;
   totalMarks: number;
   testRank: string;
   testTopMarks: string;
+  totalQuestions: number;
+  testCorrectAnswerCount: number;
+  testInCorrectAnswerCount: number;
+  unAnswered: number;
+}
+
+export interface CandidateAnalyticsReportSectionRequest {
+  testResponseId: number;
+}
+
+export interface CandidateAnalyticsReportSectionResponse {
+  testSectionName: string;
+  totalSectionQuestions: number;
+  totalSectionMarks: number;
+  sectionTimeDuration: number;
+  sectionAnsweredCount: number;
+  sectionUnansweredCount: number;
+  correctAnswersCount: number;
+  inCorrectAnswersCount: number;
+  sectionMyMarks: number;
 }

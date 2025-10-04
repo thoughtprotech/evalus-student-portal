@@ -5,6 +5,8 @@ import {
   CandidateAnalyticsDetailsResponse,
   CandidateAnalyticsReportHeaderRequest,
   CandidateAnalyticsReportHeaderResponse,
+  CandidateAnalyticsReportSectionRequest,
+  CandidateAnalyticsReportSectionResponse,
   CandidateAnalyticsSummaryRequest,
   CandidateAnalyticsSummaryResponse,
   CreateQuestionRequest,
@@ -1263,13 +1265,21 @@ export const endpoints = {
     CandidateAnalyticsDetailsResponse[]
   >,
 
-   getCandidateAnalyticsReportHeader: {
+  getCandidateAnalyticsReportHeader: {
     method: "GET",
-    path: ({ testResponseId }) =>
-      `/api/TestResponse/result/${testResponseId}`,
+    path: ({ testResponseId }) => `/api/TestResponse/result/${testResponseId}`,
     type: "CLOSE",
   } as Endpoint<
     CandidateAnalyticsReportHeaderRequest,
     CandidateAnalyticsReportHeaderResponse
+  >,
+
+  getCandidateAnalyticsReportSection: {
+    method: "GET",
+    path: ({ testResponseId }) => `/api/TestResponse/result/sections/${testResponseId}`,
+    type: "CLOSE",
+  } as Endpoint<
+    CandidateAnalyticsReportSectionRequest,
+    CandidateAnalyticsReportSectionResponse[]
   >,
 };

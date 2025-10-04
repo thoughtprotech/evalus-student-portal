@@ -14,32 +14,15 @@ import {
   PieChart,
   Pie,
   Cell,
-  AreaChart,
-  Area,
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  ScatterChart,
-  Scatter,
-  LineChart,
-  Line,
-  ZAxis,
 } from "recharts";
 import {
   Calendar,
   Clock,
-  BarChart2,
   ClipboardList,
-  TrendingUp,
   ArrowLeft,
   Award,
-  Zap,
-  BookOpen,
   PieChart as PieIcon,
   BarChart4,
-  Activity,
   Gauge,
   Timer,
   CheckCircle,
@@ -50,99 +33,27 @@ import {
   TypeOutline,
 } from "lucide-react";
 import Link from "next/link";
-import formatToDDMMYYYY_HHMM from "@/utils/formatIsoTime";
+import formatToDDMMYYYY_HHMM, {
+  formatMinutesToHourMinute,
+} from "@/utils/formatIsoTime";
 import Loader from "@/components/Loader";
-import { fetchAnalyticsAction } from "@/app/actions/dashboard/analytics";
-import { fetchAnalyticsDetailsHeaderAction } from "@/app/actions/dashboard/analyticsDetailHeader";
-import { CandidateAnalyticsReportHeaderResponse } from "@/utils/api/types";
-
-// Type definitions
-interface TestDetails {
-  name: string;
-  score: number;
-  totalMarks: number;
-  date: string;
-  duration: string;
-  userRank: number;
-  totalParticipants: number;
-  averageTimeByOthers: string;
-  averageTimeByUser: string;
-  percentile: number;
-  sections: {
-    name: string;
-    correct: number;
-    incorrect: number;
-    unanswered: number;
-    maxMarks: number;
-    marksObtained: number;
-    timeSpent: string;
-  }[];
-  scoreBreakdown: {
-    questionsAttempted: number;
-    correctAnswers: number;
-    incorrectAnswers: number;
-    unanswered: number;
-    score: number;
-    timeSpent: string;
-    marksPerCategory: {
-      name: string;
-      marks: number;
-    }[];
-  };
-  analytics: { date: string; score: number }[];
-  timeDistribution: {
-    name: string;
-    time: number;
-  }[];
-  rankDistribution: {
-    score: number;
-    count: number;
-  }[];
-  questionAnalysis: {
-    questionNumber: number;
-    timeSpent: number;
-    correct: boolean;
-    marks: number;
-  }[];
-}
+import { fetchAnalyticsAction } from "@/app/actions/dashboard/analytics/analytics";
+import { fetchAnalyticsDetailsHeaderAction } from "@/app/actions/dashboard/analytics/analyticsDetailHeader";
+import {
+  CandidateAnalyticsReportHeaderResponse,
+  CandidateAnalyticsReportSectionResponse,
+} from "@/utils/api/types";
+import { fetchAnalyticsDetailsSectionAction } from "@/app/actions/dashboard/analytics/analyticsDetailSection";
 
 const COLORS = ["#4CAF50", "#F44336", "#FF9800", "#9E9E9E"];
-const SECTION_COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7300", "#a4de6c"];
-
-// Helper to convert time string to minutes
-const timeStringToMinutes = (timeStr: string) => {
-  const [hours, minutes, seconds] = timeStr.split(":").map(Number);
-  return hours * 60 + minutes + seconds / 60;
-};
-
-// Helper to format minutes for display
-const formatMinutes = (minutes: number) => {
-  const hrs = Math.floor(minutes / 60);
-  const mins = Math.floor(minutes % 60);
-  const secs = Math.round((minutes * 60) % 60);
-
-  if (hrs > 0) return `${hrs}h ${mins}m`;
-  if (mins > 0) return `${mins}m ${secs}s`;
-  return `${secs}s`;
-};
-
-type TestId = "93" | "94" | "3" | "4" | "5";
 
 export default function TestDetailsPage() {
   const [loaded, setLoaded] = useState<boolean>(false);
   const { id } = useParams();
-  const [testDetails, setTestDetails] = useState<TestDetails | null>(null);
   const [testMeta, setTestMeta] =
     useState<CandidateAnalyticsReportHeaderResponse>();
-
-  const fetchAnalytics = async () => {
-    const res = await fetchAnalyticsAction(id as TestId);
-    const { data, status } = res;
-    if (status === 200) {
-      setTestDetails(data);
-      setLoaded(true);
-    }
-  };
+  const [sectionData, setSectionData] =
+    useState<CandidateAnalyticsReportSectionResponse[]>();
 
   const fetchData = async () => {
     const detailsRes = await fetchAnalyticsDetailsHeaderAction(Number(id));
@@ -150,87 +61,50 @@ export default function TestDetailsPage() {
       const detailsData: CandidateAnalyticsReportHeaderResponse =
         detailsRes.data!;
       setTestMeta(detailsData!);
+      setLoaded(true);
+    }
+  };
+
+  const fetchSectionData = async () => {
+    const detailsRes = await fetchAnalyticsDetailsSectionAction(Number(id));
+    if (detailsRes.status === 200) {
+      const detailsData: CandidateAnalyticsReportSectionResponse[] =
+        detailsRes.data!;
+      setSectionData(detailsData!);
+      setLoaded(true);
     }
   };
 
   useEffect(() => {
     if (id) {
       fetchData();
-      fetchAnalytics();
+      fetchSectionData();
     }
   }, [id]);
 
-  if (!testDetails) return <Loader />;
-
-  const {
-    name,
-    score,
-    totalMarks,
-    date,
-    duration,
-    userRank,
-    totalParticipants,
-    percentile,
-    sections,
-    scoreBreakdown,
-    analytics,
-    timeDistribution,
-    rankDistribution,
-    questionAnalysis,
-  } = testDetails;
-
-  const percentageScore = ((score / totalMarks) * 100).toFixed(2);
-  const accuracy =
-    scoreBreakdown.correctAnswers > 0
-      ? (
-          (scoreBreakdown.correctAnswers / scoreBreakdown.questionsAttempted) *
-          100
-        ).toFixed(2)
-      : "0";
-
-  // Time calculations
-  const totalTimeSpentMinutes = timeStringToMinutes(scoreBreakdown.timeSpent);
-  const avgTimePerQuestion =
-    totalTimeSpentMinutes /
-    (scoreBreakdown.correctAnswers + scoreBreakdown.incorrectAnswers);
-  const efficiencyRatio =
-    score /
-    totalMarks /
-    (totalTimeSpentMinutes / timeStringToMinutes(duration));
-
   // Data for charts
   const answerDistribution = [
-    { name: "Correct", value: scoreBreakdown.correctAnswers, color: COLORS[0] },
+    {
+      name: "Correct",
+      value: testMeta?.testCorrectAnswerCount,
+      color: COLORS[0],
+    },
     {
       name: "Incorrect",
-      value: scoreBreakdown.incorrectAnswers,
+      value: testMeta?.testInCorrectAnswerCount,
       color: COLORS[1],
     },
-    { name: "Unanswered", value: scoreBreakdown.unanswered, color: COLORS[2] },
+    { name: "Unanswered", value: testMeta?.unAnswered, color: COLORS[2] },
   ];
 
   const marksDistribution = [
-    { name: "Earned", value: score, color: "#4CAF50" },
-    { name: "Missed", value: totalMarks - score, color: "#F44336" },
-  ];
-
-  const timeAnalysis = [
+    { name: "Correct", value: testMeta?.myMarks, color: "#4CAF50" },
     {
-      name: "Time Spent",
-      time: totalTimeSpentMinutes,
-    },
-    {
-      name: "Avg. Time/Question",
-      time: avgTimePerQuestion,
+      name: "InCorrect",
+     value: (testMeta?.totalMarks || 0) - (testMeta?.myMarks || 0),
+      color: "#F44336",
     },
   ];
-
-  const sectionData = sections.map((section, index) => ({
-    subject: section.name,
-    A: section.marksObtained,
-    fullMark: section.maxMarks,
-    color: SECTION_COLORS[index % SECTION_COLORS.length],
-  }));
 
   if (!loaded) {
     return <Loader />;
@@ -265,7 +139,8 @@ export default function TestDetailsPage() {
                 <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
                   <Clock className="text-indigo-600 w-4 h-4" />
                   <span className="text-sm text-indigo-700 font-medium">
-                    Duration: {testMeta?.testDurationMinutes}
+                    Test Duration:{" "}
+                    {formatMinutesToHourMinute(testMeta?.testDurationMinutes!)}
                   </span>
                 </div>
                 <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
@@ -286,10 +161,8 @@ export default function TestDetailsPage() {
 
           <div className="flex flex-col items-start">
             <div className="text-6xl font-bold text-gray-800">
-              {testMeta?.testResultTotalMarks}
-              <span className="text-2xl">
-                /{testMeta?.totalMarks}
-              </span>
+              {testMeta?.myMarks}
+              <span className="text-2xl">/{testMeta?.totalMarks}</span>
             </div>
             <div className="text-sm font-bold text-gray-500">My Score</div>
           </div>
@@ -299,46 +172,34 @@ export default function TestDetailsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
           <MetricCard
             icon={<ClipboardList className="w-5 h-5" />}
-            title="Questions Attempted"
-            value={scoreBreakdown.questionsAttempted}
-            description={`out of ${
-              scoreBreakdown.correctAnswers +
-              scoreBreakdown.incorrectAnswers +
-              scoreBreakdown.unanswered
-            }`}
+            title="Total Questions"
+            value={testMeta?.totalQuestions!}
+            description="Test Questions"
             color="bg-blue-100 text-blue-600"
           />
 
           <MetricCard
             icon={<CheckCircle className="w-5 h-5" />}
             title="Correct Answers"
-            value={scoreBreakdown.correctAnswers}
-            description={`+${score} marks`}
+            value={testMeta?.testCorrectAnswerCount!}
+            description="Right Responses"
             color="bg-green-100 text-green-600"
           />
 
           <MetricCard
             icon={<XCircle className="w-5 h-5" />}
             title="Incorrect Answers"
-            value={scoreBreakdown.incorrectAnswers}
-            description="Negative marking"
+            value={testMeta?.testInCorrectAnswerCount!}
+            description="Wrong Responses"
             color="bg-red-100 text-red-600"
           />
 
           <MetricCard
             icon={<HelpCircle className="w-5 h-5" />}
             title="Unanswered"
-            value={scoreBreakdown.unanswered}
-            description="Potential marks"
+            value={testMeta?.unAnswered!}
+            description="No Responses"
             color="bg-amber-100 text-amber-600"
-          />
-
-          <MetricCard
-            icon={<Zap className="w-5 h-5" />}
-            title="Accuracy"
-            value={`${accuracy}%`}
-            description="Based on attempts"
-            color="bg-purple-100 text-purple-600"
           />
         </div>
 
@@ -400,9 +261,10 @@ export default function TestDetailsPage() {
           <MetricCard
             icon={<Timer className="w-5 h-5" />}
             title="Time Spent"
-            value={formatMinutes(totalTimeSpentMinutes)}
+            value={formatMinutesToHourMinute(testMeta!.completionTimeInMinutes)}
             description={`${(
-              (totalTimeSpentMinutes / timeStringToMinutes(duration)) *
+              (testMeta!.completionTimeInMinutes /
+                testMeta!.testDurationMinutes) *
               100
             ).toFixed(1)}% of total duration`}
             color="bg-cyan-100 text-cyan-600"
@@ -411,7 +273,7 @@ export default function TestDetailsPage() {
           <MetricCard
             icon={<Gauge className="w-5 h-5" />}
             title="Avg. Time/Question"
-            value={formatMinutes(avgTimePerQuestion)}
+            value={formatMinutesToHourMinute(testMeta!.averageTimePerQuestion)}
             description="Across answered questions"
             color="bg-orange-100 text-orange-600"
           />
@@ -419,202 +281,13 @@ export default function TestDetailsPage() {
           <MetricCard
             icon={<Target className="w-5 h-5" />}
             title="Efficiency Ratio"
-            value={efficiencyRatio.toFixed(2)}
+            value={(
+              testMeta!.testCorrectAnswerCount /
+              testMeta!.completionTimeInMinutes
+            ).toFixed(1)}
             description="Score vs Time spent"
             color="bg-pink-100 text-pink-600"
           />
-        </div>
-
-        {/* Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Section-wise Performance */}
-          <ChartCard
-            title="Section-wise Performance"
-            icon={<BookOpen className="w-5 h-5" />}
-            description="Marks obtained per section"
-          >
-            <ResponsiveContainer width="100%" height={300}>
-              <RadarChart
-                cx="50%"
-                cy="50%"
-                outerRadius="80%"
-                data={sectionData}
-              >
-                <PolarGrid />
-                <PolarAngleAxis dataKey="subject" />
-                <PolarRadiusAxis angle={30} domain={[0, "dataMax + 5"]} />
-                <Radar
-                  name="Marks"
-                  dataKey="A"
-                  stroke="#8884d8"
-                  fill="#8884d8"
-                  fillOpacity={0.6}
-                />
-                <Tooltip />
-                <Legend />
-              </RadarChart>
-            </ResponsiveContainer>
-          </ChartCard>
-
-          {/* Time Distribution */}
-          <ChartCard
-            title="Time Distribution"
-            icon={<Activity className="w-5 h-5" />}
-            description="Time spent on different question types"
-          >
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={timeDistribution}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis
-                  tickFormatter={(value) => formatMinutes(value)}
-                  label={{
-                    value: "Time (min)",
-                    angle: -90,
-                    position: "insideLeft",
-                  }}
-                />
-                <Tooltip
-                  formatter={(value) => [formatMinutes(Number(value)), "Time"]}
-                />
-                <Bar dataKey="time" name="Time" fill="#4CAF50" />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
-
-          {/* Progress Over Time */}
-          <ChartCard
-            title="Time Progress"
-            icon={<TrendingUp className="w-5 h-5" />}
-            description="Time alloted vs Time taken"
-            fullWidth
-          >
-            <ResponsiveContainer width="100%" height={350}>
-              <AreaChart data={analytics}>
-                <defs>
-                  <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="question" />
-                <YAxis
-                  domain={[0, totalMarks]}
-                  label={{
-                    value: "Time",
-                    angle: -90,
-                    position: "insideLeft",
-                  }}
-                />
-                <CartesianGrid strokeDasharray="3 3" />
-                <Tooltip
-                  formatter={(value) => [
-                    `${(Number(value) / 60).toFixed(2)}min`,
-                    "Time Taken",
-                  ]}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="timeTaken"
-                  stroke="#8884d8"
-                  fillOpacity={1}
-                  fill="url(#colorScore)"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="timeTaken"
-                  stroke="#ff7300"
-                  dot={{ r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </ChartCard>
-
-          {/* Rank Distribution */}
-          <ChartCard
-            title="Rank Distribution"
-            icon={<BarChart2 className="w-5 h-5" />}
-            description="Score distribution among participants"
-            fullWidth
-          >
-            <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={rankDistribution}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="score" />
-                <YAxis
-                  label={{
-                    value: "Participants",
-                    angle: -90,
-                    position: "insideLeft",
-                  }}
-                />
-                <Tooltip />
-                <Bar dataKey="count" name="Participants" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
-
-          {/* Question Analysis */}
-          <ChartCard
-            title="Question Analysis"
-            icon={<ClipboardList className="w-5 h-5" />}
-            description="Time spent vs correctness per question"
-            fullWidth
-          >
-            <ResponsiveContainer width="100%" height={400}>
-              <ScatterChart>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  type="number"
-                  dataKey="questionNumber"
-                  name="Question No."
-                  label={{
-                    value: "Question Number",
-                    position: "insideBottom",
-                    offset: -5,
-                  }}
-                />
-                <YAxis
-                  type="number"
-                  dataKey="timeSpent"
-                  name="Time (sec)"
-                  label={{
-                    value: "Time Spent (seconds)",
-                    angle: -90,
-                    position: "insideLeft",
-                  }}
-                />
-                {/* <ZAxis
-                  type="number"
-                  dataKey="marks"
-                  name="Marks"
-                  range={[50, 500]}
-                /> */}
-                <Tooltip
-                  cursor={{ strokeDasharray: "3 3" }}
-                  formatter={(value, name) => {
-                    if (name === "correct")
-                      return value ? "Correct" : "Incorrect";
-                    return [value, name === "timeSpent" ? "seconds" : name];
-                  }}
-                />
-                {/* <Legend /> */}
-                <Scatter
-                  name="Correct"
-                  data={questionAnalysis.filter((q) => q.correct)}
-                  fill="#4CAF50"
-                  shape="circle"
-                />
-                <Scatter
-                  name="Incorrect"
-                  data={questionAnalysis.filter((q) => !q.correct)}
-                  fill="#F44336"
-                  shape="circle"
-                />
-              </ScatterChart>
-            </ResponsiveContainer>
-          </ChartCard>
         </div>
       </div>
     </div>

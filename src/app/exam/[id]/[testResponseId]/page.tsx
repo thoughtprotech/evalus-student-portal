@@ -411,7 +411,7 @@ export default function ExamPage() {
     );
 
     if (response.status === 200) {
-      const targetUrl = `/dashboard`;
+      const targetUrl = `/dashboard/analytics/${testMetaData.testMeta}`;
 
       // If this window was opened via window.open(), window.opener points back to the parent
       if (window.opener && !window.opener.closed) {
