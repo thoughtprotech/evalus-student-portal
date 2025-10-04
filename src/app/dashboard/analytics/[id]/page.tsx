@@ -82,29 +82,25 @@ export default function TestDetailsPage() {
     }
   }, [id]);
 
-  // Data for charts
-  const answerDistribution = [
-    {
-      name: "Correct",
-      value: testMeta?.testCorrectAnswerCount,
-      color: COLORS[0],
-    },
-    {
-      name: "Incorrect",
-      value: testMeta?.testInCorrectAnswerCount,
-      color: COLORS[1],
-    },
-    { name: "Unanswered", value: testMeta?.unAnswered, color: COLORS[2] },
-  ];
+  // Prepare data for section-wise charts and KPIs
+  const sectionMarksData =
+    sectionData?.map((section) => ({
+      name: section.testSectionName,
+      marks: section.sectionMyMarks,
+      totalMarks: section.totalSectionMarks,
+    })) || [];
 
-  const marksDistribution = [
-    { name: "Correct", value: testMeta?.myMarks, color: "#4CAF50" },
-    {
-      name: "InCorrect",
-     value: (testMeta?.totalMarks || 0) - (testMeta?.myMarks || 0),
-      color: "#F44336",
-    },
-  ];
+  const sectionAnswerDistData =
+    sectionData?.map((section) => ({
+      name: section.testSectionName,
+      Correct: section.correctAnswersCount,
+      Incorrect: section.inCorrectAnswersCount,
+      Unanswered: section.sectionUnansweredCount,
+    })) || [];
+
+  // Flatten for Pie charts per section (will display one Pie per section)
+  // Instead of multiple Pie charts, create a stacked bar chart for answers per section
+  // For KPIs: section score percentage, correct %, time spent
 
   if (!loaded) {
     return <Loader />;
@@ -203,8 +199,8 @@ export default function TestDetailsPage() {
           />
         </div>
 
+        {/* Answer Distribution Pie */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Answer Distribution Pie */}
           <ChartCard
             title="Answer Distribution"
             icon={<PieIcon className="w-5 h-5" />}
@@ -213,7 +209,23 @@ export default function TestDetailsPage() {
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={answerDistribution}
+                  data={[
+                    {
+                      name: "Correct",
+                      value: testMeta?.testCorrectAnswerCount,
+                      color: COLORS[0],
+                    },
+                    {
+                      name: "Incorrect",
+                      value: testMeta?.testInCorrectAnswerCount,
+                      color: COLORS[1],
+                    },
+                    {
+                      name: "Unanswered",
+                      value: testMeta?.unAnswered,
+                      color: COLORS[2],
+                    },
+                  ]}
                   dataKey="value"
                   nameKey="name"
                   cx="50%"
@@ -224,7 +236,23 @@ export default function TestDetailsPage() {
                     `${name}: ${(percent * 100).toFixed(0)}%`
                   }
                 >
-                  {answerDistribution.map((entry, index) => (
+                  {[
+                    {
+                      name: "Correct",
+                      value: testMeta?.testCorrectAnswerCount,
+                      color: COLORS[0],
+                    },
+                    {
+                      name: "Incorrect",
+                      value: testMeta?.testInCorrectAnswerCount,
+                      color: COLORS[1],
+                    },
+                    {
+                      name: "Unanswered",
+                      value: testMeta?.unAnswered,
+                      color: COLORS[2],
+                    },
+                  ].map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -234,6 +262,7 @@ export default function TestDetailsPage() {
               </PieChart>
             </ResponsiveContainer>
           </ChartCard>
+
           {/* Marks Distribution */}
           <ChartCard
             title="Marks Distribution"
@@ -241,13 +270,39 @@ export default function TestDetailsPage() {
             description="Earned vs missed marks comparison"
           >
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={marksDistribution}>
+              <BarChart
+                data={[
+                  {
+                    name: "Correct Marks",
+                    value: testMeta?.myMarks,
+                    color: "#4CAF50",
+                  },
+                  {
+                    name: "Missed Marks",
+                    value:
+                      (testMeta?.totalMarks || 0) - (testMeta?.myMarks || 0),
+                    color: "#F44336",
+                  },
+                ]}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
                 <Bar dataKey="value" name="Marks">
-                  {marksDistribution.map((entry, index) => (
+                  {[
+                    {
+                      name: "Correct Marks",
+                      value: testMeta?.myMarks,
+                      color: "#4CAF50",
+                    },
+                    {
+                      name: "Missed Marks",
+                      value:
+                        (testMeta?.totalMarks || 0) - (testMeta?.myMarks || 0),
+                      color: "#F44336",
+                    },
+                  ].map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Bar>
@@ -288,6 +343,134 @@ export default function TestDetailsPage() {
             description="Score vs Time spent"
             color="bg-pink-100 text-pink-600"
           />
+        </div>
+
+        <div
+          className="grid grid-cols-2 gap-4"
+          style={{ gridAutoRows: "1fr", minHeight: 320 }}
+        >
+          {/* Overall Time Spent per Section Pie Chart */}
+          <ChartCard
+            title="Time Spent per Section"
+            icon={<Timer className="w-5 h-5" />}
+            description="Proportion of total time spent in each section"
+          >
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={
+                    sectionData?.map((section, index) => ({
+                      name: section.testSectionName,
+                      value: section.sectionTimeDuration,
+                      color: COLORS[index % COLORS.length],
+                    })) || []
+                  }
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  innerRadius={60}
+                  label={({ name, percent }) =>
+                    `${name}: ${(percent * 100).toFixed(0)}%`
+                  }
+                >
+                  {sectionData?.map((_, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => [`${value} mins`, "Time"]} />
+              </PieChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
+          {/* Percentage Marks Scored per Section */}
+          <ChartCard
+            title="Marks Scored per Section"
+            icon={<BarChart4 className="w-5 h-5" />}
+            description="Marks scored as % of total marks per section"
+          >
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={
+                  sectionData?.map((section) => ({
+                    name: section.testSectionName,
+                    marks: section.sectionMyMarks,
+                  })) || []
+                }
+                layout="vertical"
+                margin={{ top: 10, right: 30, left: 100, bottom: 10 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" />
+                <YAxis dataKey="name" type="category" />
+                <Tooltip
+                  formatter={(value: number) => `${value.toFixed(1)}%`}
+                />
+                <Bar dataKey="marks" fill="#4CAF50" name="Marks Scored" />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
+          {/* Answer Distribution per Section */}
+          <ChartCard
+            title="Answer Distribution per Section"
+            icon={<PieIcon className="w-5 h-5" />}
+            description="Correct, incorrect, and unanswered counts per section"
+          >
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={
+                  sectionData?.map((section) => ({
+                    name: section.testSectionName,
+                    Correct: section.correctAnswersCount,
+                    Incorrect: section.inCorrectAnswersCount,
+                    Unanswered: section.sectionUnansweredCount,
+                  })) || []
+                }
+                layout="vertical"
+                margin={{ top: 10, right: 30, left: 100, bottom: 10 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" />
+                <YAxis dataKey="name" type="category" />
+                <Tooltip />
+                <Legend />
+                <Bar stackId="a" dataKey="Correct" fill="#4CAF50" />
+                <Bar stackId="a" dataKey="Incorrect" fill="#F44336" />
+                <Bar stackId="a" dataKey="Unanswered" fill="#FF9800" />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
+          {/* Time Spent (mins) per Section */}
+          <ChartCard
+            title="Time Spent (mins) per Section"
+            icon={<Timer className="w-5 h-5" />}
+            description="Time spent on each section"
+          >
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={
+                  sectionData?.map((section) => ({
+                    name: section.testSectionName,
+                    time: section.sectionTimeDuration,
+                  })) || []
+                }
+                layout="vertical"
+                margin={{ top: 10, right: 30, left: 100, bottom: 10 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" />
+                <YAxis dataKey="name" type="category" />
+                <Tooltip formatter={(value: number) => `${value} mins`} />
+                <Bar dataKey="time" fill="#2196F3" name="Time Spent (mins)" />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
         </div>
       </div>
     </div>
@@ -335,7 +518,7 @@ const ChartCard = ({
   fullWidth?: boolean;
 }) => (
   <div
-    className={`bg-white rounded-xl shadow-md border border-gray-200 p-5 h-fit ${
+    className={`bg-white rounded-xl shadow-md border border-gray-200 p-5 h-full ${
       fullWidth ? "col-span-1 lg:col-span-2" : ""
     }`}
   >
