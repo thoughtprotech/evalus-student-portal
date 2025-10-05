@@ -57,7 +57,9 @@ export default function Index() {
     try {
       const ids = await listStarredTestsIdsAction();
       setStarredIds(ids);
-    } catch { setStarredIds([]); }
+    } catch {
+      setStarredIds([]);
+    }
   };
 
   // Load the test list once on mount
@@ -72,7 +74,7 @@ export default function Index() {
   }, [groupSelected]);
 
   // Derive the filtered test list based on the current tab and search query
-  const filteredTestList = testList?.filter(
+  const filteredTestList: GetCandidateTestResponse[] = testList?.filter(
     (test) =>
       test.testCandidateRegistrationStatus === tabs[currentTab] &&
       test.testName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -91,7 +93,7 @@ export default function Index() {
   }, [filteredTestList, page, pageSize]);
 
   // Paginate
-  const paginatedTests =
+  const paginatedTests: GetCandidateTestResponse[] =
     filteredTestList?.slice((page - 1) * pageSize, page * pageSize) || [];
 
   // Prepare tab card data including count and an appropriate icon
@@ -193,9 +195,13 @@ export default function Index() {
                       await fetchTestList();
                     }}
                     registrationId={test.testRegistrationId}
-                    onToggleStar={async () => { await fetchStarred(); }}
+                    onToggleStar={async () => {
+                      await fetchStarred();
+                    }}
                     testDurationMinutes={test.testDurationMinutes}
-                    testDurationForHandicappedMinutes={test.testDurationForHandicappedMinutes}
+                    testDurationForHandicappedMinutes={
+                      test.testDurationForHandicappedMinutes
+                    }
                     test={test}
                   />
                 </div>
@@ -228,8 +234,9 @@ function StatCard({
     label === "In Progress" ? "min-w-[175px]" : "min-w-[150px]";
   return (
     <div
-      className={`border border-gray-300 ${current ? "bg-indigo-50 border-indigo-300" : "bg-white"
-        } rounded-xl shadow-md duration-200 ease-in-out px-6 py-1 flex items-center gap-5 ${minWidthClass} w-full`}
+      className={`border border-gray-300 ${
+        current ? "bg-indigo-50 border-indigo-300" : "bg-white"
+      } rounded-xl shadow-md duration-200 ease-in-out px-6 py-1 flex items-center gap-5 ${minWidthClass} w-full`}
     >
       <div className="flex-shrink-0 rounded-full">{icon}</div>
       <div className="flex flex-col">

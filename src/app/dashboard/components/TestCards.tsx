@@ -65,7 +65,7 @@ export default function TestCards({
   testDurationForHandicappedMinutes,
   test,
 }: TestCardsProps) {
-  console.log({ test });
+  // console.log({ test });
 
   // Parse ISO date strings for display
   let formattedStartDate;
@@ -124,11 +124,7 @@ export default function TestCards({
   } else if (status === "Completed") {
     linkText = "View Report";
     linkIcon = <ArrowRight className="w-5 h-5 ml-2" />;
-    linkHref = `/dashboard/analytics/${encodeURIComponent(id)}`;
-  } else if (status === "Cancelled") {
-    linkText = "Enquire";
-    linkIcon = <ArrowRight className="w-5 h-5 ml-2" />;
-    linkHref = `/dashboard/analytics/${encodeURIComponent(id)}`;
+    linkHref = `/dashboard/analytics/${encodeURIComponent(test.testResponseId)}`;
   }
 
   const openInPopup = (e: React.MouseEvent) => {
