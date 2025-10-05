@@ -69,28 +69,29 @@ export default function AssessmentFooter({
             onSelectSection={onSelectSection}
           />
         </div>
-        <div>
-          <div className="w-full flex gap-3">
-            <div className="w-full md:w-fit">
+        <div className="flex items-center gap-40">
+          <div>
+            <div className="w-full flex gap-3">
+              <div className="w-full md:w-fit">
+                <button
+                  onClick={handlePreviousQuestion}
+                  // disabled={currentIndex === 0}
+                  className={clsx(
+                    "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+                  )}
+                >
+                  Previous
+                </button>
+              </div>
               <button
-                onClick={handlePreviousQuestion}
-                // disabled={currentIndex === 0}
+                onClick={toggleMarkForReview}
                 className={clsx(
-                  "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+                  "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
                 )}
               >
-                Previous
+                Mark For Review
               </button>
-            </div>
-            <button
-              onClick={toggleMarkForReview}
-              className={clsx(
-                "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
-              )}
-            >
-              Mark For Review & Next
-            </button>
-            {/* <button
+              {/* <button
             onClick={clearResponse}
             className={clsx(
               "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 whitespace-nowrap text-sm"
@@ -98,33 +99,33 @@ export default function AssessmentFooter({
           >
             Clear Response
           </button> */}
-            <div className="w-full md:w-fit">
-              <button
-                onClick={handleNextQuestion}
-                // disabled={
-                //   currentIndex + 1 === currentSection?.questions.length
-                // }
-                className={clsx(
-                  "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
-                )}
-              >
-                Save & Next
-              </button>
-            </div>
-            <div className="w-full md:w-fit">
+              <div className="w-full md:w-fit">
+                <button
+                  onClick={handleNextQuestion}
+                  // disabled={
+                  //   currentIndex + 1 === currentSection?.questions.length
+                  // }
+                  className={clsx(
+                    "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+                  )}
+                >
+                  Save & Next
+                </button>
+              </div>
+              {/* <div className="w-full md:w-fit">
               <button
                 onClick={handleSubmit}
                 className={clsx(
-                  "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+                  "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
                 )}
               >
                 Submit Test
               </button>
+            </div> */}
             </div>
-          </div>
 
-          <div className="w-full md:w-fit flex gap-3">
-            {/* {currentIndex + 1 === currentSection?.questions.length ? (
+            <div className="w-full md:w-fit flex gap-3">
+              {/* {currentIndex + 1 === currentSection?.questions.length ? (
                       <div className="w-full md:w-fit">
                         <button
                           onClick={handleSubmit}
@@ -135,29 +136,32 @@ export default function AssessmentFooter({
                       </div>
                     ) : ( */}
 
-            {/* )} */}
+              {/* )} */}
+            </div>
           </div>
-        </div>
-        <div className="flex flex-col items-center gap-2">
-          <div>
-            <h1 className="font-bold text-xl">
-              <span className="text-gray-600 text-base">
-                Total Questions Answered:{" "}
-              </span>
-              {
-                currentSectionId.questions.filter(
-                  (q) => q.status === QUESTION_STATUS.ATTEMPTED
-                ).length
-              }
-            </h1>
+          <div className="flex flex-col items-center gap-2">
+            <div>
+              <h1 className="font-bold text-xl">
+                <span className="text-gray-600 text-base">
+                  Total Questions Answered:{" "}
+                </span>
+                <span className="text-red-500 bg-yellow-200 px-2">
+                  {
+                    currentSectionId.questions.filter(
+                      (q) => q.status === QUESTION_STATUS.ATTEMPTED
+                    ).length
+                  }
+                </span>
+              </h1>
+            </div>
+            {Number.isFinite(formattedTimeSection) && (
+              <TimerChip
+                title="Section Time Left"
+                durationMs={Math.max(0, formattedTimeSection * 60_000)}
+                onComplete={onSectionTimeUp}
+              />
+            )}
           </div>
-          {Number.isFinite(formattedTimeSection) && (
-            <TimerChip
-              title="Section Time Left"
-              durationMs={Math.max(0, formattedTimeSection * 60_000)}
-              onComplete={onSectionTimeUp}
-            />
-          )}
         </div>
       </div>
       {/* Modals */}

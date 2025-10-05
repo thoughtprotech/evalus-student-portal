@@ -29,8 +29,8 @@ export default function SectionTabs({
                 }
               }}
               className={[
-                "px-4 py-1 text-sm font-bold whitespace-nowrap` flex items-center gap-2 rounded transition-colors text-white",
-                isActive ? "bg-green-700" : "bg-blue-700",
+                "px-4 py-1 text-xs font-bold whitespace-nowrap` flex items-center gap-2 transition-colors text-white",
+                isActive ? "bg-green-700" : "bg-[#0001f0]",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
               ].join(" ")}
               aria-current={isActive ? "page" : undefined}

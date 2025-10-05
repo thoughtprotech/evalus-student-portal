@@ -13,27 +13,27 @@ export default function QuestionIndex({
   currentIndex: number;
 }) {
   return (
-    <div className="flex flex-col gap-2 border-b border-b-gray-300 max-h-52 overflow-y-auto">
+    <div className="flex flex-col gap-2 border-b border-b-gray-300 max-h-[26rem] overflow-y-auto">
       <div className="grid grid-cols-8 md:grid-cols-4 gap-2 mb-4">
         {questionsMeta?.map((q, index) => (
           <button
             key={q.questionId}
             onClick={() => handleJumpTo(index, q.questionId)}
             className={clsx(
-              "font-semibold text-xs sm:text-sm transition-colors cursor-pointer relative rounded-md",
+              "font-semibold text-xs sm:text-sm transition-colors cursor-pointer relative",
               q.status === QUESTION_STATUS.NOT_VISITED &&
-                "bg-gray-300 text-gray-700 hover:bg-gray-400 w-8 h-8 sm:w-full sm:h-10 rounded-md",
+                "bg-[#0001f0] text-white w-8 h-8 sm:w-full sm:h-5",
               q.status === QUESTION_STATUS.ATTEMPTED &&
-                "bg-green-500 text-white hover:bg-green-600 w-8 h-8 sm:w-full sm:h-10 rounded-md",
+                "bg-green-700 text-white w-8 h-8 sm:w-full sm:h-5",
               q.status === QUESTION_STATUS.TO_REVIEW &&
-                "bg-purple-500 text-white hover:bg-purple-600 w-full h-10 rounded-full",
+                "bg-purple-500 text-white w-full h-6 rounded-full",
               q.status === QUESTION_STATUS.ANSWERED_TO_REVIEW &&
-                "bg-purple-500 text-white hover:bg-purple-600 w-full h-10 rounded-full self-center",
+                "bg-purple-500 text-white w-full h-6 rounded-full self-center",
               q.status === "unanswered" &&
-                "bg-red-500 text-white hover:bg-red-600 w-8 h-8 sm:w-full sm:h-10 rounded-md",
-              index === currentIndex
-                ? "border-3 border-gray-600"
-                : "border-3 border-transparent"
+                "bg-red-500 text-white w-8 h-8 sm:w-full sm:h-6 rounded-md",
+              // index === currentIndex
+                // ? "border-3 border-gray-600"
+                // : "border-3 border-transparent"
             )}
           >
             {q.status === QUESTION_STATUS.ANSWERED_TO_REVIEW && (

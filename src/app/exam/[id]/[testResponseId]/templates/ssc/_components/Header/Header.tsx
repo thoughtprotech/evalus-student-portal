@@ -62,7 +62,6 @@ export default function Header({
     fetchUserName();
   }, []);
 
-
   return (
     <HeaderContainer>
       {/* <div className="flex flex-col gap-2 sm:gap-3 h-full">
@@ -93,8 +92,11 @@ export default function Header({
           />
         </div>
       </div> */}
-      <div className="w-full flex justify-between relative">
-        <div>
+      <div className="w-full flex justify-between items-center relative">
+        <div className="flex items-center gap-20">
+          <div>
+            <h1 className="text-sm">SSC MOCK TEST</h1>
+          </div>
           <ZoomControls />
         </div>
         <div className="flex items-center gap-2">
@@ -105,7 +107,10 @@ export default function Header({
         <div className="flex items-center gap-2">
           <TimerChip
             title="Time Left"
-            durationMs={Math.max(0, Number(data.testMeta.testDuration) * 60_000)}
+            durationMs={Math.max(
+              0,
+              Number(data.testMeta.testDuration) * 60_000
+            )}
             onComplete={onTestTimeUp}
           />
           <WelcomeChip userName={userName} />

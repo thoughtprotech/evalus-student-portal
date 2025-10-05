@@ -19,22 +19,20 @@ const PageZoomControl: React.FC = () => {
   };
 
   return (
-    <div className="flex space-x-2 bg-white rounded shadow-lg z-50">
+    <div className="flex space-x-2 rounded shadow-lg z-50">
       <button
         onClick={zoomIn}
-        className="p-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition flex items-center gap-2"
+        className="px-2 bg-[#3973B7] text-white rounded hover:bg-blue-700 transition flex items-center gap-2 text-sm"
         aria-label="Zoom In"
       >
         <h1>Zoom (+)</h1>
-        <ZoomIn size={20} />
       </button>
       <button
         onClick={zoomOut}
-        className="p-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition flex items-center gap-2"
+        className="px-2 bg-[#3973B7] text-white rounded hover:bg-blue-700 transition flex items-center gap-2 text-sm"
         aria-label="Zoom Out"
       >
         <h1>Zoom (-)</h1>
-        <ZoomOut size={20} />
       </button>
     </div>
   );

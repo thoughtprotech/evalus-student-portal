@@ -7,7 +7,7 @@ import {
   QuestionsMetaDataInterface,
   SectionsMetaDataInterface,
 } from "@/utils/api/types";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import Header from "./_components/Header/Header";
 import AssessmentFooter from "./_components/AssessmentArea/_components/Footer";
 import AssessmentAreaHeader from "./_components/AssessmentArea/_components/Header";
@@ -17,6 +17,7 @@ import ScrollToggleButton from "@/components/ScrollToggleButton";
 import Sidebar from "./_components/Sidebar/Sidebar";
 import SubmitExamModal from "../../_components/SubmitExamModal";
 import SubmitSectionModal from "../../_components/SubmitSectionModal";
+import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
 
 // Complete ExamPage props interface
 interface ExamPageProps {
@@ -74,6 +75,32 @@ export default function SSCTemplate({
   setSubmitSectionModal,
   cancelSubmitSectionModalSubmit,
 }: ExamPageProps) {
+  const [language, setLanguage] =
+    useState<{ value: string; label: string }[]>();
+
+  const fetchLanguages = async () => {
+    const res = await fetchLanguagesAction();
+
+    if (res.status === 200) {
+      const options = res.data?.map((lan) => ({
+        value: lan.language,
+        label: lan.language,
+      }));
+
+      setLanguage(options);
+    }
+  };
+
+  const handleLanguageChange = async (language: any) => {
+    console.log({ language });
+
+    // TODO: Implement language change
+  };
+
+  useEffect(() => {
+    fetchLanguages();
+  }, []);
+
   if (!loaded) {
     return <Loader />;
   }
@@ -119,9 +146,31 @@ export default function SSCTemplate({
                     question={question}
                     currentIndex={currentIndex}
                   />
+                  <div className="w-full pt-2 flex justify-end">
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <h1>Select Language: </h1>
+                      </div>
+                      <select
+                        title="s"
+                        className="border border-gray-300 px-4 py-1 rounded-md shadow-md cursor-pointer text-sm md:text:base"
+                        onChange={(e) => {
+                          handleLanguageChange(e.target.value);
+                        }}
+                      >
+                        {language?.map((lan) => {
+                          return (
+                            <option value={lan.value} key={lan.value}>
+                              {lan.label}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+                  </div>
 
-                  <div className="w-full h-full overflow-y-auto flex flex-col gap-5 pt-2">
-                    <div className="relative w-full h-fit">
+                  <div className="w-full h-fit border border-gray-300 overflow-y-auto flex flex-col mt-4">
+                    <div className="relative w-full h-fit p-2">
                       <QuestionArea question={question} />
                     </div>
                     {errorMessage && (
@@ -152,7 +201,6 @@ export default function SSCTemplate({
           handleJumpTo={handleJumpTo}
           currentIndex={currentIndex}
           currentSection={currentSection!}
-
         />
       </div>
 

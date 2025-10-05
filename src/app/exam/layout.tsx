@@ -33,6 +33,16 @@ export default function ExamLayout({
   //     e.preventDefault(); // disable copy/cut/paste
   //   };
 
+  //   if (!document.fullscreenElement) {
+  //     const el = document.documentElement;
+  //     if (el.requestFullscreen) {
+  //       el.requestFullscreen().catch(() => {
+  //         // Handle if user denies fullscreen or error occurs
+  //         // Optional: You can display a modal or message here
+  //       });
+  //     }
+  //   }
+
   //   window.addEventListener("keydown", handleKeyDown, true);
   //   window.addEventListener("contextmenu", handleContextMenu, true);
   //   window.addEventListener("copy", handleCopyPaste, true);

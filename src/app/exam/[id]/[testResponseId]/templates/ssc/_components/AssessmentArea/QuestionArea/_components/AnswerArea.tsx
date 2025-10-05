@@ -10,13 +10,13 @@ export default function AnswerArea({
 }) {
   return (
     <div
-      className="w-full h-full flex flex-col gap-3 overflow-y-auto"
+      className="w-full h-fit flex flex-col gap-3 overflow-y-auto"
       id="answerBox"
     >
-      <div>
+      {/* <div>
         <h1 className="font-bold text-2xl">Answer</h1>
-      </div>
-      <div className="mb-10">
+      </div> */}
+      <div>
         <RenderOptions question={question} setQuestion={setQuestion} />
       </div>
     </div>

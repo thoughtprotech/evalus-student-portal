@@ -123,7 +123,7 @@ export default function RenderOptions({
       return (
         <div className="flex flex-col gap-3">
           {/* Selection Controls */}
-          <div className="flex items-center justify-between border-b border-gray-200 pb-2">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {selectedOptions.size > 0 && (
                 <>
@@ -139,7 +139,7 @@ export default function RenderOptions({
           </div>
 
           {/* Question Options */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col">
             {(function () {
               const raw = JSON.parse(question!.options);
               const list: string[] = Array.isArray(raw)
@@ -163,34 +163,34 @@ export default function RenderOptions({
                 <div
                   key={index}
                   className={clsx(
-                    "border rounded-md px-4 py-2 transition-all text-sm sm:text-base relative group",
-                    isSelected
-                      ? "border-indigo-600 bg-indigo-100 text-indigo-900"
-                      : "border-gray-300 hover:bg-gray-100",
+                    "border-t transition-all text-sm sm:text-base relative group border-gray-300",
+                    // isSelected
+                    //   ? "bg-indigo-100 text-indigo-900"
+                    //   : "hover:bg-gray-100",
                     isSelectedForDeletion && "ring-2 ring-red-500"
                   )}
                 >
                   {/* Option content */}
-                  <div
-                    className="pl-6 cursor-pointer"
-                    onClick={(e) => {
-                      setQuestion((prev) => {
-                        if (!prev) {
-                          return prev; // still undefined
-                        }
-                        return {
-                          ...prev,
-                          answer: JSON.stringify([option]),
-                        };
-                      });
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      className="hidden"
-                      checked={isSelected}
-                      readOnly
-                    />
+                  <div className="px-4 flex items-center gap-2">
+                    <div className="h-full border-r border-r-gray-300 pr-4">
+                      <input
+                        onClick={(e) => {
+                          setQuestion((prev) => {
+                            if (!prev) {
+                              return prev; // still undefined
+                            }
+                            return {
+                              ...prev,
+                              answer: JSON.stringify([option]),
+                            };
+                          });
+                        }}
+                        className="cursor-pointer"
+                        type="radio"
+                        checked={isSelected}
+                        readOnly
+                      />
+                    </div>
                     <TextOrHtml content={option} />
                   </div>
                 </div>

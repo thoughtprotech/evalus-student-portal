@@ -355,14 +355,14 @@ export default function ExamPage() {
         );
 
         if (response.status === 202) {
-          if (currentSection?.questions[currentIndex + 1]) {
-            // fetchQuestionById(
-            //   currentSection?.questions[currentIndex + 1].questionId!
-            // );
-            setCurrentIndex(currentIndex + 1);
-          } else {
-            setSubmitSectionModal(true);
-          }
+          // if (currentSection?.questions[currentIndex + 1]) {
+          //   // fetchQuestionById(
+          //   //   currentSection?.questions[currentIndex + 1].questionId!
+          //   // );
+          //   setCurrentIndex(currentIndex + 1);
+          // } else {
+          //   setSubmitSectionModal(true);
+          // }
           fetchTestMetaData();
         } else {
           toast.error("Something Went Wrong");
@@ -379,14 +379,14 @@ export default function ExamPage() {
         );
 
         if (response.status === 202) {
-          if (currentSection?.questions[currentIndex + 1]) {
-            // fetchQuestionById(
-            //   currentSection?.questions[currentIndex + 1].questionId!
-            // );
-            setCurrentIndex(currentIndex + 1);
-          } else {
-            setSubmitSectionModal(true);
-          }
+          // if (currentSection?.questions[currentIndex + 1]) {
+          //   // fetchQuestionById(
+          //   //   currentSection?.questions[currentIndex + 1].questionId!
+          //   // );
+          //   setCurrentIndex(currentIndex + 1);
+          // } else {
+          //   setSubmitSectionModal(true);
+          // }
           fetchTestMetaData();
         } else {
           toast.error("Something Went Wrong");

@@ -124,7 +124,9 @@ export default function TestCards({
   } else if (status === "Completed") {
     linkText = "View Report";
     linkIcon = <ArrowRight className="w-5 h-5 ml-2" />;
-    linkHref = `/dashboard/analytics/${encodeURIComponent(test.testResponseId)}`;
+    linkHref = `/dashboard/analytics/${encodeURIComponent(
+      test.testResponseId
+    )}`;
   }
 
   const openInPopup = (e: React.MouseEvent) => {
@@ -145,10 +147,13 @@ export default function TestCards({
 
     // Try popup first, if blocked or fails, use direct navigation
     try {
+      const width = window.screen.availWidth;
+      const height = window.screen.availHeight;
+
       const popup = window.open(
         systemCheckUrl,
         "_blank",
-        "width=1200,height=800,scrollbars=yes,resizable=yes"
+        `width=${width},height=${height},top=0,left=0,scrollbars=no,resizable=no,fullscreen=yes`
       );
 
       if (!popup || popup.closed || typeof popup.closed === "undefined") {

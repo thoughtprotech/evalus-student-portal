@@ -14,21 +14,21 @@ export default function AssessmentAreaHeader({
   question: QuestionsMetaDataInterface;
   currentIndex: number;
 }) {
-  const [language, setLanguage] =
-    useState<{ value: string; label: string }[]>();
+  // const [language, setLanguage] =
+  //   useState<{ value: string; label: string }[]>();
 
-  const fetchLanguages = async () => {
-    const res = await fetchLanguagesAction();
+  // const fetchLanguages = async () => {
+  //   const res = await fetchLanguagesAction();
 
-    if (res.status === 200) {
-      const options = res.data?.map((lan) => ({
-        value: lan.language,
-        label: lan.language,
-      }));
+  //   if (res.status === 200) {
+  //     const options = res.data?.map((lan) => ({
+  //       value: lan.language,
+  //       label: lan.language,
+  //     }));
 
-      setLanguage(options);
-    }
-  };
+  //     setLanguage(options);
+  //   }
+  // };
 
   const handleLanguageChange = async (language: any) => {
     console.log({ language });
@@ -36,9 +36,9 @@ export default function AssessmentAreaHeader({
     // TODO: Implement language change
   };
 
-  useEffect(() => {
-    fetchLanguages();
-  }, []);
+  // useEffect(() => {
+  //   fetchLanguages();
+  // }, []);
 
   return (
     <div className="w-full flex flex-col gap-2 md:flex md:flex-row items-center justify-between font-semibold border-b border-b-gray-300 pb-2">
@@ -66,8 +66,12 @@ export default function AssessmentAreaHeader({
           <h1>{question.questionsMeta.negativeMarks}</h1>
         </div>
         <h1 className="text-gray-500">|</h1> */}
-        <div>
+        {/* <div className="flex items-center gap-3">
+          <div>
+            <h1>Select Language: </h1>
+          </div>
           <select
+            title="s"
             className="border border-gray-300 px-4 py-1 rounded-md shadow-md cursor-pointer text-sm md:text:base"
             onChange={(e) => {
               handleLanguageChange(e.target.value);
@@ -81,7 +85,7 @@ export default function AssessmentAreaHeader({
               );
             })}
           </select>
-        </div>
+        </div> */}
       </div>
     </div>
   );

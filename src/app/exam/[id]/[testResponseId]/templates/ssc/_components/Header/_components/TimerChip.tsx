@@ -60,14 +60,14 @@ export default function TimerChip({
 
   return (
     <div
-      className={`h-fit inline-flex items-center gap-2 rounded-md border border-gray-200 px-2 py-1 text-sm text-gray-800 bg-gray-50 shadow-inner ${className}`}
+      className={`h-fit flex flex-col items-center px-2 text-sm text-gray-800 ${className}`}
       aria-live="polite"
       aria-label={`${title}: ${formatted}`}
       role="timer"
     >
-      <Timer className="w-5 h-5 text-gray-600" aria-hidden />
-      <span className="font-medium text-gray-700">{title}</span>
-      <time className="tabular-nums font-bold text-red-500 text-xl" dateTime={toISODuration(formatted)}>
+      {/* <Timer className="w-4 h-4 text-gray-600" aria-hidden /> */}
+      <span className="font-medium text-gray-700 text-xs">{title}</span>
+      <time className="tabular-nums font-bold text-red-500 bg-yellow-200 w-full text-center text-lg" dateTime={toISODuration(formatted)}>
         {formatted}
       </time>
     </div>

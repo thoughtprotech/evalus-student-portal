@@ -39,7 +39,7 @@ export default function Sidebar({
       )}
     >
       <div
-        className={`w-7 h-15 rounded-md border-2 border-gray-500 absolute top-1/2 -translate-y-1/2 hidden lg:block ${
+        className={`w-7 h-7 rounded-md border-2 border-gray-500 absolute top-10 -translate-y-1/2 hidden lg:block ${
           sidebarOpen ? "-right-5" : "-right-8"
         } bg-white cursor-pointer`}
         onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -53,16 +53,16 @@ export default function Sidebar({
       {sidebarOpen && (
         <div className="w-full h-full flex flex-col justify-between">
           <div className="flex flex-col gap-4 pl-2">
-            <div className="flex items-center space-x-4">
+            {/* <div className="flex items-center space-x-4">
               <div className="md:hidden">
                 <div onClick={() => setSidebarOpen(!sidebarOpen)}>
                   {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
                 </div>
               </div>
-            </div>
+            </div> */}
             {/* Question Index */}
             <div className="w-full flex justify-center">
-              <h1 className="text-2xl font-bold">
+              <h1 className="text-lg font-bold">
                 {currentSection.sectionName}
               </h1>
             </div>
@@ -72,7 +72,7 @@ export default function Sidebar({
               currentIndex={currentIndex}
             />
             {/* Legend */}
-            <div className="w-full flex justify-center">
+            <div className="w-full flex justify-center bg-gray-300 rounded-md">
               <h1 className="font-bold">
                 {currentSection.sectionName} Section Analysis
               </h1>
