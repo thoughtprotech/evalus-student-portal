@@ -18,6 +18,7 @@ import { registerTestAction } from "@/app/actions/dashboard/registerTest";
 import { rescheduleTestAction } from "@/app/actions/dashboard/rescheduleTest";
 import { setExamMode } from "@/components/AutoLogout";
 import toast from "react-hot-toast";
+import Link from "next/link";
 
 function formatDurationToHHMM(minutes: number) {
   // console.log({ minutes });
@@ -35,13 +36,13 @@ interface TestCardsProps {
   startDateTimeString?: string;
   endDateTimeString?: string;
   status?:
-    | "Registered"
-    | "Completed"
-    | "Cancelled"
-    | "In Progress"
-    | "Missed"
-    | "Up Next"
-    | undefined;
+  | "Registered"
+  | "Completed"
+  | "Cancelled"
+  | "In Progress"
+  | "Missed"
+  | "Up Next"
+  | undefined;
   bookmarked?: boolean; // initial state from parent (optional)
   registrationId: number;
   onRegistered?: () => Promise<void> | void; // callback to refresh dashboard after registration
@@ -124,9 +125,16 @@ export default function TestCards({
   } else if (status === "Completed") {
     linkText = "View Report";
     linkIcon = <ArrowRight className="w-5 h-5 ml-2" />;
-    linkHref = `/dashboard/analytics/${encodeURIComponent(
-      test.testResponseId
-    )}`;
+    // Ensure testResponseId is valid before creating the link
+    if (test.testResponseId) {
+      linkHref = `/dashboard/analytics/${encodeURIComponent(
+        test.testResponseId
+      )}`;
+    } else {
+      // Fallback to dashboard if no testResponseId
+      linkHref = `/dashboard`;
+      console.warn("No testResponseId found for completed test:", test);
+    }
   }
 
   const openInPopup = (e: React.MouseEvent) => {
@@ -198,7 +206,7 @@ export default function TestCards({
         if (isFinite(s.getTime()) && s.getTime() > Date.now() - 60000) {
           return s.toISOString().slice(0, 16);
         }
-      } catch {}
+      } catch { }
     }
     return defaultLocal();
   })();
@@ -252,7 +260,7 @@ export default function TestCards({
         if (onRegistered) {
           try {
             await onRegistered();
-          } catch {}
+          } catch { }
         }
       } else {
         toast.error(res.errorMessage || res.message || "Registration failed");
@@ -328,19 +336,19 @@ export default function TestCards({
         if (onToggleStar) {
           try {
             await onToggleStar(Number(id), now);
-          } catch {}
+          } catch { }
         }
       } else {
         try {
           (await import("react-hot-toast")).toast.error(
             "Failed to update star"
           );
-        } catch {}
+        } catch { }
       }
     } catch {
       try {
         (await import("react-hot-toast")).toast.error("Failed to update star");
-      } catch {}
+      } catch { }
     } finally {
       setStarLoading(false);
     }
@@ -423,16 +431,14 @@ export default function TestCards({
           {starred ? (
             <BookmarkCheck
               onClick={toggleStar}
-              className={`text-indigo-600 cursor-pointer hover:text-indigo-700 duration-300 ${
-                starLoading ? "opacity-50 pointer-events-none" : ""
-              }`}
+              className={`text-indigo-600 cursor-pointer hover:text-indigo-700 duration-300 ${starLoading ? "opacity-50 pointer-events-none" : ""
+                }`}
             />
           ) : (
             <Bookmark
               onClick={toggleStar}
-              className={`text-gray-500 cursor-pointer hover:text-indigo-700 duration-300 ${
-                starLoading ? "opacity-50 pointer-events-none" : ""
-              }`}
+              className={`text-gray-500 cursor-pointer hover:text-indigo-700 duration-300 ${starLoading ? "opacity-50 pointer-events-none" : ""
+                }`}
             />
           )}
         </div>
@@ -440,18 +446,26 @@ export default function TestCards({
 
       {/* Conditional Action Button */}
       <div className="w-full">
-        <a
-          href={linkHref}
-          onClick={openInPopup}
-          className={`${
-            status === "Missed" && "hidden"
-          } w-full flex items-center justify-center gap-1 px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${
-            status && actionButtonMapping[status]
-          }`}
-        >
-          {linkText}
-          {linkIcon}
-        </a>
+        {status === "Up Next" ? (
+          <a
+            href={linkHref}
+            onClick={openInPopup}
+            className="w-full flex items-center justify-center gap-1 px-4 py-2 font-bold text-white rounded-xl shadow transition-colors bg-blue-600 hover:bg-blue-700"
+          >
+            {linkText}
+            {linkIcon}
+          </a>
+        ) : (
+          <Link
+            href={linkHref}
+            className={`${status === "Missed" && "hidden"
+              } w-full flex items-center justify-center gap-1 px-4 py-2 font-bold text-white rounded-xl shadow transition-colors ${status && actionButtonMapping[status]
+              }`}
+          >
+            {linkText}
+            {linkIcon}
+          </Link>
+        )}
       </div>
 
       {/* Registration Modal for Up Next */}
@@ -481,11 +495,10 @@ export default function TestCards({
               onChange={(e) => setProposedStart(e.target.value)}
               onBlur={() => setStartTouched(true)}
               required
-              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${
-                startTouched && (!proposedStart || isPast)
+              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${startTouched && (!proposedStart || isPast)
                   ? "border-red-500"
                   : "border-gray-300"
-              }`}
+                }`}
             />
             {startTouched && !proposedStart && (
               <p className="text-xs text-red-600">
@@ -546,11 +559,10 @@ export default function TestCards({
               onChange={(e) => setRescheduleDate(e.target.value)}
               onBlur={() => setReschedTouched(true)}
               required
-              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${
-                reschedTouched && (!rescheduleDate || isPastReschedule)
+              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition ${reschedTouched && (!rescheduleDate || isPastReschedule)
                   ? "border-red-500"
                   : "border-gray-300"
-              }`}
+                }`}
             />
             {reschedTouched && !rescheduleDate && (
               <p className="text-xs text-red-600">
