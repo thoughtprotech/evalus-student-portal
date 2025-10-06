@@ -99,10 +99,11 @@ export default function Header({
           </div>
           <ZoomControls />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col items-center gap-2">
           <h1 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800">
             {testName}
           </h1>
+          <h1 className="text-indigo-700">{userName}</h1>
         </div>
         <div className="flex items-center gap-2">
           <TimerChip

@@ -61,3 +61,32 @@ export function formatMinutesToHourMinute(minutes: number): string {
   }
   return result;
 }
+
+export function formatMinutesToHourMinuteAlt(minutes: number): string {
+  if (minutes < 1) {
+    const seconds = Math.round(minutes * 60);
+    return `${seconds}s`;
+  }
+  if (minutes < 60) {
+    const wholeMinutes = Math.floor(minutes);
+    const seconds = Math.round((minutes - wholeMinutes) * 60);
+    if (seconds === 0) {
+      return `${wholeMinutes}m`;
+    }
+    return `${wholeMinutes}m ${seconds}s`;
+  }
+
+  const hrs = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  const wholeMinutes = Math.floor(remainingMinutes);
+  const seconds = Math.round((remainingMinutes - wholeMinutes) * 60);
+
+  let result = `${hrs}hr`;
+  if (wholeMinutes > 0) {
+    result += ` ${wholeMinutes}m`;
+  }
+  if (seconds > 0) {
+    result += ` ${seconds}s`;
+  }
+  return result;
+}

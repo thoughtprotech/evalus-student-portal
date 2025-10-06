@@ -1,6 +1,6 @@
 import { QuestionsMetaDataInterface } from "@/utils/api/types";
 import { QUESTION_STATUS } from "@/utils/constants";
-import { CheckCheck } from "lucide-react";
+import { ArrowUpToLine, CheckCheck } from "lucide-react";
 import clsx from "clsx";
 
 export default function QuestionIndex({
@@ -22,15 +22,15 @@ export default function QuestionIndex({
             className={clsx(
               "font-semibold text-xs sm:text-sm transition-colors cursor-pointer relative",
               q.status === QUESTION_STATUS.NOT_VISITED &&
-                "bg-[#0001f0] text-white w-8 h-8 sm:w-full sm:h-5",
+                "bg-[#0001f0] text-white w-full h-5",
               q.status === QUESTION_STATUS.ATTEMPTED &&
-                "bg-green-700 text-white w-8 h-8 sm:w-full sm:h-5",
+                "bg-green-700 text-white w-full h-5",
               q.status === QUESTION_STATUS.TO_REVIEW &&
-                "bg-purple-500 text-white w-full h-6 rounded-full",
+                "bg-yellow-300 text-white w-full h-5",
               q.status === QUESTION_STATUS.ANSWERED_TO_REVIEW &&
-                "bg-purple-500 text-white w-full h-6 rounded-full self-center",
+                "bg-yellow-300 text-white w-full h-5",
               q.status === "unanswered" &&
-                "bg-red-500 text-white w-8 h-8 sm:w-full sm:h-6 rounded-md",
+                "bg-red-500 text-white w-full h-5",
               // index === currentIndex
                 // ? "border-3 border-gray-600"
                 // : "border-3 border-transparent"
@@ -38,7 +38,7 @@ export default function QuestionIndex({
           >
             {q.status === QUESTION_STATUS.ANSWERED_TO_REVIEW && (
               <div>
-                <CheckCheck className="text-green-500 w-5 h-5 absolute -top-3 -right-4" />
+                <ArrowUpToLine className="text-black w-3 h-3 absolute -bottom-3 left-1/2 -translate-x-1/2" />
               </div>
             )}
             {index + 1}

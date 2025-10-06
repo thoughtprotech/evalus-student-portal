@@ -71,6 +71,13 @@ export default function ExamPage() {
 
     if (valid) {
       const userName = await getUserAction();
+      let status;
+
+      if (question.status === QUESTION_STATUS.TO_REVIEW) {
+        status = QUESTION_STATUS.TO_REVIEW;
+      } else {
+        status = QUESTION_STATUS.ATTEMPTED;
+      }
 
       if (userName) {
         const response = await submitQuestionAction(
@@ -78,7 +85,7 @@ export default function ExamPage() {
           Number(testResponseId),
           question?.questionId!,
           question?.answer!,
-          QUESTION_STATUS.ATTEMPTED,
+          status,
           "",
           userName
         );
@@ -342,56 +349,66 @@ export default function ExamPage() {
 
     if (userName) {
       const isValid = validateResponse();
+      let status;
+      if (question?.status === QUESTION_STATUS.TO_REVIEW) {
+        status = QUESTION_STATUS.ATTEMPTED;
+      } else {
+        status = QUESTION_STATUS.TO_REVIEW;
+      }
 
-      if (isValid) {
-        const response = await submitQuestionAction(
-          testMetaData?.testMeta.testId!,
-          Number(testResponseId),
-          question?.questionId!,
-          question?.answer!,
-          QUESTION_STATUS.ANSWERED_TO_REVIEW,
-          "",
-          userName
-        );
+      // if (isValid) {
+      const response = await submitQuestionAction(
+        testMetaData?.testMeta.testId!,
+        Number(testResponseId),
+        question?.questionId!,
+        question?.answer!,
+        status,
+        "",
+        userName
+      );
 
-        if (response.status === 202) {
-          // if (currentSection?.questions[currentIndex + 1]) {
-          //   // fetchQuestionById(
-          //   //   currentSection?.questions[currentIndex + 1].questionId!
-          //   // );
-          //   setCurrentIndex(currentIndex + 1);
-          // } else {
-          //   setSubmitSectionModal(true);
-          // }
-          fetchTestMetaData();
-        } else {
-          toast.error("Something Went Wrong");
+      if (response.status === 202) {
+        // if (currentSection?.questions[currentIndex + 1]) {
+        //   // fetchQuestionById(
+        //   //   currentSection?.questions[currentIndex + 1].questionId!
+        //   // );
+        //   setCurrentIndex(currentIndex + 1);
+        // } else {
+        //   setSubmitSectionModal(true);
+        // }
+        await fetchTestMetaData();
+        if (currentSection) {
+          setQuestion(currentSection.questions[currentIndex]);
         }
       } else {
-        const response = await submitQuestionAction(
-          testMetaData?.testMeta.testId!,
-          Number(testResponseId),
-          question?.questionId!,
-          question?.answer!,
-          QUESTION_STATUS.TO_REVIEW,
-          "",
-          userName
-        );
-
-        if (response.status === 202) {
-          // if (currentSection?.questions[currentIndex + 1]) {
-          //   // fetchQuestionById(
-          //   //   currentSection?.questions[currentIndex + 1].questionId!
-          //   // );
-          //   setCurrentIndex(currentIndex + 1);
-          // } else {
-          //   setSubmitSectionModal(true);
-          // }
-          fetchTestMetaData();
-        } else {
-          toast.error("Something Went Wrong");
-        }
+        toast.error("Something Went Wrong");
       }
+      // fetchTestMetaData();
+      // } else {
+      //   const response = await submitQuestionAction(
+      //     testMetaData?.testMeta.testId!,
+      //     Number(testResponseId),
+      //     question?.questionId!,
+      //     question?.answer!,
+      //     QUESTION_STATUS.TO_REVIEW,
+      //     "",
+      //     userName
+      //   );
+
+      //   if (response.status === 202) {
+      //     // if (currentSection?.questions[currentIndex + 1]) {
+      //     //   // fetchQuestionById(
+      //     //   //   currentSection?.questions[currentIndex + 1].questionId!
+      //     //   // );
+      //     //   setCurrentIndex(currentIndex + 1);
+      //     // } else {
+      //     //   setSubmitSectionModal(true);
+      //     // }
+      //     fetchTestMetaData();
+      //   } else {
+      //     toast.error("Something Went Wrong");
+      //   }
+      // }
     }
   };
 
@@ -460,6 +477,10 @@ export default function ExamPage() {
           (sec) => sec.sectionId === currentSection.sectionId
         );
         setCurrentSection(curSec!);
+        const qs = curSec?.questions.find(
+          (q) => q.questionId === question?.questionId
+        );
+        // setQuestion(currentSection.questions[currentIndex]);
         // fetchQuestionById(question!.questionId);
       }
       setLoaded(true);

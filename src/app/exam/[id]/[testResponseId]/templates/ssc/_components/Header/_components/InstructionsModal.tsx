@@ -1,4 +1,5 @@
 import Modal from "@/components/Modal";
+import { TextOrHtml } from "@/components/TextOrHtml";
 
 export default function InstructionsModal({
   title,
@@ -12,9 +13,14 @@ export default function InstructionsModal({
   content: string;
 }) {
   return (
-    <Modal title={title} isOpen={isOpen} closeModal={onClose} className="max-w-2xl">
+    <Modal
+      title={title}
+      isOpen={isOpen}
+      closeModal={onClose}
+      className="max-w-2xl"
+    >
       <div className="text-sm text-gray-800 whitespace-pre-wrap text-left">
-        {content}
+        <TextOrHtml content={content} />
       </div>
     </Modal>
   );

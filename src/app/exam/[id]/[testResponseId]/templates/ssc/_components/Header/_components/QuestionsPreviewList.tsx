@@ -1,5 +1,6 @@
 import { TextOrHtml } from "@/components/TextOrHtml";
 import { SectionsMetaDataInterface } from "@/utils/api/types";
+import { Key } from "react";
 
 export default function QuestionsPreviewList({
   sections,
@@ -45,16 +46,18 @@ export default function QuestionsPreviewList({
 
             {q.options?.length ? (
               <div className="mt-1 text-xs text-gray-700">
-                {q.options.map((o, i) => (
-                  <div key={i} className="flex items-start gap-1.5">
-                    <span className="font-semibold text-gray-800">
-                      {String.fromCharCode(65 + i)})
-                    </span>
-                    <div className="text-gray-700">
-                      <TextOrHtml content={o.optionText} />
+                {JSON.parse(q.options).map(
+                  (o: string, i: number) => (
+                    <div key={i} className="flex items-start gap-1.5">
+                      <span className="font-semibold text-gray-800">
+                        {String.fromCharCode(65 + i)})
+                      </span>
+                      <div className="text-gray-700">
+                        <TextOrHtml content={o} />
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             ) : null}
           </li>
