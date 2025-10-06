@@ -72,7 +72,7 @@ export default function Sidebar({
               currentIndex={currentIndex}
             />
             {/* Legend */}
-            <div className="w-full flex justify-center bg-gray-300 rounded-md">
+            <div className="w-full flex justify-center bg-gray-300">
               <h1 className="font-bold">
                 {currentSection.sectionName} Section Analysis
               </h1>

@@ -149,7 +149,7 @@ export interface QuestionsMetaDataInterface {
   marks: number;
   negativeMarks: number;
   graceMarks: number;
-  explanation?: string | null;
+  questionHeaderText?: string | null;
 }
 
 export interface SectionsMetaDataInterface {
