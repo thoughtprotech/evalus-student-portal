@@ -8,7 +8,7 @@ import {
   deleteTestAction,
   type TestRow,
 } from "@/app/actions/admin/tests";
-import { maskAdminId } from "@/utils/urlMasking";
+
 import PageHeader from "@/components/PageHeader";
 import PageUnderConstruction from "@/components/PageUnderConstruction";
 import { TabsContent, TabsList, TabsRoot } from "@/components/Tabs";
@@ -40,7 +40,7 @@ function NameCellRenderer(props: { value: string; data: TestRow }) {
   return (
     <Link
       className="text-blue-600 hover:underline"
-      href={`/admin/tests/edit/${maskAdminId(props.data.id)}`}
+      href={`/admin/tests/edit/${props.data.id}`}
       onClick={() => {
         try {
           sessionStorage.removeItem("admin:newTest:model");
@@ -72,8 +72,8 @@ function IsActiveCellRenderer(props: { value: number | boolean }) {
   const isActive = Boolean(props.value);
   return (
     <span className={`px-2 py-1 rounded-full text-xs font-medium ${isActive
-        ? 'bg-green-100 text-green-800'
-        : 'bg-red-100 text-red-800'
+      ? 'bg-green-100 text-green-800'
+      : 'bg-red-100 text-red-800'
       }`}>
       {isActive ? 'Active' : 'Inactive'}
     </span>

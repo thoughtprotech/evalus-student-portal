@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Building2 } from "lucide-react";
 import { Filter, XCircle } from "lucide-react";
 import { fetchCompaniesAction, deleteCompanyAction, type CompanyRow } from "@/app/actions/admin/companies";
-import { maskAdminId } from "@/utils/urlMasking";
+
 import PageHeader from "@/components/PageHeader";
 import Link from "next/link";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -67,8 +67,8 @@ function IsActiveCellRenderer(props: { value: number | boolean }) {
   const isActive = Boolean(props.value);
   return (
     <span className={`px-2 py-1 rounded-full text-xs font-medium ${isActive
-        ? 'bg-green-100 text-green-800'
-        : 'bg-red-100 text-red-800'
+      ? 'bg-green-100 text-green-800'
+      : 'bg-red-100 text-red-800'
       }`}>
       {isActive ? 'Active' : 'Inactive'}
     </span>
@@ -278,7 +278,7 @@ function CompaniesGrid({ query, onClearQuery }: { query: string; onClearQuery?: 
         headerName: "Actions",
         cellRenderer: (props: { data: CompanyRow }) => (
           <div className="flex items-center gap-2 h-full">
-            <Link href={`/admin/companies/${maskAdminId(props.data.id)}/edit`}>
+            <Link href={`/admin/companies/${props.data.id}/edit`}>
               <button
                 type="button"
                 className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"

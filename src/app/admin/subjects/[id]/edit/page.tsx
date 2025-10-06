@@ -10,12 +10,12 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { useUser } from "@/contexts/UserContext";
 import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
 import type { GetLanguagesResponse } from "@/utils/api/types";
-import { unmaskAdminId } from "@/utils/urlMasking";
+
 
 export default function EditSubjectPage() {
     const params = useParams();
     const maskedId = params?.id as string;
-    const id = unmaskAdminId(maskedId);
+    const id = parseInt(maskedId, 10);
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);

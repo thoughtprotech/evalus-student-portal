@@ -14,7 +14,7 @@ import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLan
 import { fetchWriteUpsAction } from "@/app/actions/dashboard/spotlight/fetchWriteUps";
 import { fetchDifficultyLevelsAction } from "@/app/actions/dashboard/questions/fetchDifficultyLevels";
 import { updateQuestionAction } from "@/app/actions/dashboard/questions/updateQuestion";
-import { unmaskAdminId } from "@/utils/urlMasking";
+
 import type { GetQuestionTypesResponse, GetSubjectsResponse, GetTopicsResponse, GetLanguagesResponse, GetWriteUpsResponse, GetDifficultyLevelsResponse, CreateQuestionRequest } from "@/utils/api/types";
 import { ArrowLeft, HelpCircle, Smartphone, Monitor } from "lucide-react";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -24,8 +24,8 @@ export default function EditQuestionPage() {
 	const params = useParams();
 	const router = useRouter();
 	const search = useSearchParams();
-	const maskedId = params?.id as string;
-	const id = unmaskAdminId(maskedId);
+	const rawId = params?.id as string;
+	const id = parseInt(rawId, 10);
 	const returnTo = search?.get("returnTo") || "";
 
 	const [loading, setLoading] = useState(true);
@@ -87,7 +87,7 @@ export default function EditQuestionPage() {
 	}, [allLanguageSubjects]);
 
 	useEffect(() => {
-		if (!id) {
+		if (!id || isNaN(id)) {
 			// Invalid id – stop spinner and navigate back
 			setLoading(false);
 			toast.error("Invalid question id");
@@ -105,10 +105,10 @@ export default function EditQuestionPage() {
 					fetchWriteUpsAction()
 				]);
 				if (cancelled) return;
-				if (qtRes.status === 200) setQuestionTypes(qtRes.data || []);
-				if (langsRes.status === 200) setLanguages(langsRes.data || []);
-				if (wuRes.status === 200) setWriteUps(wuRes.data || []);
-				if (!(qRes.status === 200 && qRes.data)) { toast.error("Failed to load question"); setLoading(false); return; }
+				if (qtRes?.status === 200) setQuestionTypes(qtRes.data || []);
+				if (langsRes?.status === 200) setLanguages(langsRes.data || []);
+				if (wuRes?.status === 200) setWriteUps(wuRes.data || []);
+				if (!(qRes?.status === 200 && qRes?.data)) { toast.error("Failed to load question"); setLoading(false); return; }
 				const q = qRes.data;
 				console.log("Loaded question:", q);
 				// Normalized primitive IDs (support both root-level & nested questionsMeta structure)
@@ -186,7 +186,7 @@ export default function EditQuestionPage() {
 				} catch { /* ignore parse */ }
 
 				const subRes = await fetchSubjectsAction();
-				if (subRes.status === 200) {
+				if (subRes?.status === 200) {
 					const list = subRes.data || [];
 					const normalize = (v?: string) => (v ?? '').trim().toLowerCase();
 					const clean = (v?: string) => normalize(v).replace(/[^a-z]/g, '');
@@ -214,7 +214,7 @@ export default function EditQuestionPage() {
 				}
 
 				const diffRes = await fetchDifficultyLevelsAction(normalized.language);
-				if (diffRes.status === 200) setDifficultyLevels(diffRes.data || []);
+				if (diffRes?.status === 200) setDifficultyLevels(diffRes.data || []);
 			} catch (e) {
 				console.error(e);
 				toast.error("Error loading question");

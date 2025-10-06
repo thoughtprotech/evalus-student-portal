@@ -8,7 +8,7 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { ArrowLeft, BookOpenText, Save } from "lucide-react";
 import { fetchPublishedDocumentFoldersODataAction, type PublishedDocumentFolderRow } from "@/app/actions/admin/publishedDocumentFolders";
 import { getPublishedDocumentByIdAction, updatePublishedDocumentAction } from "@/app/actions/admin/publishedDocuments";
-import { unmaskAdminId } from "@/utils/urlMasking";
+
 import { uploadToLocal } from "@/utils/uploadToLocal";
 import { deleteLocalUpload, isLocalUploadUrl } from "@/utils/deleteLocalUpload";
 import DateTimePicker from "@/components/form/DateTimePicker";
@@ -26,7 +26,7 @@ type FormState = {
 export default function EditPublishedDocumentPage() {
   const params = useParams();
   const maskedId = params?.id as string;
-  const id = unmaskAdminId(maskedId);
+  const id = parseInt(maskedId, 10);
   const router = useRouter();
   const [folders, setFolders] = useState<PublishedDocumentFolderRow[]>([]);
   const [loading, setLoading] = useState(true);

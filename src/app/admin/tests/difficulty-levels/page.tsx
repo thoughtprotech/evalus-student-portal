@@ -9,7 +9,7 @@ import Toast from "@/components/Toast";
 import PaginationControls from "@/components/PaginationControls";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { fetchTestDifficultyLevelsAction, deleteTestDifficultyLevelAction, type TestDifficultyLevelRow } from "@/app/actions/admin/test-difficulty-levels";
-import { maskAdminId } from "@/utils/urlMasking";
+
 
 import { AgGridReact } from "ag-grid-react";
 import type { ColDef, GridApi } from "ag-grid-community";
@@ -21,7 +21,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 function NameCellRenderer(props: { value: string; data: TestDifficultyLevelRow }) {
   return (
-    <Link href={`/admin/tests/difficulty-levels/${maskAdminId(props.data.id)}/edit`} className="text-blue-600 hover:underline" title={props.value}>
+    <Link href={`/admin/tests/difficulty-levels/${props.data.id}/edit`} className="text-blue-600 hover:underline" title={props.value}>
       {props.value}
     </Link>
   );

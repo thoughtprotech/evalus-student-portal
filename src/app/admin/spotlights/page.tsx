@@ -9,7 +9,7 @@ import Toast from "@/components/Toast";
 import PaginationControls from "@/components/PaginationControls";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { fetchSpotlightsODataAction, deleteSpotlightAction, type SpotlightRow } from "@/app/actions/admin/spotlights";
-import { maskAdminId } from "@/utils/urlMasking";
+
 
 // AG Grid
 import { AgGridReact } from "ag-grid-react";
@@ -22,7 +22,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 function NameCellRenderer(props: { value: string; data: SpotlightRow }) {
     return (
-        <Link className="text-blue-600 hover:underline" href={`/admin/spotlights/${maskAdminId(props.data.id)}/edit`} title={props.value}>
+        <Link className="text-blue-600 hover:underline" href={`/admin/spotlights/${props.data.id}/edit`} title={props.value}>
             {props.value}
         </Link>
     );

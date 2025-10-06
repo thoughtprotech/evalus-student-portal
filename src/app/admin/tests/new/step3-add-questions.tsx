@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTestDraft } from "@/contexts/TestDraftContext";
 import { normalizeAssignedSections, assignedSectionsDiffer } from "@/utils/normalizeAssignedSections";
+
 import { MousePointerClick, FilePlus2, MinusCircle, FileInput } from "lucide-react";
 import PaginationControls from "@/components/PaginationControls";
 import { apiHandler } from "@/utils/api/client";
@@ -96,7 +97,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
       if (raw) {
         const data = JSON.parse(raw) as { questionIds?: number[]; testQuestions?: any[] };
         const toAdd = Array.isArray(data?.testQuestions) ? data!.testQuestions! : [];
-  if (toAdd.length > 0) {
+        if (toAdd.length > 0) {
           // Defer to next tick to avoid setState-in-render warnings
           setTimeout(() => {
             setDraft((d) => {
@@ -113,14 +114,14 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
           ? data!.questionIds!.length
           : (toAdd.length || 0);
         setSelectedCount((prev) => (newCount > 0 ? newCount : prev));
-  sessionStorage.removeItem("admin:newTest:selectedQuestions");
-  // We are back in the wizard; allow cleanup on future exits
-  sessionStorage.removeItem("admin:newTest:suppressClear");
+        sessionStorage.removeItem("admin:newTest:selectedQuestions");
+        // We are back in the wizard; allow cleanup on future exits
+        sessionStorage.removeItem("admin:newTest:suppressClear");
       }
     } catch {
       // ignore parse errors
     }
-  // If returning from Edit Question with an explicit updatedQuestionId, refresh only that row
+    // If returning from Edit Question with an explicit updatedQuestionId, refresh only that row
     const updatedIdParam = search?.get("updatedQuestionId");
     const updatedId = updatedIdParam ? Number(updatedIdParam) : 0;
     if (updatedId > 0) {
@@ -191,7 +192,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
           }, 0);
         }
       }
-    } catch {}
+    } catch { }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search?.toString()]);
@@ -205,7 +206,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
       if (!draft) return;
       // If any required Step1 field is now empty but snapshot has it, restore.
       const requiredKeys = [
-        "TestName","TestTypeId","CategoryId","DifficultyLevelId","PrimaryInstructionId","TestDuration","TotalQuestions","TotalMarks"
+        "TestName", "TestTypeId", "CategoryId", "DifficultyLevelId", "PrimaryInstructionId", "TestDuration", "TotalQuestions", "TotalMarks"
       ];
       let needsRestore = false;
       for (const k of requiredKeys) {
@@ -219,14 +220,15 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
       if (!hasSectionsNow && hasSectionsSnap) needsRestore = true;
       if (needsRestore) {
         setTimeout(() => {
-          setDraft(d => ({ ...snap, ...d, // draft wins for new keys
+          setDraft(d => ({
+            ...snap, ...d, // draft wins for new keys
             // Ensure we don't overwrite updated questions array
             testQuestions: (d as any).testQuestions ?? snap.testQuestions,
             TestAssignedSections: hasSectionsNow ? (d as any).TestAssignedSections : snap.TestAssignedSections
           }));
-        },0);
+        }, 0);
       }
-    } catch {/* ignore */}
+    } catch {/* ignore */ }
   }, [draft, setDraft]);
 
   // Keep banner in sync with draft if session is empty
@@ -250,9 +252,9 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
       if (!id) continue;
       const errs: string[] = [];
       // Treat empty as 0; only validate non-negative and relationship
-  const marks = Number(q?.Marks === "" ? 0 : (q?.Marks ?? 0));
-  const neg = Number(q?.NegativeMarks === "" ? 0 : (q?.NegativeMarks ?? 0));
-  const dur = Number(q?.Duration === "" ? 0 : (q?.Duration ?? 0));
+      const marks = Number(q?.Marks === "" ? 0 : (q?.Marks ?? 0));
+      const neg = Number(q?.NegativeMarks === "" ? 0 : (q?.NegativeMarks ?? 0));
+      const dur = Number(q?.Duration === "" ? 0 : (q?.Duration ?? 0));
       if (!Number.isFinite(marks) || marks < 0) errs.push("Marks must be a non-negative number");
       if (!Number.isFinite(neg) || neg < 0) errs.push("Negative Marks must be non-negative");
       if (neg > marks) errs.push("Negative Marks cannot exceed Marks");
@@ -397,9 +399,9 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
     const start = Math.min(assignFrom as number, assignTo as number);
     const end = Math.max(assignFrom as number, assignTo as number);
     const hasSection = assignSectionId !== "";
-  const hasMarks = markMarks !== "" || markNegMarks !== "";
-  const hasDuration = markDuration !== "";
-  if (!hasSection && !hasMarks && !hasDuration) return; // nothing to update
+    const hasMarks = markMarks !== "" || markNegMarks !== "";
+    const hasDuration = markDuration !== "";
+    if (!hasSection && !hasMarks && !hasDuration) return; // nothing to update
     if (markMarks !== "" && markNegMarks !== "" && Number(markNegMarks) > Number(markMarks)) {
       setToast({ message: "Negative Marks should not be greater than Marks.", type: "error" });
       return;
@@ -415,18 +417,18 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
           ...(hasSection ? { TestSectionId: assignSectionId } : {}),
           ...(markMarks !== "" ? { Marks: Number(markMarks) } : {}),
           ...(markNegMarks !== "" ? { NegativeMarks: Number(markNegMarks) } : {}),
-      ...(hasDuration ? { Duration: Number(markDuration) } : {}),
+          ...(hasDuration ? { Duration: Number(markDuration) } : {}),
         };
       });
       return { ...d, testQuestions: updated };
     });
 
-  // clear inputs but keep section selection to allow repeated applies if desired
+    // clear inputs but keep section selection to allow repeated applies if desired
     setMarkMarks("");
     setMarkNegMarks("");
     setMarkDuration("");
-  setAssignFrom("");
-  setAssignTo("");
+    setAssignFrom("");
+    setAssignTo("");
   };
 
   const handleSelectQuestions = () => {
@@ -435,20 +437,20 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
         ? (draft.testQuestions as any[]).map((q: any) => Number(q.TestQuestionId)).filter(Boolean)
         : [];
       sessionStorage.setItem("admin:newTest:preselectedIds", JSON.stringify(ids));
-  // Prevent wizard unmount cleanup while we jump to the selection sub-page
-  sessionStorage.setItem("admin:newTest:suppressClear", "1");
-    } catch {}
-  const base = "/admin/tests/new/questions/select";
-  const url = editMode && testId ? `${base}?edit=1&id=${encodeURIComponent(String(testId))}` : base;
-  router.push(url);
+      // Prevent wizard unmount cleanup while we jump to the selection sub-page
+      sessionStorage.setItem("admin:newTest:suppressClear", "1");
+    } catch { }
+    const base = "/admin/tests/new/questions/select";
+    const url = editMode && testId ? `${base}?edit=1&id=${testId}` : base;
+    router.push(url);
   };
   const handleAddQuestions = () => {
     try {
       // Prevent wizard unmount cleanup while we jump to the question creation page
       sessionStorage.setItem("admin:newTest:suppressClear", "1");
-    } catch {}
+    } catch { }
     const returnPath = (editMode && testId)
-      ? `/admin/tests/edit/${encodeURIComponent(String(testId))}?step=3`
+      ? `/admin/tests/edit/${testId}?step=3`
       : "/admin/tests/new?step=3";
     router.push(`/admin/questions/new?returnTo=${encodeURIComponent(returnPath)}`);
   };
@@ -459,7 +461,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
 
   return (
     <div className="w-full pb-32">
-  {/* Removed published-edit confirmation modal */}
+      {/* Removed published-edit confirmation modal */}
       {/* Toast positioned top-right */}
       {toast && (
         <div className="fixed top-4 right-4 z-50">
@@ -534,9 +536,9 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                     <div className="justify-self-start">
                       <button
                         onClick={() => {
-                          const ids = Object.keys(delSelected).filter(k=> delSelected[Number(k)]).map(Number);
+                          const ids = Object.keys(delSelected).filter(k => delSelected[Number(k)]).map(Number);
                           if (ids.length === 0) return;
-                          setDraft((d)=>{
+                          setDraft((d) => {
                             const qs = Array.isArray(d.testQuestions) ? d.testQuestions : [];
                             const updated = qs.filter((q: any) => !ids.includes(Number(q.TestQuestionId)));
                             return { ...d, testQuestions: updated };
@@ -547,7 +549,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                           const maxPage = Math.max(1, Math.ceil(newTotal / pageSize));
                           if (page > maxPage) setPage(maxPage);
                         }}
-                        disabled={Object.values(delSelected).every(v=> !v)}
+                        disabled={Object.values(delSelected).every(v => !v)}
                         className="flex items-center gap-2 rounded bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1 disabled:opacity-50"
                       >
                         <MinusCircle className="w-4 h-4" />
@@ -575,10 +577,10 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                         <th className="px-4 py-2 border-b w-10 text-left">
                           <input
                             type="checkbox"
-                            checked={pageRows.length>0 && pageRows.every((r: any)=> delSelected[r.TestQuestionId])}
+                            checked={pageRows.length > 0 && pageRows.every((r: any) => delSelected[r.TestQuestionId])}
                             onChange={() => {
-                              const all = pageRows.length>0 && pageRows.every((r: any)=> delSelected[r.TestQuestionId]);
-                              setDelSelected((prev)=>{
+                              const all = pageRows.length > 0 && pageRows.every((r: any) => delSelected[r.TestQuestionId]);
+                              setDelSelected((prev) => {
                                 const next = { ...prev } as Record<number, boolean>;
                                 if (all) {
                                   pageRows.forEach((r: any) => { delete next[r.TestQuestionId]; });
@@ -607,7 +609,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                         pageRows.map((r: any, idx: number) => (
                           <tr key={r.TestQuestionId ?? idx} className={idx % 2 ? "bg-white" : "bg-gray-50/50"}>
                             <td className="px-4 py-2 border-b">
-                              <input type="checkbox" checked={!!delSelected[r.TestQuestionId]} onChange={()=> setDelSelected(prev=> ({...prev, [r.TestQuestionId]: !prev[r.TestQuestionId]}))} />
+                              <input type="checkbox" checked={!!delSelected[r.TestQuestionId]} onChange={() => setDelSelected(prev => ({ ...prev, [r.TestQuestionId]: !prev[r.TestQuestionId] }))} />
                             </td>
                             <td className="px-4 py-2 border-b">{(page - 1) * pageSize + idx + 1}</td>
                             <td className="px-4 py-2 border-b">
@@ -618,9 +620,9 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                                   return <TextOrHtml content={qtext} />;
                                 }
                                 const base = editMode && testId
-                                  ? `/admin/tests/edit/${encodeURIComponent(String(testId))}?step=3`
+                                  ? `/admin/tests/edit/${testId}?step=3`
                                   : "/admin/tests/new?step=3";
-                                const href = `/admin/questions/${encodeURIComponent(String(qid))}/edit?returnTo=${encodeURIComponent(base)}`;
+                                const href = `/admin/questions/${qid}/edit?returnTo=${encodeURIComponent(base)}`;
                                 // Removed: no published gating
                                 return (
                                   <a
@@ -632,17 +634,13 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                                       // Snapshot Step1 critical fields & sections so they can be restored if lost
                                       try {
                                         const snap: any = {};
-                                        const keys = ["TestName","TestTypeId","CategoryId","DifficultyLevelId","PrimaryInstructionId","TestDuration","TotalQuestions","TotalMarks","TestAssignedSections"];
+                                        const keys = ["TestName", "TestTypeId", "CategoryId", "DifficultyLevelId", "PrimaryInstructionId", "TestDuration", "TotalQuestions", "TotalMarks", "TestAssignedSections"];
                                         for (const k of keys) snap[k] = (draft as any)?.[k];
                                         sessionStorage.setItem("admin:newTest:step1snapshot", JSON.stringify(snap));
-                                      } catch {/* ignore */}
+                                      } catch {/* ignore */ }
                                       // Removed: usage check and published confirmation; always navigate to editor
-                                      try { sessionStorage.setItem("admin:newTest:suppressClear", "1"); } catch {}
-                                      try {
-                                        window.location.assign(href);
-                                      } catch {
-                                        router.push(href);
-                                      }
+                                      try { sessionStorage.setItem("admin:newTest:suppressClear", "1"); } catch { }
+                                      router.push(href);
                                     }}
                                     title="Edit question"
                                   >
@@ -655,7 +653,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                               <input
                                 type="number"
                                 min={0}
-                                className={`border rounded px-2 py-1 text-sm w-24 ${invalidMap[r?.TestQuestionId]?.some(e=> e.toLowerCase().includes('non-negative')) ? 'border-red-500' : ''}`}
+                                className={`border rounded px-2 py-1 text-sm w-24 ${invalidMap[r?.TestQuestionId]?.some(e => e.toLowerCase().includes('non-negative')) ? 'border-red-500' : ''}`}
                                 value={(r?.Marks === "" ? "" : (r?.Marks ?? 0)) as any}
                                 onChange={(e) => {
                                   const valStr = e.target.value;
@@ -675,7 +673,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                               <input
                                 type="number"
                                 min={0}
-                                className={`border rounded px-2 py-1 text-sm w-28 ${invalidMap[r?.TestQuestionId]?.some(e=> e.toLowerCase().includes('negative marks') || e.toLowerCase().includes('exceed')) ? 'border-red-500' : ''}`}
+                                className={`border rounded px-2 py-1 text-sm w-28 ${invalidMap[r?.TestQuestionId]?.some(e => e.toLowerCase().includes('negative marks') || e.toLowerCase().includes('exceed')) ? 'border-red-500' : ''}`}
                                 value={(r?.NegativeMarks === "" ? "" : (r?.NegativeMarks ?? 0)) as any}
                                 onChange={(e) => {
                                   const valStr = e.target.value;
@@ -695,7 +693,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                               <input
                                 type="number"
                                 min={0}
-                                className={`border rounded px-2 py-1 text-sm w-28 ${invalidMap[r?.TestQuestionId]?.some(e=> e.toLowerCase().includes('duration')) ? 'border-red-500' : ''}`}
+                                className={`border rounded px-2 py-1 text-sm w-28 ${invalidMap[r?.TestQuestionId]?.some(e => e.toLowerCase().includes('duration')) ? 'border-red-500' : ''}`}
                                 value={(r?.Duration === "" ? "" : (r?.Duration ?? 0)) as any}
                                 onChange={(e) => {
                                   const valStr = e.target.value;
@@ -742,7 +740,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                     </tbody>
                   </table>
                 </div>
-                
+
                 {/* No separate toolbar; actions are in header */}
 
               </div>
@@ -750,11 +748,11 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
           </div>
         )}
 
-    {/* Default cards; show instructions only when total === 0 */}
-  {total === 0 && (
+        {/* Default cards; show instructions only when total === 0 */}
+        {total === 0 && (
           <>
-  <div className="lg:col-span-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="lg:col-span-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 <div className="rounded border bg-gray-50 flex flex-col shadow-sm p-1.5">
                   <div className="p-2 text-center flex-1 flex flex-col items-center">
                     <MousePointerClick className="mx-auto mb-1.5 h-6 w-6 text-gray-400" strokeWidth={1.5} />
@@ -788,14 +786,14 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
               <div className="lg:col-span-1">
                 <ImportantInstructions
                   title="Important Instructions"
-          detail="This is to add questions in a created test. You can add questions using two methods: 1) Select predefined questions using the question bank, 2) Create and add new questions as per the requirement."
+                  detail="This is to add questions in a created test. You can add questions using two methods: 1) Select predefined questions using the question bank, 2) Create and add new questions as per the requirement."
                 />
               </div>
             )}
           </>
         )}
-    {/* Right panel actions when there are questions */}
-  {total > 0 && (
+        {/* Right panel actions when there are questions */}
+        {total > 0 && (
           <div className="lg:col-span-1 space-y-2">
             <div className="grid grid-cols-1 gap-2">
               <div className="rounded border bg-gray-50 flex flex-col shadow-sm p-1.5">

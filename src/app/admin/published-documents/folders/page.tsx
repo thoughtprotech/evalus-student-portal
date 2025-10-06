@@ -13,7 +13,7 @@ import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { fetchPublishedDocumentFoldersODataAction, deletePublishedDocumentFolderAction, type PublishedDocumentFolderRow } from "@/app/actions/admin/publishedDocumentFolders";
-import { maskAdminId } from "@/utils/urlMasking";
+
 import PaginationControls from "@/components/PaginationControls";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -35,7 +35,7 @@ function NameCellRenderer(props: { value: string; data: PublishedDocumentFolderR
           {expanded ? "−" : "+"}
         </button>
       )}
-      <Link href={`/admin/published-documents/folders/${maskAdminId(row.id)}/edit`} className="text-blue-600 hover:underline truncate max-w-full" title={props.value}>
+      <Link href={`/admin/published-documents/folders/${row.id}/edit`} className="text-blue-600 hover:underline truncate max-w-full" title={props.value}>
         {props.value}
       </Link>
     </div>

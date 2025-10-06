@@ -5,7 +5,7 @@ import Link from "next/link";
 import RichTextEditor from "@/components/RichTextEditor";
 import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
 import { getWriteUpByIdAction, updateWriteUpAction } from "@/app/actions/admin/writeUps";
-import { unmaskAdminId } from "@/utils/urlMasking";
+
 import { ArrowLeft, Save, FileText } from "lucide-react";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import Toast from "@/components/Toast";
@@ -15,7 +15,7 @@ import EditPageLoader from "@/components/EditPageLoader";
 export default function EditWriteUpPage() {
   const params = useParams<{ id: string }>();
   const maskedId = params?.id as string;
-  const id = unmaskAdminId(maskedId);
+  const id = parseInt(maskedId, 10);
   const recordId = id;
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");

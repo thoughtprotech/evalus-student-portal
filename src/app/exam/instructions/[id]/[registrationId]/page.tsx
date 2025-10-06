@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { getUserAction } from "@/app/actions/getUser";
 import { fetchInstructionsByTestIdAction } from "@/app/actions/exam/instructions/fetchInstructionsByTestId";
 import { GetInstructionsByTestIdResponse } from "@/utils/api/types";
+
 import Loader from "@/components/Loader";
 import {
   BookOpenText,
@@ -194,8 +195,8 @@ export default function ExamStartPage() {
               onClick={handleProceed}
               disabled={!agreed}
               className={`w-full py-2.5 rounded-md font-semibold transition-colors cursor-pointer ${agreed
-                  ? "bg-indigo-600 hover:bg-indigo-700 text-white"
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                ? "bg-indigo-600 hover:bg-indigo-700 text-white"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
             >
               <span className="inline-flex items-center justify-center gap-2">

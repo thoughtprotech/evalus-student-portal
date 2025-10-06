@@ -9,7 +9,7 @@ import Toast from "@/components/Toast";
 import EditPageLoader from "@/components/EditPageLoader";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { getTestTypeByIdAction, updateTestTypeAction } from "@/app/actions/admin/test-types";
-import { unmaskAdminId } from "@/utils/urlMasking";
+
 import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
 import type { GetLanguagesResponse } from "@/utils/api/types";
 import { useUser } from "@/contexts/UserContext";
@@ -17,7 +17,7 @@ import { useUser } from "@/contexts/UserContext";
 export default function EditTestTypePage() {
     const params = useParams();
     const maskedId = params?.id as string;
-    const id = unmaskAdminId(maskedId);
+    const id = parseInt(maskedId, 10);
     const router = useRouter();
     const { username } = useUser();
     const [loading, setLoading] = useState(true);

@@ -9,7 +9,7 @@ import Toast from "@/components/Toast";
 import PaginationControls from "@/components/PaginationControls";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { fetchQuestionDifficultyLevelsAction, deleteQuestionDifficultyLevelAction, type DifficultyLevelRow } from "@/app/actions/admin/question-difficulty-levels";
-import { maskAdminId } from "@/utils/urlMasking";
+
 
 // AG Grid
 import { AgGridReact } from "ag-grid-react";
@@ -22,7 +22,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 function NameCellRenderer(props: { value: string; data: DifficultyLevelRow }) {
   return (
-    <Link href={`/admin/questions/difficulty-levels/${maskAdminId(props.data.id)}/edit`} className="text-blue-600 hover:underline" title={props.value}>
+    <Link href={`/admin/questions/difficulty-levels/${props.data.id}/edit`} className="text-blue-600 hover:underline" title={props.value}>
       {props.value}
     </Link>
   );

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { User } from "lucide-react";
 import { Filter, XCircle, Trash2, PlusCircle } from "lucide-react";
 import { fetchCandidatesAction, deleteCandidateAction, type CandidateRow } from "@/app/actions/admin/candidates";
-import { maskAdminId } from "@/utils/urlMasking";
+
 import PageHeader from "@/components/PageHeader";
 import Link from "next/link";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -28,7 +28,7 @@ function NameCellRenderer(props: { value: string; data: CandidateRow }) {
     return (
         <Link
             className="text-blue-600 hover:underline"
-            href={`/admin/candidates/${maskAdminId(props.data.candidateId)}/edit`}
+            href={`/admin/candidates/${props.data.candidateId}/edit`}
             title={`Edit ${props.value}`}
         >
             {props.value}

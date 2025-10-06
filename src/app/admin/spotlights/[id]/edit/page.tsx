@@ -10,12 +10,12 @@ import EditPageLoader from "@/components/EditPageLoader";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import DateTimePicker from "@/components/form/DateTimePicker";
 import { getSpotlightByIdAction, updateSpotlightAction } from "@/app/actions/admin/spotlights";
-import { unmaskAdminId } from "@/utils/urlMasking";
+
 
 export default function EditSpotlightPage() {
     const params = useParams();
     const maskedId = params?.id as string;
-    const id = unmaskAdminId(maskedId);
+    const id = parseInt(maskedId, 10);
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);

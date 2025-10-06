@@ -10,13 +10,13 @@ import { Users, ArrowLeft } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { fetchCandidateGroupsODataAction, updateCandidateGroupAction, type CandidateGroupRow } from "@/app/actions/admin/candidateGroups";
 import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
-import { unmaskAdminId } from "@/utils/urlMasking";
+
 import type { GetLanguagesResponse } from "@/utils/api/types";
 
 export default function EditCandidateGroupPage() {
   const params = useParams();
   const maskedId = params?.id as string;
-  const id = unmaskAdminId(maskedId);
+  const id = parseInt(maskedId, 10);
   const router = useRouter();
   const { username } = useUser();
 

@@ -10,7 +10,7 @@ import Toast from "@/components/Toast";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { getTestCertificateByIdAction, updateTestCertificateAction } from "@/app/actions/admin/test-certificates";
 import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
-import { unmaskAdminId } from "@/utils/urlMasking";
+
 import { useUser } from "@/contexts/UserContext";
 import type { GetLanguagesResponse } from "@/utils/api/types";
 
@@ -19,7 +19,7 @@ export default function EditTestCertificatePage() {
     const params = useParams();
     const { username } = useUser();
     const maskedId = params.id as string;
-    const id = unmaskAdminId(maskedId);
+    const id = parseInt(maskedId, 10);
 
     const [form, setForm] = useState({ testCertificateName: "", testCertificateTemplates: "", language: "", isActive: 1 });
     const [originalData, setOriginalData] = useState<{ createdBy?: string; createdDate?: string } | null>(null);

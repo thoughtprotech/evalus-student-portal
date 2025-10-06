@@ -3,7 +3,7 @@
 import { useEffect, useState, FormEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { fetchProductByIdAction, updateProductAction, ProductDto } from "@/app/actions/admin/products";
-import { unmaskAdminId } from "@/utils/urlMasking";
+
 import Loader from "@/components/Loader";
 import Link from "next/link";
 import { ArrowLeft, Package } from "lucide-react";
@@ -19,7 +19,7 @@ export default function EditProductPage() {
   const router = useRouter();
   const { username, displayName } = useUser();
   const maskedId = params?.id as string;
-  const productId = unmaskAdminId(maskedId);
+  const productId = parseInt(maskedId, 10);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);

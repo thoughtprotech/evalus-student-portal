@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HelpCircle, LoaderPinwheel } from "lucide-react";
 import { Filter, XCircle } from "lucide-react";
 import { fetchQuestionsAction, deleteQuestionAction, type QuestionRow } from "@/app/actions/admin/questions";
-import { maskAdminId } from "@/utils/urlMasking";
+
 import PageHeader from "@/components/PageHeader";
 import Link from "next/link";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -27,7 +27,7 @@ function NameCellRenderer(props: { value: string; data: QuestionRow }) {
   return (
     <Link
       className="text-blue-600 hover:underline"
-      href={`/admin/questions/${maskAdminId(props.data.id)}/edit`}
+      href={`/admin/questions/${props.data.id}/edit`}
       title={props.value}
     >
       {props.value}

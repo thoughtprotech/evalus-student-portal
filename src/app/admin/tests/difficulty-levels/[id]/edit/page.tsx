@@ -8,13 +8,13 @@ import Toast from "@/components/Toast";
 import EditPageLoader from "@/components/EditPageLoader";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { getTestDifficultyLevelByIdAction, updateTestDifficultyLevelAction } from "@/app/actions/admin/test-difficulty-levels";
-import { unmaskAdminId } from "@/utils/urlMasking";
+
 import { useUser } from "@/contexts/UserContext";
 
 export default function EditTestDifficultyLevelPage() {
   const params = useParams();
   const maskedId = params?.id as string;
-  const id = unmaskAdminId(maskedId);
+  const id = parseInt(maskedId, 10);
   const router = useRouter();
   const { username } = useUser();
   const [loading, setLoading] = useState(true);

@@ -13,7 +13,7 @@ import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { fetchCandidateGroupsODataAction, deleteCandidateGroupAction, type CandidateGroupRow } from "@/app/actions/admin/candidateGroups";
-import { maskAdminId } from "@/utils/urlMasking";
+
 import PaginationControls from "@/components/PaginationControls";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -35,7 +35,7 @@ function NameCellRenderer(props: { value: string; data: CandidateGroupRow }) {
           {expanded ? "−" : "+"}
         </button>
       )}
-      <Link href={`/admin/candidate-groups/${maskAdminId(row.id)}/edit`} className="text-blue-600 hover:underline truncate max-w-full" title={props.value}>
+      <Link href={`/admin/candidate-groups/${row.id}/edit`} className="text-blue-600 hover:underline truncate max-w-full" title={props.value}>
         {props.value}
       </Link>
     </div>

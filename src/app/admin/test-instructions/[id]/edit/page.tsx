@@ -6,7 +6,7 @@ import Link from "next/link";
 import RichTextEditor from "@/components/RichTextEditor";
 import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
 import { getTestInstructionByIdAction, updateTestInstructionAction } from "@/app/actions/admin/testInstructions";
-import { unmaskAdminId } from "@/utils/urlMasking";
+
 import { ArrowLeft, Save, BookOpenText } from "lucide-react";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import Toast from "@/components/Toast";
@@ -16,7 +16,7 @@ import { useUser } from "@/contexts/UserContext";
 export default function EditTestInstructionPage() {
   const params = useParams<{ id: string }>();
   const maskedId = params?.id as string;
-  const id = unmaskAdminId(maskedId);
+  const id = parseInt(maskedId, 10);
   const recordId = id;
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");

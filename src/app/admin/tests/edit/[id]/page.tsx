@@ -1,6 +1,6 @@
 import React from "react";
 import TestSteps from "../../new/test-steps";
-import { unmaskAdminId } from "@/utils/urlMasking";
+
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
 import type {
@@ -165,7 +165,7 @@ function normalizeTestToDraft(test: any): any {
 
 export default async function EditTestPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: maskedId } = await params;
-  const id = unmaskAdminId(maskedId);
+  const id = parseInt(maskedId, 10);
 
   if (!id) {
     return (

@@ -10,14 +10,14 @@ import EditPageLoader from "@/components/EditPageLoader";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { getTestSectionByIdAction, updateTestSectionAction } from "@/app/actions/admin/test-sections";
 import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
-import { unmaskAdminId } from "@/utils/urlMasking";
+
 import { useUser } from "@/contexts/UserContext";
 import type { GetLanguagesResponse } from "@/utils/api/types";
 
 export default function EditTestSectionPage() {
   const params = useParams();
   const maskedId = params?.id as string;
-  const id = unmaskAdminId(maskedId);
+  const id = parseInt(maskedId, 10);
   const router = useRouter();
   const { username } = useUser();
   const [loading, setLoading] = useState(true);

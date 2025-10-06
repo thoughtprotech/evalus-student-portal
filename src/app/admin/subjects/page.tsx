@@ -14,7 +14,7 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { fetchSubjectsODataAction, deleteSubjectAction, type SubjectRow } from "@/app/actions/admin/subjects";
 import PaginationControls from "@/components/PaginationControls";
-import { maskAdminId } from "@/utils/urlMasking";
+
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -37,7 +37,7 @@ function NameCellRenderer(props: { value: string; data: SubjectRow }) {
                 </button>
             )}
             <Link
-                href={`/admin/subjects/${maskAdminId(row.id)}/edit`}
+                href={`/admin/subjects/${row.id}/edit`}
                 className="text-blue-600 hover:underline truncate max-w-full"
                 title={props.value}
             >

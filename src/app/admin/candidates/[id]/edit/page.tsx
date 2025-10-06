@@ -8,7 +8,7 @@ import EditPageLoader from "@/components/EditPageLoader";
 import { fetchCandidateByIdAction, updateCandidateAction } from "@/app/actions/admin/candidates/updateCandidate";
 import { fetchCompaniesAction } from "@/app/actions/admin/companies";
 import { fetchRolesAction } from "@/app/actions/admin/roles";
-import { unmaskAdminId } from "@/utils/urlMasking";
+
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
 import { useUser } from "@/contexts/UserContext";
@@ -35,7 +35,7 @@ export default function EditCandidatePage() {
   const params = useParams();
   const router = useRouter();
   const maskedId = params?.id as string;
-  const candidateId = unmaskAdminId(maskedId);
+  const candidateId = parseInt(maskedId, 10);
   const { username } = useUser();
 
   const [loading, setLoading] = useState(true);

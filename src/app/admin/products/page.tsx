@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, PlusCircle, Trash2, XCircle, Filter, Pencil, CheckCircle2, XCircle as InactiveIcon } from "lucide-react";
 import { fetchProductsAction, deleteProductAction, type ProductDto } from "@/app/actions/admin/products";
-import { maskAdminId } from "@/utils/urlMasking";
+
 import PageHeader from "@/components/PageHeader";
 import Link from "next/link";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -22,7 +22,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 function NameCellRenderer(props: { value: string; data: ProductDto }) {
   return (
-    <Link className="text-blue-600 hover:underline" href={`/admin/products/${maskAdminId(props.data.productId)}`} title={`Edit ${props.value}`}>{props.value}</Link>
+    <Link className="text-blue-600 hover:underline" href={`/admin/products/${props.data.productId}`} title={`Edit ${props.value}`}>{props.value}</Link>
   );
 }
 
