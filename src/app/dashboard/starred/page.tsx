@@ -47,12 +47,24 @@ export default function Index() {
 
   // Filter client-side: only tests whose id is in starredIds and match search
   const filteredTestList = useMemo(
-    () =>
-      allTests
+    () => {
+      const filtered = allTests
         .filter((t) => starredIds.includes(t.testId))
         .filter((t) =>
           t.testName.toLowerCase().includes(searchQuery.toLowerCase())
-        ),
+        );
+
+      // Remove duplicates based on testId to prevent duplicate React keys
+      const uniqueTests = filtered.reduce((acc, current) => {
+        const existingTest = acc.find(test => test.testId === current.testId);
+        if (!existingTest) {
+          acc.push(current);
+        }
+        return acc;
+      }, [] as GetCandidateTestResponse[]);
+
+      return uniqueTests;
+    },
     [allTests, starredIds, searchQuery]
   );
 
@@ -85,6 +97,9 @@ export default function Index() {
                   status={test.testCandidateRegistrationStatus}
                   bookmarked={true}
                   registrationId={test.testRegistrationId}
+                  testDurationMinutes={test.testDurationMinutes}
+                  testDurationForHandicappedMinutes={test.testDurationForHandicappedMinutes}
+                  test={test}
                   onToggleStar={async (testId, nowStarred) => {
                     setStarredIds((prev) =>
                       nowStarred
