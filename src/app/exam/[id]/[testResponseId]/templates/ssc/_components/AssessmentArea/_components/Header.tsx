@@ -44,16 +44,17 @@ export default function AssessmentAreaHeader({
     <div className="w-full flex flex-col gap-2 md:flex md:flex-row items-center justify-between font-semibold border-b border-b-gray-300 pb-2">
       <div className="flex gap-3 items-center">
         <div>
-          <h1 className="text-sm text-gray-600">
-            Question {currentIndex + 1} - {question?.questionTypeName}
+          <h1 className="text-sm text-black">
+            Question <span className="text-lg">{currentIndex + 1}</span>
+            {/* {question?.questionTypeName} */}
           </h1>
         </div>
-        {(question?.status === QUESTION_STATUS.TO_REVIEW ||
+        {/* {(question?.status === QUESTION_STATUS.TO_REVIEW ||
           question?.status === QUESTION_STATUS.ANSWERED_TO_REVIEW) && (
           <div className="bg-purple-600 rounded-md px-2 py-0.5">
             <h1 className="text-sm text-white">Marked For Review</h1>
           </div>
-        )}
+        )} */}
       </div>
       <div className="flex gap-3 items-center">
         {/* <div className="flex gap-3 text-xs md:text-sm">
