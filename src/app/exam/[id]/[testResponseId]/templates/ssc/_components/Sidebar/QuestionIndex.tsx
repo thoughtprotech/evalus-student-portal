@@ -20,17 +20,17 @@ export default function QuestionIndex({
             key={q.questionId}
             onClick={() => handleJumpTo(index, q.questionId)}
             className={clsx(
-              "font-semibold text-xs sm:text-sm transition-colors cursor-pointer relative",
+              "font-semibold text-xs sm:text-sm transition-colors cursor-pointer relative w-12 h-5",
               q.status === QUESTION_STATUS.NOT_VISITED &&
-                "bg-[#0001f0] text-white w-full h-5",
+                "bg-[#0001f0] text-white",
               q.status === QUESTION_STATUS.ATTEMPTED &&
-                "bg-green-700 text-white w-full h-5",
+                "bg-green-700 text-white",
               q.status === QUESTION_STATUS.TO_REVIEW &&
-                "bg-yellow-300 text-white w-full h-5",
-              q.status === QUESTION_STATUS.ANSWERED_TO_REVIEW &&
-                "bg-yellow-300 text-white w-full h-5",
+                "bg-red-500 text-white",
+              (q.status === QUESTION_STATUS.TO_REVIEW && q.answer.length > 2) &&
+                "bg-yellow-300 text-white",
               q.status === "unanswered" &&
-                "bg-red-500 text-white w-full h-5",
+                "bg-red-500 text-white",
               // index === currentIndex
                 // ? "border-3 border-gray-600"
                 // : "border-3 border-transparent"
