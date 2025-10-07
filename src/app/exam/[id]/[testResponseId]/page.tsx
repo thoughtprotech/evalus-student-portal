@@ -124,7 +124,7 @@ export default function ExamPage() {
         Number(testResponseId),
         question?.questionId!,
         question?.answer!,
-        QUESTION_STATUS.ATTEMPTED,
+        question?.status!,
         "",
         userName
       );
@@ -133,13 +133,13 @@ export default function ExamPage() {
         // fetchQuestionById(
         //   currentSection?.questions[currentIndex - 1].questionId!
         // );
+        await fetchTestMetaData();
         setCurrentIndex(currentIndex - 1);
 
         setQuestion(currentSection?.questions[currentIndex - 1]);
       } else {
         toast.error("Something Went Wrong");
       }
-      fetchTestMetaData();
     } else {
       toast.error("Something Went Wrong");
     }
@@ -275,7 +275,7 @@ export default function ExamPage() {
       );
 
       if (response.status === 202) {
-        fetchTestMetaData();
+        await fetchTestMetaData();
         // fetchQuestionById(question?.questionId!);
       } else {
         toast.error("Something Went Wrong");
@@ -339,7 +339,7 @@ export default function ExamPage() {
   const handleJumpTo = async (index: number, questionId: number) => {
     // await fetchQuestionById(questionId);
     setCurrentIndex(index);
-    fetchTestMetaData();
+    await fetchTestMetaData();
     setQuestion(currentSection?.questions[index]);
   };
 
@@ -350,8 +350,10 @@ export default function ExamPage() {
     if (userName) {
       const isValid = validateResponse();
       let status;
-      if (question?.status === QUESTION_STATUS.TO_REVIEW) {
-        status = QUESTION_STATUS.ATTEMPTED;
+      if (question?.status === QUESTION_STATUS.TO_REVIEW && question?.answer.length <= 2) {
+        status = QUESTION_STATUS.NOT_VISITED;
+      } else if(question?.status === QUESTION_STATUS.TO_REVIEW && question?.answer.length > 3) {
+        status = QUESTION_STATUS.ATTEMPTED
       } else {
         status = QUESTION_STATUS.TO_REVIEW;
       }
@@ -377,9 +379,6 @@ export default function ExamPage() {
         //   setSubmitSectionModal(true);
         // }
         await fetchTestMetaData();
-        if (currentSection) {
-          setQuestion(currentSection.questions[currentIndex]);
-        }
       } else {
         toast.error("Something Went Wrong");
       }
@@ -477,10 +476,7 @@ export default function ExamPage() {
           (sec) => sec.sectionId === currentSection.sectionId
         );
         setCurrentSection(curSec!);
-        const qs = curSec?.questions.find(
-          (q) => q.questionId === question?.questionId
-        );
-        // setQuestion(currentSection.questions[currentIndex]);
+        setQuestion(curSec?.questions[currentIndex]);
         // fetchQuestionById(question!.questionId);
       }
       setLoaded(true);

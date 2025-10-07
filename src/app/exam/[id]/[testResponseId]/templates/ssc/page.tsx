@@ -132,6 +132,7 @@ export default function SSCTemplate({
         handleSubmit={handleSubmit}
         formattedTimeSection={Number(currentSection?.maxDuration)}
         onSectionTimeUp={handleSectionTimeout}
+        question={question!}
       />
 
       {/* Test Area */}

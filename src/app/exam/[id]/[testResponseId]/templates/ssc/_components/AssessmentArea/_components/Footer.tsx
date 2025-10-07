@@ -2,6 +2,7 @@ import clsx from "clsx";
 import SectionTabs from "../../Header/_components/SectionTabs";
 import {
   GetTestMetaDataResponse,
+  QuestionsMetaDataInterface,
   SectionsMetaDataInterface,
 } from "@/utils/api/types";
 import ActionsBar from "../../Header/_components/ActionBar";
@@ -23,6 +24,7 @@ export default function AssessmentFooter({
   handleSubmit,
   formattedTimeSection,
   onSectionTimeUp,
+  question,
 }: {
   handleNextQuestion: any;
   toggleMarkForReview: any;
@@ -34,6 +36,7 @@ export default function AssessmentFooter({
   handleSubmit: any;
   formattedTimeSection: any;
   onSectionTimeUp: any;
+  question: QuestionsMetaDataInterface;
 }) {
   const { testMeta, sections } = data;
   const { instruction } = testMeta;
@@ -77,7 +80,7 @@ export default function AssessmentFooter({
                   onClick={handlePreviousQuestion}
                   // disabled={currentIndex === 0}
                   className={clsx(
-                    "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+                    "w-full md:w-fit px-6 py-1 font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
                   )}
                 >
                   Previous
@@ -86,10 +89,12 @@ export default function AssessmentFooter({
               <button
                 onClick={toggleMarkForReview}
                 className={clsx(
-                  "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+                  "w-full md:w-fit px-6 py-1 font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
                 )}
               >
-                Mark For Review
+                {question.status !== QUESTION_STATUS.TO_REVIEW
+                  ? "Mark For Review"
+                  : "Unmark Review"}
               </button>
               {/* <button
             onClick={clearResponse}
@@ -106,7 +111,7 @@ export default function AssessmentFooter({
                   //   currentIndex + 1 === currentSection?.questions.length
                   // }
                   className={clsx(
-                    "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+                    "w-full md:w-fit px-6 py-1 font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
                   )}
                 >
                   Save & Next

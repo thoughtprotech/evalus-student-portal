@@ -10,6 +10,7 @@ export type Endpoint<Request, Response> = {
   method: "GET" | "POST" | "PUT" | "DELETE";
   path: (params: Request) => string;
   type: "OPEN" | "CLOSE";
+  disableCache?: boolean;
 };
 
 //   Define request and response types for api endpoints below
@@ -238,7 +239,7 @@ export interface GetCandidateTestResponse {
   testDurationMinutes: number;
   testDurationForHandicappedMinutes: number;
   testResponseId?: number;
-  
+
   testResultTotalMarks?: number;
   totalMarks?: number;
   testRank?: number;

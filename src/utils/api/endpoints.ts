@@ -1115,6 +1115,7 @@ export const endpoints = {
       )}&testResponseId=${testResponseId}`,
     method: "GET",
     type: "CLOSE",
+    disableCache: true,
   } as Endpoint<GetTestMetaDataRequest, GetTestMetaDataResponse>,
 
   getSessionQuestionById: {
@@ -1276,7 +1277,8 @@ export const endpoints = {
 
   getCandidateAnalyticsReportSection: {
     method: "GET",
-    path: ({ testResponseId }) => `/api/TestResponse/result/sections/${testResponseId}`,
+    path: ({ testResponseId }) =>
+      `/api/TestResponse/result/sections/${testResponseId}`,
     type: "CLOSE",
   } as Endpoint<
     CandidateAnalyticsReportSectionRequest,

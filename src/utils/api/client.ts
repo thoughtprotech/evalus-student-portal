@@ -1,9 +1,8 @@
 import getCookie from "../getCookie";
 import { logger } from "../logger/logger";
 import type { ApiResponse, Endpoint } from "./types";
-import { env } from '../env';
+import { env } from "../env";
 import { log } from "console";
-
 
 // In-flight GET requests de-duplication map
 // Keyed by `${method}:${url}`. Ensures identical GETs reuse the same promise
@@ -15,7 +14,6 @@ const inFlightRequests = new Map<string, Promise<any>>();
 type CachedValue = { timestamp: number; response: any };
 const responseCache = new Map<string, CachedValue>();
 const DEFAULT_GET_CACHE_TTL_MS = 5_000; // 5 seconds is enough to squash dev double-invocations
-
 
 function createApiClient() {
   return async function <Req, Res>(
@@ -48,38 +46,44 @@ function createApiClient() {
       }
     }
 
-
     const pathOnly = endpoint.path(body as Req) as string;
-    const isAbsolute = typeof pathOnly === 'string' && /^https?:\/\//i.test(pathOnly);
+    const isAbsolute =
+      typeof pathOnly === "string" && /^https?:\/\//i.test(pathOnly);
     let fullUrl: string;
     if (isAbsolute) {
       fullUrl = pathOnly;
-    } else if (typeof pathOnly === 'string' && pathOnly.startsWith('/api/odata')) {
+    } else if (
+      typeof pathOnly === "string" &&
+      pathOnly.startsWith("/api/odata")
+    ) {
       // OData: browser -> Next internal proxy; server -> backend directly
-      if (typeof window === 'undefined') {
-        fullUrl = `${env.API_BASE_URL}${pathOnly.replace(/^\/api\/odata/, '/Odata')}`;
+      if (typeof window === "undefined") {
+        fullUrl = `${env.API_BASE_URL}${pathOnly.replace(
+          /^\/api\/odata/,
+          "/Odata"
+        )}`;
       } else {
         fullUrl = pathOnly; // same-origin to Next API
       }
-    } else if (typeof pathOnly === 'string' && pathOnly.startsWith('/Odata')) {
+    } else if (typeof pathOnly === "string" && pathOnly.startsWith("/Odata")) {
       // Normalize '/Odata' paths: browser via Next proxy; server direct to backend
-      const suffix = pathOnly.slice('/Odata'.length); // keep leading '/'
-      if (typeof window === 'undefined') {
+      const suffix = pathOnly.slice("/Odata".length); // keep leading '/'
+      if (typeof window === "undefined") {
         fullUrl = `${env.API_BASE_URL}/Odata${suffix}`;
       } else {
         fullUrl = `/api/odata${suffix}`;
       }
-    } else if (typeof pathOnly === 'string' && pathOnly.startsWith('/odata')) {
+    } else if (typeof pathOnly === "string" && pathOnly.startsWith("/odata")) {
       // Normalize lowercase '/odata' as well
-      const suffix = pathOnly.slice('/odata'.length);
-      if (typeof window === 'undefined') {
+      const suffix = pathOnly.slice("/odata".length);
+      if (typeof window === "undefined") {
         fullUrl = `${env.API_BASE_URL}/Odata${suffix}`;
       } else {
         fullUrl = `/api/odata${suffix}`;
       }
-    } else if (typeof pathOnly === 'string' && pathOnly.startsWith('/api/')) {
+    } else if (typeof pathOnly === "string" && pathOnly.startsWith("/api/")) {
       // Non-OData backend API calls: in the browser, route via Next.js proxy to avoid CORS/localhost issues
-      if (typeof window === 'undefined') {
+      if (typeof window === "undefined") {
         // Server-side can talk to backend directly
         fullUrl = `${env.API_BASE_URL}${pathOnly}`;
       } else {
@@ -114,8 +118,8 @@ function createApiClient() {
             endpoint.method === "GET"
               ? undefined
               : isForm
-                ? (body as FormData)
-                : JSON.stringify(body),
+              ? (body as FormData)
+              : JSON.stringify(body),
           credentials: endpoint.type === "CLOSE" ? "include" : undefined,
         });
 
@@ -132,8 +136,9 @@ function createApiClient() {
         }
 
         const trimmed = rawText?.trim() || "";
-        const contentType = res.headers.get('content-type') || '';
-        const looksJson = contentType.includes('application/json') || /^[\[{]/.test(trimmed);
+        const contentType = res.headers.get("content-type") || "";
+        const looksJson =
+          contentType.includes("application/json") || /^[\[{]/.test(trimmed);
 
         if (!trimmed || res.status === 204) {
           // No content – fine
@@ -171,9 +176,19 @@ function createApiClient() {
           status: (json as any).status ?? res.status,
           error: (json as any).error ?? !res.ok,
           message: (json as any).message ?? res.statusText ?? "No message",
-          errorMessage: (json as any).errorMessage ?? (!res.ok ? (typeof (json as any).message === 'string' ? (json as any).message : 'Request failed') : ""),
+          errorMessage:
+            (json as any).errorMessage ??
+            (!res.ok
+              ? typeof (json as any).message === "string"
+                ? (json as any).message
+                : "Request failed"
+              : ""),
           // If the server doesn’t wrap payloads, fall back to the raw JSON
-          data: ((json as any).data !== undefined ? (json as any).data : (looksJson ? (json as any) : undefined)) as Res,
+          data: ((json as any).data !== undefined
+            ? (json as any).data
+            : looksJson
+            ? (json as any)
+            : undefined) as Res,
         };
 
         if (finalResponse.error) {
@@ -204,13 +219,18 @@ function createApiClient() {
         try {
           const u = new URL(fullUrl);
           target = `${u.protocol}//${u.host}`;
-        } catch { }
+        } catch {}
         if (err?.message) {
           if (err.message.includes("fetch")) {
-            errorMessage = `Failed to connect to ${target || fullUrl} - Server may be down or unreachable`;
+            errorMessage = `Failed to connect to ${
+              target || fullUrl
+            } - Server may be down or unreachable`;
           } else if (err.message.includes("CORS")) {
             errorMessage = `CORS error - Check server CORS configuration`;
-          } else if (err.message.includes("SSL") || err.message.includes("certificate")) {
+          } else if (
+            err.message.includes("SSL") ||
+            err.message.includes("certificate")
+          ) {
             errorMessage = `SSL/Certificate error - Check server certificates`;
           } else {
             errorMessage = err.message;
@@ -234,30 +254,34 @@ function createApiClient() {
     };
 
     // For GET requests, return cached response when fresh to avoid sequential duplicates
-    if (endpoint.method === 'GET') {
+    if (endpoint.method === "GET" && !endpoint.disableCache) {
       const key = `${endpoint.method}:${fullUrl}`;
       const cached = responseCache.get(key);
-      if (cached && (Date.now() - cached.timestamp) < DEFAULT_GET_CACHE_TTL_MS) {
+      if (cached && Date.now() - cached.timestamp < DEFAULT_GET_CACHE_TTL_MS) {
         logger("request:cache-hit", { url: fullUrl });
         return cached.response as ApiResponse<Res>;
       }
 
-      // De-duplicate concurrent GETs by URL so we only perform one network call
-      const existing = inFlightRequests.get(key) as Promise<ApiResponse<Res>> | undefined;
+      const existing = inFlightRequests.get(key) as
+        | Promise<ApiResponse<Res>>
+        | undefined;
       if (existing) {
         logger("request:dedup", { url: fullUrl });
         return existing;
       }
+
       const p = execute();
       inFlightRequests.set(key, p);
       try {
         const resp = await p;
-        // Cache successful (or even error) responses briefly to avoid re-hitting server immediately
         responseCache.set(key, { timestamp: Date.now(), response: resp });
         return resp;
       } finally {
         inFlightRequests.delete(key);
       }
+    } else {
+      // Either non-GET or caching disabled
+      return await execute();
     }
 
     // Non-GET: just execute directly
