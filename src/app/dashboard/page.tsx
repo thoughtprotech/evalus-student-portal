@@ -166,37 +166,21 @@ export default function Index() {
         </div>
       </div>
 
-      {/* Selected Group Caption */}
-      {groupSelected && selectedGroupName && (
-        <div className="w-full">
-          <div className="relative overflow-hidden bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 border-2 border-indigo-200/60 rounded-2xl px-8 py-6 mb-8 shadow-lg backdrop-blur-sm">
-            {/* Decorative background elements */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-indigo-200/30 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-200/20 to-transparent rounded-full translate-y-12 -translate-x-12"></div>
-
-            <div className="relative flex items-center space-x-4">
-              <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-md">
-                <div className="w-4 h-4 bg-white rounded-full shadow-sm"></div>
-              </div>
-              <div className="flex-1">
-                <div>
-                  <span className="text-sm text-indigo-600/80 font-semibold uppercase tracking-wider">Show Tests for</span>
-                </div>
-                <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 via-indigo-800 to-blue-700 mt-1">
-                  {selectedGroupName}
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Pagination (Top) + Test Cards */}
       <div>
         {filteredTestList?.length > 0 ? (
           <>
-            <div className="mb-4 flex justify-end">
+            <div className="mb-4 flex justify-between items-center">
+              {/* Selected Group Caption */}
+              {groupSelected && selectedGroupName ? (
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-bold">Show Tests for:</span>
+                  <span className="text-lg font-bold">{selectedGroupName}</span>
+                </div>
+              ) : (
+                <div></div>
+              )}
+
               <PaginationControls
                 page={page}
                 pageSize={pageSize}

@@ -72,10 +72,9 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
         <div
           className={`flex items-center justify-between px-2 py-1 hover:bg-gray-100 rounded-md cursor-pointer transition-colors`}
           style={{ marginLeft: `${Math.min(level, 3) * 16}px` }}
-          onClick={() => {
-            if (hasChildren) {
-              toggle(node.candidateGroupId);
-            } else {
+        >
+          <div className="flex items-center space-x-2 flex-1"
+            onClick={() => {
               // Set the group context without navigating away from current page
               setCurrentGroupId(node.candidateGroupId.toString());
               setSelectedGroupName(node.candidateGroupName);
@@ -84,25 +83,30 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
               if (window.location.pathname !== "/dashboard") {
                 router.push("/dashboard");
               }
-            }
-          }}
-        >
-          <div className="flex items-center space-x-2">
-            {hasChildren ? (
-              isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />
-            ) : (
-              <input
-                type="radio"
-                name="groupSelection"
-                checked={currentGroupId === node.candidateGroupId.toString() && !hasChildren}
-                onChange={() => { }}
-                className="h-3 w-3 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-              />
-            )}
+            }}
+          >
+            <input
+              type="radio"
+              name="groupSelection"
+              checked={currentGroupId === node.candidateGroupId.toString()}
+              onChange={() => { }}
+              className="h-3 w-3 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+            />
             <span className="text-sm text-gray-800">
               {node.candidateGroupName}
             </span>
           </div>
+          {hasChildren && (
+            <div
+              className="ml-2 p-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggle(node.candidateGroupId);
+              }}
+            >
+              {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </div>
+          )}
         </div>
         {hasChildren && isOpen && (
           <div className="space-y-1">
