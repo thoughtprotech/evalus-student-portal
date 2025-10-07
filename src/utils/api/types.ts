@@ -240,7 +240,7 @@ export interface GetCandidateTestResponse {
   testDurationForHandicappedMinutes: number;
   testResponseId?: number;
 
-  testResultTotalMarks?: number;
+  testScore?: string;
   totalMarks?: number;
   testRank?: number;
   testPercentile?: number;

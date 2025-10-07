@@ -81,9 +81,9 @@ export async function fetchCandidateTestList(
             testDurationForHandicappedMinutes:
               t.testDurationForHandicappedMinutes,
             testResponseId: t.testResponseId || null,
-            testPercentile: t.testPercentile || null,
+            testPercentile: t.testPercentile || 0,
             testRank: t.testRank || null,
-            testResultTotalMarks: t.testResultTotalMarks || 0,
+            testScore: t.testScore || 0,
             totalMarks: t.totalMarks || null,
           } as GetCandidateTestResponse;
         });
@@ -151,9 +151,9 @@ export async function fetchCandidateTestList(
                   t.RegistrationID ||
                   0,
                 testResponseId: t.testResponseId || null,
-                testPercentile: t.testPercentile || null,
+                testPercentile: t.testPercentile || 0,
                 testRank: t.testRank || null,
-                testResultTotalMarks: t.testResultTotalMarks || 0,
+                testScore: t.testScore || 0,
                 totalMarks: t.totalMarks || null,
               } as GetCandidateTestResponse;
             })

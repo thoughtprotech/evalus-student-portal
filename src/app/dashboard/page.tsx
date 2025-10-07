@@ -201,7 +201,7 @@ export default function Index() {
                       id={test.testId}
                       name={test.testName}
                       date={test.testStartDate}
-                      testScore={`${test.testResultTotalMarks} / ${test.totalMarks}`}
+                      testScore={test.testScore!}
                       completionTimeInMinutes={0}
                       testRank={test.testRank!}
                       testPercentile={test.testPercentile!}
