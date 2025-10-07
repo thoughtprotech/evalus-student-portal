@@ -49,7 +49,7 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
   const [rootExpanded, setRootExpanded] = useState(initiallyExpanded);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
 
-  const { setCurrentGroupId, setGroupSelected } = useUser();
+  const { setCurrentGroupId, setGroupSelected, setSelectedGroupName, currentGroupId } = useUser();
 
   const router = useRouter();
 
@@ -78,6 +78,7 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
             } else {
               // Set the group context without navigating away from current page
               setCurrentGroupId(node.candidateGroupId.toString());
+              setSelectedGroupName(node.candidateGroupName);
               setGroupSelected(true);
               // Only navigate if we're not already on the dashboard
               if (window.location.pathname !== "/dashboard") {
@@ -90,7 +91,13 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
             {hasChildren ? (
               isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />
             ) : (
-              <Badge size={14} />
+              <input
+                type="radio"
+                name="groupSelection"
+                checked={currentGroupId === node.candidateGroupId.toString() && !hasChildren}
+                onChange={() => { }}
+                className="h-3 w-3 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+              />
             )}
             <span className="text-sm text-gray-800">
               {node.candidateGroupName}
@@ -132,6 +139,8 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
                 // Ensure clicking TestHub (root) resets group selection so StudentDashboard endpoint is used
                 // Prevent this click from only toggling expansion when user intends to navigate
                 setGroupSelected(false);
+                setSelectedGroupName("");
+                setCurrentGroupId("");
               }}
             >
               {rootLabel}

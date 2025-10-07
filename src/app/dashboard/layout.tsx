@@ -461,10 +461,12 @@ function MenuWithSubmenu({ item, currentPath }: MenuWithSubmenuProps) {
 
 function SidebarItemMobile({ icon: Icon, label, href, onClick }: any) {
   const pathname = usePathname();
-  const { setGroupSelected } = useUser();
+  const { setGroupSelected, setSelectedGroupName, setCurrentGroupId } = useUser();
   const handleClick = (e: React.MouseEvent) => {
     if (label === "TestHub") {
       setGroupSelected(false); // ensures StudentDashboard initial load
+      setSelectedGroupName("");
+      setCurrentGroupId("");
     }
     onClick && onClick();
   };
