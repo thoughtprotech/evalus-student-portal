@@ -17,6 +17,7 @@ import Loader from "@/components/Loader";
 import { GetCandidateTestResponse } from "@/utils/api/types";
 import { useUser } from "@/contexts/UserContext";
 import toast from "react-hot-toast";
+import AnalyticCard from "./analytics/components/AnalyticCard";
 
 export default function Index() {
   const {
@@ -193,28 +194,41 @@ export default function Index() {
               />
             </div>
             <div className="w-full grid grid-cols-1 lg:grid-cols-4 gap-4">
-              {paginatedTests.map((test) => (
+              {paginatedTests.map((test, i) => (
                 <div key={`test-${test.testId}`}>
-                  <TestCards
-                    id={test.testId.toString()}
-                    name={test.testName}
-                    startDateTimeString={test.testStartDate}
-                    endDateTimeString={test.testEndDate}
-                    status={test.testCandidateRegistrationStatus}
-                    bookmarked={starredIds.includes(test.testId)}
-                    onRegistered={async () => {
-                      await fetchTestList();
-                    }}
-                    registrationId={test.testRegistrationId}
-                    onToggleStar={async () => {
-                      await fetchStarred();
-                    }}
-                    testDurationMinutes={test.testDurationMinutes}
-                    testDurationForHandicappedMinutes={
-                      test.testDurationForHandicappedMinutes
-                    }
-                    test={test}
-                  />
+                  {test.testCandidateRegistrationStatus === "Completed" ? (
+                    <AnalyticCard
+                      id={test.testId}
+                      name={test.testName}
+                      date={test.testStartDate}
+                      testScore={`${test.testResultTotalMarks} / ${test.totalMarks}`}
+                      completionTimeInMinutes={0}
+                      testRank={test.testRank!}
+                      testPercentile={test.testPercentile!}
+                      testResponseId={test.testResponseId!}
+                    />
+                  ) : (
+                    <TestCards
+                      id={test.testId.toString()}
+                      name={test.testName}
+                      startDateTimeString={test.testStartDate}
+                      endDateTimeString={test.testEndDate}
+                      status={test.testCandidateRegistrationStatus}
+                      bookmarked={starredIds.includes(test.testId)}
+                      onRegistered={async () => {
+                        await fetchTestList();
+                      }}
+                      registrationId={test.testRegistrationId}
+                      onToggleStar={async () => {
+                        await fetchStarred();
+                      }}
+                      testDurationMinutes={test.testDurationMinutes}
+                      testDurationForHandicappedMinutes={
+                        test.testDurationForHandicappedMinutes
+                      }
+                      test={test}
+                    />
+                  )}
                 </div>
               ))}
             </div>
@@ -245,8 +259,9 @@ function StatCard({
     label === "In Progress" ? "min-w-[175px]" : "min-w-[150px]";
   return (
     <div
-      className={`border border-gray-300 ${current ? "bg-indigo-50 border-indigo-300" : "bg-white"
-        } rounded-xl shadow-md duration-200 ease-in-out px-6 py-1 flex items-center gap-5 ${minWidthClass} w-full`}
+      className={`border border-gray-300 ${
+        current ? "bg-indigo-50 border-indigo-300" : "bg-white"
+      } rounded-xl shadow-md duration-200 ease-in-out px-6 py-1 flex items-center gap-5 ${minWidthClass} w-full`}
     >
       <div className="flex-shrink-0 rounded-full">{icon}</div>
       <div className="flex flex-col">

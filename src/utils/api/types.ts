@@ -238,6 +238,11 @@ export interface GetCandidateTestResponse {
   testDurationMinutes: number;
   testDurationForHandicappedMinutes: number;
   testResponseId?: number;
+  
+  testResultTotalMarks?: number;
+  totalMarks?: number;
+  testRank?: number;
+  testPercentile?: number;
 }
 
 export interface GetCandidateStarredTestRequest {
