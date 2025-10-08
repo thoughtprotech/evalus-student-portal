@@ -175,7 +175,6 @@ export default function Index() {
               {/* Selected Group Caption */}
               {groupSelected && selectedGroupName ? (
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm font-bold">Show Tests for:</span>
                   <span className="text-lg font-bold">{selectedGroupName}</span>
                 </div>
               ) : (
@@ -235,7 +234,12 @@ export default function Index() {
           </>
         ) : (
           <div className="w-full h-72 flex justify-center items-center rounded-md">
-            <h1 className="font-bold text-2xl text-gray-500">No Tests Found</h1>
+            <h1 className="font-bold text-2xl text-gray-500">
+              {groupSelected && selectedGroupName
+                ? `No data found for ${selectedGroupName}`
+                : "No Data Found"
+              }
+            </h1>
           </div>
         )}
       </div>
@@ -259,9 +263,8 @@ function StatCard({
     label === "In Progress" ? "min-w-[175px]" : "min-w-[150px]";
   return (
     <div
-      className={`border border-gray-300 ${
-        current ? "bg-indigo-50 border-indigo-300" : "bg-white"
-      } rounded-xl shadow-md duration-200 ease-in-out px-6 py-1 flex items-center gap-5 ${minWidthClass} w-full`}
+      className={`border border-gray-300 ${current ? "bg-indigo-50 border-indigo-300" : "bg-white"
+        } rounded-xl shadow-md duration-200 ease-in-out px-6 py-1 flex items-center gap-5 ${minWidthClass} w-full`}
     >
       <div className="flex-shrink-0 rounded-full">{icon}</div>
       <div className="flex flex-col">
