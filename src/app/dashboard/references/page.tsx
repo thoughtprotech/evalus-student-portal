@@ -79,7 +79,8 @@ export default function Index() {
         folderChildren.push({
           name: file.documentName,
           type: 'file',
-          fileType: inferFileType(file.documentUrl || file.documentName),
+          // Prefer explicit documentType from API when available, otherwise infer from URL/name
+          fileType: (file as any).documentType ? ((file as any).documentType === 'youtube' ? 'YouTube' : ((file as any).documentType === 'mp4' ? 'MP4' : inferFileType(file.documentUrl || file.documentName))) : inferFileType(file.documentUrl || file.documentName),
           fileSize: '',
           uploadDate: `${formatToDDMMYYYY_HHMM(file.validFrom)} - ${formatToDDMMYYYY_HHMM(file.validTo)}`,
           description: file.publishedDocumentFolderName,
@@ -131,6 +132,8 @@ export default function Index() {
 
   function inferFileType(urlOrName: string): string {
     const lower = urlOrName.toLowerCase();
+  if (/youtube\.com\/watch|youtu\.be\//i.test(lower)) return 'YouTube';
+  if (lower.endsWith('.mp4')) return 'MP4';
     if (lower.endsWith('.pdf')) return 'PDF';
     if (lower.endsWith('.xlsx') || lower.endsWith('.xls')) return 'Excel';
     if (lower.endsWith('.doc') || lower.endsWith('.docx')) return 'Word';

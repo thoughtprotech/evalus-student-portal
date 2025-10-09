@@ -18,6 +18,7 @@ type FormState = {
   publishedDocumentFolderId: number | "";
   documentName: string;
   documentUrl: string;
+  documentType?: "document" | "youtube" | "mp4" | "file";
   validFrom: string;
   validTo: string;
   files: File[];
@@ -32,7 +33,7 @@ export default function EditPublishedDocumentPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>("");
-  const [form, setForm] = useState<FormState>({ publishedDocumentFolderId: "", documentName: "", documentUrl: "", validFrom: "", validTo: "", files: [] });
+  const [form, setForm] = useState<FormState>({ publishedDocumentFolderId: "", documentName: "", documentUrl: "", documentType: "document", validFrom: "", validTo: "", files: [] });
   const [originalUrl, setOriginalUrl] = useState<string>("");
 
   const inputCls = "w-full border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md px-3 py-2 text-sm bg-white";
@@ -58,6 +59,7 @@ export default function EditPublishedDocumentPage() {
             publishedDocumentFolderId: Number(d.publishedDocumentFolderId) || "",
             documentName: d.documentName || "",
             documentUrl: d.documentUrl || "",
+            documentType: (d as any).documentType || (d.documentUrl && /youtube\.com|youtu\.be/i.test(d.documentUrl) ? 'youtube' : (d.documentUrl && d.documentUrl.toLowerCase().endsWith('.mp4') ? 'mp4' : 'document')),
             validFrom: d.validFrom || "",
             validTo: d.validTo || "",
             files: [],
@@ -113,10 +115,11 @@ export default function EditPublishedDocumentPage() {
         publishedDocumentFolderId: Number(form.publishedDocumentFolderId),
         documentName: form.documentName.trim(),
         documentUrl: url,
+        documentType: form.documentType,
         validFrom: form.validFrom,
         validTo: form.validTo,
       };
-      const res = await updatePublishedDocumentAction(id, payload);
+      const res = await updatePublishedDocumentAction(id, payload as any);
       const status = Number((res as any)?.status);
       if (Number.isFinite(status) && status >= 200 && status < 300) {
         setShowSuccess(true);
@@ -167,11 +170,37 @@ export default function EditPublishedDocumentPage() {
           <input className={inputCls} value={form.documentName} onChange={e => setForm(f => ({ ...f, documentName: e.target.value }))} placeholder="Enter document name" />
         </div>
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Upload File</label>
-          <input type="file" multiple onChange={onFileChange} className={inputCls} />
-          <p className="mt-1 text-xs text-gray-500">Provide a file or a URL below.</p>
+          <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Document Type <span className="text-red-500">*</span></label>
+          <select className={inputCls} value={form.documentType} onChange={e => setForm(f => ({ ...f, documentType: e.target.value as any }))} aria-label="Select document type" title="Select document type">
+            <option value="document">Document URL</option>
+            <option value="youtube">YouTube URL</option>
+            <option value="mp4">.mp4 Upload</option>
+            <option value="file">Upload Document</option>
+          </select>
         </div>
-        {form.files.length === 0 && (
+        {form.documentType === 'mp4' && (
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Upload .mp4 File</label>
+            <input type="file" accept=".mp4" onChange={onFileChange} className={inputCls} />
+            <p className="mt-1 text-xs text-gray-500">Upload a .mp4 file.</p>
+          </div>
+        )}
+        {form.documentType === 'file' && (
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Upload Document</label>
+            <input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" onChange={onFileChange} className={inputCls} />
+            <p className="mt-1 text-xs text-gray-500">Upload PDF or Office documents.</p>
+          </div>
+        )}
+        {/* If documentType is not set, fall back to existing upload/URL fields */}
+        {(!form.documentType || form.documentType === 'document') && (
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Upload File</label>
+            <input type="file" multiple onChange={onFileChange} className={inputCls} />
+            <p className="mt-1 text-xs text-gray-500">Provide a file or a URL below.</p>
+          </div>
+        )}
+        {(!form.files.length || form.documentType === 'document') && (
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Or Document URL</label>
             <input className={inputCls} value={form.documentUrl} onChange={e => setForm(f => ({ ...f, documentUrl: e.target.value }))} placeholder="https://…" />

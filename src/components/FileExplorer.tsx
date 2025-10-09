@@ -7,6 +7,7 @@ import {
   ChevronDown,
   FileSpreadsheet,
   GalleryVerticalEnd,
+  Eye,
 } from "lucide-react";
 
 // Data structure for file system nodes
@@ -32,11 +33,9 @@ export function openOrDownloadDocument(
   if (!url || url.trim() === "") {
     return; // No action when URL missing
   }
-  // Simple check to see if this is a PDF
-  const isPdf = url.trim().toLowerCase().endsWith(".pdf");
-
-  if (isPdf && !forceDownload) {
-    // PDFs can be safely viewed in-browser:
+  const lower = url.trim().toLowerCase();
+  // If it's a YouTube link or MP4, open in new tab for playback
+  if (/youtube\.com\/watch|youtu\.be\//i.test(url) || lower.endsWith('.mp4')) {
     window.open(url, "_blank", "noopener,noreferrer");
     return;
   }
@@ -54,16 +53,19 @@ export function openOrDownloadDocument(
 
 const getFileTypeIcon = (fileType: string) => {
   const type = fileType.toLowerCase();
+  // Use smaller icons and ensure they don't stretch layout; container enforces width
+  if (type.includes('youtube')) return <GalleryVerticalEnd size={18} className="text-purple-500" />;
+  if (type.includes('mp4')) return <GalleryVerticalEnd size={18} className="text-indigo-600" />;
   if (type.includes("pdf")) {
-    return <FileText size={25} className="text-red-500" />;
+    return <FileText size={18} className="text-red-500" />;
   } else if (type.includes("excel")) {
-    return <FileSpreadsheet size={25} className="text-green-500" />;
+    return <FileSpreadsheet size={18} className="text-green-500" />;
   } else if (type.includes("word")) {
-    return <FileText size={25} className="text-blue-500" />;
+    return <FileText size={18} className="text-blue-500" />;
   } else if (type.includes("powerpoint")) {
-    return <GalleryVerticalEnd size={25} className="text-orange-500" />;
+    return <GalleryVerticalEnd size={18} className="text-orange-500" />;
   } else {
-    return <FileText size={25} className="text-gray-500" />;
+    return <FileText size={18} className="text-gray-500" />;
   }
 };
 
@@ -75,9 +77,13 @@ const TreeNode: React.FC<{ node: FileNode; level?: number }> = ({
   const [isOpen, setIsOpen] = useState(false);
   const hasChildren = node.type === "folder" && node.children?.length;
   const isFileWithoutUrl = node.type === "file" && (!node.url || node.url.trim() === "");
+  const isVideoType = node.type === 'file' && (node.fileType?.toLowerCase().includes('mp4') || node.fileType?.toLowerCase().includes('youtube'));
 
   const toggle = (node: FileNode) => {
     if (hasChildren) {
+      setIsOpen((open) => !open);
+    } else if (isVideoType) {
+      // For video types, toggle inline player
       setIsOpen((open) => !open);
     } else if (!isFileWithoutUrl) {
       openOrDownloadDocument(node.url!);
@@ -101,16 +107,18 @@ const TreeNode: React.FC<{ node: FileNode; level?: number }> = ({
         {hasChildren &&
           (isOpen ? <ChevronDown size={20} /> : <ChevronRight size={20} />)}
 
-        {/* Folder or File Icon */}
-        {node.type === "folder" ? (
-          isOpen ? (
-            <FolderOpen size={25} className="text-gray-500" />
+        {/* Folder or File Icon (fixed width) */}
+        <div className="w-8 flex-shrink-0 flex items-center justify-center">
+          {node.type === "folder" ? (
+            isOpen ? (
+              <FolderOpen size={18} className="text-gray-500" />
+            ) : (
+              <Folder size={18} className="text-gray-500" />
+            )
           ) : (
-            <Folder size={25} className="text-gray-500" />
-          )
-        ) : (
-          getFileTypeIcon(node.fileType || "")
-        )}
+            getFileTypeIcon(node.fileType || "")
+          )}
+        </div>
 
         {/* Name */}
         <div className="w-full flex flex-col">
@@ -146,6 +154,17 @@ const TreeNode: React.FC<{ node: FileNode; level?: number }> = ({
                     No URL
                   </span>
                 )}
+                {/* For video types, show a compact View button */}
+                {(node.fileType || '').toLowerCase().includes('mp4') || (node.fileType || '').toLowerCase().includes('youtube') ? (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setIsOpen(open => !open); }}
+                    title="View"
+                    className="ml-2 p-1 rounded bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
+                    aria-label={`View ${node.name}`}
+                  >
+                    <Eye size={16} />
+                  </button>
+                ) : null}
               </div>
             )}
           </div>
@@ -162,6 +181,20 @@ const TreeNode: React.FC<{ node: FileNode; level?: number }> = ({
           {node.children!.map((child) => (
             <TreeNode key={child.name} node={child} level={level + 1} />
           ))}
+        </div>
+      )}
+
+      {/* Inline player for video file types */}
+      {(!hasChildren && isVideoType && isOpen) && (
+        <div className="mt-2 ml-6">
+          {node.fileType!.toLowerCase().includes('youtube') ? (
+            <iframe className="w-full h-64" src={node.url?.replace("watch?v=", "embed/") || ''} title={node.name} frameBorder={0} allowFullScreen />
+          ) : (
+            <video className="w-full h-64" controls>
+              <source src={node.url} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          )}
         </div>
       )}
     </div>
