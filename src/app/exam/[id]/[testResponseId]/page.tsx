@@ -67,9 +67,7 @@ export default function ExamPage() {
       return toast.error("Provide An Answer");
     }
 
-    if (!checkIfMinimumQuestionTimeReached()) {
-      return toast.error("Minimum question time not reached");
-    }
+    // Removed minimum per-question time enforcement (deprecated)
 
     const valid = validateResponse();
 
@@ -397,25 +395,9 @@ export default function ExamPage() {
     return diffInMinutes >= testMetaData.testSettings.minimumTestTime!;
   };
 
-  const checkIfMinimumSectionTimeReached = (): boolean => {
-    if (!testMetaData || !currentSection) return false;
-    if (testMetaData.testSettings.minimumTimePerSection === 0) return true;
-    const now = new Date();
-    const start = new Date(sectionStartTime!);
-    const diffInMs = now.getTime() - start.getTime();
-    const diffInMinutes = diffInMs / (1000 * 60);
-    return diffInMinutes >= testMetaData.testSettings.minimumTimePerSection!;
-  };
-
-  const checkIfMinimumQuestionTimeReached = (): boolean => {
-    if (!testMetaData || !currentSection) return false;
-    if (testMetaData.testSettings.minimumTimePerQuestion === 0) return true;
-    const now = new Date();
-    const start = new Date(questionStartTime!);
-    const diffInMs = now.getTime() - start.getTime();
-    const diffInMinutes = diffInMs / (1000 * 60);
-    return diffInMinutes >= testMetaData.testSettings.minimumTimePerQuestion!;
-  };
+  // Deprecated: per-section and per-question minimum time checks removed
+  const checkIfMinimumSectionTimeReached = (): boolean => true;
+  const checkIfMinimumQuestionTimeReached = (): boolean => true;
 
   const submitTest = async () => {
     const username = await getUserAction();
@@ -461,15 +443,15 @@ export default function ExamPage() {
   const [sectionStartTime, setSectionStartTime] = useState<string>();
   const [sectionMaxTime, setSectionMaxTime] = useState<number>();
   const [questionStartTime, setQuestionStartTime] = useState<string>();
-  const [questionMaxTime, setQuestionMaxTime] = useState<number>();
+  // Removed per-question max time usage (deprecated)
 
   useEffect(() => {
     // on page load set current time as test start time
     const currentTime = new Date().toISOString();
     setTestStartTime(currentTime);
     setSectionStartTime(currentTime);
-    setSectionMaxTime(testMetaData?.testSettings.maximumTimePerSection || 0);
-    setQuestionMaxTime(testMetaData?.testSettings.maximumTimePerQuestion || 0);
+  // Deprecated: per-section/per-question max time removed
+  setSectionMaxTime(0);
     setQuestionStartTime(currentTime);
   }, []);
 
@@ -713,7 +695,7 @@ export default function ExamPage() {
           handlePreviousQuestion={handlePreviousQuestion}
           checkIfMinimumTimeReached={checkIfMinimumTimeReached}
           checkIfMinimumSectionTimeReached={checkIfMinimumSectionTimeReached}
-          sectionMaxTime={sectionMaxTime!}
+          sectionMaxTime={0}
         />
       ) : (
         <DefaultTemplate

@@ -173,10 +173,6 @@ export interface TestSettingsInterface {
   displayMarksDuringTest?: boolean;
   minimumTestTime?: number;
   maximumTestTimePer?: number;
-  minimumTimePerQuestion?: number;
-  maximumTimePerQuestion?: number;
-  minimumTimePerSection?: number;
-  maximumTimePerSection?: number;
   lockSectionsOnSubmission?: boolean;
   logTestActivity?: boolean;
   displayTestTime?: boolean;
@@ -192,9 +188,7 @@ export interface TestSettingsInterface {
   allowTestPauseResume?: boolean;
   detailedTestReportOnTestCompletion?: boolean;
   negativeScoreZeroes?: null;
-  allowBioBreak?: boolean;
-  tentativeTestStartDate?: string;
-  tentativeTestEndDate?: string;
+  allowBioBreak?: boolean;  
   testAdditionalTime?: number;
   automatedCertificateGeneration?: null;
   releaseCertificatesToCandidates?: null;

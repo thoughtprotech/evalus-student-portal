@@ -254,35 +254,35 @@ function createApiClient() {
     };
 
     // For GET requests, return cached response when fresh to avoid sequential duplicates
-    if (endpoint.method === "GET" && !endpoint.disableCache) {
-      const key = `${endpoint.method}:${fullUrl}`;
-      const cached = responseCache.get(key);
-      if (cached && Date.now() - cached.timestamp < DEFAULT_GET_CACHE_TTL_MS) {
-        logger("request:cache-hit", { url: fullUrl });
-        return cached.response as ApiResponse<Res>;
-      }
+    // if (endpoint.method === "GET" && !endpoint.disableCache) {
+    //   const key = `${endpoint.method}:${fullUrl}`;
+    //   const cached = responseCache.get(key);
+    //   if (cached && Date.now() - cached.timestamp < DEFAULT_GET_CACHE_TTL_MS) {
+    //     logger("request:cache-hit", { url: fullUrl });
+    //     return cached.response as ApiResponse<Res>;
+    //   }
 
-      const existing = inFlightRequests.get(key) as
-        | Promise<ApiResponse<Res>>
-        | undefined;
-      if (existing) {
-        logger("request:dedup", { url: fullUrl });
-        return existing;
-      }
+    //   const existing = inFlightRequests.get(key) as
+    //     | Promise<ApiResponse<Res>>
+    //     | undefined;
+    //   if (existing) {
+    //     logger("request:dedup", { url: fullUrl });
+    //     return existing;
+    //   }
 
-      const p = execute();
-      inFlightRequests.set(key, p);
-      try {
-        const resp = await p;
-        responseCache.set(key, { timestamp: Date.now(), response: resp });
-        return resp;
-      } finally {
-        inFlightRequests.delete(key);
-      }
-    } else {
-      // Either non-GET or caching disabled
-      return await execute();
-    }
+    //   const p = execute();
+    //   inFlightRequests.set(key, p);
+    //   try {
+    //     const resp = await p;
+    //     responseCache.set(key, { timestamp: Date.now(), response: resp });
+    //     return resp;
+    //   } finally {
+    //     inFlightRequests.delete(key);
+    //   }
+    // } else {
+    //   // Either non-GET or caching disabled
+    //   return await execute();
+    // }
 
     // Non-GET: just execute directly
     return await execute();

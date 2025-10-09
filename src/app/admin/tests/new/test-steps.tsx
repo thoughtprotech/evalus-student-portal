@@ -165,10 +165,7 @@ export default function TestSteps({
 
       d.MinimumTestTime = pick(s0.MinimumTestTime, s0.minimumTestTime);
       d.MaximumTestTimePer = pick(s0.MaximumTestTimePer, s0.maximumTestTimePer);
-      d.MinimumTimePerQuestion = pick(s0.MinimumTimePerQuestion, s0.minimumTimePerQuestion);
-      d.MaximumTimePerQuestion = pick(s0.MaximumTimePerQuestion, s0.maximumTimePerQuestion);
-      d.MinimumTimePerSection = pick(s0.MinimumTimePerSection, s0.minimumTimePerSection);
-      d.MaximumTimePerSection = pick(s0.MaximumTimePerSection, s0.maximumTimePerSection);
+  // Removed deprecated per-question and per-section timing fields (Minimum/MaximumTimePerQuestion/Section)
 
       d.LockSectionsOnSubmission = pick(s0.LockSectionsOnSubmission, s0.lockSectionsOnSubmission);
       d.LogTestActivity = pick(s0.LogTestActivity, s0.logTestActivity);
@@ -669,10 +666,7 @@ export default function TestSteps({
 
           MinimumTestTime: d2.MinimumTestTime ?? null,
           MaximumTestTimePer: d2.MaximumTestTimePer ?? null,
-          MinimumTimePerQuestion: d2.MinimumTimePerQuestion ?? null,
-          MaximumTimePerQuestion: d2.MaximumTimePerQuestion ?? null,
-          MinimumTimePerSection: d2.MinimumTimePerSection ?? null,
-          MaximumTimePerSection: d2.MaximumTimePerSection ?? null,
+          // Deprecated timing fields removed from payload
 
           LockSectionsOnSubmission: toUlong(d2.LockSectionsOnSubmission),
           LogTestActivity: toUlong(d2.LogTestActivity),
@@ -739,10 +733,6 @@ export default function TestSteps({
           "DisplayMarksDuringTest",
           "MinimumTestTime",
           "MaximumTestTimePer",
-          "MinimumTimePerQuestion",
-          "MaximumTimePerQuestion",
-          "MinimumTimePerSection",
-          "MaximumTimePerSection",
           "LockSectionsOnSubmission",
           "LogTestActivity",
           "DisplayTestTime",
