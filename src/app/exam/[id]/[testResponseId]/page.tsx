@@ -67,6 +67,10 @@ export default function ExamPage() {
       return toast.error("Provide An Answer");
     }
 
+    if (!checkIfMinimumQuestionTimeReached()) {
+      return toast.error("Minimum question time not reached");
+    }
+
     const valid = validateResponse();
 
     if (valid) {
@@ -98,6 +102,7 @@ export default function ExamPage() {
             // );
             setCurrentIndex(currentIndex + 1);
             setQuestion(currentSection?.questions[currentIndex + 1]);
+            setQuestionStartTime(new Date().toISOString());
           } else {
             setSubmitSectionModal(true);
           }
@@ -382,6 +387,36 @@ export default function ExamPage() {
     }
   };
 
+  const checkIfMinimumTimeReached = (): boolean => {
+    if (!testMetaData) return false;
+    if (testMetaData.testSettings.minimumTestTime === 0) return true;
+    const now = new Date();
+    const start = new Date(testStartTime!);
+    const diffInMs = now.getTime() - start.getTime();
+    const diffInMinutes = diffInMs / (1000 * 60);
+    return diffInMinutes >= testMetaData.testSettings.minimumTestTime!;
+  };
+
+  const checkIfMinimumSectionTimeReached = (): boolean => {
+    if (!testMetaData || !currentSection) return false;
+    if (testMetaData.testSettings.minimumTimePerSection === 0) return true;
+    const now = new Date();
+    const start = new Date(sectionStartTime!);
+    const diffInMs = now.getTime() - start.getTime();
+    const diffInMinutes = diffInMs / (1000 * 60);
+    return diffInMinutes >= testMetaData.testSettings.minimumTimePerSection!;
+  };
+
+  const checkIfMinimumQuestionTimeReached = (): boolean => {
+    if (!testMetaData || !currentSection) return false;
+    if (testMetaData.testSettings.minimumTimePerQuestion === 0) return true;
+    const now = new Date();
+    const start = new Date(questionStartTime!);
+    const diffInMs = now.getTime() - start.getTime();
+    const diffInMinutes = diffInMs / (1000 * 60);
+    return diffInMinutes >= testMetaData.testSettings.minimumTimePerQuestion!;
+  };
+
   const submitTest = async () => {
     const username = await getUserAction();
     if (!username) {
@@ -392,6 +427,8 @@ export default function ExamPage() {
       toast.error("Test not ready");
       return;
     }
+
+    console.log("Submitting test...");
     const response = await endCandidateSessionAction(
       testMetaData.testMeta.testId,
       username
@@ -420,6 +457,21 @@ export default function ExamPage() {
     useState<SectionsMetaDataInterface | null>(null);
   const [testMetaData, setTestMetaData] =
     useState<GetTestMetaDataResponse | null>(null);
+  const [testStartTime, setTestStartTime] = useState<string>();
+  const [sectionStartTime, setSectionStartTime] = useState<string>();
+  const [sectionMaxTime, setSectionMaxTime] = useState<number>();
+  const [questionStartTime, setQuestionStartTime] = useState<string>();
+  const [questionMaxTime, setQuestionMaxTime] = useState<number>();
+
+  useEffect(() => {
+    // on page load set current time as test start time
+    const currentTime = new Date().toISOString();
+    setTestStartTime(currentTime);
+    setSectionStartTime(currentTime);
+    setSectionMaxTime(testMetaData?.testSettings.maximumTimePerSection || 0);
+    setQuestionMaxTime(testMetaData?.testSettings.maximumTimePerQuestion || 0);
+    setQuestionStartTime(currentTime);
+  }, []);
 
   const fetchTestMetaData = async () => {
     const userName = await getUserAction();
@@ -484,6 +536,8 @@ export default function ExamPage() {
 
     const isLast = curIdx === sections.length - 1;
 
+    console.log({ isLast, curIdx });
+
     if (isLast) {
       await submitTest();
       return;
@@ -492,12 +546,19 @@ export default function ExamPage() {
     const nextSection = sections[curIdx + 1];
     if (nextSection) {
       setCurrentSection(nextSection);
+      setQuestion(nextSection?.questions[0]);
+
+      setSectionStartTime(new Date().toISOString());
+      setQuestionStartTime(new Date().toISOString());
     }
   };
 
   const goToNextSection = async () => {
     if (!testMetaData || !testMetaData.sections?.length || !currentSection) {
       return;
+    }
+    if (!checkIfMinimumSectionTimeReached()) {
+      return toast.error("Minimum section time not reached");
     }
     const { sections } = testMetaData;
     const curIdx = getCurrentSectionIndex(sections, currentSection);
@@ -520,6 +581,8 @@ export default function ExamPage() {
       // fetchQuestionById(nextSection?.questions[0]?.questionId!);
       setCurrentIndex(0);
       setQuestion(nextSection?.questions[0]);
+      setSectionStartTime(new Date().toISOString());
+      setQuestionStartTime(new Date().toISOString());
     }
   };
 
@@ -648,6 +711,9 @@ export default function ExamPage() {
           toggleMarkForReview={toggleMarkForReview}
           errorMessage={errorMessage}
           handlePreviousQuestion={handlePreviousQuestion}
+          checkIfMinimumTimeReached={checkIfMinimumTimeReached}
+          checkIfMinimumSectionTimeReached={checkIfMinimumSectionTimeReached}
+          sectionMaxTime={sectionMaxTime!}
         />
       ) : (
         <DefaultTemplate

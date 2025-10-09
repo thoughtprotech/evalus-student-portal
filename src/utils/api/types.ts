@@ -161,9 +161,57 @@ export interface SectionsMetaDataInterface {
   questions: QuestionsMetaDataInterface[];
 }
 
+export interface TestSettingsInterface {
+  testSettingId: number;
+  testId: number;
+
+  groupQuestionsBySubjects?: boolean;
+  questionNumberingBySections?: boolean;
+  randomizeQuestionByTopics?: boolean;
+  randomizeAnswerOptionsByQuestions?: boolean;
+  attemptAllQuestions?: boolean;
+  displayMarksDuringTest?: boolean;
+  minimumTestTime?: number;
+  maximumTestTimePer?: number;
+  minimumTimePerQuestion?: number;
+  maximumTimePerQuestion?: number;
+  minimumTimePerSection?: number;
+  maximumTimePerSection?: number;
+  lockSectionsOnSubmission?: boolean;
+  logTestActivity?: boolean;
+  displayTestTime?: boolean;
+  displaySectionTime?: boolean;
+  testMinimumPassMarks?: number;
+  testCompletionMessage?: string;
+  testPassFeedbackMessage?: string;
+  testFailFeedbackMessage?: string;
+  testSubmissionMessage?: string;
+  automaticRankCalculation?: boolean;
+  allowDuplicateRank?: boolean;
+  skipRankForDuplicateTank?: boolean;
+  allowTestPauseResume?: boolean;
+  detailedTestReportOnTestCompletion?: boolean;
+  negativeScoreZeroes?: null;
+  allowBioBreak?: boolean;
+  tentativeTestStartDate?: string;
+  tentativeTestEndDate?: string;
+  testAdditionalTime?: number;
+  automatedCertificateGeneration?: null;
+  releaseCertificatesToCandidates?: null;
+
+  language: string;
+  isActive: number;
+  createdBy: string;
+  createdDate: string;
+  modifiedBy: string;
+  modifiedDate: string;
+}
+
+
 export interface GetTestMetaDataResponse {
   testMeta: TestMetaDataInterface;
   sections: SectionsMetaDataInterface[];
+  testSettings: TestSettingsInterface;
 }
 
 export interface CreateQuestionRequest {

@@ -18,6 +18,7 @@ import Sidebar from "./_components/Sidebar/Sidebar";
 import SubmitExamModal from "../../_components/SubmitExamModal";
 import SubmitSectionModal from "../../_components/SubmitSectionModal";
 import { fetchLanguagesAction } from "@/app/actions/dashboard/questions/fetchLanguages";
+import toast from "react-hot-toast";
 
 // Complete ExamPage props interface
 interface ExamPageProps {
@@ -46,6 +47,9 @@ interface ExamPageProps {
   cancelSubmitSectionModalSubmit: () => void;
   handleTimeout: () => void;
   handleSectionTimeout: () => void;
+  checkIfMinimumTimeReached: () => boolean;
+  checkIfMinimumSectionTimeReached: () => boolean;
+  sectionMaxTime: number;
 }
 
 export default function SSCTemplate({
@@ -74,6 +78,9 @@ export default function SSCTemplate({
   goToNextSection,
   setSubmitSectionModal,
   cancelSubmitSectionModalSubmit,
+  checkIfMinimumTimeReached,
+  checkIfMinimumSectionTimeReached,
+  sectionMaxTime
 }: ExamPageProps) {
   const [language, setLanguage] =
     useState<{ value: string; label: string }[]>();
@@ -119,6 +126,7 @@ export default function SSCTemplate({
           )}
           currentSectionId={currentSection!}
           setCurrentSection={setCurrentSection}
+          sectionMaxTime={sectionMaxTime}
         />
       )}
 
@@ -146,6 +154,7 @@ export default function SSCTemplate({
                   <AssessmentAreaHeader
                     question={question}
                     currentIndex={currentIndex}
+                    settings={testMetaData?.testSettings!}
                   />
                   <div className="w-full pt-2 flex justify-end">
                     <div className="flex items-center gap-3">
@@ -211,14 +220,20 @@ export default function SSCTemplate({
         showModal={showModal}
         confirmSubmit={submitTest}
         cancelSubmit={cancelSubmit}
+        checkIfMinimumTimeReached={checkIfMinimumTimeReached}
       />
 
       <SubmitSectionModal
         sections={testMetaData?.sections!}
         showModal={showSubmitSectionModal}
         confirmSubmit={() => {
-          goToNextSection();
-          setSubmitSectionModal(false);
+          if (checkIfMinimumSectionTimeReached()) {
+
+            goToNextSection();
+            setSubmitSectionModal(false);
+          } else {
+            toast.error("Minimum section time not reached");
+          }
         }}
         cancelSubmit={cancelSubmitSectionModalSubmit}
         currentSectionId={currentSection?.sectionId}

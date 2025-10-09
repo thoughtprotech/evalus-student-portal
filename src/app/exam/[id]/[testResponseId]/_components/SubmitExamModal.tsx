@@ -22,12 +22,14 @@ import {
   Gauge,
 } from "lucide-react";
 import ConfirmationModal from "./ConfirmationModal";
+import toast from "react-hot-toast";
 
 type Props = {
   sections: SectionsMetaDataInterface[];
   showModal: boolean;
   confirmSubmit: () => void;
   cancelSubmit: () => void;
+  checkIfMinimumTimeReached: () => boolean;
 };
 
 type SectionCounts = {
@@ -153,6 +155,7 @@ export default function SubmitExamModal({
   showModal,
   confirmSubmit,
   cancelSubmit,
+  checkIfMinimumTimeReached,
 }: Props) {
   const [openSectionIds, setOpenSectionIds] = useState<Record<number, boolean>>(
     {}
@@ -199,7 +202,13 @@ export default function SubmitExamModal({
       isOpen={showModal}
       title="Submit Test?"
       message="Are you sure you want to submit the test?"
-      onConfirm={confirmSubmit}
+      onConfirm={() => {
+        if (checkIfMinimumTimeReached()) {
+          confirmSubmit();
+        } else {
+          toast.error("Minimum test time not reached yet.");
+        }
+      }}
       onCancel={cancelSubmit}
       className="w-full max-w-5xl max-h-11/12 overflow-auto"
     >
