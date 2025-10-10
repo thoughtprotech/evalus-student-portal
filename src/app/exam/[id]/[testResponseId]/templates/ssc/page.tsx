@@ -126,7 +126,7 @@ export default function SSCTemplate({
           )}
           currentSectionId={currentSection!}
           setCurrentSection={setCurrentSection}
-          sectionMaxTime={sectionMaxTime}
+          currentSection={currentSection!}
         />
       )}
 
@@ -138,8 +138,7 @@ export default function SSCTemplate({
         toggleMarkForReview={toggleMarkForReview}
         handlePreviousQuestion={handlePreviousQuestion}
         handleSubmit={handleSubmit}
-        formattedTimeSection={Number(currentSection?.maxDuration)}
-        onSectionTimeUp={handleSectionTimeout}
+        formattedTimeSection={Number(currentSection?.sectionMaxTimeDuration)}
         question={question!}
       />
 

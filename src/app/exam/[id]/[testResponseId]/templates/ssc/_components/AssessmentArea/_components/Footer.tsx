@@ -23,7 +23,6 @@ export default function AssessmentFooter({
   handlePreviousQuestion,
   handleSubmit,
   formattedTimeSection,
-  onSectionTimeUp,
   question,
 }: {
   handleNextQuestion: any;
@@ -35,7 +34,6 @@ export default function AssessmentFooter({
   handlePreviousQuestion: any;
   handleSubmit: any;
   formattedTimeSection: any;
-  onSectionTimeUp: any;
   question: QuestionsMetaDataInterface;
 }) {
   const { testMeta, sections } = data;
@@ -159,13 +157,6 @@ export default function AssessmentFooter({
                 </span>
               </h1>
             </div>
-            {Number.isFinite(formattedTimeSection) && (
-              <TimerChip
-                title="Section Time Left"
-                durationMs={Math.max(0, formattedTimeSection * 60_000)}
-                onComplete={onSectionTimeUp}
-              />
-            )}
           </div>
         </div>
       </div>

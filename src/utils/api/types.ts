@@ -156,8 +156,10 @@ export interface QuestionsMetaDataInterface {
 export interface SectionsMetaDataInterface {
   sectionId: number;
   sectionName: string;
-  minDuration: number;
-  maxDuration: number;
+  sectionTotalQuestions: number;
+  sectionTotalMarks: number;
+  sectionMinTimeDuration: number;
+  sectionMaxTimeDuration: number;
   questions: QuestionsMetaDataInterface[];
 }
 
@@ -188,7 +190,7 @@ export interface TestSettingsInterface {
   allowTestPauseResume?: boolean;
   detailedTestReportOnTestCompletion?: boolean;
   negativeScoreZeroes?: null;
-  allowBioBreak?: boolean;  
+  allowBioBreak?: boolean;
   testAdditionalTime?: number;
   automatedCertificateGeneration?: null;
   releaseCertificatesToCandidates?: null;
@@ -200,7 +202,6 @@ export interface TestSettingsInterface {
   modifiedBy: string;
   modifiedDate: string;
 }
-
 
 export interface GetTestMetaDataResponse {
   testMeta: TestMetaDataInterface;

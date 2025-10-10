@@ -38,6 +38,7 @@ type HeaderProps = {
   onSelectSection?: (section: SectionsMetaDataInterface) => void;
   currentSectionId: SectionsMetaDataInterface;
   setCurrentSection: any;
+  currentSection: SectionsMetaDataInterface;
   // sectionMaxTime removed (deprecated per-section timing)
 };
 
@@ -49,8 +50,9 @@ export default function Header({
   onSelectSection,
   currentSectionId,
   setCurrentSection,
-  // sectionMaxTime
-}: HeaderProps) {
+  currentSection,
+}: // sectionMaxTime
+HeaderProps) {
   const { testMeta, sections } = data;
   const { testName, instruction } = testMeta;
   const [userName, setUserName] = useState<string>("");
@@ -89,7 +91,16 @@ export default function Header({
               )}
               onComplete={onTestTimeUp}
             />
-            {/* Deprecated per-section timer removed */}
+            {Number.isFinite(currentSection.sectionMaxTimeDuration) && currentSection.sectionMaxTimeDuration !== 0 && (
+              <TimerChip
+                title="Section Time Left"
+                durationMs={Math.max(
+                  0,
+                  currentSection.sectionMaxTimeDuration * 60_000
+                )}
+                onComplete={onSectionTimeUp}
+              />
+            )}
           </div>
           <WelcomeChip userName={userName} />
         </div>
