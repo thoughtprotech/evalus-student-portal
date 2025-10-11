@@ -3,6 +3,8 @@ import {
   AdminDashboardRecentActivitiesResponse,
   AdminDashboardReportDataRequest,
   AdminDashboardReportDataResponse,
+  AdminDashboardTestPerformanceSummaryRequest,
+  AdminDashboardTestPerformanceSummaryResponse,
   CandidateAnalyticsDetailsRequest,
   CandidateAnalyticsDetailsResponse,
   CandidateAnalyticsReportHeaderRequest,
@@ -1294,5 +1296,17 @@ export const endpoints = {
   } as Endpoint<
     AdminDashboardReportDataRequest,
     AdminDashboardReportDataResponse
+  >,
+
+  getAdminTestPerformanceSummaryRequest: {
+    method: "GET",
+    path: ({ testid }) =>
+      `/api/TestAdminDashboard/adminDashboard/GetReportsTestPerformanceSummary?${
+        testid ? `testId=${testid}` : ""
+      }`,
+    type: "CLOSE",
+  } as Endpoint<
+    AdminDashboardTestPerformanceSummaryRequest,
+    AdminDashboardTestPerformanceSummaryResponse[]
   >,
 };

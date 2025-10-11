@@ -698,7 +698,7 @@ export interface CandidateAnalyticsReportSectionResponse {
   sectionMyMarks: number;
 }
 
-export interface AdminDashboardReportDataRequest {};
+export interface AdminDashboardReportDataRequest {}
 
 export interface AdminDashboardReportDataResponse {
   testCount: number;
@@ -710,4 +710,18 @@ export interface AdminDashboardReportDataResponse {
   failRatePercent: number;
   notGradedRatePercent: number;
   avgDurationMinutes: number;
-};
+}
+
+export interface AdminDashboardTestPerformanceSummaryRequest {
+  testid?: number;
+}
+
+export interface AdminDashboardTestPerformanceSummaryResponse {
+  testName: string;
+  totalCandidates: number;
+  completed: number;
+  averageScore: number;
+  maxScore: number;
+  aboveAverageCount: number;
+  belowAverageCount: number;
+}

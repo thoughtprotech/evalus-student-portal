@@ -7,18 +7,43 @@ import {
   XCircle,
 } from "lucide-react";
 import { DetailCard } from "../../page";
-import { AdminDashboardReportDataResponse } from "@/utils/api/types";
+import {
+  AdminDashboardReportDataResponse,
+  AdminDashboardTestPerformanceSummaryResponse,
+} from "@/utils/api/types";
 import { useEffect, useState } from "react";
 import { fetchAdminDashboardReportDataAction } from "@/app/actions/admin/reports/dashboardReportData";
-import { formatMinutesToHourMinute, formatMinutesToHourMinuteAlt } from "@/utils/formatIsoTime";
+import {
+  formatMinutesToHourMinute,
+  formatMinutesToHourMinuteAlt,
+} from "@/utils/formatIsoTime";
+import { fetchAdminDashboardTestPerformanceSummaryAction } from "@/app/actions/admin/reports/dashboardTestPerformanceSummary";
+import PaginatedTable from "../PaginatedTable";
 
 export default function TestReports() {
   const [data, setData] = useState<AdminDashboardReportDataResponse>();
+  const [tableData, setTableData] = useState<
+    AdminDashboardTestPerformanceSummaryResponse[]
+  >([]);
+  const [testid, setTestid] = useState<number | undefined>(undefined);
+
+  const columns: {
+    key: keyof AdminDashboardTestPerformanceSummaryResponse;
+    label: string;
+  }[] = [
+    { key: "testName", label: "Test Name" },
+    { key: "totalCandidates", label: "Total Candidates" },
+    { key: "completed", label: "Completed" },
+    { key: "averageScore", label: "Avg Score" },
+    { key: "maxScore", label: "Max Score" },
+    { key: "aboveAverageCount", label: "Above Avg" },
+    { key: "belowAverageCount", label: "Below Avg" },
+  ];
 
   const fetchDashboardData = async () => {
     try {
       const res = await fetchAdminDashboardReportDataAction();
-      const { status, data, error, errorMessage, message } = await res;
+      const { status, data, error, errorMessage, message } = res;
       if (status === 200 && data) {
         setData(data);
       }
@@ -27,8 +52,21 @@ export default function TestReports() {
     }
   };
 
+  const fetchDashboardTestPerformanceSummary = async () => {
+    try {
+      const res = await fetchAdminDashboardTestPerformanceSummaryAction();
+      const { status, data, error, errorMessage, message } = res;
+      if (status === 200 && data) {
+        setTableData(data);
+      }
+    } catch (error) {
+      console.log("Error fetching dashboard data", error);
+    }
+  };
+
   useEffect(() => {
     fetchDashboardData();
+    fetchDashboardTestPerformanceSummary();
   }, []);
 
   return (
@@ -72,6 +110,10 @@ export default function TestReports() {
           )}
           footer="Per test"
         />
+      </div>
+      <div className="p-6">
+        <h1 className="text-xl font-bold mb-4">Test Reports</h1>
+        <PaginatedTable data={tableData} columns={columns} />
       </div>
     </div>
   );
