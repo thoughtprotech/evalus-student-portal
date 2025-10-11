@@ -10,6 +10,7 @@ import { DetailCard } from "../../page";
 import {
   AdminDashboardReportDataResponse,
   GetAdminDashboardTestCandidatePerformanceSummaryResponse,
+  GetCandidateGroupsInorderResponse,
   GetReportsTestQuestionsPerformanceSummaryResponse,
 } from "@/utils/api/types";
 import { useEffect, useState } from "react";
@@ -17,14 +18,19 @@ import { fetchAdminDashboardReportDataAction } from "@/app/actions/admin/reports
 import { formatMinutesToHourMinuteAlt } from "@/utils/formatIsoTime";
 import PaginatedTable from "../PaginatedTable";
 import { fetchAdminDashboardTestCandidatePerformanceSummaryAction } from "@/app/actions/admin/reports/dashboardTestCandidatePerformanceSummary";
+import {
+  CandidateGroupRow,
+  fetchCandidateGroupsInorderAction,
+  fetchCandidateGroupsODataAction,
+} from "@/app/actions/admin/candidateGroups";
 
 export default function CandidateReports() {
-  const [data, setData] = useState<AdminDashboardReportDataResponse>();
+  const [data, setData] = useState<GetCandidateGroupsInorderResponse[]>();
   const [tableData, setTableData] = useState<
     GetAdminDashboardTestCandidatePerformanceSummaryResponse[]
   >([]);
   const [search, setSearch] = useState<string | undefined>(undefined);
-  const [groupId, setGroupId] = useState<number | undefined>(undefined);
+  const [groupId, setGroupId] = useState<string>("");
 
   const columns: {
     key: keyof GetAdminDashboardTestCandidatePerformanceSummaryResponse;
@@ -40,9 +46,9 @@ export default function CandidateReports() {
     { key: "marksScored", label: "Marks Scored" },
   ];
 
-  const fetchDashboardData = async () => {
+  const fetchCandidateGroups = async () => {
     try {
-      const res = await fetchAdminDashboardReportDataAction();
+      const res = await fetchCandidateGroupsInorderAction();
       const { status, data, error, errorMessage, message } = res;
       if (status === 200 && data) {
         setData(data);
@@ -52,15 +58,15 @@ export default function CandidateReports() {
     }
   };
 
-  const fetchDashboardTestPerformanceSummary = async (
-    search: string,
-    groupId: number
+  const fetchAdminDashboardTestCandidatePerformanceSummary = async (
+    search?: string,
+    groupId?: string
   ) => {
     try {
       const res =
         await fetchAdminDashboardTestCandidatePerformanceSummaryAction(
           search,
-          groupId
+          groupId ? parseInt(groupId) : undefined
         );
       const { status, data, error, errorMessage, message } = res;
       if (status === 200 && data) {
@@ -72,53 +78,37 @@ export default function CandidateReports() {
   };
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchCandidateGroups();
   }, []);
+
+  useEffect(() => {
+    console.log({ groupId });
+    if (groupId && groupId !== "") {
+      fetchAdminDashboardTestCandidatePerformanceSummary(undefined, groupId);
+    }
+  }, [groupId]);
 
   return (
     <div className="flex flex-col gap-4">
-      {/* <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-6">
-        <DetailCard
-          icon={<ClipboardList className="w-6 h-6 text-indigo-600" />}
-          label="Total Tests"
-          value={data?.testCount?.toString() || "0"}
-          footer="Since launch"
-        />
-        <DetailCard
-          icon={<CheckCircle className="w-6 h-6 text-green-600" />}
-          label="Passed"
-          value={data?.passCount?.toString() || "0"}
-          footer={`${data?.passRatePercent?.toFixed(2) || "0"}% pass rate`}
-        />
-        <DetailCard
-          icon={<XCircle className="w-6 h-6 text-red-600" />}
-          label="Failed"
-          value={data?.failCount?.toString() || "0"}
-          footer={`${data?.failRatePercent?.toFixed(2) || "0"}% fail rate`}
-        />
-        <DetailCard
-          icon={<TrendingUp className="w-6 h-6 text-indigo-600" />}
-          label="Avg. Score"
-          value={`${data?.averageTotalMarks?.toFixed(2) || "0"}%`}
-          footer="Across all tests"
-        />
-        <DetailCard
-          icon={<Percent className="w-6 h-6 text-teal-600" />}
-          label="Pass Rate"
-          value={`${data?.passRatePercent?.toFixed(2) || "0"}%`}
-          footer="Across all tests"
-        />
-        <DetailCard
-          icon={<Clock className="w-6 h-6 text-gray-600" />}
-          label="Avg. Duration"
-          value={formatMinutesToHourMinuteAlt(
-            Number(data?.avgDurationMinutes) || 0
-          )}
-          footer="Per test"
-        />
-      </div> */}
       <div className="py-6">
-        <PaginatedTable data={tableData} columns={columns} />
+        <PaginatedTable
+          data={tableData}
+          columns={columns}
+          externalFilters={[
+            {
+              label: "Candidate Groups",
+              options:
+                data?.map((group) => {
+                  return {
+                    label: group?.fullPath,
+                    value: group?.candidateGroupID?.toString(),
+                  };
+                }) || [],
+              value: groupId?.toString() || "",
+              setValue: setGroupId,
+            },
+          ]}
+        />
       </div>
     </div>
   );

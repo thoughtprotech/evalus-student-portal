@@ -740,8 +740,8 @@ export interface GetReportsTestQuestionsPerformanceSummaryResponse {
 }
 
 export interface GetAdminDashboardTestCandidatePerformanceSummaryRequest {
-  search: string;
-  candidateGroupId: number;
+  search?: string;
+  candidateGroupId?: number;
 }
 
 export interface GetAdminDashboardTestCandidatePerformanceSummaryResponse {
@@ -764,4 +764,25 @@ export interface GetAdminDashboardTestStatusSummaryResponse {
   inProgressCount: number;
   resultGeneratedCount: number;
   totalCount: number;
+}
+
+export interface GetReportsAuditSummaryRequest {
+  userTimeStamp?: string;
+  module?: string;
+}
+
+export interface GetReportsAuditSummaryResponse {
+  userName: string;
+  activity: string;
+  module: string;
+  logDate: string;
+  logTime: string;
+  device: string;
+}
+
+export interface GetCandidateGroupsInorderRequest {}
+
+export interface GetCandidateGroupsInorderResponse {
+  candidateGroupID: number;
+  fullPath: string;
 }

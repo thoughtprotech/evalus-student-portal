@@ -4,7 +4,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
-  SlidersHorizontal,
   RotateCcw,
   Search,
 } from "lucide-react";
@@ -13,6 +12,14 @@ interface PaginatedTableProps<T> {
   data: T[];
   columns: { key: keyof T; label: string }[];
   rowsPerPageOptions?: number[];
+
+  // NEW: optional external filters
+  externalFilters?: {
+    label: string;
+    options: { label: string; value: string }[];
+    value: string;
+    setValue: React.Dispatch<React.SetStateAction<string>>;
+  }[];
 }
 
 type FilterCondition = "contains" | "equals" | "startsWith" | "endsWith";
@@ -21,6 +28,7 @@ export default function PaginatedTable<T extends Record<string, any>>({
   data,
   columns,
   rowsPerPageOptions = [10, 15, 20, 50],
+  externalFilters = [],
 }: PaginatedTableProps<T>) {
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(15);
@@ -71,6 +79,7 @@ export default function PaginatedTable<T extends Record<string, any>>({
   const clearAllFilters = () => {
     setFilters({});
     setGlobalSearch("");
+    externalFilters.forEach((f) => f.setValue(""));
   };
 
   const filteredData = useMemo(() => {
@@ -106,8 +115,19 @@ export default function PaginatedTable<T extends Record<string, any>>({
       );
     }
 
+    // Apply external filters
+    externalFilters.forEach((filter) => {
+      if (filter.value) {
+        filtered = filtered.filter((row) => {
+          return Object.values(row)
+            .map((v) => String(v).toLowerCase())
+            .some((v) => v.includes(filter.value.toLowerCase()));
+        });
+      }
+    });
+
     return filtered;
-  }, [data, filters, globalSearch]);
+  }, [data, filters, globalSearch, externalFilters]);
 
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const paginatedData = filteredData.slice(
@@ -118,7 +138,8 @@ export default function PaginatedTable<T extends Record<string, any>>({
   return (
     <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm relative font-sans">
       {/* Top Controls */}
-      <div className="flex justify-between items-center mb-3">
+      <div className="flex justify-between items-center mb-3 flex-wrap gap-3">
+        {/* Left side - pagination controls */}
         <div className="flex items-center gap-3 text-sm">
           <div className="flex items-center gap-1">
             <span className="text-gray-600">Rows per page:</span>
@@ -159,8 +180,27 @@ export default function PaginatedTable<T extends Record<string, any>>({
           </button>
         </div>
 
-        {/* Right Controls: Search + Filters */}
-        <div className="flex items-center gap-3 text-sm">
+        {/* Right side - search + external filters + clear */}
+        <div className="flex items-center gap-3 text-sm flex-wrap">
+          {/* External Filters */}
+          {externalFilters.map((filter, i) => (
+            <div key={i} className="flex items-center gap-1">
+              {/* <span className="text-gray-600 text-xs">{filter.label}</span> */}
+              <select
+                className="border border-gray-300 rounded-md px-2 py-1.5 text-sm"
+                value={filter.value}
+                onChange={(e) => filter.setValue(e.target.value)}
+              >
+                <option value="">{filter.label}</option>
+                {filter.options.map((opt, idx) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
+          {/* Global Search */}
           <div className="relative">
             <Search
               size={16}
@@ -175,14 +215,7 @@ export default function PaginatedTable<T extends Record<string, any>>({
             />
           </div>
 
-          {/* <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-1 border border-gray-300 px-3 py-1.5 rounded-md hover:bg-gray-100"
-          >
-            <SlidersHorizontal size={14} />
-            {showFilters ? "Hide Filters" : "Show Filters"}
-          </button> */}
-
+          {/* Clear Filters Button */}
           <button
             onClick={clearAllFilters}
             className="flex items-center gap-1 border border-gray-300 px-3 py-1.5 rounded-md hover:bg-gray-100"
@@ -309,6 +342,7 @@ export default function PaginatedTable<T extends Record<string, any>>({
                     <td
                       key={col.key as string}
                       className="max-w-32 px-3 py-2 truncate"
+                      title={row[col.key]}
                     >
                       {row[col.key]}
                     </td>

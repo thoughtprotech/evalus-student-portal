@@ -19,6 +19,8 @@ import {
   GetAdminDashboardTestCandidatePerformanceSummaryResponse,
   GetAdminDashboardTestStatusSummaryRequest,
   GetAdminDashboardTestStatusSummaryResponse,
+  GetCandidateGroupsInorderRequest,
+  GetCandidateGroupsInorderResponse,
   GetCandidateStarredTestRequest,
   GetCandidateStarredTestResponse,
   GetCandidateTestRequest,
@@ -34,6 +36,8 @@ import {
   GetQuestionOptionsRequest,
   GetQuestionOptionsResponse,
   GetQuestionTypesResponse,
+  GetReportsAuditSummaryRequest,
+  GetReportsAuditSummaryResponse,
   GetReportsTestQuestionsPerformanceSummaryRequest,
   GetReportsTestQuestionsPerformanceSummaryResponse,
   GetSessionQuestionByIdRequest,
@@ -1348,5 +1352,28 @@ export const endpoints = {
   } as Endpoint<
     GetAdminDashboardTestStatusSummaryRequest,
     GetAdminDashboardTestStatusSummaryResponse[]
+  >,
+
+  getAdminReportsAuditSummary: {
+    method: "GET",
+    path: ({ userTimeStamp, module }) =>
+      `/api/TestAdminDashboard/adminDashboard/GetReportsAuditSummary
+?userTimeStamp=${encodeURIComponent(
+        userTimeStamp ?? ""
+      )}&module=${encodeURIComponent(module ?? "")}
+    `,
+    type: "CLOSE",
+  } as Endpoint<
+    GetReportsAuditSummaryRequest,
+    GetReportsAuditSummaryResponse[]
+  >,
+
+  getCandidateGroupInorder: {
+    method: "GET",
+    path: () => `/api/CandidateGroup/inOrder?includeInactive=false`,
+    type: "CLOSE",
+  } as Endpoint<
+    GetCandidateGroupsInorderRequest,
+    GetCandidateGroupsInorderResponse[]
   >,
 };

@@ -10,15 +10,17 @@ import {
 import { endpoints } from "@/utils/api/endpoints";
 
 export async function fetchAdminDashboardTestCandidatePerformanceSummaryAction(
-  search: string,
-  candidateGroupId: number
+  search?: string,
+  candidateGroupId?: number
 ): Promise<
   ApiResponse<GetAdminDashboardTestCandidatePerformanceSummaryResponse[]>
 > {
   try {
     const { status, error, data, errorMessage, message } = await apiHandler(
       endpoints.getAdminDashboardTestCandidatePerformanceSummary,
-      { search, candidateGroupId }
+      search || candidateGroupId
+        ? { search: search || "", candidateGroupId: candidateGroupId || 0 }
+        : {}
     );
 
     console.log({ status, error, data, errorMessage, message });
