@@ -1,6 +1,8 @@
 import {
   AdminDashboardAnallyticsResponse,
   AdminDashboardRecentActivitiesResponse,
+  AdminDashboardReportDataRequest,
+  AdminDashboardReportDataResponse,
   CandidateAnalyticsDetailsRequest,
   CandidateAnalyticsDetailsResponse,
   CandidateAnalyticsReportHeaderRequest,
@@ -1283,5 +1285,14 @@ export const endpoints = {
   } as Endpoint<
     CandidateAnalyticsReportSectionRequest,
     CandidateAnalyticsReportSectionResponse[]
+  >,
+
+  getAdminDashboardReportData: {
+    method: "GET",
+    path: () => `/api/TestAdminDashboard/adminDashboard/dashboardReportData`,
+    type: "CLOSE",
+  } as Endpoint<
+    AdminDashboardReportDataRequest,
+    AdminDashboardReportDataResponse
   >,
 };

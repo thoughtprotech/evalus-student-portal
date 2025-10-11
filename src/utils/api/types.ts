@@ -697,3 +697,17 @@ export interface CandidateAnalyticsReportSectionResponse {
   inCorrectAnswersCount: number;
   sectionMyMarks: number;
 }
+
+export interface AdminDashboardReportDataRequest {};
+
+export interface AdminDashboardReportDataResponse {
+  testCount: number;
+  passCount: number;
+  failCount: number;
+  notGradedCount: number;
+  averageTotalMarks: number;
+  passRatePercent: number;
+  failRatePercent: number;
+  notGradedRatePercent: number;
+  avgDurationMinutes: number;
+};
