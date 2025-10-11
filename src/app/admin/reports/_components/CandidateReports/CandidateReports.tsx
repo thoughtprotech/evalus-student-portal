@@ -9,35 +9,35 @@ import {
 import { DetailCard } from "../../page";
 import {
   AdminDashboardReportDataResponse,
-  AdminDashboardTestPerformanceSummaryResponse,
+  GetAdminDashboardTestCandidatePerformanceSummaryResponse,
   GetReportsTestQuestionsPerformanceSummaryResponse,
 } from "@/utils/api/types";
 import { useEffect, useState } from "react";
 import { fetchAdminDashboardReportDataAction } from "@/app/actions/admin/reports/dashboardReportData";
-import {
-  formatMinutesToHourMinute,
-  formatMinutesToHourMinuteAlt,
-} from "@/utils/formatIsoTime";
+import { formatMinutesToHourMinuteAlt } from "@/utils/formatIsoTime";
 import PaginatedTable from "../PaginatedTable";
-import { fetchAdminReportsTestsQuestionsPerformanceSummmaryAction } from "@/app/actions/admin/reports/dashboardReportsTestQuestionsPerformanceSummary";
+import { fetchAdminDashboardTestCandidatePerformanceSummaryAction } from "@/app/actions/admin/reports/dashboardTestCandidatePerformanceSummary";
 
-export default function QuestionReports() {
+export default function CandidateReports() {
   const [data, setData] = useState<AdminDashboardReportDataResponse>();
   const [tableData, setTableData] = useState<
-    GetReportsTestQuestionsPerformanceSummaryResponse[]
+    GetAdminDashboardTestCandidatePerformanceSummaryResponse[]
   >([]);
-  const [testid, setTestid] = useState<number | undefined>(undefined);
+  const [search, setSearch] = useState<string | undefined>(undefined);
+  const [groupId, setGroupId] = useState<number | undefined>(undefined);
 
   const columns: {
-    key: keyof GetReportsTestQuestionsPerformanceSummaryResponse;
+    key: keyof GetAdminDashboardTestCandidatePerformanceSummaryResponse;
     label: string;
   }[] = [
+    { key: "candidateName", label: "Candidate Name" },
+    { key: "email", label: "Email" },
+    { key: "cellPhone", label: "Cell Phone" },
     { key: "testName", label: "Test Name" },
-    { key: "totalQuestions", label: "Total Questions" },
-    { key: "skipped", label: "Skipped" },
-    { key: "correct", label: "Correct" },
-    { key: "incorrect", label: "Incorrect" },
-    { key: "questionDifficultyLevel", label: "Question Difficulty Level" },
+    { key: "isActive", label: "Is Active" },
+    { key: "groupNames", label: "Group Names" },
+    { key: "totalMarks", label: "Total Marks" },
+    { key: "marksScored", label: "Marks Scored" },
   ];
 
   const fetchDashboardData = async () => {
@@ -52,10 +52,16 @@ export default function QuestionReports() {
     }
   };
 
-  const fetchDashboardTestPerformanceSummary = async () => {
+  const fetchDashboardTestPerformanceSummary = async (
+    search: string,
+    groupId: number
+  ) => {
     try {
       const res =
-        await fetchAdminReportsTestsQuestionsPerformanceSummmaryAction();
+        await fetchAdminDashboardTestCandidatePerformanceSummaryAction(
+          search,
+          groupId
+        );
       const { status, data, error, errorMessage, message } = res;
       if (status === 200 && data) {
         setTableData(data);
@@ -67,7 +73,6 @@ export default function QuestionReports() {
 
   useEffect(() => {
     fetchDashboardData();
-    fetchDashboardTestPerformanceSummary();
   }, []);
 
   return (

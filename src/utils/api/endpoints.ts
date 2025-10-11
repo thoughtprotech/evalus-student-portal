@@ -15,6 +15,10 @@ import {
   CandidateAnalyticsSummaryResponse,
   CreateQuestionRequest,
   Endpoint,
+  GetAdminDashboardTestCandidatePerformanceSummaryRequest,
+  GetAdminDashboardTestCandidatePerformanceSummaryResponse,
+  GetAdminDashboardTestStatusSummaryRequest,
+  GetAdminDashboardTestStatusSummaryResponse,
   GetCandidateStarredTestRequest,
   GetCandidateStarredTestResponse,
   GetCandidateTestRequest,
@@ -1322,5 +1326,27 @@ export const endpoints = {
   } as Endpoint<
     GetReportsTestQuestionsPerformanceSummaryRequest,
     GetReportsTestQuestionsPerformanceSummaryResponse[]
+  >,
+
+  getAdminDashboardTestCandidatePerformanceSummary: {
+    method: "GET",
+    path: ({ search, candidateGroupId }) =>
+      `/api/TestAdminDashboard/adminDashboard/GetReportsTestCandidatePerformanceSummary?search=${search}&candidateGroupId=${candidateGroupId}`,
+    type: "CLOSE",
+  } as Endpoint<
+    GetAdminDashboardTestCandidatePerformanceSummaryRequest,
+    GetAdminDashboardTestCandidatePerformanceSummaryResponse[]
+  >,
+
+  getAdminDashboardTestStatusSummary: {
+    method: "GET",
+    path: ({ testId }) =>
+      `/api/TestAdminDashboard/adminDashboard/GetReportsTestStatusSummary?${
+        testId ? `testId=${testId}` : ""
+      }`,
+    type: "CLOSE",
+  } as Endpoint<
+    GetAdminDashboardTestStatusSummaryRequest,
+    GetAdminDashboardTestStatusSummaryResponse[]
   >,
 };

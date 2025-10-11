@@ -71,7 +71,7 @@ export default function TestReports() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-6">
+      {/* <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-6">
         <DetailCard
           icon={<ClipboardList className="w-6 h-6 text-indigo-600" />}
           label="Total Tests"
@@ -110,7 +110,7 @@ export default function TestReports() {
           )}
           footer="Per test"
         />
-      </div>
+      </div> */}
       <div className="py-6">
         <PaginatedTable data={tableData} columns={columns} />
       </div>

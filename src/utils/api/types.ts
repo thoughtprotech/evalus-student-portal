@@ -738,3 +738,30 @@ export interface GetReportsTestQuestionsPerformanceSummaryResponse {
   incorrect: number;
   questionDifficultyLevel: number;
 }
+
+export interface GetAdminDashboardTestCandidatePerformanceSummaryRequest {
+  search: string;
+  candidateGroupId: number;
+}
+
+export interface GetAdminDashboardTestCandidatePerformanceSummaryResponse {
+  candidateName: string;
+  email: string;
+  cellPhone: string;
+  testName: string;
+  isActive: string;
+  groupNames: string;
+  totalMarks: number;
+  marksScored: number;
+}
+
+export interface GetAdminDashboardTestStatusSummaryRequest {
+  testId?: number;
+}
+
+export interface GetAdminDashboardTestStatusSummaryResponse {
+  testName: string;
+  inProgressCount: number;
+  resultGeneratedCount: number;
+  totalCount: number;
+}

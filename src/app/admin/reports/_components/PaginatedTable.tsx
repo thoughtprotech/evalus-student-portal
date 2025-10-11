@@ -99,7 +99,9 @@ export default function PaginatedTable<T extends Record<string, any>>({
       const term = globalSearch.toLowerCase();
       filtered = filtered.filter((row) =>
         Object.values(row).some((v) =>
-          String(v ?? "").toLowerCase().includes(term)
+          String(v ?? "")
+            .toLowerCase()
+            .includes(term)
         )
       );
     }
@@ -114,7 +116,7 @@ export default function PaginatedTable<T extends Record<string, any>>({
   );
 
   return (
-    <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm relative">
+    <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm relative font-sans">
       {/* Top Controls */}
       <div className="flex justify-between items-center mb-3">
         <div className="flex items-center gap-3 text-sm">
@@ -173,13 +175,13 @@ export default function PaginatedTable<T extends Record<string, any>>({
             />
           </div>
 
-          <button
+          {/* <button
             onClick={() => setShowFilters(!showFilters)}
             className="flex items-center gap-1 border border-gray-300 px-3 py-1.5 rounded-md hover:bg-gray-100"
           >
             <SlidersHorizontal size={14} />
             {showFilters ? "Hide Filters" : "Show Filters"}
-          </button>
+          </button> */}
 
           <button
             onClick={clearAllFilters}
@@ -199,7 +201,7 @@ export default function PaginatedTable<T extends Record<string, any>>({
               {columns.map((col) => (
                 <th
                   key={col.key as string}
-                  className="px-3 py-2 text-left font-medium relative"
+                  className="px-3 py-2 text-left relative"
                 >
                   <div className="flex items-center gap-1">
                     {col.label}
@@ -304,7 +306,10 @@ export default function PaginatedTable<T extends Record<string, any>>({
                   }`}
                 >
                   {columns.map((col) => (
-                    <td key={col.key as string} className="max-w-32 px-3 py-2 truncate">
+                    <td
+                      key={col.key as string}
+                      className="max-w-32 px-3 py-2 truncate"
+                    >
                       {row[col.key]}
                     </td>
                   ))}

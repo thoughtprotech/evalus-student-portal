@@ -25,6 +25,11 @@ import { TabsContent, TabsList, TabsRoot } from "@/components/Tabs";
 import PageHeader from "@/components/PageHeader";
 import TestReports from "./_components/TestReports/TestReports";
 import QuestionReports from "./_components/QuestionReports/QuestionReports";
+import CandidateReports from "./_components/CandidateReports/CandidateReports";
+import { AdminDashboardReportDataResponse } from "@/utils/api/types";
+import { fetchAdminDashboardReportDataAction } from "@/app/actions/admin/reports/dashboardReportData";
+import { formatMinutesToHourMinuteAlt } from "@/utils/formatIsoTime";
+import StatusReports from "./_components/StatusReports/StatusReports";
 
 interface Report {
   id: number;
@@ -37,6 +42,23 @@ export default function ReportsPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const [data, setData] = useState<AdminDashboardReportDataResponse>();
+
+  const fetchDashboardData = async () => {
+    try {
+      const res = await fetchAdminDashboardReportDataAction();
+      const { status, data, error, errorMessage, message } = res;
+      if (status === 200 && data) {
+        setData(data);
+      }
+    } catch (error) {
+      console.log("Error fetching dashboard data", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -58,8 +80,48 @@ export default function ReportsPage() {
         title="Reports"
         showSearch={false}
       />
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-6 mt-4">
+        <DetailCard
+          icon={<ClipboardList className="w-6 h-6 text-indigo-600" />}
+          label="Total Tests"
+          value={data?.testCount?.toString() || "0"}
+          footer="Since launch"
+        />
+        <DetailCard
+          icon={<CheckCircle className="w-6 h-6 text-green-600" />}
+          label="Passed"
+          value={data?.passCount?.toString() || "0"}
+          footer={`${data?.passRatePercent?.toFixed(2) || "0"}% pass rate`}
+        />
+        <DetailCard
+          icon={<XCircle className="w-6 h-6 text-red-600" />}
+          label="Failed"
+          value={data?.failCount?.toString() || "0"}
+          footer={`${data?.failRatePercent?.toFixed(2) || "0"}% fail rate`}
+        />
+        <DetailCard
+          icon={<TrendingUp className="w-6 h-6 text-indigo-600" />}
+          label="Avg. Score"
+          value={`${data?.averageTotalMarks?.toFixed(2) || "0"}%`}
+          footer="Across all tests"
+        />
+        <DetailCard
+          icon={<Percent className="w-6 h-6 text-teal-600" />}
+          label="Pass Rate"
+          value={`${data?.passRatePercent?.toFixed(2) || "0"}%`}
+          footer="Across all tests"
+        />
+        <DetailCard
+          icon={<Clock className="w-6 h-6 text-gray-600" />}
+          label="Avg. Duration"
+          value={formatMinutesToHourMinuteAlt(
+            Number(data?.avgDurationMinutes) || 0
+          )}
+          footer="Per test"
+        />
+      </div>
       <TabsRoot defaultIndex={0}>
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mt-4">
           <TabsList
             labels={[
               "Tests",
@@ -79,85 +141,11 @@ export default function ReportsPage() {
           {/* 1: Status Report */}
           <QuestionReports />
 
-          {/* 2: Sales Report */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <DetailCard
-              icon={<DollarSign className="w-6 h-6 text-green-600" />}
-              label="Revenue"
-              value="$12,430"
-              footer="Month to date"
-            />
-            <DetailCard
-              icon={<ShoppingCart className="w-6 h-6 text-indigo-600" />}
-              label="Orders"
-              value="1,254"
-              footer="This month"
-            />
-            <DetailCard
-              icon={<RefreshCw className="w-6 h-6 text-teal-600" />}
-              label="Repeat Buys"
-              value="34%"
-              footer="Of total"
-            />
-            <DetailCard
-              icon={<Zap className="w-6 h-6 text-yellow-500" />}
-              label="Average Cart"
-              value="$98"
-              footer="Per order"
-            />
-            <DetailCard
-              icon={<Percent className="w-6 h-6 text-purple-600" />}
-              label="Conversion"
-              value="4.2%"
-              footer="Site visits → orders"
-            />
-            <DetailCard
-              icon={<Clock className="w-6 h-6 text-gray-600" />}
-              label="Avg. Fulfillment"
-              value="2d"
-              footer="Order to ship"
-            />
-          </div>
+          {/* 2: Candidate Report */}
+          <CandidateReports />
 
           {/* 3: Subjective Eval */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <DetailCard
-              icon={<Edit2 className="w-6 h-6 text-indigo-600" />}
-              label="Evaluated"
-              value="410"
-              footer="Completed reviews"
-            />
-            <DetailCard
-              icon={<Clock className="w-6 h-6 text-gray-600" />}
-              label="Pending"
-              value="65"
-              footer="Awaiting feedback"
-            />
-            <DetailCard
-              icon={<AlertCircle className="w-6 h-6 text-red-600" />}
-              label="Flagged"
-              value="12"
-              footer="Needs re-evaluation"
-            />
-            <DetailCard
-              icon={<CheckCircle className="w-6 h-6 text-green-600" />}
-              label="Approved"
-              value="388"
-              footer="Pass threshold"
-            />
-            <DetailCard
-              icon={<XCircle className="w-6 h-6 text-red-600" />}
-              label="Rejected"
-              value="22"
-              footer="Below standard"
-            />
-            <DetailCard
-              icon={<Percent className="w-6 h-6 text-teal-600" />}
-              label="Approval Rate"
-              value="85%"
-              footer="Of evaluated"
-            />
-          </div>
+          <StatusReports />
 
           {/* 4: Audit Log */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
