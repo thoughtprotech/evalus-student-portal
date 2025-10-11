@@ -55,8 +55,7 @@ export default function ReportsPage() {
       <PageHeader
         icon={<BarChart2 className="w-6 h-6 text-purple-600" />}
         title="Reports"
-        newLink="/admin/candidates/new"
-        onSearch={(e) => setQuery(e)}
+        showSearch={false}
       />
       <TabsRoot defaultIndex={0}>
         <div className="flex justify-between items-center mb-4">

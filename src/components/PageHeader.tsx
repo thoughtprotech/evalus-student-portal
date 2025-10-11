@@ -9,7 +9,7 @@ interface PageHeaderProps {
   icon: ReactNode;
   title: string;
   newLink?: string;
-  onSearch: (e: string) => void;
+  onSearch?: (e: string) => void;
   showSearch?: boolean;
   onNewClick?: () => void;
   searchValue?: string;
@@ -32,7 +32,7 @@ export default function PageHeader({
       </h1>
       <div className="flex items-center gap-5">
         {showSearch && (
-          <SearchBar onSearch={onSearch} value={searchValue} className="px-4 py-2" />
+          <SearchBar onSearch={onSearch ?? (() => {})} value={searchValue} className="px-4 py-2" />
         )}
         {newLink || onNewClick ? (
           newLink ? (
