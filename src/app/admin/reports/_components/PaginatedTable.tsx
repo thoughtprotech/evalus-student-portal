@@ -304,7 +304,7 @@ export default function PaginatedTable<T extends Record<string, any>>({
                   }`}
                 >
                   {columns.map((col) => (
-                    <td key={col.key as string} className="px-3 py-2">
+                    <td key={col.key as string} className="max-w-32 px-3 py-2 truncate">
                       {row[col.key]}
                     </td>
                   ))}

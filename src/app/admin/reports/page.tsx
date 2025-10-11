@@ -24,6 +24,7 @@ import Loader from "@/components/Loader";
 import { TabsContent, TabsList, TabsRoot } from "@/components/Tabs";
 import PageHeader from "@/components/PageHeader";
 import TestReports from "./_components/TestReports/TestReports";
+import QuestionReports from "./_components/QuestionReports/QuestionReports";
 
 interface Report {
   id: number;
@@ -76,44 +77,7 @@ export default function ReportsPage() {
           <TestReports />
 
           {/* 1: Status Report */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <DetailCard
-              icon={<UserCheck className="w-6 h-6 text-green-600" />}
-              label="Active Users"
-              value="342"
-              footer="Last 24h"
-            />
-            <DetailCard
-              icon={<UserX className="w-6 h-6 text-red-600" />}
-              label="Inactive Users"
-              value="58"
-              footer="Not logged in 30d"
-            />
-            <DetailCard
-              icon={<UserPlus className="w-6 h-6 text-indigo-600" />}
-              label="New Sign‑ups"
-              value="92"
-              footer="Last week"
-            />
-            <DetailCard
-              icon={<Zap className="w-6 h-6 text-yellow-500" />}
-              label="Sessions"
-              value="1.2K"
-              footer="Today"
-            />
-            <DetailCard
-              icon={<RefreshCw className="w-6 h-6 text-teal-600" />}
-              label="Returning"
-              value="78%"
-              footer="Of total users"
-            />
-            <DetailCard
-              icon={<Clock className="w-6 h-6 text-gray-600" />}
-              label="Avg. Session"
-              value="10m"
-              footer="Per user"
-            />
-          </div>
+          <QuestionReports />
 
           {/* 2: Sales Report */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

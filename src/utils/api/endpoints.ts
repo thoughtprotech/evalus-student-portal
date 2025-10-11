@@ -30,6 +30,8 @@ import {
   GetQuestionOptionsRequest,
   GetQuestionOptionsResponse,
   GetQuestionTypesResponse,
+  GetReportsTestQuestionsPerformanceSummaryRequest,
+  GetReportsTestQuestionsPerformanceSummaryResponse,
   GetSessionQuestionByIdRequest,
   GetSessionQuestionByIdResponse,
   GetSidebarMenusRequest,
@@ -1308,5 +1310,17 @@ export const endpoints = {
   } as Endpoint<
     AdminDashboardTestPerformanceSummaryRequest,
     AdminDashboardTestPerformanceSummaryResponse[]
+  >,
+
+  getAdminReportsTestQuestionsPerformanceSummary: {
+    method: "GET",
+    path: ({ testid }) =>
+      `/api/TestAdminDashboard/adminDashboard/GetReportsTestQuestionsPerformanceSummary?${
+        testid ? `testId=${testid}` : ""
+      }`,
+    type: "CLOSE",
+  } as Endpoint<
+    GetReportsTestQuestionsPerformanceSummaryRequest,
+    GetReportsTestQuestionsPerformanceSummaryResponse[]
   >,
 };

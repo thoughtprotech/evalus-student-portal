@@ -725,3 +725,16 @@ export interface AdminDashboardTestPerformanceSummaryResponse {
   aboveAverageCount: number;
   belowAverageCount: number;
 }
+
+export interface GetReportsTestQuestionsPerformanceSummaryRequest {
+  testid?: number;
+}
+
+export interface GetReportsTestQuestionsPerformanceSummaryResponse {
+  testName: number;
+  totalQuestions: string;
+  skipped: number;
+  correct: number;
+  incorrect: number;
+  questionDifficultyLevel: number;
+}

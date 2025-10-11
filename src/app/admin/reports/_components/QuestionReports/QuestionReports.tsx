@@ -10,6 +10,7 @@ import { DetailCard } from "../../page";
 import {
   AdminDashboardReportDataResponse,
   AdminDashboardTestPerformanceSummaryResponse,
+  GetReportsTestQuestionsPerformanceSummaryResponse,
 } from "@/utils/api/types";
 import { useEffect, useState } from "react";
 import { fetchAdminDashboardReportDataAction } from "@/app/actions/admin/reports/dashboardReportData";
@@ -17,27 +18,26 @@ import {
   formatMinutesToHourMinute,
   formatMinutesToHourMinuteAlt,
 } from "@/utils/formatIsoTime";
-import { fetchAdminDashboardTestPerformanceSummaryAction } from "@/app/actions/admin/reports/dashboardTestPerformanceSummary";
 import PaginatedTable from "../PaginatedTable";
+import { fetchAdminReportsTestsQuestionsPerformanceSummmaryAction } from "@/app/actions/admin/reports/dashboardReportsTestQuestionsPerformanceSummary";
 
-export default function TestReports() {
+export default function QuestionReports() {
   const [data, setData] = useState<AdminDashboardReportDataResponse>();
   const [tableData, setTableData] = useState<
-    AdminDashboardTestPerformanceSummaryResponse[]
+    GetReportsTestQuestionsPerformanceSummaryResponse[]
   >([]);
   const [testid, setTestid] = useState<number | undefined>(undefined);
 
   const columns: {
-    key: keyof AdminDashboardTestPerformanceSummaryResponse;
+    key: keyof GetReportsTestQuestionsPerformanceSummaryResponse;
     label: string;
   }[] = [
     { key: "testName", label: "Test Name" },
-    { key: "totalCandidates", label: "Total Candidates" },
-    { key: "completed", label: "Completed" },
-    { key: "averageScore", label: "Avg Score" },
-    { key: "maxScore", label: "Max Score" },
-    { key: "aboveAverageCount", label: "Above Avg" },
-    { key: "belowAverageCount", label: "Below Avg" },
+    { key: "totalQuestions", label: "Total Questions" },
+    { key: "skipped", label: "Skipped" },
+    { key: "correct", label: "Correct" },
+    { key: "incorrect", label: "Incorrect" },
+    { key: "questionDifficultyLevel", label: "Question Difficulty Level" },
   ];
 
   const fetchDashboardData = async () => {
@@ -54,7 +54,8 @@ export default function TestReports() {
 
   const fetchDashboardTestPerformanceSummary = async () => {
     try {
-      const res = await fetchAdminDashboardTestPerformanceSummaryAction();
+      const res =
+        await fetchAdminReportsTestsQuestionsPerformanceSummmaryAction();
       const { status, data, error, errorMessage, message } = res;
       if (status === 200 && data) {
         setTableData(data);
