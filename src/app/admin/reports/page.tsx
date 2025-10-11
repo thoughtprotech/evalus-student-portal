@@ -23,6 +23,7 @@ import { fetchReportsAction } from "@/app/actions/admin/reports";
 import Loader from "@/components/Loader";
 import { TabsContent, TabsList, TabsRoot } from "@/components/Tabs";
 import PageHeader from "@/components/PageHeader";
+import TestReports from "./_components/TestReports/TestReports";
 
 interface Report {
   id: number;
@@ -61,10 +62,11 @@ export default function ReportsPage() {
         <div className="flex justify-between items-center mb-4">
           <TabsList
             labels={[
-              "Test Report",
-              "Status Report",
-              "Sales Report",
-              "Subjective Eval",
+              "Tests",
+              "Questions",
+              "Candidates",
+              "Status",
+              "Sales",
               "Audit Log",
             ]}
           />
@@ -72,44 +74,7 @@ export default function ReportsPage() {
 
         <TabsContent>
           {/* 0: Test Report */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <DetailCard
-              icon={<ClipboardList className="w-6 h-6 text-indigo-600" />}
-              label="Total Tests"
-              value="128"
-              footer="Since launch"
-            />
-            <DetailCard
-              icon={<CheckCircle className="w-6 h-6 text-green-600" />}
-              label="Passed"
-              value="375"
-              footer="75% pass rate"
-            />
-            <DetailCard
-              icon={<XCircle className="w-6 h-6 text-red-600" />}
-              label="Failed"
-              value="125"
-              footer="25% fail rate"
-            />
-            <DetailCard
-              icon={<TrendingUp className="w-6 h-6 text-indigo-600" />}
-              label="Avg. Score"
-              value="78%"
-              footer="Across all tests"
-            />
-            <DetailCard
-              icon={<Percent className="w-6 h-6 text-teal-600" />}
-              label="Pass Rate"
-              value="75%"
-              footer="Up 5% MoM"
-            />
-            <DetailCard
-              icon={<Clock className="w-6 h-6 text-gray-600" />}
-              label="Avg. Duration"
-              value="35m"
-              footer="Per test"
-            />
-          </div>
+          <TestReports />
 
           {/* 1: Status Report */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -276,7 +241,7 @@ export default function ReportsPage() {
   );
 }
 
-function DetailCard({
+export function DetailCard({
   icon,
   label,
   value,

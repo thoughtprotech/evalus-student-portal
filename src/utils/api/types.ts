@@ -621,6 +621,7 @@ export interface AdminDashboardAnallyticsResponse {
   totaltest: number;
   totalquestions: number;
   totalattempts: number;
+  totalInProgress: number;
   candidatesGraph: { count: number; monthYear: string }[];
   testsGraph: { count: number; monthYear: string }[];
   questionsGraph: { count: number; monthYear: string }[];
