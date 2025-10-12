@@ -38,6 +38,8 @@ type HeaderProps = {
   onSelectSection?: (section: SectionsMetaDataInterface) => void;
   currentSectionId: SectionsMetaDataInterface;
   setCurrentSection: any;
+  currentSection: SectionsMetaDataInterface;
+  // sectionMaxTime removed (deprecated per-section timing)
 };
 
 // Root Component
@@ -48,7 +50,9 @@ export default function Header({
   onSelectSection,
   currentSectionId,
   setCurrentSection,
-}: HeaderProps) {
+  currentSection,
+}: // sectionMaxTime
+HeaderProps) {
   const { testMeta, sections } = data;
   const { testName, instruction } = testMeta;
   const [userName, setUserName] = useState<string>("");
@@ -64,34 +68,6 @@ export default function Header({
 
   return (
     <HeaderContainer>
-      {/* <div className="flex flex-col gap-2 sm:gap-3 h-full">
-        <div className="flex items-start justify-between gap-3 h-full">
-          <div className="flex flex-col justify-between w-full h-full">
-            <TitleWithTimer
-              testName={testName}
-              formattedTimeTest={Number(data.testMeta.testDuration)}
-              formattedTimeSection={Number(currentSectionId?.maxDuration)}
-              onSectionTimeUp={onSectionTimeUp}
-              onTestTimeUp={onTestTimeUp}
-            />
-            <div className="w-full flex item-center gap-2">
-              <SectionTabs
-                sections={sections}
-                activeSectionId={currentSectionId?.sectionId!}
-                onSelectSection={onSelectSection}
-              />
-            </div>
-          </div>
-          <ActionsBar
-            instructionsTitle={
-              instruction?.primaryInstruction || "Instructions"
-            }
-            onOpenInstructions={() => setShowInstructions(true)}
-            onOpenQuestions={() => setShowQuestions(true)}
-            userName={userName}
-          />
-        </div>
-      </div> */}
       <div className="w-full flex justify-between items-center relative">
         <div className="flex items-center gap-20">
           <div>
@@ -106,14 +82,26 @@ export default function Header({
           <h1 className="text-indigo-700">{userName}</h1>
         </div>
         <div className="flex items-center gap-2">
-          <TimerChip
-            title="Time Left"
-            durationMs={Math.max(
-              0,
-              Number(data.testMeta.testDuration) * 60_000
+          <div className="flex items-center gap-4">
+            <TimerChip
+              title="Time Left"
+              durationMs={Math.max(
+                0,
+                Number(data.testMeta.testDuration) * 60_000
+              )}
+              onComplete={onTestTimeUp}
+            />
+            {Number.isFinite(currentSection.sectionMaxTimeDuration) && currentSection.sectionMaxTimeDuration !== 0 && (
+              <TimerChip
+                title="Section Time Left"
+                durationMs={Math.max(
+                  0,
+                  currentSection.sectionMaxTimeDuration * 60_000
+                )}
+                onComplete={onSectionTimeUp}
+              />
             )}
-            onComplete={onTestTimeUp}
-          />
+          </div>
           <WelcomeChip userName={userName} />
         </div>
       </div>

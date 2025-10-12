@@ -38,7 +38,12 @@ export default function TimerChip({
             clearInterval(intervalRef.current);
             intervalRef.current = null;
           }
-          onComplete?.();
+          // Use setTimeout to avoid React's "setState during render" error
+          if (onComplete) {
+            setTimeout(() => {
+              onComplete();
+            }, 0);
+          }
         }
         return next;
       });

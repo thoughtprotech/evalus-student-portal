@@ -156,14 +156,57 @@ export interface QuestionsMetaDataInterface {
 export interface SectionsMetaDataInterface {
   sectionId: number;
   sectionName: string;
-  minDuration: number;
-  maxDuration: number;
+  sectionTotalQuestions: number;
+  sectionTotalMarks: number;
+  sectionMinTimeDuration: number;
+  sectionMaxTimeDuration: number;
   questions: QuestionsMetaDataInterface[];
+}
+
+export interface TestSettingsInterface {
+  testSettingId: number;
+  testId: number;
+
+  groupQuestionsBySubjects?: boolean;
+  questionNumberingBySections?: boolean;
+  randomizeQuestionByTopics?: boolean;
+  randomizeAnswerOptionsByQuestions?: boolean;
+  attemptAllQuestions?: boolean;
+  displayMarksDuringTest?: boolean;
+  minimumTestTime?: number;
+  maximumTestTimePer?: number;
+  lockSectionsOnSubmission?: boolean;
+  logTestActivity?: boolean;
+  displayTestTime?: boolean;
+  displaySectionTime?: boolean;
+  testMinimumPassMarks?: number;
+  testCompletionMessage?: string;
+  testPassFeedbackMessage?: string;
+  testFailFeedbackMessage?: string;
+  testSubmissionMessage?: string;
+  automaticRankCalculation?: boolean;
+  allowDuplicateRank?: boolean;
+  skipRankForDuplicateTank?: boolean;
+  allowTestPauseResume?: boolean;
+  detailedTestReportOnTestCompletion?: boolean;
+  negativeScoreZeroes?: null;
+  allowBioBreak?: boolean;
+  testAdditionalTime?: number;
+  automatedCertificateGeneration?: null;
+  releaseCertificatesToCandidates?: null;
+
+  language: string;
+  isActive: number;
+  createdBy: string;
+  createdDate: string;
+  modifiedBy: string;
+  modifiedDate: string;
 }
 
 export interface GetTestMetaDataResponse {
   testMeta: TestMetaDataInterface;
   sections: SectionsMetaDataInterface[];
+  testSettings: TestSettingsInterface;
 }
 
 export interface CreateQuestionRequest {
@@ -578,6 +621,7 @@ export interface AdminDashboardAnallyticsResponse {
   totaltest: number;
   totalquestions: number;
   totalattempts: number;
+  totalInProgress: number;
   candidatesGraph: { count: number; monthYear: string }[];
   testsGraph: { count: number; monthYear: string }[];
   questionsGraph: { count: number; monthYear: string }[];
@@ -652,4 +696,93 @@ export interface CandidateAnalyticsReportSectionResponse {
   correctAnswersCount: number;
   inCorrectAnswersCount: number;
   sectionMyMarks: number;
+}
+
+export interface AdminDashboardReportDataRequest {}
+
+export interface AdminDashboardReportDataResponse {
+  testCount: number;
+  passCount: number;
+  failCount: number;
+  notGradedCount: number;
+  averageTotalMarks: number;
+  passRatePercent: number;
+  failRatePercent: number;
+  notGradedRatePercent: number;
+  avgDurationMinutes: number;
+}
+
+export interface AdminDashboardTestPerformanceSummaryRequest {
+  testid?: number;
+}
+
+export interface AdminDashboardTestPerformanceSummaryResponse {
+  testName: string;
+  totalCandidates: number;
+  completed: number;
+  averageScore: number;
+  maxScore: number;
+  aboveAverageCount: number;
+  belowAverageCount: number;
+}
+
+export interface GetReportsTestQuestionsPerformanceSummaryRequest {
+  testid?: number;
+}
+
+export interface GetReportsTestQuestionsPerformanceSummaryResponse {
+  testName: number;
+  totalQuestions: string;
+  skipped: number;
+  correct: number;
+  incorrect: number;
+  questionDifficultyLevel: number;
+}
+
+export interface GetAdminDashboardTestCandidatePerformanceSummaryRequest {
+  search?: string;
+  candidateGroupId?: number;
+}
+
+export interface GetAdminDashboardTestCandidatePerformanceSummaryResponse {
+  candidateName: string;
+  email: string;
+  cellPhone: string;
+  testName: string;
+  isActive: string;
+  groupNames: string;
+  totalMarks: number;
+  marksScored: number;
+}
+
+export interface GetAdminDashboardTestStatusSummaryRequest {
+  testId?: number;
+}
+
+export interface GetAdminDashboardTestStatusSummaryResponse {
+  testName: string;
+  inProgressCount: number;
+  resultGeneratedCount: number;
+  totalCount: number;
+}
+
+export interface GetReportsAuditSummaryRequest {
+  userTimeStamp?: string;
+  module?: string;
+}
+
+export interface GetReportsAuditSummaryResponse {
+  userName: string;
+  activity: string;
+  module: string;
+  logDate: string;
+  logTime: string;
+  device: string;
+}
+
+export interface GetCandidateGroupsInorderRequest {}
+
+export interface GetCandidateGroupsInorderResponse {
+  candidateGroupID: number;
+  fullPath: string;
 }

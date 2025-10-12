@@ -55,10 +55,7 @@ function normalizeTestToDraft(test: any): any {
 
     d.MinimumTestTime = pick(s0.MinimumTestTime, s0.minimumTestTime);
     d.MaximumTestTimePer = pick(s0.MaximumTestTimePer, s0.maximumTestTimePer);
-    d.MinimumTimePerQuestion = pick(s0.MinimumTimePerQuestion, s0.minimumTimePerQuestion);
-    d.MaximumTimePerQuestion = pick(s0.MaximumTimePerQuestion, s0.maximumTimePerQuestion);
-    d.MinimumTimePerSection = pick(s0.MinimumTimePerSection, s0.minimumTimePerSection);
-    d.MaximumTimePerSection = pick(s0.MaximumTimePerSection, s0.maximumTimePerSection);
+  // Deprecated per-question/section timing fields removed (Minimum/MaximumTimePerQuestion/Section)
 
     d.LockSectionsOnSubmission = pick(s0.LockSectionsOnSubmission, s0.lockSectionsOnSubmission);
     d.LogTestActivity = pick(s0.LogTestActivity, s0.logTestActivity);

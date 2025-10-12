@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import YesNoToggle from "@/components/ui/YesNoToggle";
 import TogglePair from "@/components/ui/TogglePair";
 import { useTestDraft } from "@/contexts/TestDraftContext";
@@ -21,16 +21,30 @@ export default function Step2TestSettings() {
   const [numberBySections, setNumberBySections] = useState(false);
   const [randomizeByTopics, setRandomizeByTopics] = useState(false);
   const [randomizeAnswerOptions, setRandomizeAnswerOptions] = useState(false);
+  // Helper to coerce mixed backend truthy representations
+  const coerceBool = (v: any): boolean => {
+    if (v === 1 || v === "1" || v === true) return true;
+    if (typeof v === "string" && v.trim().toLowerCase() === "true") return true;
+    return false;
+  };
+  const initialAllowMultipleAttempts = (() => {
+    const d: any = draft || {};
+    const variants = [
+      d?.AllowMultipleAttempts,
+      d?.allowMultipleAttempts,
+      d?.AllowMultipleAttempt,
+      d?.allowMultipleAttempt,
+      d?.Allowmultipleattempts,
+      d?.allowmultipleattempts,
+    ];
+    const first = variants.find((v) => v !== undefined && v !== null);
+    return coerceBool(first);
+  })();
+  const [allowMultipleAttempts, setAllowMultipleAttempts] = useState(initialAllowMultipleAttempts);
   const [attemptAll, setAttemptAll] = useState(false);
   const [displayMarks, setDisplayMarks] = useState(false);
 
-  // Time configuration
-  const [minTestTime, setMinTestTime] = useState<string>("");
-  const [maxTestTimePer, setMaxTestTimePer] = useState<string>("");
-  const [minTimePerQ, setMinTimePerQ] = useState<string>("");
-  const [maxTimePerQ, setMaxTimePerQ] = useState<string>("");
-  const [minTimePerSection, setMinTimePerSection] = useState<string>("");
-  const [maxTimePerSection, setMaxTimePerSection] = useState<string>("");
+  // Time configuration removed per requirement (UI no longer exposes these settings)
 
   // Visibility & Logging
   const [lockSectionsOnSubmission, setLockSectionsOnSubmission] = useState(false);
@@ -55,6 +69,38 @@ export default function Step2TestSettings() {
 
   // Schedule removed from Step 2
 
+  // Normalize & default AllowMultipleAttempts (default = true if absent)
+  const normalizedAllowMultipleAttempts = useRef(false);
+  useEffect(() => {
+    if (!draft || normalizedAllowMultipleAttempts.current) return;
+    const d: any = draft;
+    const variantKeys = [
+      'AllowMultipleAttempts','allowMultipleAttempts','AllowMultipleAttempt','allowMultipleAttempt','Allowmultipleattempts','allowmultipleattempts'
+    ];
+    let firstDefined: any = undefined; let sourceKey: string | null = null;
+    for (const k of variantKeys) {
+      if (d[k] !== undefined && d[k] !== null) { firstDefined = d[k]; sourceKey = k; break; }
+    }
+    const hasCanonical = d.AllowMultipleAttempts !== undefined && d.AllowMultipleAttempts !== null;
+    // Determine canonical value: if anything defined use coercion; else default TRUE (1)
+    const canonicalBool = hasCanonical
+      ? (d.AllowMultipleAttempts === 1 || d.AllowMultipleAttempts === '1' || d.AllowMultipleAttempts === true || String(d.AllowMultipleAttempts).toLowerCase() === 'true')
+      : (firstDefined !== undefined
+          ? (firstDefined === 1 || firstDefined === '1' || firstDefined === true || String(firstDefined).toLowerCase() === 'true')
+          : true);
+    setDraft((prev: any) => {
+      const copy = { ...(prev || {}) };
+      // Remove all variant keys except canonical
+      for (const k of variantKeys) {
+        if (k !== 'AllowMultipleAttempts') delete copy[k];
+      }
+      copy.AllowMultipleAttempts = canonicalBool ? 1 : 0;
+      return copy;
+    });
+    normalizedAllowMultipleAttempts.current = true;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft]);
+
   // Hydrate from draft
   useEffect(() => {
     if (!draft) return;
@@ -63,15 +109,22 @@ export default function Step2TestSettings() {
   // Force Randomize by Topics off regardless of draft value
   setRandomizeByTopics(false);
     setRandomizeAnswerOptions(fromUlong(draft.RandomizeAnswerOptionsByQuestions));
+    // Hydrate AllowMultipleAttempts with variant detection (in case canonical promotion hasn't happened yet)
+    const amaVariants = [
+      draft.AllowMultipleAttempts,
+      (draft as any).allowMultipleAttempts,
+      (draft as any).AllowMultipleAttempt,
+      (draft as any).allowMultipleAttempt,
+      (draft as any).Allowmultipleattempts,
+      (draft as any).allowmultipleattempts,
+    ];
+  const firstDefined = amaVariants.find(v => v !== undefined && v !== null);
+  // If still undefined after normalization default true
+  setAllowMultipleAttempts(firstDefined === undefined ? true : coerceBool(firstDefined));
     setAttemptAll(fromUlong(draft.AttemptAllQuestions));
     setDisplayMarks(fromUlong(draft.DisplayMarksDuringTest));
 
-    setMinTestTime(draft.MinimumTestTime != null ? String(draft.MinimumTestTime) : "");
-    setMaxTestTimePer(draft.MaximumTestTimePer != null ? String(draft.MaximumTestTimePer) : "");
-    setMinTimePerQ(draft.MinimumTimePerQuestion != null ? String(draft.MinimumTimePerQuestion) : "");
-    setMaxTimePerQ(draft.MaximumTimePerQuestion != null ? String(draft.MaximumTimePerQuestion) : "");
-    setMinTimePerSection(draft.MinimumTimePerSection != null ? String(draft.MinimumTimePerSection) : "");
-    setMaxTimePerSection(draft.MaximumTimePerSection != null ? String(draft.MaximumTimePerSection) : "");
+  // Removed: Time limits hydration (Minimum/Maximum test/section/question times)
 
     setLockSectionsOnSubmission(fromUlong(draft.LockSectionsOnSubmission));
     setLogTestActivity(fromUlong(draft.LogTestActivity));
@@ -178,117 +231,24 @@ export default function Step2TestSettings() {
                 }}
               />
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Time Limits */}
-      <section className="border rounded-lg bg-white shadow-sm">
-        <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Time Limits</div>
-        <div className="p-4 space-y-4 text-sm">
-          {/* Row 1: Min/Max Test Time */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-gray-800 mb-1">Minimum Test Time (mins)</label>
-              <input
-                type="number"
-                min={1}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={minTestTime}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setMinTestTime(v);
-                  setDraft((d: any) => ({ ...d, MinimumTestTime: toNumberOrNull(v) }));
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-gray-800">Allow Multiple Attempts</span>
+              <YesNoToggle
+                className="shrink-0"
+                size="sm"
+                segmentWidthClass="w-10 h-5 text-xs"
+                value={allowMultipleAttempts}
+                onChange={(v) => {
+                  setAllowMultipleAttempts(v);
+                  setDraft((d: any) => ({ ...d, AllowMultipleAttempts: toUlong(v) }));
                 }}
-                placeholder="e.g., 10"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-800 mb-1">Maximum Test Time (mins)</label>
-              <input
-                type="number"
-                min={1}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={maxTestTimePer}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setMaxTestTimePer(v);
-                  setDraft((d: any) => ({ ...d, MaximumTestTimePer: toNumberOrNull(v) }));
-                }}
-                placeholder="e.g., 120"
-              />
-            </div>
-          </div>
-
-          {/* Row 2: Min/Max Time per Question */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-gray-800 mb-1">Minimum Time per Question (secs)</label>
-              <input
-                type="number"
-                min={1}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={minTimePerQ}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setMinTimePerQ(v);
-                  setDraft((d: any) => ({ ...d, MinimumTimePerQuestion: toNumberOrNull(v) }));
-                }}
-                placeholder="e.g., 30"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-800 mb-1">Maximum Time per Question (secs)</label>
-              <input
-                type="number"
-                min={1}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={maxTimePerQ}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setMaxTimePerQ(v);
-                  setDraft((d: any) => ({ ...d, MaximumTimePerQuestion: toNumberOrNull(v) }));
-                }}
-                placeholder="e.g., 120"
-              />
-            </div>
-          </div>
-
-          {/* Row 3: Min/Max Time per Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-gray-800 mb-1">Minimum Time per Section (mins)</label>
-              <input
-                type="number"
-                min={1}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={minTimePerSection}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setMinTimePerSection(v);
-                  setDraft((d: any) => ({ ...d, MinimumTimePerSection: toNumberOrNull(v) }));
-                }}
-                placeholder="e.g., 10"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-800 mb-1">Maximum Time per Section (mins)</label>
-              <input
-                type="number"
-                min={1}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={maxTimePerSection}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setMaxTimePerSection(v);
-                  setDraft((d: any) => ({ ...d, MaximumTimePerSection: toNumberOrNull(v) }));
-                }}
-                placeholder="e.g., 60"
               />
             </div>
           </div>
         </div>
       </section>
+
+      {/* Time Limits section removed */}
 
       {/* Visibility & Logging */}
       <section className="border rounded-lg bg-white shadow-sm">
@@ -361,13 +321,9 @@ export default function Step2TestSettings() {
       <section className="border rounded-lg bg-white shadow-sm">
         <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Feedback Messages</div>
         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="grid gap-2">
+          <div className="grid gap-2 md:col-span-2">
             <label className="text-gray-800">Test Completion Message</label>
             <textarea className="w-full min-h-[72px] border rounded-md px-3 py-2" value={completionMsg} onChange={(e) => { const v = e.target.value; setCompletionMsg(v); setDraft((d: any) => ({ ...d, TestCompletionMessage: v })); }} />
-          </div>
-          <div className="grid gap-2">
-            <label className="text-gray-800">Test Submission Message</label>
-            <textarea className="w-full min-h-[72px] border rounded-md px-3 py-2" value={submissionMsg} onChange={(e) => { const v = e.target.value; setSubmissionMsg(v); setDraft((d: any) => ({ ...d, TestSubmissionMessage: v })); }} />
           </div>
           <div className="grid gap-2">
             <label className="text-gray-800">Test Pass Feedback Message</label>
@@ -394,7 +350,7 @@ export default function Step2TestSettings() {
               <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={allowDuplicateRank} onChange={(v) => { setAllowDuplicateRank(v); setDraft((d: any) => ({ ...d, AllowDuplicateRank: toUlong(v) })); }} />
             </label>
             <label className="flex items-center justify-between gap-3">
-              <span className="text-gray-800">Skip Rank for Duplicate Tank</span>
+              <span className="text-gray-800">Skip Rank for Duplicate Rank</span>
               <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={skipRankForDuplicateTank} onChange={(v) => { setSkipRankForDuplicateTank(v); setDraft((d: any) => ({ ...d, SkipRankForDuplicateTank: toUlong(v) })); }} />
             </label>
           </div>

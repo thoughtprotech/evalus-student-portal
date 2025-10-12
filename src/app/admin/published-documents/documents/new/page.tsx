@@ -16,6 +16,7 @@ type FormState = {
     publishedDocumentFolderId: number | "";
     documentName: string;
     documentUrl: string;
+    documentType: "document" | "youtube" | "mp4" | "file";
     validFrom: string;
     validTo: string;
     files: File[];
@@ -28,7 +29,7 @@ export default function NewPublishedDocumentPage() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string>("");
     const [showSuccess, setShowSuccess] = useState(false);
-    const [form, setForm] = useState<FormState>({ publishedDocumentFolderId: "", documentName: "", documentUrl: "", validFrom: "", validTo: "", files: [] });
+    const [form, setForm] = useState<FormState>({ publishedDocumentFolderId: "", documentName: "", documentUrl: "", documentType: "document", validFrom: "", validTo: "", files: [] });
 
     useEffect(() => {
         (async () => {
@@ -43,13 +44,18 @@ export default function NewPublishedDocumentPage() {
     // Build a tree view (flattened with indentation) for the folders dropdown
     // TreeSelect consumes the flat items and renders + / - for expand/collapse
 
-    const canSave = !!(form.publishedDocumentFolderId && form.documentName.trim() && (form.files?.length || form.documentUrl.trim()) && form.validFrom && form.validTo);
+    const canSave = !!(form.publishedDocumentFolderId && form.documentName.trim() && (form.files?.length || form.documentUrl.trim()) && form.validFrom && form.validTo && form.documentType);
 
     const inputCls = "w-full border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md px-3 py-2 text-sm bg-white";
 
-    const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const onMp4Change = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files) return;
-        setForm(f => ({ ...f, files: Array.from(e.target.files!) }));
+        setForm(f => ({ ...f, files: Array.from(e.target.files!), documentType: "mp4" }));
+    };
+
+    const onDocFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files) return;
+        setForm(f => ({ ...f, files: Array.from(e.target.files!), documentType: "file" }));
     };
 
     const save = async () => {
@@ -57,19 +63,23 @@ export default function NewPublishedDocumentPage() {
         setSaving(true);
         try {
             setError("");
-            // 1) Upload files (if any) -> get URLs
             let url = form.documentUrl.trim();
+            let docType = form.documentType;
             if (form.files.length) {
                 const first = form.files[0];
                 const up = await uploadToLocal(first);
                 url = up.url;
+                // keep selected documentType for uploaded files ("mp4" or "file")
+                docType = form.documentType;
+            } else if (form.documentType === "youtube") {
+                docType = "youtube";
+            } else {
+                docType = "document";
             }
-            // Enforce absolute URL: if relative like /uploads/..., prefix with site origin
             try {
                 const u = new URL(url, window.location.origin);
                 url = u.toString();
             } catch { /* ignore */ }
-            // Validate required dates and ensure order
             if (!form.validFrom || !form.validTo) {
                 throw new Error('Valid From and Valid To are required');
             }
@@ -81,12 +91,12 @@ export default function NewPublishedDocumentPage() {
             if (vt < vf) {
                 throw new Error('Valid To must be after Valid From');
             }
-            // 2) Call create API with payload
             const payload = {
                 id: 0,
                 publishedDocumentFolderId: Number(form.publishedDocumentFolderId),
                 documentName: form.documentName.trim(),
                 documentUrl: url,
+                documentType: docType,
                 validFrom: form.validFrom,
                 validTo: form.validTo,
             };
@@ -136,14 +146,59 @@ export default function NewPublishedDocumentPage() {
                     <input className={inputCls} value={form.documentName} onChange={e => setForm(f => ({ ...f, documentName: e.target.value }))} placeholder="Enter document name" />
                 </div>
                 <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Upload Files</label>
-                    <input type="file" multiple onChange={onFileChange} className={inputCls} />
-                    <p className="mt-1 text-xs text-gray-500">Provide a file or a URL below.</p>
+                    <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Document Type <span className="text-red-500">*</span></label>
+                    <select
+                        className={inputCls}
+                        value={form.documentType}
+                        onChange={e => setForm(f => ({ ...f, documentType: e.target.value as "document" | "youtube" | "mp4" }))}
+                        aria-label="Select document type"
+                        title="Select document type"
+                    >
+                        <option value="document">Document URL</option>
+                        <option value="youtube">YouTube URL</option>
+                        <option value="mp4">.mp4 Upload</option>
+                        <option value="file">Upload Document</option>
+                    </select>
                 </div>
-                {form.files.length === 0 && (
+                {form.documentType === "mp4" && (
                     <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Or Document URL</label>
-                        <input className={inputCls} value={form.documentUrl} onChange={e => setForm(f => ({ ...f, documentUrl: e.target.value }))} placeholder="https://…" />
+                        <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Upload .mp4 File</label>
+                        <input type="file" accept=".mp4" onChange={onMp4Change} className={inputCls} />
+                        <p className="mt-1 text-xs text-gray-500">Upload a .mp4 file.</p>
+                    </div>
+                )}
+                {form.documentType === "file" && (
+                    <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Upload Document</label>
+                        <input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" onChange={onDocFileChange} className={inputCls} />
+                        <p className="mt-1 text-xs text-gray-500">Upload PDF or Office documents.</p>
+                    </div>
+                )}
+                {form.documentType === "youtube" && (
+                    <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">YouTube URL</label>
+                        <input
+                            type="url"
+                            id="youtubeUrl"
+                            name="youtubeUrl"
+                            placeholder="Paste YouTube video URL here"
+                            pattern="https://www.youtube.com/.*|https://youtu.be/.*"
+                            className={inputCls}
+                            value={form.documentUrl}
+                            onChange={e => setForm(f => ({ ...f, documentUrl: e.target.value }))} />
+                    </div>
+                )}
+                {form.documentType === "document" && (
+                    <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Document URL</label>
+                        <input
+                            type="url"
+                            id="documentUrl"
+                            name="documentUrl"
+                            placeholder="Paste document URL here"
+                            className={inputCls}
+                            value={form.documentUrl}
+                            onChange={e => setForm(f => ({ ...f, documentUrl: e.target.value }))} />
                     </div>
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -171,11 +226,11 @@ export default function NewPublishedDocumentPage() {
                 onCancel={() => { setShowSuccess(false); router.push('/admin/published-documents/documents'); }}
                 title="Document Created Successfully!"
                 message="Your document has been created."
-                confirmText="Go to Documents"
                 cancelText=""
                 variant="success"
                 className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200"
             />
-        </div>
+        {/* If dropdown-menu is needed elsewhere, ensure it is properly closed and not inside ConfirmationModal */}
+    </div>
     );
 }

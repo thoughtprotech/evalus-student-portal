@@ -7,6 +7,7 @@ import { fetchCandidatesAction, deleteCandidateAction, type CandidateRow } from 
 
 import PageHeader from "@/components/PageHeader";
 import Link from "next/link";
+import CandidateImport from "./CandidateImport";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import Loader from "@/components/Loader"; // legacy spinner (still used for fallback cases)
 import GridOverlayLoader from "@/components/GridOverlayLoader";
@@ -397,6 +398,9 @@ function CandidatesGrid({ query, onClearQuery }: { query: string; onClearQuery?:
                         >
                             <PlusCircle className="w-4 h-4" /> New
                         </button>
+                    </Link>
+                    <Link href="/admin/candidates/import">
+                        <button className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-gray-100 text-sm hover:bg-gray-200 ml-2">Import</button>
                     </Link>
                     <button
                         type="button"

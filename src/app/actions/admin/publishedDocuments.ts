@@ -10,6 +10,7 @@ export type PublishedDocumentRow = {
     folderName?: string;
     documentName: string;
     documentUrl: string;
+    documentType?: string;
     validFrom?: string;
     validTo?: string;
 };
@@ -34,12 +35,13 @@ export async function fetchPublishedDocumentsODataAction(params: { query?: strin
     return { status: res.status, error: res.error, errorMessage: res.errorMessage, message: res.message } as any;
 }
 
-export async function createPublishedDocumentAction(payload: { id: number; publishedDocumentFolderId: number; documentName: string; documentUrl: string; validFrom?: string; validTo?: string }): Promise<ApiResponse<null>> {
+export async function createPublishedDocumentAction(payload: { id: number; publishedDocumentFolderId: number; documentName: string; documentUrl: string; documentType?: string; validFrom?: string; validTo?: string }): Promise<ApiResponse<null>> {
     const body = {
         id: payload.id,
         publishedDocumentFolderId: payload.publishedDocumentFolderId,
         documentName: payload.documentName,
         documentUrl: payload.documentUrl,
+        documentType: payload.documentType,
         validFrom: payload.validFrom,
         validTo: payload.validTo,
     };
@@ -47,12 +49,13 @@ export async function createPublishedDocumentAction(payload: { id: number; publi
     return res as any;
 }
 
-export async function updatePublishedDocumentAction(id: number, payload: { publishedDocumentFolderId: number; documentName: string; documentUrl: string; validFrom?: string; validTo?: string }): Promise<ApiResponse<null>> {
+export async function updatePublishedDocumentAction(id: number, payload: { publishedDocumentFolderId: number; documentName: string; documentUrl: string; documentType?: string; validFrom?: string; validTo?: string }): Promise<ApiResponse<null>> {
     const body = {
         id,
         publishedDocumentFolderId: payload.publishedDocumentFolderId,
         documentName: payload.documentName,
         documentUrl: payload.documentUrl,
+        documentType: payload.documentType,
         validFrom: payload.validFrom,
         validTo: payload.validTo,
     };
@@ -75,6 +78,7 @@ export async function getPublishedDocumentByIdAction(id: number): Promise<ApiRes
             folderName: d.PublishedDocumentFolderName ?? d.folderName ?? d.FolderName,
             documentName: d.DocumentName ?? d.documentName,
             documentUrl: d.DocumentUrl ?? d.documentUrl,
+            documentType: d.DocumentType ?? d.documentType,
             validFrom: d.ValidFrom ?? d.validFrom,
             validTo: d.ValidTo ?? d.validTo,
         };

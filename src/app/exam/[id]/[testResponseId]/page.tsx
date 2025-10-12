@@ -25,6 +25,7 @@ import { LogLevel } from "@microsoft/signalr";
 import { sendHeartbeatAck } from "@/utils/signalR/calls/heartbeat";
 import DefaultTemplate from "./templates/default/page";
 import SSCTemplate from "./templates/ssc/page";
+import ExamCompletionMessage from "./_components/ExamCompletionMessage";
 
 export default function ExamPage() {
   const { id, testResponseId } = useParams();
@@ -67,6 +68,8 @@ export default function ExamPage() {
       return toast.error("Provide An Answer");
     }
 
+    // Removed minimum per-question time enforcement (deprecated)
+
     const valid = validateResponse();
 
     if (valid) {
@@ -98,6 +101,7 @@ export default function ExamPage() {
             // );
             setCurrentIndex(currentIndex + 1);
             setQuestion(currentSection?.questions[currentIndex + 1]);
+            setQuestionStartTime(new Date().toISOString());
           } else {
             setSubmitSectionModal(true);
           }
@@ -382,6 +386,39 @@ export default function ExamPage() {
     }
   };
 
+  const checkIfMinimumTimeReached = (): boolean => {
+    if (!testMetaData) return false;
+    if (
+      testMetaData.testSettings.minimumTestTime === 0 ||
+      !testMetaData.testSettings.minimumTestTime
+    )
+      return true;
+    const now = new Date();
+    const start = new Date(testStartTime!);
+    const diffInMs = now.getTime() - start.getTime();
+    const diffInMinutes = diffInMs / (1000 * 60);
+    console.log({
+      diffInMinutes,
+      min: testMetaData.testSettings.minimumTestTime,
+    });
+    return diffInMinutes >= testMetaData.testSettings.minimumTestTime!;
+  };
+
+  // Deprecated: per-section and per-question minimum time checks removed
+  const checkIfMinimumSectionTimeReached = (): boolean => {
+    if (!testMetaData || !currentSection) return false;
+    if (currentSection.sectionMinTimeDuration === 0) return true;
+    const now = new Date();
+    const start = new Date(sectionStartTime!);
+    const diffInMs = now.getTime() - start.getTime();
+    const diffInMinutes = diffInMs / (1000 * 60);
+    return diffInMinutes >= currentSection.sectionMinTimeDuration!;
+  };
+
+  function sleep(ms: number | undefined) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   const submitTest = async () => {
     const username = await getUserAction();
     if (!username) {
@@ -392,12 +429,17 @@ export default function ExamPage() {
       toast.error("Test not ready");
       return;
     }
+
+    console.log("Submitting test...");
     const response = await endCandidateSessionAction(
       testMetaData.testMeta.testId,
       username
     );
 
+    setShowExam(false);
+
     if (response.status === 200) {
+      await sleep(5000);
       const targetUrl = `/dashboard`;
 
       // If this window was opened via window.open(), window.opener points back to the parent
@@ -420,6 +462,22 @@ export default function ExamPage() {
     useState<SectionsMetaDataInterface | null>(null);
   const [testMetaData, setTestMetaData] =
     useState<GetTestMetaDataResponse | null>(null);
+  const [testStartTime, setTestStartTime] = useState<string>();
+  const [sectionStartTime, setSectionStartTime] = useState<string>();
+  const [sectionMaxTime, setSectionMaxTime] = useState<number>();
+  const [questionStartTime, setQuestionStartTime] = useState<string>();
+  const [showExam, setShowExam] = useState(true);
+  // Removed per-question max time usage (deprecated)
+
+  useEffect(() => {
+    // on page load set current time as test start time
+    const currentTime = new Date().toISOString();
+    setTestStartTime(currentTime);
+    setSectionStartTime(currentTime);
+    // Deprecated: per-section/per-question max time removed
+    setSectionMaxTime(0);
+    setQuestionStartTime(currentTime);
+  }, []);
 
   const fetchTestMetaData = async () => {
     const userName = await getUserAction();
@@ -484,6 +542,8 @@ export default function ExamPage() {
 
     const isLast = curIdx === sections.length - 1;
 
+    console.log({ isLast, curIdx });
+
     if (isLast) {
       await submitTest();
       return;
@@ -492,12 +552,20 @@ export default function ExamPage() {
     const nextSection = sections[curIdx + 1];
     if (nextSection) {
       setCurrentSection(nextSection);
+      setQuestion(nextSection?.questions[0]);
+
+      setSectionStartTime(new Date().toISOString());
+      setQuestionStartTime(new Date().toISOString());
+      toast.success("Section time is over. Moving to next section.");
     }
   };
 
   const goToNextSection = async () => {
     if (!testMetaData || !testMetaData.sections?.length || !currentSection) {
       return;
+    }
+    if (!checkIfMinimumSectionTimeReached()) {
+      return toast.error("Minimum section time not reached");
     }
     const { sections } = testMetaData;
     const curIdx = getCurrentSectionIndex(sections, currentSection);
@@ -520,6 +588,8 @@ export default function ExamPage() {
       // fetchQuestionById(nextSection?.questions[0]?.questionId!);
       setCurrentIndex(0);
       setQuestion(nextSection?.questions[0]);
+      setSectionStartTime(new Date().toISOString());
+      setQuestionStartTime(new Date().toISOString());
     }
   };
 
@@ -619,6 +689,16 @@ export default function ExamPage() {
     return <Loader />;
   }
 
+  if (!showExam) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <ExamCompletionMessage
+          message={testMetaData?.testSettings.testCompletionMessage}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full">
       {testMetaData?.testMeta.testTemplateName === TEST_TEMPLATE_MAPPING.SSC ? (
@@ -648,6 +728,9 @@ export default function ExamPage() {
           toggleMarkForReview={toggleMarkForReview}
           errorMessage={errorMessage}
           handlePreviousQuestion={handlePreviousQuestion}
+          checkIfMinimumTimeReached={checkIfMinimumTimeReached}
+          checkIfMinimumSectionTimeReached={checkIfMinimumSectionTimeReached}
+          sectionMaxTime={0}
         />
       ) : (
         <DefaultTemplate

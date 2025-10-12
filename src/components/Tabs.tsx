@@ -51,7 +51,7 @@ export function TabsList({ labels, className = "" }: TabsListProps) {
   if (!ctx) throw new Error("TabsList must be used within TabsRoot");
 
   return (
-    <div className={`w-fit h-fit flex space-x-4 p-2 ${className}`}>
+    <div className={`w-fit h-fit flex space-x-4 px-2 pt-2 ${className}`}>
       {labels.map((label, index) => (
         <div
           key={index}

@@ -1,6 +1,10 @@
 import {
   AdminDashboardAnallyticsResponse,
   AdminDashboardRecentActivitiesResponse,
+  AdminDashboardReportDataRequest,
+  AdminDashboardReportDataResponse,
+  AdminDashboardTestPerformanceSummaryRequest,
+  AdminDashboardTestPerformanceSummaryResponse,
   CandidateAnalyticsDetailsRequest,
   CandidateAnalyticsDetailsResponse,
   CandidateAnalyticsReportHeaderRequest,
@@ -11,6 +15,12 @@ import {
   CandidateAnalyticsSummaryResponse,
   CreateQuestionRequest,
   Endpoint,
+  GetAdminDashboardTestCandidatePerformanceSummaryRequest,
+  GetAdminDashboardTestCandidatePerformanceSummaryResponse,
+  GetAdminDashboardTestStatusSummaryRequest,
+  GetAdminDashboardTestStatusSummaryResponse,
+  GetCandidateGroupsInorderRequest,
+  GetCandidateGroupsInorderResponse,
   GetCandidateStarredTestRequest,
   GetCandidateStarredTestResponse,
   GetCandidateTestRequest,
@@ -26,6 +36,10 @@ import {
   GetQuestionOptionsRequest,
   GetQuestionOptionsResponse,
   GetQuestionTypesResponse,
+  GetReportsAuditSummaryRequest,
+  GetReportsAuditSummaryResponse,
+  GetReportsTestQuestionsPerformanceSummaryRequest,
+  GetReportsTestQuestionsPerformanceSummaryResponse,
   GetSessionQuestionByIdRequest,
   GetSessionQuestionByIdResponse,
   GetSidebarMenusRequest,
@@ -1283,5 +1297,83 @@ export const endpoints = {
   } as Endpoint<
     CandidateAnalyticsReportSectionRequest,
     CandidateAnalyticsReportSectionResponse[]
+  >,
+
+  getAdminDashboardReportData: {
+    method: "GET",
+    path: () => `/api/TestAdminDashboard/adminDashboard/dashboardReportData`,
+    type: "CLOSE",
+  } as Endpoint<
+    AdminDashboardReportDataRequest,
+    AdminDashboardReportDataResponse
+  >,
+
+  getAdminTestPerformanceSummaryRequest: {
+    method: "GET",
+    path: ({ testid }) =>
+      `/api/TestAdminDashboard/adminDashboard/GetReportsTestPerformanceSummary?${
+        testid ? `testId=${testid}` : ""
+      }`,
+    type: "CLOSE",
+  } as Endpoint<
+    AdminDashboardTestPerformanceSummaryRequest,
+    AdminDashboardTestPerformanceSummaryResponse[]
+  >,
+
+  getAdminReportsTestQuestionsPerformanceSummary: {
+    method: "GET",
+    path: ({ testid }) =>
+      `/api/TestAdminDashboard/adminDashboard/GetReportsTestQuestionsPerformanceSummary?${
+        testid ? `testId=${testid}` : ""
+      }`,
+    type: "CLOSE",
+  } as Endpoint<
+    GetReportsTestQuestionsPerformanceSummaryRequest,
+    GetReportsTestQuestionsPerformanceSummaryResponse[]
+  >,
+
+  getAdminDashboardTestCandidatePerformanceSummary: {
+    method: "GET",
+    path: ({ search, candidateGroupId }) =>
+      `/api/TestAdminDashboard/adminDashboard/GetReportsTestCandidatePerformanceSummary?search=${search}&candidateGroupId=${candidateGroupId}`,
+    type: "CLOSE",
+  } as Endpoint<
+    GetAdminDashboardTestCandidatePerformanceSummaryRequest,
+    GetAdminDashboardTestCandidatePerformanceSummaryResponse[]
+  >,
+
+  getAdminDashboardTestStatusSummary: {
+    method: "GET",
+    path: ({ testId }) =>
+      `/api/TestAdminDashboard/adminDashboard/GetReportsTestStatusSummary?${
+        testId ? `testId=${testId}` : ""
+      }`,
+    type: "CLOSE",
+  } as Endpoint<
+    GetAdminDashboardTestStatusSummaryRequest,
+    GetAdminDashboardTestStatusSummaryResponse[]
+  >,
+
+  getAdminReportsAuditSummary: {
+    method: "GET",
+    path: ({ userTimeStamp, module }) =>
+      `/api/TestAdminDashboard/adminDashboard/GetReportsAuditSummary
+?userTimeStamp=${encodeURIComponent(
+        userTimeStamp ?? ""
+      )}&module=${encodeURIComponent(module ?? "")}
+    `,
+    type: "CLOSE",
+  } as Endpoint<
+    GetReportsAuditSummaryRequest,
+    GetReportsAuditSummaryResponse[]
+  >,
+
+  getCandidateGroupInorder: {
+    method: "GET",
+    path: () => `/api/CandidateGroup/inOrder?includeInactive=false`,
+    type: "CLOSE",
+  } as Endpoint<
+    GetCandidateGroupsInorderRequest,
+    GetCandidateGroupsInorderResponse[]
   >,
 };

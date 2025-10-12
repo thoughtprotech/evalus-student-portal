@@ -28,30 +28,31 @@ async function handle(req: NextRequest) {
   const headers: HeadersInit = {};
   req.headers.forEach((value, key) => {
     const lower = key.toLowerCase();
-    if (!HOP_BY_HOP_HEADERS.has(lower)) {
-      headers[key] = value;
-    }
+  // Avoid forwarding certain headers that can interfere with the upstream request
+  if (HOP_BY_HOP_HEADERS.has(lower)) return;
+  if (lower === 'content-length') return; // let fetch set this
+  if (lower === 'content-encoding' || lower === 'accept-encoding') return; // avoid double-encoding
+  headers[key] = value;
   });
 
   const method = req.method || "GET";
 
   // Read body if present and method allows it
+  // For non-GET/HEAD methods, forward the raw request body as-is (ArrayBuffer).
+  // This preserves multipart/form-data boundaries and binary uploads.
   let body: BodyInit | undefined = undefined;
   if (!["GET", "HEAD"].includes(method)) {
-    const contentType = req.headers.get("content-type") || "";
-    if (contentType.includes("application/json")) {
-      const json = await req.text();
-      body = json; // forward as-is
-    } else if (contentType.includes("form")) {
-      const formData = await req.formData();
-      const form = new URLSearchParams();
-      for (const [k, v] of formData.entries()) {
-        form.append(k, typeof v === "string" ? v : (v as File).name);
+    try {
+      const buf = await req.arrayBuffer();
+      // If empty, leave undefined
+      if (buf && buf.byteLength > 0) {
+        body = buf;
       }
-      body = form;
-    } else {
-      // Binary or unknown; stream raw body
-      body = await req.arrayBuffer();
+    } catch (e) {
+      // Fallback to text body if arrayBuffer fails
+      try {
+        body = await req.text();
+      } catch {}
     }
   }
 
@@ -64,15 +65,39 @@ async function handle(req: NextRequest) {
       // Don't send credentials here; cookies were already forwarded in headers when present
     });
 
+    // Mirror response headers (except hop-by-hop) so client receives content-type, content-disposition etc.
     const responseHeaders = new Headers();
-    // Pass through content-type and any useful headers
-    const ct = res.headers.get("content-type");
-    if (ct) responseHeaders.set("content-type", ct);
+    res.headers.forEach((value, key) => {
+      const lower = key.toLowerCase();
+      if (!HOP_BY_HOP_HEADERS.has(lower)) {
+        responseHeaders.set(key, value);
+      }
+    });
 
-    // You can mirror additional headers if needed (e.g., pagination)
-    const bodyText = await res.text();
-    return new NextResponse(bodyText, { status: res.status, headers: responseHeaders });
+    // Return raw binary if present to avoid corrupting downloads (e.g., XLSX)
+    const arrayBuf = await res.arrayBuffer();
+    try {
+      console.log(`[proxy] upstream ${method} ${originalPath} -> ${target} responded ${res.status}`);
+    } catch {}
+    return new NextResponse(arrayBuf, { status: res.status, headers: responseHeaders });
   } catch (e: any) {
+    // Detailed logging to help debug upstream issues
+    try {
+      console.error("[proxy] upstream fetch failed", {
+        error: e?.message ?? String(e),
+        stack: e?.stack,
+        target,
+        method,
+        // Log a summary of headers (avoid logging sensitive cookies fully)
+        headers: Object.fromEntries(
+          Array.from(req.headers.entries()).map(([k, v]) => [k, k.toLowerCase() === 'cookie' ? '[cookie omitted]' : v])
+        ),
+      });
+    } catch (logErr) {
+      // ignore logging errors
+      console.error("[proxy] logging failed", logErr);
+    }
+
     return NextResponse.json(
       {
         error: true,
