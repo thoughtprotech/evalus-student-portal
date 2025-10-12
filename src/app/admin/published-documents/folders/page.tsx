@@ -259,7 +259,7 @@ export default function PublishedDocumentFoldersPage() {
   return (
     <div className="p-4 bg-gray-50 h-full flex flex-col">
       <div className="sticky top-0 z-20 bg-gray-50 pt-2 pb-3">
-        <PageHeader icon={<BookOpenText className="w-6 h-6 text-indigo-600" />} title="Publish Documents folder" showSearch searchValue={query} onSearch={(v) => { setPage(1); setQuery(v); }} />
+        <PageHeader icon={<BookOpenText className="w-6 h-6 text-indigo-600" />} title="Publish Document folder" showSearch searchValue={query} onSearch={(v) => { setPage(1); setQuery(v); }} />
       </div>
       <div className="bg-white shadow rounded-lg p-2 flex-1 overflow-hidden flex flex-col min-h-0">
         <div className="mb-3 flex items-center justify-between gap-3 flex-none">

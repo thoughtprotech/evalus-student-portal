@@ -109,7 +109,7 @@ export default function EditPublishedDocumentFolderPage() {
       <div className="flex items-start justify-between w-[60%] mx-auto mb-4">
         <div className="flex items-center gap-4">
           <Link href="/admin/published-documents/folders" className="inline-flex items-center text-sm text-indigo-600 hover:underline"><ArrowLeft className="w-4 h-4 mr-1" /> Back</Link>
-          <PageHeader icon={<BookOpenText className="w-6 h-6 text-indigo-600" />} title="Edit Publish Documents Folder" showSearch={false} onSearch={() => { }} />
+          <PageHeader icon={<BookOpenText className="w-6 h-6 text-indigo-600" />} title="Edit Publish Document Folder" showSearch={false} onSearch={() => { }} />
         </div>
         <div className="flex gap-2">
           <Link href="/admin/published-documents/folders" className="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50">Cancel</Link>

@@ -193,7 +193,7 @@ export default function Navbar({ username, userPhoto }: NavbarProps) {
             <div className="border-t border-gray-200">
               <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">Settings</p>
               {[
-                { label: 'Publish Documents folder', href: '/admin/published-documents/folders', active: pathname.startsWith('/admin/published-documents/folders') },
+                { label: 'Publish Document folder', href: '/admin/published-documents/folders', active: pathname.startsWith('/admin/published-documents/folders') },
                 { label: 'Published Documents', href: '/admin/published-documents/documents', active: pathname.startsWith('/admin/published-documents/documents') },
                 { label: 'Settings', href: '/admin/settings', active: pathname === '/admin/settings' },
                 { label: 'Spotlight', href: '/admin/spotlights', active: pathname.startsWith('/admin/spotlights') },
@@ -450,7 +450,7 @@ function PublishedDocumentsSubmenu({ Icon, isActive, pathname, basePath }: Publi
       </button>
       {open && (
         <div role="menu" aria-label="Published Documents submenu" className="absolute left-0 top-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 min-w-[260px] z-30 p-1 animate-fade-in">
-          <Link role="menuitem" href="/admin/published-documents/folders" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/published-documents/folders') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Publish Documents folder</Link>
+          <Link role="menuitem" href="/admin/published-documents/folders" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/published-documents/folders') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Publish Document folder</Link>
           <Link role="menuitem" href="/admin/published-documents/documents" className={`block rounded px-3 py-2 text-sm focus:outline-none focus:bg-indigo-100 ${pathname.startsWith('/admin/published-documents/documents') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-indigo-50'}`}>Published Documents</Link>
         </div>
       )}
@@ -485,7 +485,7 @@ function SettingsSubmenu({ Icon, isActive, pathname, basePath }: SettingsSubmenu
           <div className="h-px bg-gray-200 my-1" />
           <p className="px-3 py-1 text-[11px] uppercase tracking-wide text-gray-500">Published Documents</p>
           {[
-            { label: 'Publish Documents folder', href: '/admin/published-documents/folders', active: pathname.startsWith('/admin/published-documents/folders') },
+            { label: 'Publish Document folder', href: '/admin/published-documents/folders', active: pathname.startsWith('/admin/published-documents/folders') },
             { label: 'Published Documents', href: '/admin/published-documents/documents', active: pathname.startsWith('/admin/published-documents/documents') },
           ]
             .sort((a, b) => a.label.localeCompare(b.label))
