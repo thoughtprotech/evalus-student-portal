@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, ChangeEvent, FormEvent, useEffect, useRef, useLayoutEffect } from "react";
+import { useState, ChangeEvent, FormEvent, useEffect, useRef, useLayoutEffect, useCallback } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -14,6 +14,8 @@ import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
 import { useUser } from "@/contexts/UserContext";
 import { uploadToLocal } from "@/utils/uploadToLocal";
+import PasswordInput from "@/components/PasswordInput";
+import { validatePassword } from "@/utils/passwordValidation";
 
 // Indian States (sample, add more as needed)
 const STATES = [
@@ -77,6 +79,10 @@ export default function AddCandidatePage() {
     userPhoto: null as string | null,
   });
 
+  // Password validation state
+  const [passwordValid, setPasswordValid] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [companies, setCompanies] = useState<{ id: number; name: string }[]>([]);
@@ -130,6 +136,23 @@ export default function AddCandidatePage() {
       return { ...prev, [name]: value };
     });
   };
+
+  // Password handling functions
+  const handlePasswordChange = useCallback((password: string) => {
+    setForm(prev => ({
+      ...prev,
+      userLogin: prev.userLogin.map((u, i) =>
+        i === 0 ? { ...u, password } : u
+      )
+    }));
+
+    setUserLogin(prev => ({ ...prev, password }));
+  }, []);
+
+  const handlePasswordValidationChange = useCallback((isValid: boolean, errors: string[]) => {
+    setPasswordValid(isValid);
+    setPasswordErrors(errors);
+  }, []);
 
   /*
     const handleUserLoginChange = (
@@ -241,10 +264,14 @@ export default function AddCandidatePage() {
       toast.error("User name is required");
       return false;
     }
-    if (!form.userLogin[0].password.trim()) {
-      toast.error("Password is required");
+
+    // Password validation using strong password policy
+    const passwordValidation = validatePassword(form.userLogin[0].password);
+    if (!passwordValidation.isValid) {
+      toast.error(passwordValidation.errors[0] || "Password does not meet requirements");
       return false;
     }
+
     if (!form.userLogin[0].displayName.trim()) {
       toast.error("Display name is required");
       return false;
@@ -876,16 +903,16 @@ export default function AddCandidatePage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-800 mb-1">
-                    Password <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    className={inputCls}
-                    placeholder="Enter password"
+                  <PasswordInput
                     value={form.userLogin[0].password}
-                    onChange={(e) => handleUserLoginChange(e, 0)}
+                    onChange={handlePasswordChange}
+                    onValidationChange={handlePasswordValidationChange}
+                    placeholder="Enter a strong password"
+                    label="Password"
+                    required={true}
+                    showRequirements={true}
+                    showStrengthIndicator={true}
+                    className="mt-0"
                   />
                 </div>
               </div>

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
-
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { loginAction } from "./actions/authentication/login";
 import toast from "react-hot-toast";
@@ -133,12 +133,12 @@ export default function Home() {
               </label>
             </div>
             <div className="text-sm">
-              <a
-                href="#"
+              <Link
+                href="/forgot-password"
                 className="font-medium text-indigo-500 hover:text-indigo-600"
               >
                 Forgot your password?
-              </a>
+              </Link>
             </div>
           </div>
           <div>

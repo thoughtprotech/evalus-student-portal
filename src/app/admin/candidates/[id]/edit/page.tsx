@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useLayoutEffect } from "react";
+import { useEffect, useState, useRef, useLayoutEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Save, Users } from "lucide-react";
@@ -15,6 +15,8 @@ import { useUser } from "@/contexts/UserContext";
 import Toast from "@/components/Toast";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { uploadToLocal } from "@/utils/uploadToLocal";
+import PasswordInput from "@/components/PasswordInput";
+import { validatePassword } from "@/utils/passwordValidation";
 
 interface CompanyOption { id: number; name: string; }
 type GroupNode = { id: number; name: string; children?: GroupNode[] };
@@ -90,6 +92,10 @@ export default function EditCandidatePage() {
   };
   const [toast, setToast] = useState<{ message: string; type: any } | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // Password validation state
+  const [passwordValid, setPasswordValid] = useState(true); // Default to true for existing users
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
 
   // Match 'New' page input styles
   const inputCls = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition";
@@ -399,6 +405,22 @@ export default function EditCandidatePage() {
     }));
   };
 
+  // Password handling functions for PasswordInput component
+  const handlePasswordChange = useCallback((password: string) => {
+    setUserLogin(prev => ({ ...prev, password }));
+    setForm(prev => ({
+      ...prev,
+      userLogin: prev.userLogin.map((u, i) =>
+        i === 0 ? { ...u, password } : u
+      )
+    }));
+  }, []);
+
+  const handlePasswordValidationChange = useCallback((isValid: boolean, errors: string[]) => {
+    setPasswordValid(isValid);
+    setPasswordErrors(errors);
+  }, []);
+
   const validate = () => {
     const chosenGroupIds = selectedGroupIds;
     if (!form.firstName.trim()) { setToast({ message: "First name required", type: "error" }); return false; }
@@ -410,14 +432,21 @@ export default function EditCandidatePage() {
 
     // User Login validation
     if (!userLogin.userName.trim()) { setToast({ message: "User name is required", type: "error" }); return false; }
+
+    // Strong password validation
     // Only validate password if hasPassword is false (new user) or if password is being changed (not ****)
     if (!userLogin.hasPassword && !userLogin.password.trim()) {
       setToast({ message: "Password is required for new user", type: "error" });
       return false;
     }
-    if (userLogin.hasPassword && userLogin.password.trim() && userLogin.password !== "****" && userLogin.password.length < 1) {
-      setToast({ message: "Password must be valid if changing", type: "error" });
-      return false;
+
+    // If password is being set or changed, validate against strong password policy
+    if (userLogin.password && userLogin.password.trim() && userLogin.password !== "****") {
+      const passwordValidation = validatePassword(userLogin.password);
+      if (!passwordValidation.isValid) {
+        setToast({ message: passwordValidation.errors[0] || "Password does not meet requirements", type: "error" });
+        return false;
+      }
     }
     if (!userLogin.displayName.trim()) { setToast({ message: "Display name is required", type: "error" }); return false; }
     if (!userLogin.role.trim()) { setToast({ message: "Role is required", type: "error" }); return false; }
@@ -662,22 +691,40 @@ export default function EditCandidatePage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-800 mb-1">
-                    Password {!userLogin.hasPassword && <span className="text-red-500">*</span>}
-                    {userLogin.hasPassword && <span className="text-xs text-gray-500">(Leave blank to keep current)</span>}
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    className={inputCls}
-                    placeholder={userLogin.hasPassword ? "Enter new password to change" : "Enter password"}
-                    value={userLogin.password}
-                    onChange={handleUserLoginChange}
-                  />
-                  {userLogin.hasPassword && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      User has an existing password. Enter a new password to change it, or leave blank to preserve the existing password.
-                    </p>
+                  {userLogin.hasPassword ? (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-800 mb-1">
+                        Password <span className="text-xs text-gray-500">(Leave blank to keep current)</span>
+                      </label>
+                      <PasswordInput
+                        value={userLogin.password === "****" ? "" : userLogin.password}
+                        onChange={handlePasswordChange}
+                        onValidationChange={handlePasswordValidationChange}
+                        placeholder="Enter new password to change existing one"
+                        label=""
+                        required={false}
+                        showRequirements={Boolean(userLogin.password && userLogin.password !== "****")}
+                        showStrengthIndicator={Boolean(userLogin.password && userLogin.password !== "****")}
+                        className="mt-0"
+                      />
+                      {userLogin.password === "****" && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          User has an existing password. Enter a new password to change it, or leave blank to preserve the existing password.
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <PasswordInput
+                      value={userLogin.password}
+                      onChange={handlePasswordChange}
+                      onValidationChange={handlePasswordValidationChange}
+                      placeholder="Enter a strong password"
+                      label="Password"
+                      required={true}
+                      showRequirements={true}
+                      showStrengthIndicator={true}
+                      className="mt-0"
+                    />
                   )}
                 </div>
               </div>

@@ -2,8 +2,10 @@
 
 import { SubmitHandler, useForm } from "react-hook-form";
 import Modal from "@/components/Modal";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import PasswordInput from "@/components/PasswordInput";
+import { validatePassword } from "@/utils/passwordValidation";
 
 type PasswordUpdateForm = {
   newPassword: string;
@@ -16,8 +18,12 @@ export default function UpdatePassword({
   handleUserUpdate: (text: string, field: string) => void;
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordValid, setPasswordValid] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const {
     handleSubmit,
     formState: { errors },
@@ -32,8 +38,40 @@ export default function UpdatePassword({
     },
   });
 
+  // Handle password validation and submission using the new PasswordInput component
+  const handlePasswordValidationChange = useCallback((isValid: boolean, errors: string[]) => {
+    setPasswordValid(isValid);
+    setPasswordErrors(errors);
+  }, []);
+
+  const handlePasswordSubmit = async () => {
+    if (!passwordValid || !password) {
+      return;
+    }
+
+    // Validate that passwords match
+    if (password !== confirmPassword) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      handleUserUpdate(password, "password");
+      handleCloseForm();
+    } catch (error) {
+      console.error("Password update failed:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const onSubmit: SubmitHandler<PasswordUpdateForm> = async (data) => {
-    // Only send newPassword
+    // This is kept for backward compatibility if needed
+    const validation = validatePassword(data.newPassword);
+    if (!validation.isValid) {
+      return;
+    }
+
     handleUserUpdate(data.newPassword, "password");
     setIsModalOpen(false);
     reset();
@@ -41,6 +79,10 @@ export default function UpdatePassword({
 
   const handleCloseForm = () => {
     setIsModalOpen(false);
+    setPassword("");
+    setConfirmPassword("");
+    setPasswordValid(false);
+    setPasswordErrors([]);
     reset(); // Reset form fields
   };
 
@@ -56,94 +98,43 @@ export default function UpdatePassword({
         title="Update Password"
         isOpen={isModalOpen}
         closeModal={handleCloseForm}
-        className="max-w-md"
+        className="max-w-lg"
       >
-        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-          {/* Current Password field removed */}
+        <div className="space-y-4">
+          <PasswordInput
+            value={password}
+            onChange={setPassword}
+            onValidationChange={handlePasswordValidationChange}
+            confirmPassword={confirmPassword}
+            onConfirmPasswordChange={setConfirmPassword}
+            showConfirmPassword={true}
+            placeholder="Enter a strong new password"
+            label="New Password"
+            required={true}
+            showRequirements={true}
+            showStrengthIndicator={true}
+          />
 
-          {/* New Password */}
-          <div className="flex flex-col items-start gap-2">
-            <label
-              htmlFor="newPassword"
-              className="block text-sm font-semibold"
-            >
-              New Password <span className="text-red-500">*</span>
-            </label>
-            <div className="relative w-full">
-              <input
-                id="newPassword"
-                type={showNew ? "text" : "password"}
-                className="w-full p-2 border border-gray-300 shadow-md rounded-md pr-10"
-                {...register("newPassword", {
-                  required: "New password is required",
-                })}
-              />
-              <button
-                type="button"
-                className="absolute right-2 top-2 text-gray-500"
-                tabIndex={-1}
-                onClick={() => setShowNew((v) => !v)}
-              >
-                {showNew ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-            {errors.newPassword && (
-              <p className="text-red-500 text-xs font-bold">
-                {errors.newPassword.message}
-              </p>
-            )}
-          </div>
-
-          {/* Confirm Password */}
-          <div className="flex flex-col items-start gap-2">
-            <label
-              htmlFor="confirmPassword"
-              className="block text-sm font-semibold"
-            >
-              Confirm Password <span className="text-red-500">*</span>
-            </label>
-            <div className="relative w-full">
-              <input
-                id="confirmPassword"
-                type={showConfirm ? "text" : "password"}
-                className="w-full p-2 border border-gray-300 shadow-md rounded-md pr-10"
-                {...register("confirmPassword", {
-                  required: "Confirm password is required",
-                  validate: (value) =>
-                    value === watch("newPassword") || "Passwords do not match",
-                })}
-              />
-              <button
-                type="button"
-                className="absolute right-2 top-2 text-gray-500"
-                tabIndex={-1}
-                onClick={() => setShowConfirm((v) => !v)}
-              >
-                {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-            {errors.confirmPassword && (
-              <p className="text-red-500 text-xs font-bold">
-                {errors.confirmPassword.message}
-              </p>
-            )}
-          </div>
-
-          <div className="w-full flex gap-4">
+          <div className="w-full flex gap-4 mt-6">
             <button
-              className="w-full px-4 py-2 rounded-md shadow-md cursor-pointer bg-blue-600 text-white font-bold"
-              type="submit"
+              className={`w-full px-4 py-2 rounded-md shadow-md font-bold transition-colors ${passwordValid && password && confirmPassword && password === confirmPassword
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
+                  : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                }`}
+              onClick={handlePasswordSubmit}
+              disabled={!passwordValid || !password || !confirmPassword || password !== confirmPassword || isSubmitting}
             >
-              Save
+              {isSubmitting ? 'Updating...' : 'Update Password'}
             </button>
             <button
-              className="w-full px-4 py-2 rounded-md cursor-pointer shadow-md bg-gray-300 font-bold"
+              className="w-full px-4 py-2 rounded-md cursor-pointer shadow-md bg-gray-300 hover:bg-gray-400 font-bold transition-colors"
               onClick={handleCloseForm}
+              disabled={isSubmitting}
             >
               Cancel
             </button>
           </div>
-        </form>
+        </div>
       </Modal>
     </>
   );
