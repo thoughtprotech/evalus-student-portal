@@ -61,25 +61,25 @@ export default function AdminDashboard() {
 
   const statCards: StatCard[] = [
     {
-      title: "Total Candidates",
+      title: "Candidates",
       statistic: data?.totalcandidates ?? 0,
       Icon: UserCheck,
       color: "text-green-500 bg-green-100",
     },
     {
-      title: "Total Tests",
-      statistic: data?.totaltest ?? 0,
-      Icon: ClipboardList,
-      color: "text-blue-500 bg-blue-100",
-    },
-    {
-      title: "Total Questions",
+      title: "Questions",
       statistic: data?.totalquestions ?? 0,
       Icon: HelpCircle,
       color: "text-yellow-500 bg-yellow-100",
     },
     {
-      title: "Tests Attempts",
+      title: "Tests",
+      statistic: data?.totaltest ?? 0,
+      Icon: ClipboardList,
+      color: "text-blue-500 bg-blue-100",
+    },
+    {
+      title: "Test Attempts",
       statistic: data?.totalattempts ?? 0,
       Icon: ClipboardList,
       color: "text-green-500 bg-green-100",
