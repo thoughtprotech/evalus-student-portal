@@ -174,7 +174,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     setInterval(() => {
       fetchRecentActivities();
-    }, 300000);
+    }, 120000);
   }, []);
 
   let chartElement: JSX.Element = <></>;
