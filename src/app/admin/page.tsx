@@ -1,6 +1,6 @@
 "use client";
 
-import { JSX, useEffect, useState } from "react";
+import { JSX, useCallback, useEffect, useState } from "react";
 import {
   UserCheck,
   ClipboardList,
@@ -36,6 +36,8 @@ import {
 } from "@/utils/api/types";
 import toast from "react-hot-toast";
 import { fetchAdminDashboardRecentActivititesAction } from "../actions/admin/dashboard/getAdminDashboardRecentActivities";
+import DateRangeSelector from "./components/DateRangeSelector";
+import Loader from "@/components/Loader";
 
 interface StatCard {
   title: string;
@@ -58,6 +60,7 @@ export default function AdminDashboard() {
   >();
   const [recentActivities, setRecentActivities] =
     useState<AdminDashboardRecentActivitiesResponse[]>();
+  const [loaded, setLoaded] = useState<boolean>(false);
 
   const statCards: StatCard[] = [
     {
@@ -119,11 +122,27 @@ export default function AdminDashboard() {
     });
   };
 
-  const fetchAdminAnalyticsData = async () => {
-    const res = await fetchAdminAnalyticsAction();
+  const fetchAdminAnalyticsData = async (
+    startDate?: string,
+    endDate?: string
+  ): Promise<void> => {
+    setLoaded(false);
+    // If startDate or endDate not provided, default to today (ISO yyyy-MM-dd)
+    if (!startDate || !endDate) {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, "0");
+      const dd = String(now.getDate()).padStart(2, "0");
+      startDate = `${yyyy}-${mm}-${dd}`;
+      endDate = `${yyyy}-${mm}-${dd}`;
+    }
+
+    // Assuming fetchAdminAnalyticsAction accepts an object with string params
+    const res = await fetchAdminAnalyticsAction(startDate, endDate);
 
     if (res.status === 200) {
       setData(res.data);
+      setLoaded(true);
     } else {
       toast.error("Something Went Wrong");
     }
@@ -138,6 +157,15 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDateRangeChange = useCallback(
+  ({ startDate, endDate }: { startDate: string; endDate: string }) => {
+    console.log("Selected Date Range:", startDate, endDate);
+    fetchAdminAnalyticsData(startDate, endDate);
+  },
+  [] // Add dependencies if needed, usually empty because fetchAdminAnalyticsData is stable inside component
+);
+
+
   useEffect(() => {
     fetchAdminAnalyticsData();
     fetchRecentActivities();
@@ -151,9 +179,13 @@ export default function AdminDashboard() {
 
   let chartElement: JSX.Element = <></>;
 
+  // Utility to check if graph data has any non-zero counts
+  const hasData = (graphData?: { count: number; monthYear: string }[]) =>
+    !!graphData && graphData.some((d) => d.count > 0);
+
   switch (activeTab) {
     case "candidates":
-      chartElement = (
+      chartElement = hasData(data?.candidatesGraph) ? (
         <BarChart data={transformGraphData(data?.candidatesGraph)}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="month" />
@@ -163,11 +195,15 @@ export default function AdminDashboard() {
             <LabelList dataKey="count" position="top" />
           </Bar>
         </BarChart>
+      ) : (
+        <div className="flex items-center justify-center h-full text-gray-500">
+          No data available for the selected date range.
+        </div>
       );
       break;
 
     case "tests":
-      chartElement = (
+      chartElement = hasData(data?.testsGraph) ? (
         <BarChart data={transformGraphData(data?.testsGraph)}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="month" />
@@ -177,11 +213,15 @@ export default function AdminDashboard() {
             <LabelList dataKey="count" position="top" />
           </Bar>
         </BarChart>
+      ) : (
+        <div className="flex items-center justify-center h-full text-gray-500">
+          No data available for the selected date range.
+        </div>
       );
       break;
 
     case "questions":
-      chartElement = (
+      chartElement = hasData(data?.questionsGraph) ? (
         <BarChart data={transformGraphData(data?.questionsGraph)}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="month" />
@@ -191,11 +231,15 @@ export default function AdminDashboard() {
             <LabelList dataKey="count" position="top" />
           </Bar>
         </BarChart>
+      ) : (
+        <div className="flex items-center justify-center h-full text-gray-500">
+          No data available for the selected date range.
+        </div>
       );
       break;
 
     case "attempts":
-      chartElement = (
+      chartElement = hasData(data?.attemptsGraph) ? (
         <BarChart data={transformGraphData(data?.attemptsGraph)}>
           <XAxis dataKey="month" />
           <YAxis />
@@ -204,6 +248,10 @@ export default function AdminDashboard() {
             <LabelList dataKey="count" position="top" />
           </Bar>
         </BarChart>
+      ) : (
+        <div className="flex items-center justify-center h-full text-gray-500">
+          No data available for the selected date range.
+        </div>
       );
       break;
   }
@@ -252,25 +300,20 @@ export default function AdminDashboard() {
                     </button>
                   ))}
                 </div>
-                <div>
-                  <select name="dateFilter" id="dateFilter">
-                    <option value="today">Today</option>
-                    <option value="thisWeek">This Week</option>
-                    <option value="lastWeek">Last Week</option>
-                    <option value="thisMonth">This Month</option>
-                    <option value="lastMonth">Last Month</option>
-                    <option value="thisYear">This Year</option>
-                    <option value="lastYear">Last Year</option>
-                    <option value="custom">Custom</option>
-                  </select>
-                </div>
+                <DateRangeSelector
+                  onDateRangeChange={handleDateRangeChange}
+                />
               </div>
 
               {/* Main Chart */}
               <div className="w-full h-96 md:h-full pt-4">
-                <ResponsiveContainer width="100%" height="90%">
-                  {chartElement}
-                </ResponsiveContainer>
+                {loaded ? (
+                  <ResponsiveContainer width="100%" height="90%">
+                    {chartElement}
+                  </ResponsiveContainer>
+                ) : (
+                  <Loader />
+                )}
               </div>
             </div>
           </div>

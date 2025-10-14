@@ -616,6 +616,11 @@ export interface PublishedDocumentTreeItem {
   validTo: string; // ISO
 }
 
+export interface AdminDashboardAnallyticsRequest {
+  startDate: string;
+  endDate: string;
+}
+
 export interface AdminDashboardAnallyticsResponse {
   totalcandidates: number;
   totaltest: number;

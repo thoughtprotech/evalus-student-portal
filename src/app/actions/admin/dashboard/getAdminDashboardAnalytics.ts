@@ -2,19 +2,27 @@
 
 import { cookies } from "next/headers";
 import Analytics from "@/mock/mockTestDetails.json";
-import { AdminDashboardAnallyticsResponse, ApiResponse } from "@/utils/api/types";
+import {
+  AdminDashboardAnallyticsResponse,
+  ApiResponse,
+} from "@/utils/api/types";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
 
 export type TestId = keyof typeof Analytics;
 
 export async function fetchAdminAnalyticsAction(
+  startDate: string,
+  endDate: string
 ): Promise<ApiResponse<AdminDashboardAnallyticsResponse>> {
   //   TODO: Add filters
   try {
     const { data, status, error, errorMessage, message } = await apiHandler(
       endpoints.getAdminDashboardAnalytics,
-      null
+      {
+        startDate,
+        endDate,
+      }
     );
 
     return {

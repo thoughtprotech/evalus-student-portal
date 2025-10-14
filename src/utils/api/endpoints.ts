@@ -1,4 +1,5 @@
 import {
+  AdminDashboardAnallyticsRequest,
   AdminDashboardAnallyticsResponse,
   AdminDashboardRecentActivitiesResponse,
   AdminDashboardReportDataRequest,
@@ -1250,9 +1251,13 @@ export const endpoints = {
 
   getAdminDashboardAnalytics: {
     method: "GET",
-    path: () => `/api/TestAdminDashboard/adminDashboard/analytics`,
+    path: ({ startDate, endDate }) =>
+      `/api/TestAdminDashboard/adminDashboard/analytics?startDate=${startDate}&endDate=${endDate}`,
     type: "CLOSE",
-  } as Endpoint<null, AdminDashboardAnallyticsResponse>,
+  } as Endpoint<
+    AdminDashboardAnallyticsRequest,
+    AdminDashboardAnallyticsResponse
+  >,
 
   getAdminDashboardRecentActivities: {
     method: "GET",
