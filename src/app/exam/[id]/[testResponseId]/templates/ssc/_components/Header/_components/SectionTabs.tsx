@@ -3,6 +3,11 @@ import { Info } from "lucide-react";
 import QuestionCountPreview from "../../QuestionCountPreview";
 import { SectionsMetaDataInterface } from "@/utils/api/types";
 
+function getCharByIndex(index: number): string {
+  // Convert index to corresponding uppercase character
+  return String.fromCharCode(65 + index);
+}
+
 export default function SectionTabs({
   sections,
   activeSectionId,
@@ -17,7 +22,7 @@ export default function SectionTabs({
   return (
     <div>
       <div className="flex items-center gap-2 relative">
-        {sections.map((s) => {
+        {sections.map((s, i) => {
           const isActive = s.sectionId === activeSectionId;
           return (
             <button
@@ -35,7 +40,7 @@ export default function SectionTabs({
               ].join(" ")}
               aria-current={isActive ? "page" : undefined}
             >
-              {s.sectionName}
+              PART {getCharByIndex(i)}
               {/* <OnHover
                 trigger={
                   <Info className="w-4 h-4 text-gray-400 hover:text-gray-600 transition-colors" />
