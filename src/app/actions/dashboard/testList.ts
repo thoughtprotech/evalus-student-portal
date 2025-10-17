@@ -14,18 +14,9 @@ export async function fetchCandidateTestList(
     const username = await getUserAction();
 
     if (username) {
-      const useGroup = !!opts?.useGroupEndpoint && Number.isFinite(groupId);
-      console.log({ username, groupId, useGroup });
-
-      const endpoint = useGroup
-        ? endpoints.getCandidateTests
-        : endpoints.getStudentDashboardTests;
-
-      console.log(`USING ENDPOINT: ${endpoint.path}`);
-
       const { status, error, data, errorMessage, message } = await apiHandler(
-        endpoint,
-        useGroup ? ({ username, groupId } as any) : ({ username } as any)
+        endpoints.getCandidateTests,
+        { username, groupId }
       );
 
       console.log({ status, error, data, errorMessage, message });

@@ -58,9 +58,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         const list = Array.isArray(data) ? data : [];
         setSideBarItems(list);
         setSideBarLoader(true);
-        const firstSelf = list.find((item) => item.relation === "SELF");
+        const firstSelf = list.find((item) => item.parentID === 0);
         if (firstSelf) {
-          setCurrentGroupId(firstSelf.candidateGroupId.toString());
+          setCurrentGroupId(firstSelf.testCategoryID.toString());
         }
       } else {
         toast.error("Something Went Wrong");

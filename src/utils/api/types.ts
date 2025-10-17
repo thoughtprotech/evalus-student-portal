@@ -351,11 +351,12 @@ export interface GetSidebarMenusRequest {
 }
 
 export interface GetSidebarMenusResponse {
-  candidateGroupId: number;
-  candidateGroupName: string;
-  parentId: number;
-  relation: "PARENT" | "SELF";
-  level: 0;
+  testCategoryID: number;
+  testCategoryName: string;
+  testCategoryType: string;
+  parentID: number;
+  level: number;
+  categoryPath: string;
 }
 
 export interface GetSubjectsResponse {

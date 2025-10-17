@@ -3,17 +3,10 @@ import Link from "next/link";
 import { ChevronDown, ChevronRight, Badge, ChevronUp } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useRouter } from "next/navigation";
-
-interface CandidateGroup {
-  candidateGroupId: number;
-  candidateGroupName: string;
-  parentId: number;
-  relation: "PARENT" | "SELF" | string;
-  level: number;
-}
+import { GetSidebarMenusResponse } from "@/utils/api/types";
 
 interface SideBarFileTreeProps {
-  data: CandidateGroup[];
+  data: GetSidebarMenusResponse[];
   rootLabel: string;
   rootLink: string;
   regExp: string;
@@ -24,13 +17,13 @@ interface SideBarFileTreeProps {
   maxListHeight?: string;
 }
 
-// Build map from parentId to children (defensive against non-array)
-const buildTree = (data: CandidateGroup[] | undefined | null) => {
-  const map: Record<number, CandidateGroup[]> = {};
-  const arr: CandidateGroup[] = Array.isArray(data) ? data : [];
+// Build map from parentID to children (defensive against non-array)
+const buildTree = (data: GetSidebarMenusResponse[] | undefined | null) => {
+  const map: Record<number, GetSidebarMenusResponse[]> = {};
+  const arr: GetSidebarMenusResponse[] = Array.isArray(data) ? data : [];
   arr.forEach((item) => {
-    map[item.parentId] = map[item.parentId] || [];
-    map[item.parentId].push(item);
+    map[item.parentID] = map[item.parentID] || [];
+    map[item.parentID].push(item);
   });
   return map;
 };
@@ -62,13 +55,13 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
   };
 
   // Recursive node renderer so nested children (grandchildren and beyond) are shown
-  const renderNode = (node: CandidateGroup, level: number) => {
-    const kids = tree[node.candidateGroupId] || [];
+  const renderNode = (node: GetSidebarMenusResponse, level: number) => {
+    const kids = tree[node.testCategoryID] || [];
     const hasChildren = kids.length > 0;
-    const isOpen = !!expanded[node.candidateGroupId];
+    const isOpen = !!expanded[node.testCategoryID];
 
     return (
-      <div key={node.candidateGroupId} className="w-full">
+      <div key={node.testCategoryID} className="w-full">
         <div
           className={`flex items-center justify-between px-2 py-1 hover:bg-gray-100 rounded-md cursor-pointer transition-colors`}
           style={{ marginLeft: `${Math.min(level, 3) * 16}px` }}
@@ -76,8 +69,8 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
           <div className="flex items-center space-x-2 flex-1"
             onClick={() => {
               // Set the group context without navigating away from current page
-              setCurrentGroupId(node.candidateGroupId.toString());
-              setSelectedGroupName(node.candidateGroupName);
+              setCurrentGroupId(node.testCategoryID.toString());
+              setSelectedGroupName(node.testCategoryName);
               setGroupSelected(true);
               // Only navigate if we're not already on the dashboard
               if (window.location.pathname !== "/dashboard") {
@@ -88,12 +81,12 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
             <input
               type="radio"
               name="groupSelection"
-              checked={currentGroupId === node.candidateGroupId.toString()}
+              checked={currentGroupId === node.testCategoryID.toString()}
               onChange={() => { }}
               className="h-3 w-3 text-indigo-600 border-gray-300 focus:ring-indigo-500"
             />
             <span className="text-sm text-gray-800">
-              {node.candidateGroupName}
+              {node.testCategoryName}
             </span>
           </div>
           {hasChildren && (
@@ -101,7 +94,7 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
               className="ml-2 p-1"
               onClick={(e) => {
                 e.stopPropagation();
-                toggle(node.candidateGroupId);
+                toggle(node.testCategoryID);
               }}
             >
               {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -120,7 +113,7 @@ export const SideBarFileTree: React.FC<SideBarFileTreeProps> = ({
   // Top-level parents
   const safeData = Array.isArray(data) ? data : [];
   const roots = safeData.filter(
-    (item) => item.parentId === 0 || item.relation === "PARENT"
+    (item) => item.parentID === 0
   );
 
   return (
