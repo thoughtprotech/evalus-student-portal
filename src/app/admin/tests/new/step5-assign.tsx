@@ -10,16 +10,15 @@ type Props = {
   registerValidator?: (fn: () => boolean) => void;
 };
 
-type GroupNode = {
+type CandidateGroup = {
   CandidateGroupId: number;
   GroupName: string;
-  children?: GroupNode[];
 };
 
 export default function Step5Assign({ registerValidator }: Props) {
   const { draft, setDraft } = useTestDraft();
-  const [groupTree, setGroupTree] = useState<GroupNode[]>([]);
-  const [checkedGroups, setCheckedGroups] = useState<Record<number, boolean>>({});
+  const [candidateGroups, setCandidateGroups] = useState<CandidateGroup[]>([]);
+  const [selectedGroupIds, setSelectedGroupIds] = useState<number[]>([]);
   const [products, setProducts] = useState<{ ProductId: number; ProductName: string }[]>([]);
   const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -41,82 +40,39 @@ export default function Step5Assign({ registerValidator }: Props) {
     (async () => {
       try {
         const [groupRes, prodRes] = await Promise.all([
-          apiHandler(endpoints.getCandidateGroupTreeOData, null as any),
+          apiHandler(endpoints.listCandidateGroupsODataOpen as any, { query: "?$select=CandidateGroupId,CandidateGroupName&$orderby=CandidateGroupName" } as any),
           apiHandler(endpoints.getActiveTestProductsOData, null as any),
         ]);
         if (!mounted) return;
-        const gdataAny: any = (groupRes as any)?.data;
+  // apiHandler wraps responses as { status, error, message, data }; use .data for the OData payload
+  const gdataAny: any = (groupRes as any)?.data ?? (groupRes as any);
         const raw = Array.isArray(gdataAny?.value)
           ? (gdataAny.value as any[])
           : Array.isArray(gdataAny)
           ? (gdataAny as any[])
           : [];
-        const pickChildren = (n: any): any[] => {
-          const candidates = [
-            n?.children,
-            n?.Children,
-            n?.childrens,
-            n?.ChildNodes,
-            n?.Items,
-            n?.Nodes,
-            n?.Groups,
-            n?.Subgroups,
-          ];
-          for (const c of candidates) if (Array.isArray(c)) return c;
-          return [];
-        };
-  const norm = (nodes: any[]): GroupNode[] =>
-          (nodes || [])
-            .map((n) => {
-              const id = Number(
-    n?.CandidateGroupId ??
-    n?.candidateGroupId ??
-    n?.CandidateGroupID ??
-    n?.GroupId ??
-    n?.GroupID ??
-    n?.Id ??
-    n?.id
-              );
-              const name =
-                n?.GroupName ??
-                n?.CandidateGroupName ??
-    n?.name ??
-                n?.Group ??
-                n?.Name ??
-                n?.Title ??
-                n?.Label ??
-                (Number.isFinite(id) ? `Group ${id}` : "Group");
-              const kids = pickChildren(n);
-              if (!Number.isFinite(id)) return null;
-              return { CandidateGroupId: id, GroupName: String(name), children: norm(kids) } as GroupNode;
-            })
-            .filter(Boolean) as GroupNode[];
-
-        const gdata: GroupNode[] = norm(raw);
-        const pdata = ((prodRes?.data?.value ?? []) as any[]).map((p) => ({ ProductId: p.ProductId, ProductName: p.ProductName }));
-        const cleanTree = Array.isArray(gdata) ? gdata : [];
-        setGroupTree(cleanTree);
-        // After loading tree, prune any checked ids not found in tree to avoid ghost selections
-        const idSet = new Set<number>();
-        const walk = (nodes: GroupNode[]) => {
-          for (const n of nodes || []) {
-            if (Number.isFinite(n.CandidateGroupId)) idSet.add(Number(n.CandidateGroupId));
-            if (n.children && n.children.length > 0) walk(n.children);
-          }
-        };
-        walk(cleanTree);
-        setCheckedGroups((prev) => {
-          const next: Record<number, boolean> = {};
-          for (const [k, v] of Object.entries(prev)) {
-            const id = Number(k);
-            if (v && idSet.has(id)) next[id] = true;
-          }
-          return next;
+        const gdata: CandidateGroup[] = (raw || [])
+          .map((n) => {
+            const id = Number(n?.CandidateGroupId ?? n?.candidateGroupId ?? n?.Id ?? n?.id);
+            const name = n?.CandidateGroupName ?? n?.candidateGroupName ?? n?.GroupName ?? n?.groupName ?? n?.Name ?? n?.name ?? (Number.isFinite(id) ? `Group ${id}` : "Group");
+            if (!Number.isFinite(id)) return null;
+            return { CandidateGroupId: id, GroupName: String(name) } as CandidateGroup;
+          })
+          .filter(Boolean) as CandidateGroup[];
+  const pDataAny: any = (prodRes as any)?.data ?? (prodRes as any);
+  const pdata = ((pDataAny?.value ?? []) as any[]).map((p) => ({ ProductId: p.ProductId, ProductName: p.ProductName }));
+        const clean = Array.isArray(gdata) ? gdata : [];
+        setCandidateGroups(clean);
+        // Prune any selected ids that are no longer valid
+        setSelectedGroupIds((prev) => {
+          const valid = new Set(clean.map((g) => g.CandidateGroupId));
+          const next = prev.filter((id) => valid.has(id));
+          return next.length === prev.length ? prev : next;
         });
         setProducts(pdata);
       } catch {
         if (mounted) {
-          setGroupTree([]);
+          setCandidateGroups([]);
           setProducts([]);
         }
       }
@@ -169,78 +125,19 @@ export default function Step5Assign({ registerValidator }: Props) {
       if (!arrEqAsSet(pids, selectedProductIds)) {
         setSelectedProductIds(pids);
       }
-      const currentGids = Object.keys(checkedGroups)
-        .filter((k) => checkedGroups[Number(k)])
-        .map((k) => Number(k));
-      if (!arrEqAsSet(gids, currentGids)) {
-        const next: Record<number, boolean> = {};
-        gids.forEach((id) => (next[id] = true));
-        setCheckedGroups(next);
+      if (!arrEqAsSet(gids, selectedGroupIds)) {
+        setSelectedGroupIds(gids);
       }
     } finally {
       hydratedRef.current = true;
     }
   }, [draft]);
 
-  // Helpers: walk tree
-  const collectDescendantIds = (node: GroupNode): number[] => {
-    const out: number[] = [node.CandidateGroupId];
-    (node.children ?? []).forEach((c) => out.push(...collectDescendantIds(c)));
-    return out;
-  };
-
-  const getGroupLabel = (n: GroupNode): string => {
-    return (
-      (n as any).GroupName ??
-      (n as any).CandidateGroupName ??
-      (n as any).Group ??
-      (n as any).Name ??
-      `Group ${n.CandidateGroupId}`
-    );
-  };
-
-  // Toggle a group: select/deselect node and all descendants
-  const toggleGroup = (node: GroupNode, value: boolean) => {
-    const ids = collectDescendantIds(node);
-    setCheckedGroups((prev) => {
-      const next = { ...prev } as Record<number, boolean>;
-      if (value) {
-        ids.forEach((id) => (next[id] = true));
-      } else {
-        ids.forEach((id) => { if (next[id]) delete next[id]; });
-      }
-      return next;
-    });
-  };
-
-  // Render group tree with checkboxes (flat, indented rows inside dropdown)
-  const renderTree = (nodes: GroupNode[], depth = 0) => (
-    <ul>
-      {nodes.map((n) => (
-        <li key={n.CandidateGroupId}>
-          <div className="px-3 py-1 hover:bg-gray-50">
-            <label className="flex items-center gap-2" style={{ paddingLeft: depth * 12 }}>
-              <input
-                type="checkbox"
-                className="rounded border-gray-300"
-                checked={!!checkedGroups[n.CandidateGroupId]}
-                onChange={(e) => toggleGroup(n, e.target.checked)}
-              />
-              <span className="text-sm text-gray-800 truncate">{getGroupLabel(n)}</span>
-            </label>
-          </div>
-          {n.children && n.children.length > 0 && renderTree(n.children, depth + 1)}
-        </li>
-      ))}
-    </ul>
-  );
 
   // Persist into draft selections and TestAssignments whenever selection changes
   useEffect(() => {
     if (!hydratedRef.current) return; // avoid clearing draft before initial hydration
-    const groupIds = Object.keys(checkedGroups)
-      .filter((k) => checkedGroups[Number(k)])
-      .map(Number);
+    const groupIds = selectedGroupIds;
 
     // Build a signature so we can avoid unnecessary updates
     let sig = "NONE";
@@ -321,7 +218,7 @@ export default function Step5Assign({ registerValidator }: Props) {
       combosSigRef.current = sig;
       return next;
     });
-  }, [checkedGroups, selectedProductIds]);
+  }, [selectedGroupIds, selectedProductIds]);
 
   // Validation: relaxed per requirement – Step 5 has no blocking validations
   const validate = () => {
@@ -332,7 +229,7 @@ export default function Step5Assign({ registerValidator }: Props) {
   // Keep latest validate in ref and register once
   useEffect(() => {
     validateRef.current = () => validate();
-  }, [checkedGroups, selectedProductIds]);
+  }, [selectedGroupIds, selectedProductIds]);
 
   useEffect(() => {
     if (registerValidator) {
@@ -352,27 +249,7 @@ export default function Step5Assign({ registerValidator }: Props) {
   }, [groupsOpen, productsOpen]);
 
   // Summaries for buttons
-  // Build a set of valid group ids from the loaded tree to prevent ghost selections
-  const validGroupIdSet = useMemo(() => {
-    const ids = new Set<number>();
-    const walk = (nodes: GroupNode[]) => {
-      for (const n of nodes || []) {
-        if (Number.isFinite(n.CandidateGroupId)) ids.add(Number(n.CandidateGroupId));
-        if (n.children && n.children.length > 0) walk(n.children);
-      }
-    };
-    walk(groupTree);
-    return ids;
-  }, [groupTree]);
-  const selectedGroupCount = useMemo(() => {
-    let count = 0;
-    for (const [k, v] of Object.entries(checkedGroups)) {
-      if (!v) continue;
-      const id = Number(k);
-      if (Number.isFinite(id) && validGroupIdSet.has(id)) count++;
-    }
-    return count;
-  }, [checkedGroups, validGroupIdSet]);
+  const selectedGroupCount = selectedGroupIds.length;
   const selectedProductCount = selectedProductIds.length;
   // Perf: memoized helpers for products
   const productNameById = useMemo(() => {
@@ -396,7 +273,7 @@ export default function Step5Assign({ registerValidator }: Props) {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Candidate Groups dropdown */}
+          {/* Candidate Groups dropdown (flat multi-select via OData) */}
           <div ref={groupsRef} className="relative">
             <label className="block text-sm font-medium text-gray-800 mb-1">Candidate Groups</label>
             <button
@@ -429,16 +306,36 @@ export default function Step5Assign({ registerValidator }: Props) {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      setCheckedGroups({});
+                      setSelectedGroupIds([]);
                     }}
                   >
                     Clear
                   </button>
                 </div>
-                {groupTree.length === 0 ? (
+                {candidateGroups.length === 0 ? (
                   <div className="px-3 py-2 text-sm text-gray-500">No groups found.</div>
                 ) : (
-                  renderTree(groupTree)
+                  <ul className="py-1">
+                    {candidateGroups.map((g) => (
+                      <li key={g.CandidateGroupId} className="px-3 py-1 hover:bg-gray-50">
+                        <label className="flex items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            className="rounded border-gray-300"
+                            checked={selectedGroupIds.includes(g.CandidateGroupId)}
+                            onChange={(e) => {
+                              setSelectedGroupIds((prev) =>
+                                e.target.checked
+                                  ? Array.from(new Set([...prev, g.CandidateGroupId]))
+                                  : prev.filter((id) => id !== g.CandidateGroupId)
+                              );
+                            }}
+                          />
+                          <span className="truncate">{g.GroupName}</span>
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
             )}

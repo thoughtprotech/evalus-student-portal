@@ -184,7 +184,7 @@ export default function TestSteps({
       d.SkipRankForDuplicateTank = pick(s0.SkipRankForDuplicateTank, s0.skipRankForDuplicateTank);
     }
     const tq: any[] = Array.isArray(d.TestQuestions ?? d.testQuestions) ? (d.TestQuestions ?? d.testQuestions) : [];
-  d.testQuestions = tq
+    d.testQuestions = tq
       .map((q: any) => {
         const qObj = q?.Question ?? q?.question ?? null;
         let Question: any = null;
@@ -195,9 +195,18 @@ export default function TestSteps({
                 QuestionText: o?.QuestionText ?? o?.questionText ?? o?.text ?? null,
               }))
             : [];
-          Question = { Questionoptions: normOpts };
+          // Normalize Subject as well if available (prefer parent subject fields)
+          const subj = qObj.Subject ?? qObj.subject;
+          const Subject = subj
+            ? {
+                ParentSubjectId: subj.ParentSubjectId ?? subj.parentSubjectId ?? undefined,
+                ParentSubjectName: subj.ParentSubjectName ?? subj.parentSubjectName ?? undefined,
+                SubjectId: subj.SubjectId ?? subj.subjectId ?? undefined,
+                SubjectName: subj.SubjectName ?? subj.subjectName ?? undefined,
+              }
+            : undefined;
+          Question = { Questionoptions: normOpts, ...(Subject ? { Subject } : {}) };
         }
-        const toNumOrUndef = (v: any) => (v === null || v === undefined || v === "") ? undefined : Number(v);
         return {
           TestQuestionId: Number(
             q?.TestQuestionId ?? q?.testQuestionId ?? q?.QuestionId ?? q?.Question?.QuestionId ?? q?.QuestionID ?? q?.questionId ?? 0
@@ -205,7 +214,6 @@ export default function TestSteps({
           Marks: Number(q?.Marks ?? q?.marks ?? 0),
           NegativeMarks: Number(q?.NegativeMarks ?? q?.negativeMarks ?? 0),
           Duration: Number(q?.Duration ?? q?.duration ?? 0),
-          TestSectionId: q?.TestSectionId != null ? Number(q.TestSectionId) : q?.testSectionId != null ? Number(q.testSectionId) : undefined,
           Question,
         };
       })
@@ -322,10 +330,8 @@ export default function TestSteps({
           const catOk = Number.isFinite(Number(src?.CategoryId ?? src?.TestCategoryId));
           const lvlOk = Number.isFinite(Number(src?.DifficultyLevelId ?? src?.TestDifficultyLevelId));
           const priOk = Number.isFinite(Number(src?.PrimaryInstructionId ?? src?.TestPrimaryInstructionId));
-          const duration = Number(src?.TestDuration ?? src?.TestDurationMinutes ?? src?.DurationMinutes);
-          const totalQ = Number(src?.TotalQuestions);
-          const totalM = Number(src?.TotalMarks);
-          const ok = !!name && typeOk && catOk && lvlOk && priOk && duration > 0 && totalQ > 0 && totalM > 0;
+          // Duration/marks/totals are computed from Step 3; only require core Step 1 fields here
+          const ok = !!name && typeOk && catOk && lvlOk && priOk;
           return ok;
         };
         try {
@@ -452,177 +458,17 @@ export default function TestSteps({
           console.log('[Save] Complete draft at save start:', JSON.stringify(draft, null, 2));
         }
         
-  // --- Recompute authoritative totals & section aggregates (even if user never visited Step 3 in edit mode) ---
+        // Compute edit state early
+        const isEdit = (!!editMode && !!testId) || !!(draft as any)?.TestId;
+        const updateId: number | undefined = (testId as number | undefined) ?? ((draft as any)?.TestId as number | undefined);
+
+        // --- Recompute authoritative totals (even if user never visited Step 3 in edit mode) ---
         const rows: any[] = Array.isArray((draft as any)?.testQuestions) ? (draft as any).testQuestions : [];
         const recomputedTotalQuestions = rows.length;
         const recomputedTotalMarks = rows.reduce((sum: number, q: any) => {
           const v = q?.Marks === "" ? 0 : (q?.Marks ?? 0);
           return sum + (Number(v) || 0);
         }, 0);
-        // Section stats
-        const sectionStats = new Map<number, { q: number; m: number }>();
-        for (const q of rows) {
-          const sid = Number(q?.TestSectionId ?? q?.TestAssignedSectionId ?? q?.testAssignedSectionId);
-          if (!Number.isFinite(sid) || sid <= 0) continue;
-          const marks = Number(q?.Marks === "" ? 0 : (q?.Marks ?? 0)) || 0;
-          const rec = sectionStats.get(sid) || { q: 0, m: 0 };
-          rec.q += 1; rec.m += marks; sectionStats.set(sid, rec);
-        }
-        // Load catalog of valid sections to validate assigned section ids
-        let validSectionIds = new Set<number>();
-        try {
-          const secRes = await apiHandler(endpoints.getTestSectionsOData, null as any);
-          const secs = Array.isArray((secRes as any)?.data?.value) ? (secRes as any).data.value as Array<{ TestSectionId: number }> : [];
-          validSectionIds = new Set<number>(secs.map((s) => Number(s.TestSectionId)).filter((n) => Number.isFinite(n) && n > 0));
-        } catch { /* ignore; keep empty set => no filtering */ }
-
-        // Get assigned sections directly from draft (skip normalization for now to debug)
-        let finalAssigned: any[] = [];
-        const draftSections = Array.isArray((draft as any)?.TestAssignedSections) ? (draft as any).TestAssignedSections : [];
-        
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('[Save] Draft sections (before any processing):', JSON.stringify(draftSections, null, 2));
-        }
-        
-        if (draftSections.length > 0) {
-          // Use draft sections directly, convert PascalCase to camelCase for API
-          const mapped = draftSections.map((r: any) => {
-            const sid = Number(r.TestSectionId ?? r.testSectionId ?? r.TestAssignedSectionId ?? r.testAssignedSectionId);
-            const canon = Number.isFinite(sid) && sid > 0 ? sid : undefined;
-            // Preserve DB PK when present; send null for new rows so server creates one
-            const pk = (r.TestAssignedSectionId != null && Number(r.TestAssignedSectionId) > 0)
-              ? Number(r.TestAssignedSectionId)
-              : (r.testAssignedSectionId != null && Number(r.testAssignedSectionId) > 0 ? Number(r.testAssignedSectionId) : null);
-            // Normalize order & totals
-            const ord = Number(r.SectionOrder ?? r.sectionOrder ?? 0) || undefined;
-            const totQ = (r.SectionTotalQuestions ?? r.sectionTotalQuestions);
-            const totM = (r.SectionTotalMarks ?? r.sectionTotalMarks);
-            const minT = r.SectionMinTimeDuration ?? r.sectionMinTimeDuration;
-            const maxT = r.SectionMaxTimeDuration ?? r.sectionMaxTimeDuration;
-            const tid = Number((draft as any)?.TestId ?? r.TestId ?? r.testId ?? updateId) || undefined;
-            const out: any = {
-              ...r,
-              // PascalCase (legacy/compat)
-              TestAssignedSectionId: pk,
-              TestSectionId: canon,
-              TestId: tid,
-              SectionOrder: ord,
-              SectionTotalQuestions: totQ,
-              SectionTotalMarks: totM,
-              SectionMinTimeDuration: minT,
-              SectionMaxTimeDuration: maxT,
-              // camelCase (API contract)
-              testAssignedSectionId: pk,
-              testSectionId: canon,
-              testId: tid,
-              sectionOrder: ord,
-              sectionTotalQuestions: totQ,
-              sectionTotalMarks: totM,
-              sectionMinTimeDuration: minT,
-              sectionMaxTimeDuration: maxT,
-            };
-            return out;
-          });
-          // Filter out any ids not present in catalog (when we have a catalog)
-          finalAssigned = (validSectionIds.size > 0)
-            ? mapped.filter((r: any) => validSectionIds.has(Number(r.TestAssignedSectionId)))
-            : mapped;
-          if (process.env.NODE_ENV !== 'production') {
-            const dropped = mapped.filter((r: any) => !validSectionIds.has(Number(r.TestAssignedSectionId))).map((r:any)=>r.TestAssignedSectionId);
-            if (dropped.length > 0) {
-              console.warn('[Save] Dropping invalid TestAssignedSectionId(s) not in catalog:', dropped);
-            }
-          }
-        }
-        
-        // Temporarily disable normalization to debug
-        /*
-        try {
-          // dynamic import only if utility exists
-          const mod = await import("@/utils/normalizeAssignedSections");
-          
-          // Debug: Log draft data before normalization
-          if (process.env.NODE_ENV !== 'production') {
-            console.log('[Save] Draft before normalization:', JSON.stringify((draft as any)?.TestAssignedSections, null, 2));
-          }
-          
-          const normalized = mod.normalizeAssignedSections(draft || {});
-          
-          // Debug: Log normalized result
-          if (process.env.NODE_ENV !== 'production') {
-            console.log('[Save] Normalized result:', JSON.stringify(normalized, null, 2));
-          }
-          
-          if (normalized.length) {
-            finalAssigned = normalized.map(r => ({ ...r }));
-          }
-        } catch { // noop //
-        }
-        */
-  // Do NOT synthesize assigned sections from questions; only update existing selections made in Step 1.
-        // Apply stats to assigned sections (dedup again just in case)
-        if (finalAssigned.length > 0) {
-          const seen = new Map<number, any>();
-          for (const r of finalAssigned) {
-            const sid = Number(r?.TestAssignedSectionId ?? r?.TestSectionId);
-            if (!Number.isFinite(sid) || sid <= 0) continue;
-            if (!seen.has(sid)) seen.set(sid, { ...r }); // first wins
-          }
-          finalAssigned = Array.from(seen.values());
-          finalAssigned.sort((a,b)=>(a.SectionOrder||0)-(b.SectionOrder||0));
-          finalAssigned.forEach((r,i)=>{ r.SectionOrder = i+1; r.sectionOrder = r.SectionOrder; });
-          for (const row of finalAssigned) {
-            // Compute stats keyed by catalog id (TestSectionId), not DB PK
-            const sid = Number(row.TestSectionId ?? row.testSectionId);
-            const stats = sectionStats.get(sid) || { q: 0, m: 0 };
-            row.SectionTotalQuestions = stats.q;
-            row.SectionTotalMarks = stats.m;
-            row.sectionTotalQuestions = stats.q;
-            row.sectionTotalMarks = stats.m;
-            // Do NOT overwrite DB PK; leave TestAssignedSectionId as-is (or null for new rows)
-            
-            // Debug logging for time values
-            if (process.env.NODE_ENV !== 'production') {
-              console.log(`[Save] Section ${sid} time values:`, {
-                SectionMinTimeDuration: row.SectionMinTimeDuration,
-                SectionMaxTimeDuration: row.SectionMaxTimeDuration,
-                SectionMinTime: row.SectionMinTime,
-                SectionMaxTime: row.SectionMaxTime
-              });
-            }
-            
-            // Preserve existing per-section min/max time values (do not override if user set them in Step1)
-            if (row.SectionMinTimeDuration === undefined && row.SectionMinTime !== undefined) {
-              row.SectionMinTimeDuration = row.SectionMinTime;
-            }
-            if (row.SectionMaxTimeDuration === undefined && row.SectionMaxTime !== undefined) {
-              row.SectionMaxTimeDuration = row.SectionMaxTime;
-            }
-            // Mirror to camelCase for API
-            row.sectionMinTimeDuration = row.SectionMinTimeDuration ?? row.sectionMinTimeDuration;
-            row.sectionMaxTimeDuration = row.SectionMaxTimeDuration ?? row.sectionMaxTimeDuration;
-          }
-        }
-  // Prepare camelCase-only section objects for API
-  // Compute edit state early so it's available during section mapping
-  const isEdit = (!!editMode && !!testId) || !!(draft as any)?.TestId;
-  const updateId: number | undefined = (testId as number | undefined) ?? ((draft as any)?.TestId as number | undefined);
-        const finalAssignedCamel = finalAssigned.map((r: any) => {
-          const testSectionId = Number(r.TestSectionId ?? r.testSectionId) || null;
-          // For new tests, backend expects testId = 0 (not null). For edits, use the actual id.
-          const resolvedTestId = isEdit
-            ? Number(updateId ?? (draft as any)?.TestId ?? r.TestId ?? r.testId ?? 0)
-            : 0;
-          return {
-          testAssignedSectionId: testSectionId, // backend expects equality with section id
-          testSectionId,
-          testId: resolvedTestId,
-          sectionOrder: Number(r.SectionOrder ?? r.sectionOrder) || 0,
-          sectionMinTimeDuration: r.SectionMinTimeDuration ?? r.sectionMinTimeDuration ?? null,
-          sectionMaxTimeDuration: r.SectionMaxTimeDuration ?? r.sectionMaxTimeDuration ?? null,
-          sectionTotalQuestions: r.SectionTotalQuestions ?? r.sectionTotalQuestions ?? 0,
-          sectionTotalMarks: r.SectionTotalMarks ?? r.sectionTotalMarks ?? 0,
-        }});
 
         // Build payload from draft (after recomputation)
   const toNum = (v: any) => (v === null || v === undefined || v === "" ? null : Number(v));
@@ -638,7 +484,6 @@ export default function TestSteps({
           // Treat empty as 0 for numeric fields per requirement
           Marks: Number(r?.Marks ?? 0),
           NegativeMarks: Number(r?.NegativeMarks ?? 0),
-          TestSectionId: toNum(r?.TestSectionId),
           Duration: Number(r?.Duration ?? 0),
           TestQuestionSequenceNo: idx + 1,
           Question: null, // ensure server ignores nested question validation
@@ -694,7 +539,6 @@ export default function TestSteps({
           TotalMarks: (draft as any)?.TotalMarks && Number((draft as any).TotalMarks) > 0
             ? (draft as any).TotalMarks
             : recomputedTotalMarks,
-          ...(finalAssignedCamel.length ? { TestAssignedSections: finalAssignedCamel } : {}),
           TestStatus:
             String((draft as any)?.TestStatus || "New").toLowerCase() === "published"
               ? "Published"
@@ -706,11 +550,7 @@ export default function TestSteps({
           SelectedProductIds: Array.isArray((draft as any)?.SelectedProductIds) ? (draft as any).SelectedProductIds : [],
         };
         
-        // Debug logging for TestAssignedSections
-        if (process.env.NODE_ENV !== 'production' && finalAssigned.length > 0) {
-          console.log('[Save] TestAssignedSections being sent:', JSON.stringify(finalAssigned, null, 2));
-          console.log('[Save] Payload TestAssignedSections:', JSON.stringify(payload.TestAssignedSections, null, 2));
-        }
+        // No sections to log or include
         // Ensure TestCode is always present (fallback if Step 1 sync was missed)
         if (!payload.TestCode) {
           try {

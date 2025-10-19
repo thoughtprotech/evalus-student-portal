@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/utils/env";
 
-export async function GET(req: NextRequest, { params }: { params: { odataPath: string[] } }) {
-  const path = params.odataPath?.join("/") ?? "";
+export async function GET(
+  req: NextRequest,
+  ctx: { params: { odataPath: string[] } | Promise<{ odataPath: string[] }> }
+) {
+  const params = await (ctx as any).params;
+  const path = (params as any)?.odataPath?.join("/") ?? "";
   const url = new URL(req.url);
   // Preserve the original query string; if missing leading '?', add it
   const rawSearch = url.search || url.searchParams.toString();

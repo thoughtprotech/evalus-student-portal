@@ -803,6 +803,24 @@ export const endpoints = {
     type: "OPEN",
   } as Endpoint<{ query?: string }, { "@odata.count"?: number; value: any[] }>,
 
+  // Public OData path (no /api prefix) for Candidate Groups
+  listCandidateGroupsODataOpen: {
+    method: "GET",
+    path: ({ query }) => {
+      let q = query || "";
+      // ensure leading ? when any query is present
+      if (q && !q.startsWith("?")) q = `?${q}`;
+      // add default filter when none provided
+      const hasFilter = /\$filter=/i.test(q);
+      if (!hasFilter) {
+        if (!q) q = "?$filter=ParentId eq 0";
+        else q = `${q}&$filter=ParentId eq 0`;
+      }
+      return `/odata/CandidateGroups${q}`;
+    },
+    type: "OPEN",
+  } as Endpoint<{ query?: string }, { "@odata.count"?: number; value: any[] }>,
+
   // Candidate Groups CRUD
   createCandidateGroup: {
     method: "POST",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect, useMemo } from "react";
-import { normalizeAssignedSections, assignedSectionsDiffer } from "@/utils/normalizeAssignedSections";
+// Sections removed: no normalizeAssignedSections needed
 import ImportantInstructions from "@/components/ImportantInstructions";
 import YesNoToggle from "@/components/ui/YesNoToggle";
 import Modal from "@/components/Modal";
@@ -83,72 +83,18 @@ export default function Step1CreateTestDetails({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [hasAttachments, setHasAttachments] = useState(false);
-  // Sections selection
-  type SectionLite = { TestSectionId: number; TestSectionName: string };
-  const [allSections, setAllSections] = useState<SectionLite[]>([]);
-  // Canonical section id for UI is the catalog TestSectionId; keep TestAssignedSectionId only as DB PK in edit mode
-  const [selectedSectionIds, setSelectedSectionIds] = useState<number[]>([]);
-  const [assignedSections, setAssignedSections] = useState<any[]>([]);
+  // Sections are no longer part of Step 1 per latest requirement
   const { draft, setDraft } = useTestDraft();
   const [errors, setErrors] = useState<Record<string, string>>({});
-  // Resolve a section display name by id using loaded catalog or assignedRows as fallback
-  const getSectionName = (id: number): string => {
-    const fromCatalog = allSections.find(s => Number(s.TestSectionId) === Number(id));
-    if (fromCatalog?.TestSectionName) return fromCatalog.TestSectionName;
-    const match = assignedSections.find(r => Number(r?.TestAssignedSectionId ?? r?.testAssignedSectionId ?? r?.TestSectionId) === Number(id));
-    const n = match?.TestSectionName ?? match?.SectionName ?? match?.sectionName;
-    return typeof n === 'string' && n.trim() ? n : String(id);
-  };
+  // No section display function
   // Track which sections are currently referenced by any test question (for safe removal in edit mode)
-  const usedSectionIds = useMemo(() => {
-    const set = new Set<number>();
-    const qs: any[] = Array.isArray((draft as any)?.testQuestions) ? (draft as any).testQuestions : [];
-    for (const q of qs) {
-      const sid = Number(q?.TestSectionId ?? q?.testAssignedSectionId ?? q?.TestAssignedSectionId);
-      if (Number.isFinite(sid)) set.add(sid);
-    }
-    return set;
-  }, [draft?.testQuestions]);
+  // No section references in draft anymore
   // Keep latest validator without re-registering on every state change
   const validateRef = useRef<() => boolean>(() => true);
   // Strict Mode guard to avoid duplicate template fetch in dev double-mount
   const fetchedTemplatesOnce = useRef(false);
   const normalizedOnce = useRef(false);
-  const promotedAssignedSectionsOnce = useRef(false); // retained for backward compatibility of logic
-  const hydratedAssignedSections = useRef(false); // track if we've completed initial hydration
-  const attemptedDeepPromote = useRef(false); // retained; normalization supersedes but keep guard
-  // Utility: ensure only one row per TestSectionId (catalog id). Mirror TestAssignedSectionId to match backend contract.
-  const dedupAssigned = (list: any[]) => {
-    if (!Array.isArray(list)) return [] as any[];
-    const map = new Map<number, any>();
-    for (const rec of list) {
-      const r: any = { ...rec };
-  // Canonical section id = TestSectionId (fallback to legacy variants)
-  const id = Number(r?.TestSectionId ?? r?.testSectionId ?? r?.TestAssignedSectionId ?? r?.testAssignedSectionId ?? r?.Testassignedsectionid);
-      if (!Number.isFinite(id)) continue;
-  r.TestSectionId = id;
-  r.TestAssignedSectionId = id; // backend expects equality
-      if (!map.has(id)) {
-        map.set(id, r);
-      }
-    }
-    const arr = Array.from(map.values());
-    arr.sort((a: any, b: any) => (a.SectionOrder || 0) - (b.SectionOrder || 0));
-    arr.forEach((r: any, i: number) => { r.SectionOrder = i + 1; });
-    return arr;
-  };
-  // Compare assigned sections shallowly (order/id/min/max) using canonical TestSectionId
-  const sectionsDiffer = (a: any[], b: any[]) => {
-    if (a.length !== b.length) return true;
-    for (let i = 0; i < a.length; i++) {
-      const ra = a[i]; const rb = b[i];
-      if (Number(ra?.TestSectionId ?? ra?.testSectionId) !== Number(rb?.TestSectionId ?? rb?.testSectionId)) return true;
-      if (Number(ra?.SectionOrder) !== Number(rb?.SectionOrder)) return true;
-      if ((ra?.SectionMinTimeDuration ?? null) !== (rb?.SectionMinTimeDuration ?? null)) return true;
-      if ((ra?.SectionMaxTimeDuration ?? null) !== (rb?.SectionMaxTimeDuration ?? null)) return true;
-    }
-    return false;
-  };
+  // No section state utilities
 
   const genGuid = () =>
     "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
@@ -196,12 +142,7 @@ export default function Step1CreateTestDetails({
           }
         }
       }
-      // fetch sections
-      try {
-        const secRes = await apiHandler(endpoints.getTestSectionsOData, null as any);
-        const secs = Array.isArray(secRes?.data?.value) ? secRes.data.value as SectionLite[] : [];
-        setAllSections(secs);
-      } catch {}
+      // Sections no longer fetched
     })();
   }, []);
 
@@ -217,79 +158,12 @@ export default function Step1CreateTestDetails({
   }, [code]);
   
 
-  // Early normalization (one-shot) for legacy / variant assigned sections payloads
-  useEffect(() => {
-    if (!draft || normalizedOnce.current) return;
-    const normalized = normalizeAssignedSections(draft);
-    if (normalized.length) {
-      const existing = Array.isArray((draft as any).TestAssignedSections) ? (draft as any).TestAssignedSections : [];
-      if (assignedSectionsDiffer(existing, normalized)) {
-        normalizedOnce.current = true;
-        // Use setTimeout to avoid setState during render
-        setTimeout(() => {
-          setDraft((d: any) => ({ ...d, TestAssignedSections: normalized }));
-        }, 0);
-        return; // wait for next render; hydration effect will pick up
-      }
-    }
-    normalizedOnce.current = true;
-  }, [draft]);
+  // No section normalization
 
   // Hydrate from shared draft on first load (legacy bridging kept for safety)
   useEffect(() => {
     // Only set if draft has values and local state is empty
     if (draft) {
-      // Bridge: some edit payloads may use lowerCamelCase testAssignedSections
-      if (!promotedAssignedSectionsOnce.current) {
-        if (!Array.isArray((draft as any).TestAssignedSections) && Array.isArray((draft as any).testAssignedSections)) {
-          promotedAssignedSectionsOnce.current = true;
-          if (process.env.NODE_ENV !== 'production') {
-            try { console.log('[Step1] Bridging testAssignedSections to TestAssignedSections:', (draft as any).testAssignedSections); } catch {}
-          }
-          const dedup = dedupAssigned((draft as any).testAssignedSections);
-          // Use setTimeout to avoid setState during render
-          setTimeout(() => {
-            setDraft((d: any) => ({ ...d, TestAssignedSections: dedup }));
-          }, 0);
-          return; // wait for next render
-        }
-        promotedAssignedSectionsOnce.current = true;
-      }
-      // Deep search fallback: sometimes sections may arrive nested (e.g., model.testAssignedSections or data.testAssignedSections)
-      if (!attemptedDeepPromote.current && !Array.isArray((draft as any).TestAssignedSections)) {
-        attemptedDeepPromote.current = true;
-        const visited = new Set<any>();
-        const maxDepth = 4;
-        const findArray = (obj: any, depth: number): any[] | null => {
-          if (!obj || typeof obj !== 'object' || depth > maxDepth || visited.has(obj)) return null;
-            visited.add(obj);
-          for (const key of Object.keys(obj)) {
-            const val = (obj as any)[key];
-            if (Array.isArray(val) && val.length && val.every(v => v && typeof v === 'object' && (('TestAssignedSectionId' in v) || ('testAssignedSectionId' in v) || ('TestSectionId' in v)))) {
-              return val as any[];
-            }
-          }
-          for (const key of Object.keys(obj)) {
-            const val = (obj as any)[key];
-            const found = findArray(val, depth + 1);
-            if (found) return found;
-          }
-          return null;
-        };
-        const candidate = findArray(draft, 0);
-        if (candidate) {
-          if (process.env.NODE_ENV !== 'production') {
-            // eslint-disable-next-line no-console
-            console.log('[Step1] Promoting discovered nested assigned sections array to TestAssignedSections');
-          }
-          const dedup = dedupAssigned(candidate);
-          // Use setTimeout to avoid setState during render
-          setTimeout(() => {
-            setDraft((d: any) => ({ ...d, TestAssignedSections: dedup }));
-          }, 0);
-          return; // re-run hydration with unified property
-        }
-      }
     }
     
     if (draft.TestName && !name) setName(draft.TestName);
@@ -307,62 +181,11 @@ export default function Step1CreateTestDetails({
     if (draft.TestTemplateId && !templateKey) setTemplateKey(String(draft.TestTemplateId));
     if (typeof draft.AllowAttachments === 'boolean') setHasAttachments(draft.AllowAttachments);
     
-    // hydrate assigned sections from draft (check for changes, not just empty state)
-    const unifiedAssigned = Array.isArray(draft.TestAssignedSections) ? dedupAssigned(draft.TestAssignedSections) : [];
-    if (unifiedAssigned.length > 0) {
-      // Always check if draft sections differ from current local state
-  if (assignedSections.length === 0 || sectionsDiffer(assignedSections, unifiedAssigned)) {
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('[Step1] Re-hydrating assigned sections from draft:', unifiedAssigned.length, 'sections');
-          console.log('[Step1] Current local state:', assignedSections.length, 'sections');
-        }
-        
-        // If dedup removed any entries, persist back once
-        if (unifiedAssigned.length !== (draft.TestAssignedSections as any[])?.length) {
-          // Use setTimeout to avoid setState during render
-          setTimeout(() => {
-            setDraft((d: any) => ({ ...d, TestAssignedSections: unifiedAssigned }));
-          }, 0);
-        }
-        setAssignedSections(unifiedAssigned.map((s: any) => {
-          const r = { ...s };
-          // Ensure canonical TestSectionId is set and mirror to TestAssignedSectionId per API contract
-          const catalogId = Number(r.TestSectionId ?? r.testSectionId ?? r.TestAssignedSectionId ?? r.testAssignedSectionId);
-          if (Number.isFinite(catalogId)) {
-            r.TestSectionId = catalogId;
-            r.TestAssignedSectionId = catalogId;
-          }
-          // Promote camelCase variants to canonical PascalCase if present (for UI compatibility)
-          if (r.sectionMinTimeDuration != null && r.SectionMinTimeDuration == null) r.SectionMinTimeDuration = r.sectionMinTimeDuration;
-          if (r.sectionMaxTimeDuration != null && r.SectionMaxTimeDuration == null) r.SectionMaxTimeDuration = r.sectionMaxTimeDuration;
-          if (r.sectionMinTime != null && r.SectionMinTimeDuration == null) r.SectionMinTimeDuration = r.sectionMinTime;
-          if (r.sectionMaxTime != null && r.SectionMaxTimeDuration == null) r.SectionMaxTimeDuration = r.sectionMaxTime;
-          
-          return r;
-        }));
-        const ids = unifiedAssigned
-          .map((s: any) => Number(s?.TestSectionId ?? s?.testSectionId ?? s?.TestAssignedSectionId ?? s?.testAssignedSectionId))
-          .filter((n: any) => Number.isFinite(n));
-        setSelectedSectionIds(Array.from(new Set(ids)));
-      }
-    }
+    // No assigned sections hydration
   }, [draft]);
 
   // Sync local assignedSections edits back to draft safely (avoid setDraft during render of provider)
-  useEffect(() => {
-    if (!draft) return;
-    const existing: any[] = Array.isArray((draft as any).TestAssignedSections) ? (draft as any).TestAssignedSections : [];
-    if (sectionsDiffer(existing, assignedSections)) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('[Step1] Syncing assignedSections to draft:', JSON.stringify(assignedSections, null, 2));
-        console.log('[Step1] Existing draft sections:', JSON.stringify(existing, null, 2));
-      }
-      // Use setTimeout to avoid setState during render
-      setTimeout(() => {
-        setDraft((d: any) => ({ ...d, TestAssignedSections: assignedSections.map(r => ({ ...r })) }));
-      }, 0);
-    }
-  }, [assignedSections, draft]);
+  // No section sync
 
   // Inline validation similar to Steps 4 & 5
   const validate = () => {
@@ -372,9 +195,7 @@ export default function Step1CreateTestDetails({
   if (!categoryId) errs.categoryId = "Category is required";
   if (!difficultyLevelId) errs.difficultyLevelId = "Difficulty Level is required";
   if (!primaryInstructionId) errs.primaryInstructionId = "Primary Instruction is required";
-  if (duration === "" || Number(duration) <= 0) errs.duration = "Duration (mins) must be a positive number";
-  if (totalQuestions === "" || Number(totalQuestions) <= 0) errs.totalQuestions = "Total Questions must be a positive number";
-  if (totalMarks === "" || Number(totalMarks) <= 0) errs.totalMarks = "Total Marks must be a positive number";
+  // Duration/Questions/Marks are computed in Step 3; no validation here
     setErrors(errs);
     const ok = Object.keys(errs).length === 0;
     try {
@@ -578,276 +399,8 @@ export default function Step1CreateTestDetails({
                 </select>
               </div>
             </div>
-            <div className="md:col-span-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Duration Section */}
-                <div className="border rounded-lg p-4 bg-white flex flex-col gap-2">
-                  <label className="block text-sm font-medium text-gray-800 mb-2">
-                    Duration (mins)
-                  </label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Normal <span className="text-red-600">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        className={`w-full rounded-lg border px-3 py-2.5 text-sm bg-white focus:ring-2 transition ${errors.duration ? "border-red-400 focus:ring-red-500 focus:border-red-500" : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"}`}
-                        value={duration}
-                        onChange={(e) => { const v = e.target.value === "" ? "" : Number(e.target.value); setDuration(v as any); setErrors((e)=>({ ...e, duration: "" })); setDraft((d: any) => ({ ...d, TestDurationMinutes: v === "" ? null : Number(v) })); }}
-                        placeholder="e.g., 60"
-                        aria-invalid={!!errors.duration}
-                      />
-                      {errors.duration && <div className="mt-1 text-xs text-red-600 font-bold">{errors.duration}</div>}
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Handicapped
-                      </label>
-                      <input
-                        type="number"
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                        value={durationHandicapped}
-                        onChange={(e) => { const v = e.target.value === "" ? "" : Number(e.target.value); setDurationHandicapped(v as any); setDraft((d: any) => ({ ...d, TestDurationForHandicappedMinutes: v === "" ? null : Number(v) })); }}
-                        placeholder="e.g., 75"
-                      />
-                    </div>
-                  </div>
-                </div>
-                {/* Marks Section */}
-                <div className="border rounded-lg p-4 bg-white flex flex-col gap-2">
-                  <label className="block text-sm font-medium text-gray-800 mb-2">
-                    Marks
-                  </label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Total Questions <span className="text-red-600">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        className={`w-full rounded-lg border px-3 py-2.5 text-sm bg-white focus:ring-2 transition ${errors.totalQuestions ? "border-red-400 focus:ring-red-500 focus:border-red-500" : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"}`}
-                        value={totalQuestions}
-                        onChange={(e) => { const v = e.target.value === "" ? "" : Number(e.target.value); setTotalQuestions(v as any); setErrors((e)=>({ ...e, totalQuestions: "" })); setDraft((d: any) => ({ ...d, TotalQuestions: v === "" ? null : Number(v) })); }}
-                        placeholder="e.g., 50"
-                        aria-invalid={!!errors.totalQuestions}
-                      />
-                      {errors.totalQuestions && <div className="mt-1 text-xs text-red-600 font-bold">{errors.totalQuestions}</div>}
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Total Marks <span className="text-red-600">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        className={`w-full rounded-lg border px-3 py-2.5 text-sm bg-white focus:ring-2 transition ${errors.totalMarks ? "border-red-400 focus:ring-red-500 focus:border-red-500" : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"}`}
-                        value={totalMarks}
-                        onChange={(e) => { const v = e.target.value === "" ? "" : Number(e.target.value); setTotalMarks(v as any); setErrors((e)=>({ ...e, totalMarks: "" })); setDraft((d: any) => ({ ...d, TotalMarks: v === "" ? null : Number(v) })); }}
-                        placeholder="e.g., 100"
-                        aria-invalid={!!errors.totalMarks}
-                      />
-                      {errors.totalMarks && <div className="mt-1 text-xs text-red-600 font-bold">{errors.totalMarks}</div>}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            {/* Combined: Test Sections selection + details table */}
-            <div className="md:col-span-2">
-              <div className="border rounded-lg p-4 bg-white flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-sm font-semibold text-gray-800">Test Sections & Details</label>
-                    {draft?.TestId && (
-                      <span className="text-[10px] text-gray-500">(You can remove a section only if no questions are assigned to it)</span>
-                    )}
-                  </div>
-                  {/* Chips */}
-                  <div className="flex flex-wrap gap-2 min-h-[2rem]">
-                    {selectedSectionIds.length === 0 && (
-                      <span className="text-xs text-gray-500">No sections selected.</span>
-                    )}
-                    {selectedSectionIds.map(id => {
-                      const canRemove = !draft?.TestId || !usedSectionIds.has(id);
-                      return (
-                        <span key={id} className={`inline-flex items-center gap-1 border rounded-full px-2 py-0.5 text-xs ${canRemove ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-100 text-gray-500 border-gray-300'}`}> 
-          {getSectionName(id)}
-                          {canRemove && (
-                            <button
-                              type="button"
-                              className="text-blue-500 hover:text-blue-700 focus:outline-none"
-                              onClick={() => {
-                                setSelectedSectionIds(prev => prev.filter(x => x !== id));
-                                setAssignedSections(prev => {
-                                  const next = prev.filter(r => Number(r.TestSectionId) !== id).map((r,i) => ({ ...r, SectionOrder: i+1 }));
-                                  setDraft(d => ({ ...d, TestAssignedSections: next }));
-                                  return next;
-                                });
-                              }}
-                              title="Remove section"
-                            >
-                              ×
-                            </button>
-                          )}
-                          {!canRemove && <span title="Section has questions and cannot be removed" className="ml-0.5 cursor-not-allowed select-none">🔒</span>}
-                        </span>
-                      );
-                    })}
-                  </div>
-                  {/* Add dropdown */}
-                  <div className="flex items-center gap-2">
-                    <select
-                      className="rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      value=""
-                      onChange={(e) => {
-                        const val = e.target.value ? Number(e.target.value) : 0;
-                        if (!val) return;
-                        // Validate against catalog list to avoid accidental invalid ids
-            const existsInCatalog = allSections.some(s => Number(s.TestSectionId) === val);
-                        if (!existsInCatalog) {
-                          // Reset select and ignore invalid value
-                          e.target.value = "";
-                          return;
-                        }
-                        setSelectedSectionIds(prev => {
-                          if (prev.includes(val)) return prev; // guard
-                          const nextIds = [...prev, val];
-                          setAssignedSections(prevRows => {
-                            const exists = prevRows.find(r => Number(r.TestSectionId) === val);
-                            const sec = allSections.find(s => Number(s.TestSectionId) === val);
-                            const next = exists ? [...prevRows] : [...prevRows, {
-                  TestAssignedSectionId: val, // backend expects equality with TestSectionId
-          TestSectionId: val,
-                  TestId: draft?.TestId || 0,
-                              TestSectionName: sec?.TestSectionName ?? undefined,
-                              SectionOrder: nextIds.length,
-                              SectionTotalQuestions: null,
-                              SectionTotalMarks: null,
-                              SectionMinTimeDuration: null,
-                              SectionMaxTimeDuration: null,
-                            }];
-                            next.sort((a,b)=> (a.SectionOrder||0)-(b.SectionOrder||0));
-                            next.forEach((r,i)=> { r.SectionOrder = i+1; });
-                            setDraft(d => ({ ...d, TestAssignedSections: next }));
-                            return next;
-                          });
-                          return nextIds;
-                        });
-                        e.target.value = ""; // reset
-                      }}
-                    >
-                      <option value="">Add section...</option>
-                      {allSections.filter(s => !selectedSectionIds.includes(s.TestSectionId)).map(s => (
-                        <option key={s.TestSectionId} value={s.TestSectionId}>{s.TestSectionName}</option>
-                      ))}
-                    </select>
-                    <div className="text-[11px] text-gray-500">Select one at a time to add.</div>
-                  </div>
-                </div>
-                {/* Details Table */}
-                {selectedSectionIds.length > 0 && (
-                  <div className="flex flex-col gap-3">
-                    <div className="text-sm font-semibold text-gray-800">Assigned Section Details</div>
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full text-xs">
-                        <thead>
-                          <tr className="bg-gray-50 text-gray-700">
-                            <th className="px-2 py-1 text-left">Section</th>
-                            <th className="px-2 py-1 text-left">Order</th>
-                            <th className="px-2 py-1 text-left">Min Time</th>
-                            <th className="px-2 py-1 text-left">Max Time</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {assignedSections.map((row, idx) => {
-                            const canRemove = !draft?.TestId || !usedSectionIds.has(Number(row.TestSectionId));
-                            return (
-                              <tr key={(row.TestAssignedSectionId ?? row.TestSectionId ?? idx)} className={idx % 2 ? 'bg-white' : 'bg-gray-50/60'}>
-                                <td className="px-2 py-1 whitespace-nowrap text-gray-800 text-[11px] flex items-center gap-2">
-                                  <span>{getSectionName(Number(row.TestSectionId))}</span>
-                                  {canRemove && (
-                                    <button
-                                      type="button"
-                                      className="text-red-500 hover:text-red-700 text-[10px] font-bold"
-                                      title="Remove"
-                                      onClick={() => {
-                                        setAssignedSections(prev => {
-                                          const next = prev.filter(r => Number(r.TestSectionId) !== Number(row.TestSectionId)).map((r,i)=> ({ ...r, SectionOrder: i+1 }));
-                                          setSelectedSectionIds(next.map(r=> Number(r.TestSectionId)));
-                                          return next;
-                                        });
-                                      }}
-                                    >✕</button>
-                                  )}
-                                  {!canRemove && <span title="Section has questions and cannot be removed" className="cursor-not-allowed select-none text-[10px]">🔒</span>}
-                                </td>
-                                <td className="px-2 py-1">
-                                  <select
-                                    className="border rounded px-1 py-0.5 text-[11px]"
-                                    value={row.SectionOrder ?? idx + 1}
-                                    onChange={(e) => {
-                                      const targetOrder = Number(e.target.value);
-                                      setAssignedSections(prev => {
-                                        const list = prev.map(r => ({ ...r }));
-                                        const currentIndex = idx;
-                                        const item = list[currentIndex];
-                                        list.splice(currentIndex, 1);
-                                        const insertIndex = Math.min(Math.max(targetOrder - 1, 0), list.length);
-                                        list.splice(insertIndex, 0, item);
-                                        list.forEach((r,i)=> { r.SectionOrder = i+1; });
-                                        return list;
-                                      });
-                                    }}
-                                  >
-                                    {assignedSections.map((_,i2)=><option key={i2} value={i2+1}>{i2+1}</option>)}
-                                  </select>
-                                </td>
-                                <td className="px-2 py-1">
-                                  <input 
-                                    type="number" 
-                                    className="border rounded px-1 py-0.5 w-20 text-[11px]" 
-                                    value={row.SectionMinTimeDuration ?? row.sectionMinTimeDuration ?? ''} 
-                                    onChange={(e)=>{
-                                      const val = e.target.value;
-                                      const v = val === '' ? null : Number(val);
-                                      setAssignedSections(prev=>{ 
-                                        const copy=prev.map(r=>({...r})); 
-                                        copy[idx].SectionMinTimeDuration=v; 
-                                        copy[idx].sectionMinTimeDuration=v; 
-                                        return copy; 
-                                      });
-                                    }} 
-                                    placeholder="Min time"
-                                  />
-                                </td>
-                                <td className="px-2 py-1">
-                                  <input 
-                                    type="number" 
-                                    className="border rounded px-1 py-0.5 w-20 text-[11px]" 
-                                    value={row.SectionMaxTimeDuration ?? row.sectionMaxTimeDuration ?? ''} 
-                                    onChange={(e)=>{
-                                      const val = e.target.value;
-                                      const v = val === '' ? null : Number(val);
-                                      setAssignedSections(prev=>{ 
-                                        const copy=prev.map(r=>({...r})); 
-                                        copy[idx].SectionMaxTimeDuration=v; 
-                                        copy[idx].sectionMaxTimeDuration=v; 
-                                        return copy; 
-                                      });
-                                    }}
-                                    placeholder="Max time"
-                                  />
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* Duration and Marks moved to Step 3 summary (computed) */}
+            {/* Sections UI removed per requirement */}
             {/* Options: Attachments (full width column) */}
             <div className="md:col-span-2" ref={optionBoxRef}>
               <div className="border rounded-md p-3 bg-white flex items-center justify-between">

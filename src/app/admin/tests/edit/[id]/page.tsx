@@ -111,7 +111,17 @@ function normalizeTestToDraft(test: any): any {
             QuestionText: o?.QuestionText ?? o?.questionText ?? o?.text ?? null,
           }))
           : [];
-        Question = { Questionoptions: normOpts };
+        // Normalize Subject for Step 3 display (prefer parent subject fields)
+        const subj = qObj.Subject ?? qObj.subject;
+        const Subject = subj
+          ? {
+              ParentSubjectId: subj.ParentSubjectId ?? subj.parentSubjectId ?? undefined,
+              ParentSubjectName: subj.ParentSubjectName ?? subj.parentSubjectName ?? undefined,
+              SubjectId: subj.SubjectId ?? subj.subjectId ?? undefined,
+              SubjectName: subj.SubjectName ?? subj.subjectName ?? undefined,
+            }
+          : undefined;
+        Question = { Questionoptions: normOpts, ...(Subject ? { Subject } : {}) };
       }
       return {
         TestQuestionId: Number(
@@ -120,27 +130,12 @@ function normalizeTestToDraft(test: any): any {
         Marks: Number(q?.Marks ?? q?.marks ?? 0),
         NegativeMarks: Number(q?.NegativeMarks ?? q?.negativeMarks ?? 0),
         Duration: q?.Duration != null ? Number(q.Duration) : q?.duration != null ? Number(q.duration) : undefined,
-        TestSectionId: q?.TestSectionId != null ? Number(q.TestSectionId) : q?.testSectionId != null ? Number(q.testSectionId) : undefined,
         TestQuestionSequenceNo: q?.TestQuestionSequenceNo ?? q?.testQuestionSequenceNo ?? undefined,
         Question,
       };
     })
     .filter((x) => x.TestQuestionId > 0);
 
-  // TestAssignedSections mapping (Step 1) - handle both PascalCase and camelCase variants
-  const sections = Array.isArray(src.TestAssignedSections ?? src.testAssignedSections)
-    ? (src.TestAssignedSections ?? src.testAssignedSections)
-    : [];
-  d.TestAssignedSections = sections.map((s: any) => ({
-    TestAssignedSectionId: s.TestAssignedSectionId ?? s.testAssignedSectionId ?? null,
-    TestSectionId: s.TestSectionId ?? s.testSectionId ?? null,
-    TestId: s.TestId ?? s.testId ?? d.TestId ?? null,
-    SectionOrder: s.SectionOrder ?? s.sectionOrder ?? null,
-    SectionMinTimeDuration: s.SectionMinTimeDuration ?? s.sectionMinTimeDuration ?? null,
-    SectionMaxTimeDuration: s.SectionMaxTimeDuration ?? s.sectionMaxTimeDuration ?? null,
-    // Include any other fields that might be present
-    ...s,
-  }));
 
   // Derive totals for Step 1 pre-population only if not provided by API
   if (!("TotalQuestions" in d) || d.TotalQuestions == null) {

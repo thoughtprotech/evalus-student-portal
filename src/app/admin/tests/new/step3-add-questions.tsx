@@ -5,7 +5,7 @@ import Toast, { type ToastType } from "@/components/Toast";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTestDraft } from "@/contexts/TestDraftContext";
-import { normalizeAssignedSections, assignedSectionsDiffer } from "@/utils/normalizeAssignedSections";
+// Sections are deprecated; no longer importing section normalization
 
 import { MousePointerClick, FilePlus2, MinusCircle, FileInput } from "lucide-react";
 import PaginationControls from "@/components/PaginationControls";
@@ -13,42 +13,14 @@ import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
 import { TextOrHtml } from "@/components/TextOrHtml";
 
-type TestSection = { TestSectionId: number; TestSectionName: string };
+// No TestSection usage anymore
 
 export default function Step3AddQuestions({ editMode, testId, registerValidator }: { editMode?: boolean; testId?: number; registerValidator?: (fn: () => boolean) => void }) {
   const router = useRouter();
   const search = useSearchParams();
   const { draft, setDraft } = useTestDraft();
-  // Keep a snapshot of Step 1's assigned sections to restore if anything clears them during sub-navigation
-  const assignedSnapshotRef = useRef<any[] | null>(null);
-  useEffect(() => {
-    if (!assignedSnapshotRef.current && Array.isArray((draft as any)?.TestAssignedSections) && (draft as any).TestAssignedSections.length > 0) {
-      // store a deep copy once
-      assignedSnapshotRef.current = (draft as any).TestAssignedSections.map((r: any) => ({ ...r }));
-    }
-  }, [draft?.TestAssignedSections]);
-  // Promote legacy section arrays only if canonical TestAssignedSections is missing
-  useEffect(() => {
-    if (!draft) return;
-    const existing = Array.isArray((draft as any).TestAssignedSections) ? (draft as any).TestAssignedSections : [];
-    if (existing.length > 0) return; // respect Step 1 user selection
-    // Prefer restoring exact snapshot captured from Step 1 if available
-    const snapshot = assignedSnapshotRef.current;
-    if (Array.isArray(snapshot) && snapshot.length > 0) {
-      setTimeout(() => {
-        setDraft((d) => ({ ...d, TestAssignedSections: snapshot.map((r: any) => ({ ...r })) }));
-      }, 0);
-      return;
-    }
-    const normalized = normalizeAssignedSections(draft);
-    if (normalized.length === 0) return;
-    // Defer to next tick to avoid updating provider during another component's render
-    setTimeout(() => {
-      setDraft((d) => ({ ...d, TestAssignedSections: normalized }));
-    }, 0);
-  }, [draft, setDraft]);
+  // Sections removed: no TestAssignedSections snapshot/normalization
 
-  const [selectedCount, setSelectedCount] = useState<number>(0);
   const [selectionFromBank, setSelectionFromBank] = useState(false);
 
   // Paging for selected questions grid
@@ -58,37 +30,74 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
   // Bulk controls state
   const [assignFrom, setAssignFrom] = useState<number | "">("");
   const [assignTo, setAssignTo] = useState<number | "">("");
-  const [assignSectionId, setAssignSectionId] = useState<number | "">("");
+  // Section assignment removed
   const [markFrom, setMarkFrom] = useState<number | "">("");
   const [markTo, setMarkTo] = useState<number | "">("");
   const [markMarks, setMarkMarks] = useState<number | "">("");
   const [markNegMarks, setMarkNegMarks] = useState<number | "">("");
   const [markDuration, setMarkDuration] = useState<number | "">("");
 
-  const [sections, setSections] = useState<TestSection[]>([]);
+  // No sections state
   const [delSelected, setDelSelected] = useState<Record<number, boolean>>({});
   const [toast, setToast] = useState<{ message: string; type?: ToastType } | null>(null);
   // Removed: edit gating confirmations; questions can be edited without restriction
   // Inline validation map per question id
   const [invalidMap, setInvalidMap] = useState<Record<number, string[]>>({});
+  // Computed summary and handicapped duration
+  const [handiDuration, setHandiDuration] = useState<number | "">("");
+  // Subjects map for computing parent subject
+  const [subjectMap, setSubjectMap] = useState<Record<number, { name: string; parentId: number }>>({});
 
-  // Fetch sections once
+  // Load subjects map once (cache in sessionStorage to avoid repeated loads)
   useEffect(() => {
+    let mounted = true;
     (async () => {
       try {
-        const res = await apiHandler(endpoints.getTestSectionsOData, null as any);
-        const list = Array.isArray(res?.data?.value) ? (res.data.value as TestSection[]) : [];
-        // If Step 1 limited sections, it used canonical TestAssignedSectionId which equals catalog TestSectionId
-        const assigned = Array.isArray((draft as any)?.TestAssignedSections) ? (draft as any).TestAssignedSections : [];
-        const allowedIds = assigned
-          .map((s: any) => Number(s?.TestAssignedSectionId ?? s?.TestSectionId))
-          .filter((n: any) => Number.isFinite(n));
-        setSections(allowedIds.length > 0 ? list.filter(s => allowedIds.includes(Number(s.TestSectionId))) : list);
-      } catch {
-        setSections([]);
-      }
+        const cached = typeof window !== 'undefined' ? sessionStorage.getItem('admin:newTest:subjectMap') : null;
+        if (cached) {
+          const obj = JSON.parse(cached) as Record<number, { name: string; parentId: number }>;
+          if (mounted) setSubjectMap(obj);
+          return;
+        }
+      } catch { /* ignore */ }
+      try {
+  const res = await apiHandler(endpoints.listSubjectsOData as any, { query: "?$select=SubjectId,SubjectName,ParentId" } as any);
+  const data: any = (res as any)?.data ?? {};
+  const arr: any[] = Array.isArray(data?.value) ? data.value : (Array.isArray(data) ? data : []);
+        const map: Record<number, { name: string; parentId: number }> = {};
+        for (const s of arr) {
+          const id = Number(s?.SubjectId ?? s?.subjectId);
+          if (!Number.isFinite(id)) continue;
+          map[id] = {
+            name: s?.SubjectName ?? s?.subjectName ?? "",
+            parentId: Number(s?.ParentId ?? s?.parentId ?? 0) || 0,
+          };
+        }
+        if (mounted) setSubjectMap(map);
+        try { sessionStorage.setItem('admin:newTest:subjectMap', JSON.stringify(map)); } catch { /* ignore */ }
+      } catch { /* ignore */ }
     })();
-  }, [draft?.TestAssignedSections]);
+    return () => { mounted = false; };
+  }, []);
+
+  const computeRootParent = (subjectId?: number | null): { id: number | null; name: string | null } => {
+    if (!subjectId || !Number.isFinite(subjectId)) return { id: null, name: null };
+    let curr = Number(subjectId);
+    const guard = 1000; // avoid infinite loops on bad data
+    let steps = 0;
+    while (steps < guard) {
+      const node = subjectMap[curr];
+      if (!node) break;
+      if (!node.parentId || node.parentId === 0) return { id: curr, name: node.name ?? null };
+      curr = node.parentId;
+      steps++;
+    }
+    // Fallback to immediate node if present
+    const n = subjectMap[Number(subjectId)];
+    return n ? { id: Number(subjectId), name: n.name ?? null } : { id: null, name: null };
+  };
+
+  // No sections to fetch
 
   // Ingest session selection once when returning from Select Questions
   useEffect(() => {
@@ -110,10 +119,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
           }, 0);
           setSelectionFromBank(true);
         }
-        const newCount = Array.isArray(data?.questionIds)
-          ? data!.questionIds!.length
-          : (toAdd.length || 0);
-        setSelectedCount((prev) => (newCount > 0 ? newCount : prev));
+        // selected count banner removed; no longer tracking separate count here
         sessionStorage.removeItem("admin:newTest:selectedQuestions");
         // We are back in the wizard; allow cleanup on future exits
         sessionStorage.removeItem("admin:newTest:suppressClear");
@@ -136,6 +142,36 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
           const marks = Number(resp?.marks ?? meta?.marks ?? 0);
           const neg = Number(resp?.negativeMarks ?? meta?.negativeMarks ?? 0);
           const dur = Number(meta?.duration ?? resp?.duration ?? resp?.questionDuration ?? 0);
+          const subjRaw =
+            // Prefer API shape: testquestions.question.subject (lower/camel variants)
+            resp?.testquestions?.question?.subject
+            ?? resp?.testQuestions?.question?.subject
+            ?? resp?.question?.subject
+            // Fall back to nested under Question
+            ?? resp?.Question?.subject
+            ?? resp?.Question?.Subject
+            // Final fallbacks
+            ?? resp?.Subject
+            ?? resp?.subject;
+          let Subject = subjRaw
+            ? {
+                ParentSubjectId: subjRaw?.ParentSubjectId ?? subjRaw?.parentSubjectId ?? undefined,
+                ParentSubjectName: subjRaw?.ParentSubjectName ?? subjRaw?.parentSubjectName ?? undefined,
+                SubjectId: subjRaw?.SubjectId ?? subjRaw?.subjectId ?? undefined,
+                SubjectName: subjRaw?.SubjectName ?? subjRaw?.subjectName ?? undefined,
+              }
+            : undefined;
+          // If parent fields are still missing but SubjectId exists, compute from subjectMap
+          if ((!Subject?.ParentSubjectId || !Subject?.ParentSubjectName) && Subject?.SubjectId && Object.keys(subjectMap).length > 0) {
+            const root = computeRootParent(Number(Subject.SubjectId));
+            if (root.id || root.name) {
+              Subject = {
+                ...(Subject || {}),
+                ParentSubjectId: root.id ?? Subject?.ParentSubjectId,
+                ParentSubjectName: root.name ?? Subject?.ParentSubjectName,
+              } as any;
+            }
+          }
           // Consider multiple possible fields for question text
           const fetchedText = resp?.questionText
             ?? resp?.question
@@ -159,6 +195,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                   Question: {
                     ...(q?.Question || {}),
                     Questionoptions: [{ QuestionText: effectiveText }],
+                    ...(Subject ? { Subject } : {}),
                   },
                 };
               });
@@ -181,21 +218,81 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
         }
       })();
     }
-    // After ingesting, if assigned sections somehow became empty, restore from snapshot to preserve Step 1 selections
-    try {
-      const arr = (draft as any)?.TestAssignedSections;
-      if (!Array.isArray(arr) || arr.length === 0) {
-        const snap = assignedSnapshotRef.current;
-        if (Array.isArray(snap) && snap.length > 0) {
-          setTimeout(() => {
-            setDraft((d) => ({ ...d, TestAssignedSections: snap.map((r: any) => ({ ...r })) }));
-          }, 0);
-        }
-      }
-    } catch { }
+    // No section snapshot restore
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search?.toString()]);
+
+  // After selecting/adding questions, backfill Subject for any new rows missing it
+  useEffect(() => {
+    if (!selectionFromBank) return;
+    // Wait until subjectMap is available to compute parents
+    if (!subjectMap || Object.keys(subjectMap).length === 0) return;
+    const work = async () => {
+      try {
+        const list: any[] = Array.isArray(draft?.testQuestions) ? draft!.testQuestions! : [];
+        const targets = list
+          .filter((q) => {
+            const psn = q?.Question?.Subject?.ParentSubjectName;
+            const sid = q?.Question?.Subject?.SubjectId
+              ?? q?.Question?.subject?.subjectId
+              ?? q?.SubjectId
+              ?? q?.subjectId;
+            // If we already have parent subject name, no need to refetch
+            return !psn && !sid; // only rows with no subject info at all
+          })
+          .map((q) => Number(q?.TestQuestionId))
+          .filter((id) => Number.isFinite(id) && id > 0);
+        if (targets.length === 0) return;
+        for (const id of targets) {
+          try {
+            const res = await apiHandler(endpoints.getQuestionById, { questionId: id } as any);
+            const resp: any = res?.data || {};
+            const subjRaw = resp?.testquestions?.question?.subject
+              ?? resp?.testQuestions?.question?.subject
+              ?? resp?.question?.subject
+              ?? resp?.Question?.subject
+              ?? resp?.Question?.Subject
+              ?? resp?.Subject
+              ?? resp?.subject;
+            let Subject = subjRaw
+              ? {
+                  ParentSubjectId: subjRaw?.ParentSubjectId ?? subjRaw?.parentSubjectId ?? undefined,
+                  ParentSubjectName: subjRaw?.ParentSubjectName ?? subjRaw?.parentSubjectName ?? undefined,
+                  SubjectId: subjRaw?.SubjectId ?? subjRaw?.subjectId ?? undefined,
+                  SubjectName: subjRaw?.SubjectName ?? subjRaw?.subjectName ?? undefined,
+                }
+              : undefined;
+            if ((!Subject?.ParentSubjectId || !Subject?.ParentSubjectName) && Subject?.SubjectId) {
+              const root = computeRootParent(Number(Subject.SubjectId));
+              Subject = {
+                ...(Subject || {}),
+                ...(root.id ? { ParentSubjectId: root.id } : {}),
+                ...(root.name ? { ParentSubjectName: root.name } : {}),
+              } as any;
+            }
+            if (!Subject) continue;
+            setDraft((d) => {
+              const qs: any[] = Array.isArray(d.testQuestions) ? d.testQuestions : [];
+              const updated = qs.map((q: any) =>
+                Number(q?.TestQuestionId) === id
+                  ? { ...q, Question: { ...(q?.Question || {}), Subject: { ...(q?.Question?.Subject || {}), ...Subject } } }
+                  : q
+              );
+              return { ...d, testQuestions: updated };
+            });
+          } catch { /* ignore per-row failures */ }
+        }
+      } finally {
+        // Done with one-time fix for new selections
+        setSelectionFromBank(false);
+      }
+    };
+    // Defer to avoid clashing with the initial ingest setDraft
+    const t = setTimeout(() => { work(); }, 0);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectionFromBank, subjectMap]);
 
   // Restore Step1 critical fields if they were lost after returning from editing a question
   useEffect(() => {
@@ -214,27 +311,19 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
           if (snap[k] != null && String(snap[k]).trim() !== "") { needsRestore = true; break; }
         }
       }
-      // Also restore TestAssignedSections if missing
-      const hasSectionsNow = Array.isArray((draft as any).TestAssignedSections) && (draft as any).TestAssignedSections.length > 0;
-      const hasSectionsSnap = Array.isArray(snap.TestAssignedSections) && snap.TestAssignedSections.length > 0;
-      if (!hasSectionsNow && hasSectionsSnap) needsRestore = true;
       if (needsRestore) {
         setTimeout(() => {
           setDraft(d => ({
             ...snap, ...d, // draft wins for new keys
             // Ensure we don't overwrite updated questions array
             testQuestions: (d as any).testQuestions ?? snap.testQuestions,
-            TestAssignedSections: hasSectionsNow ? (d as any).TestAssignedSections : snap.TestAssignedSections
           }));
         }, 0);
       }
     } catch {/* ignore */ }
   }, [draft, setDraft]);
 
-  // Keep banner in sync with draft if session is empty
-  useEffect(() => {
-    if (Array.isArray(draft?.testQuestions)) setSelectedCount(draft.testQuestions.length);
-  }, [draft?.testQuestions]);
+  // Removed: selected questions banner and tracking
 
   const rows = useMemo(() => (Array.isArray(draft?.testQuestions) ? draft.testQuestions : []), [draft?.testQuestions]);
   const total = rows.length;
@@ -243,6 +332,80 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
     const start = (page - 1) * pageSize;
     return rows.slice(start, start + pageSize);
   }, [rows, page, pageSize]);
+
+  // Backfill Subject on rows to ensure ParentSubjectName/Id always present under Question.Subject
+  useEffect(() => {
+    setDraft((d) => {
+      const qs: any[] = Array.isArray(d?.testQuestions) ? d.testQuestions : [];
+      if (qs.length === 0) return d;
+      let changed = false;
+      const updated = qs.map((q: any) => {
+        const subjObj = q?.Question?.Subject;
+        const lowerSubj = q?.Question?.subject;
+        const altSubj = q?.question?.subject || q?.question?.Subject;
+        const parentName = subjObj?.ParentSubjectName
+          ?? lowerSubj?.parentSubjectName
+          ?? altSubj?.parentSubjectName
+          ?? q?.ParentSubjectName
+          ?? q?.parentSubjectName
+          ?? q?.Question?.ParentSubjectName
+          ?? null;
+        const parentId = subjObj?.ParentSubjectId
+          ?? lowerSubj?.parentSubjectId
+          ?? altSubj?.parentSubjectId
+          ?? q?.ParentSubjectId
+          ?? q?.parentSubjectId
+          ?? q?.Question?.ParentSubjectId
+          ?? null;
+        const childName = subjObj?.SubjectName
+          ?? lowerSubj?.subjectName
+          ?? altSubj?.subjectName
+          ?? q?.SubjectName
+          ?? q?.subjectName
+          ?? q?.Question?.SubjectName
+          ?? null;
+        const childId = subjObj?.SubjectId
+          ?? lowerSubj?.subjectId
+          ?? altSubj?.subjectId
+          ?? q?.SubjectId
+          ?? q?.subjectId
+          ?? q?.Question?.SubjectId
+          ?? null;
+        // If still missing parent and we have SubjectId plus a loaded subjectMap, compute root parent
+        let computedParentName: string | null = parentName;
+        let computedParentId: number | null = parentId as any;
+        if ((!computedParentName || computedParentId == null) && childId && Object.keys(subjectMap).length > 0) {
+          const root = computeRootParent(Number(childId));
+          computedParentName = computedParentName ?? root.name;
+          computedParentId = computedParentId ?? (root.id as any);
+        }
+        const needSubjectContainer = !q?.Question?.Subject && (parentName != null || parentId != null || childName != null || childId != null);
+        const needParentName = !!q?.Question && (!q?.Question?.Subject?.ParentSubjectName && computedParentName != null);
+        const needParentId = !!q?.Question && (!q?.Question?.Subject?.ParentSubjectId && computedParentId != null);
+        const needChildName = !!q?.Question && (!q?.Question?.Subject?.SubjectName && childName != null);
+        const needChildId = !!q?.Question && (!q?.Question?.Subject?.SubjectId && childId != null);
+        if (needSubjectContainer || needParentName || needParentId || needChildName || needChildId) {
+          changed = true;
+          return {
+            ...q,
+            Question: {
+              ...(q?.Question || {}),
+              Subject: {
+                ...(q?.Question?.Subject || {}),
+                ...(computedParentName != null ? { ParentSubjectName: computedParentName } : {}),
+                ...(computedParentId != null ? { ParentSubjectId: computedParentId } : {}),
+                ...(childName != null ? { SubjectName: childName } : {}),
+                ...(childId != null ? { SubjectId: childId } : {}),
+              },
+            },
+          };
+        }
+        return q;
+      });
+      return changed ? { ...d, testQuestions: updated } : d;
+    });
+    // We intentionally depend on rows to re-check when data changes
+  }, [rows, setDraft, subjectMap]);
 
   // Build validation state when rows change
   useEffect(() => {
@@ -263,6 +426,41 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
     }
     setInvalidMap(next);
   }, [rows]);
+
+  // Initialize handicapped duration from draft once
+  useEffect(() => {
+    if (handiDuration === "" && draft?.TestDurationForHandicappedMinutes != null) {
+      setHandiDuration(Number(draft.TestDurationForHandicappedMinutes));
+    }
+  }, [draft?.TestDurationForHandicappedMinutes]);
+
+  // Computed totals from selected rows
+  const computed = useMemo(() => {
+    const list: any[] = Array.isArray(draft?.testQuestions) ? draft!.testQuestions! : [];
+    const totalQuestions = list.length;
+    const totalMarks = list.reduce((s, q) => s + (Number(q?.Marks === "" ? 0 : (q?.Marks ?? 0)) || 0), 0);
+    const totalDuration = list.reduce((s, q) => s + (Number(q?.Duration === "" ? 0 : (q?.Duration ?? 0)) || 0), 0);
+    return { totalQuestions, totalMarks, totalDuration };
+  }, [draft?.testQuestions]);
+
+  // Keep handicapped in sync with normal whenever selected questions change
+  useEffect(() => {
+    // Always align handicapped to computed normal duration on question changes
+    setHandiDuration(computed.totalDuration);
+  }, [computed.totalDuration]);
+
+  // Persist computed Normal duration and totals to draft for save path
+  useEffect(() => {
+    setDraft((d: any) => ({
+      ...d,
+      TestDurationMinutes: computed.totalDuration,
+      TotalQuestions: computed.totalQuestions,
+      TotalMarks: computed.totalMarks,
+      // Enforce handicapped >= normal
+      TestDurationForHandicappedMinutes:
+        handiDuration === "" ? computed.totalDuration : Math.max(Number(handiDuration), computed.totalDuration),
+    }));
+  }, [computed, handiDuration, setDraft]);
 
   // Register validator with parent to block navigating away when invalid
   useEffect(() => {
@@ -297,76 +495,9 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
   // Step 1 totals are user-entered business values and must remain stable even if questions are removed/added in Step 3.
   // (Previous auto-sync removed per new requirement.)
 
-  // Aggregate per-section counts & marks into TestAssignedSections (Step1 display) with dedup
-  // Use canonical TestAssignedSectionId (with fallbacks) so Step 1 selections persist.
-  useEffect(() => {
-    // Defer updates to avoid setState warnings during other components' render
-    setTimeout(() => {
-      setDraft((d) => {
-        const qs: any[] = Array.isArray(d.testQuestions) ? d.testQuestions : [];
-        let assigned: any[] = Array.isArray((d as any).TestAssignedSections) ? (d as any).TestAssignedSections.map((r: any) => ({ ...r })) : [];
-        if (assigned.length === 0) return d; // nothing to update
+  // No per-section aggregates
 
-        // Deduplicate by canonical section id; preserve first entry's other fields.
-        const byId = new Map<number, any>();
-        for (const r of assigned) {
-          const id = Number(r?.TestAssignedSectionId ?? r?.testAssignedSectionId ?? r?.TestSectionId);
-          if (!Number.isFinite(id) || id <= 0) continue;
-          if (!byId.has(id)) {
-            const copy = { ...r, TestAssignedSectionId: id };
-            byId.set(id, copy);
-          }
-        }
-        assigned = Array.from(byId.values());
-        // Preserve existing SectionOrder; only sort for stable display, do not renumber
-        assigned.sort((a: any, b: any) => (a.SectionOrder || 0) - (b.SectionOrder || 0));
-
-        // Build stats from questions using their assigned section id
-        const stats = new Map<number, { q: number; m: number }>();
-        for (const q of qs) {
-          const sid = Number(q?.TestSectionId ?? q?.TestAssignedSectionId ?? q?.testAssignedSectionId);
-          if (!Number.isFinite(sid)) continue;
-          const marks = Number(q?.Marks === "" ? 0 : (q?.Marks ?? 0)) || 0;
-          const rec = stats.get(sid) || { q: 0, m: 0 };
-          rec.q += 1; rec.m += marks; stats.set(sid, rec);
-        }
-
-        let changed = false;
-        const nextAssigned = assigned.map((row: any) => {
-          const sid = Number(row?.TestAssignedSectionId ?? row?.TestSectionId);
-          const rec = stats.get(sid) || { q: 0, m: 0 };
-          const qChanged = row.SectionTotalQuestions !== rec.q;
-          const mChanged = row.SectionTotalMarks !== rec.m;
-          if (qChanged || mChanged) {
-            changed = true;
-            return { ...row, SectionTotalQuestions: rec.q, SectionTotalMarks: rec.m };
-          }
-          return row;
-        });
-
-        if (!changed && nextAssigned.length === ((d as any).TestAssignedSections as any[])?.length) return d;
-        return { ...d, TestAssignedSections: nextAssigned };
-      });
-    }, 0);
-  }, [rows, setDraft]);
-
-  const applyAssignSection = () => {
-    if (!assignFrom || !assignTo || !assignSectionId) return;
-    const start = Math.min(assignFrom as number, assignTo as number);
-    const end = Math.max(assignFrom as number, assignTo as number);
-    setDraft((d) => {
-      const qs = Array.isArray(d.testQuestions) ? d.testQuestions : [];
-      const updated = qs.map((q: any, idx: number) => {
-        const sn = idx + 1;
-        if (sn >= start && sn <= end) return { ...q, TestSectionId: assignSectionId };
-        return q;
-      });
-      return { ...d, testQuestions: updated };
-    });
-    setAssignFrom("");
-    setAssignTo("");
-    setAssignSectionId("");
-  };
+  // Section assignment removed
 
   const applyMarksUpdate = () => {
     if (!markFrom || !markTo) return;
@@ -398,10 +529,9 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
     if (!assignFrom || !assignTo) return; // need a valid range
     const start = Math.min(assignFrom as number, assignTo as number);
     const end = Math.max(assignFrom as number, assignTo as number);
-    const hasSection = assignSectionId !== "";
-    const hasMarks = markMarks !== "" || markNegMarks !== "";
+  const hasMarks = markMarks !== "" || markNegMarks !== "";
     const hasDuration = markDuration !== "";
-    if (!hasSection && !hasMarks && !hasDuration) return; // nothing to update
+  if (!hasMarks && !hasDuration) return; // nothing to update
     if (markMarks !== "" && markNegMarks !== "" && Number(markNegMarks) > Number(markMarks)) {
       setToast({ message: "Negative Marks should not be greater than Marks.", type: "error" });
       return;
@@ -414,7 +544,6 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
         if (sn < start || sn > end) return q;
         return {
           ...q,
-          ...(hasSection ? { TestSectionId: assignSectionId } : {}),
           ...(markMarks !== "" ? { Marks: Number(markMarks) } : {}),
           ...(markNegMarks !== "" ? { NegativeMarks: Number(markNegMarks) } : {}),
           ...(hasDuration ? { Duration: Number(markDuration) } : {}),
@@ -469,24 +598,62 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
         </div>
       )}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        {selectedCount > 0 && (
-          <div className="lg:col-span-4">
-            <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm text-green-800">
-              {selectedCount} question{selectedCount === 1 ? "" : "s"} selected from Question Bank. You can proceed to next step or refine selection.
-            </div>
-          </div>
-        )}
-
         {total > 0 && (
           <div className="lg:col-span-3">
             <div className="w-full">
               <div className="rounded-lg border bg-white shadow-sm">
                 <div className="bg-blue-600 text-white px-4 py-2 text-base font-semibold rounded-t-lg flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">Selected Questions</div>
+                  <div className="flex items-center gap-2">Selected Questions ({total})</div>
                   <div className="flex-1"></div>
                 </div>
 
+                {/* Summary section: split into Marks and Duration boxes, fit in one row on large screens */}
                 <div className="p-4 border-b">
+                  <div className="flex flex-col lg:flex-row gap-3 mb-3">
+                    {/* Marks box */}
+                    <div className="bg-gray-50 rounded-md p-3 border flex-1 min-w-[280px]">
+                      <div className="text-sm font-semibold mb-2">Test Totals</div>
+                      <div className="flex flex-wrap items-end gap-4">
+                        <div className="flex flex-col min-w-[8rem]">
+                          <label className="text-xs text-gray-600">Total Questions</label>
+                          <div className="px-2 py-1 text-sm font-semibold text-gray-900">{computed.totalQuestions}</div>
+                        </div>
+                        <div className="flex flex-col min-w-[8rem]">
+                          <label className="text-xs text-gray-600">Total Marks</label>
+                          <div className="px-2 py-1 text-sm font-semibold text-gray-900">{computed.totalMarks}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Duration box */}
+                    <div className="bg-gray-50 rounded-md p-3 border flex-1 min-w-[300px]">
+                      <div className="text-sm font-semibold mb-2">Duration (minutes)</div>
+                      <div className="flex flex-nowrap items-end gap-4">
+                        <div className="flex flex-col min-w-[8rem]">
+                          <label className="text-xs text-gray-600">Normal</label>
+                          <div className="px-2 py-1 text-sm font-semibold text-gray-900">{computed.totalDuration}</div>
+                        </div>
+                        <div className="flex flex-col min-w-[10rem]">
+                          <label className="text-xs text-gray-600" htmlFor="handiDuration">Handicapped</label>
+                          <input
+                            id="handiDuration"
+                            type="number"
+                            min={computed.totalDuration}
+                            className="border rounded px-2 py-1 text-sm w-24"
+                            value={handiDuration as any}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              if (v === "") { setHandiDuration(""); return; }
+                              const num = Number(v);
+                              if (!Number.isFinite(num)) return;
+                              // Clamp to normal duration minimum
+                              setHandiDuration(Math.max(num, computed.totalDuration));
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <div className="bg-gray-50 rounded-md p-3 border">
                     <div className="text-sm font-semibold mb-3">Bulk Update (by S.No range)</div>
                     <div className="flex flex-wrap items-end gap-3">
@@ -504,13 +671,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                           {seqOptions.map(n => <option key={n} value={n}>{n}</option>)}
                         </select>
                       </div>
-                      <div className="flex flex-col min-w-[12rem]">
-                        <label className="text-xs text-gray-600">Test Section</label>
-                        <select value={assignSectionId as any} onChange={(e) => setAssignSectionId(e.target.value ? Number(e.target.value) : "")} className="border rounded px-2 py-1 text-sm">
-                          <option value="">Select Section</option>
-                          {sections.map(s => <option key={s.TestSectionId} value={s.TestSectionId}>{s.TestSectionName}</option>)}
-                        </select>
-                      </div>
+                      {/* Subject is derived from the question; no bulk update control */}
                       <div className="flex flex-col">
                         <label className="text-xs text-gray-600">Marks</label>
                         <input type="number" placeholder="--" value={markMarks as any} onChange={(e) => setMarkMarks(e.target.value === "" ? "" : Number(e.target.value))} className="border rounded px-2 py-1 text-sm w-24" />
@@ -597,7 +758,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                         <th className="px-4 py-2 border-b w-28 text-left">Marks</th>
                         <th className="px-4 py-2 border-b w-36 text-left">Negative Marks</th>
                         <th className="px-4 py-2 border-b w-28 text-left">Duration</th>
-                        <th className="px-4 py-2 border-b w-40 text-left">Test Section</th>
+                        <th className="px-4 py-2 border-b w-40 text-left">Subject</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -634,7 +795,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                                       // Snapshot Step1 critical fields & sections so they can be restored if lost
                                       try {
                                         const snap: any = {};
-                                        const keys = ["TestName", "TestTypeId", "CategoryId", "DifficultyLevelId", "PrimaryInstructionId", "TestDuration", "TotalQuestions", "TotalMarks", "TestAssignedSections"];
+                                        const keys = ["TestName", "TestTypeId", "CategoryId", "DifficultyLevelId", "PrimaryInstructionId", "TestDuration", "TotalQuestions", "TotalMarks"];
                                         for (const k of keys) snap[k] = (draft as any)?.[k];
                                         sessionStorage.setItem("admin:newTest:step1snapshot", JSON.stringify(snap));
                                       } catch {/* ignore */ }
@@ -710,29 +871,11 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                               />
                             </td>
                             <td className="px-4 py-2 border-b">
-                              <select
-                                className="border rounded px-2 py-1 text-sm w-40"
-                                value={(r?.TestSectionId as any) ?? ""}
-                                onChange={(e) => {
-                                  const val = e.target.value ? Number(e.target.value) : "";
-                                  setDraft((d) => {
-                                    const qs = Array.isArray(d.testQuestions) ? d.testQuestions : [];
-                                    const updated = qs.map((q: any) =>
-                                      Number(q.TestQuestionId) === Number(r.TestQuestionId)
-                                        ? { ...q, TestSectionId: val === "" ? undefined : val }
-                                        : q
-                                    );
-                                    return { ...d, testQuestions: updated };
-                                  });
-                                }}
-                              >
-                                <option value="">Select Section</option>
-                                {sections.map((s) => (
-                                  <option key={s.TestSectionId} value={s.TestSectionId}>
-                                    {s.TestSectionName}
-                                  </option>
-                                ))}
-                              </select>
+                              {(() => {
+                                // Show only ParentSubjectName from model.TestQuestions.Question.Subject
+                                const name = r?.Question?.Subject?.ParentSubjectName ?? "-";
+                                return <span className="inline-block truncate max-w-[12rem]">{name}</span>;
+                              })()}
                             </td>
                           </tr>
                         ))
