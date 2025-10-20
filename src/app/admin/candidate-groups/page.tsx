@@ -20,21 +20,8 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 function NameCellRenderer(props: { value: string; data: CandidateGroupRow }) {
   const row: any = props.data;
-  const depth = row._depth || 0;
-  const hasKids = !!row._hasChildren;
-  const expanded = !!row._expanded;
   return (
-    <div className="flex items-center" style={{ paddingLeft: depth * 16 }}>
-      {hasKids && (
-        <button
-          type="button"
-          onClick={() => row._toggle?.(row.id)}
-          className="w-5 h-5 flex items-center justify-center mr-1 text-gray-700 border border-gray-300 rounded text-[10px] leading-none font-semibold bg-white hover:bg-indigo-50"
-          aria-label={expanded ? "Collapse" : "Expand"}
-        >
-          {expanded ? "−" : "+"}
-        </button>
-      )}
+    <div className="flex items-center">
       <Link href={`/admin/candidate-groups/${row.id}/edit`} className="text-blue-600 hover:underline truncate max-w-full" title={props.value}>
         {props.value}
       </Link>
@@ -81,74 +68,36 @@ export default function CandidateGroupsPage() {
     return `${dd}-${mm}-${yyyy}`;
   };
 
-  // Internal hierarchical selection state (ensures collapsed descendants are selected)
+  // Simple flat selection state
   const selectionRef = useRef<Set<number>>(new Set());
   const [selectionVersion, setSelectionVersion] = useState(0);
-  const childrenMapRef = useRef<Record<number, number[]>>({});
-  const parentMapRef = useRef<Record<number, number | null>>({});
 
-  const rebuildMaps = useCallback(() => {
-    const cm: Record<number, number[]> = {};
-    const pm: Record<number, number | null> = {};
-    rows.forEach(r => { pm[r.id] = r.parentId || 0; (cm[r.parentId] ||= []).push(r.id); });
-    Object.values(cm).forEach(a => a.sort((a, b) => a - b));
-    childrenMapRef.current = cm; parentMapRef.current = pm;
-  }, [rows]);
-  useEffect(() => { rebuildMaps(); }, [rebuildMaps]);
-
-  const collectDesc = useCallback((id: number, acc: number[] = []) => { acc.push(id); (childrenMapRef.current[id] || []).forEach(c => collectDesc(c, acc)); return acc; }, []);
-  const updateAncestors = useCallback((id: number) => {
+  const toggleNode = useCallback((id: number) => {
     const set = selectionRef.current;
-    let cur = parentMapRef.current[id];
-    while (cur && cur !== 0) {
-      const kids = childrenMapRef.current[cur] || [];
-      const any = kids.some(k => set.has(k));
-      // Only deselect parent if no children are selected, never auto-select parent
-      if (!any) set.delete(cur);
-      cur = parentMapRef.current[cur];
-    }
-  }, []);
-  const selectNode = useCallback((id: number) => {
-    const set = selectionRef.current;
-    const hasChildren = (childrenMapRef.current[id] || []).length > 0;
-
-    if (hasChildren) {
-      // Parent selection: select all descendants
-      collectDesc(id).forEach(d => set.add(d));
+    if (set.has(id)) {
+      set.delete(id);
     } else {
-      // Child selection: only select this node
       set.add(id);
     }
+    setSelectionVersion(v => v + 1);
+  }, []);
 
-    updateAncestors(id);
-    setSelectionVersion(v => v + 1);
-  }, [collectDesc, updateAncestors]);
-  const deselectNode = useCallback((id: number) => {
-    const set = selectionRef.current;
-    collectDesc(id).forEach(d => set.delete(d));
-    updateAncestors(id);
-    setSelectionVersion(v => v + 1);
-  }, [collectDesc, updateAncestors]);
-  const toggleNode = useCallback((id: number) => { selectionRef.current.has(id) ? deselectNode(id) : selectNode(id); }, [selectNode, deselectNode]);
-  const getState = useCallback((id: number) => { const set = selectionRef.current; const sel = set.has(id); const kids = childrenMapRef.current[id] || []; if (!kids.length) return sel ? 'all' : 'none'; const kidSel = kids.filter(k => set.has(k)).length; if (kidSel === 0 && !sel) return 'none'; if (kidSel === kids.length && sel) return 'all'; return 'partial'; }, []);
   useEffect(() => { setSelectedCount(selectionRef.current.size); }, [selectionVersion]);
 
   const SelectionCheckbox = useCallback((p: any) => {
     const row: CandidateGroupRow = p.data;
-    const state = getState(row.id);
     return (
       <div className="flex items-center justify-center h-full w-full">
         <input
           type="checkbox"
           aria-label="Select row"
           checked={selectionRef.current.has(row.id)}
-          ref={el => { if (el) el.indeterminate = state === 'partial'; }}
           onChange={() => toggleNode(row.id)}
           className="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
         />
       </div>
     );
-  }, [getState, toggleNode, selectionVersion]);
+  }, [toggleNode, selectionVersion]);
 
   const columnDefs = useMemo<ColDef<CandidateGroupRow>[]>(() => [
     { colId: 'select', headerName: '', width: 44, pinned: 'left', sortable: false, filter: false, resizable: false, suppressMovable: true, cellClass: 'no-right-border', headerClass: 'no-right-border', cellRenderer: SelectionCheckbox },
@@ -245,38 +194,16 @@ export default function CandidateGroupsPage() {
 
   useEffect(() => { fetchPage(); }, [query]);
 
-  // Expanded state (persist across paging)
-  const [expanded, setExpanded] = useState<Set<number>>(new Set());
-  const toggle = (id: number) => {
-    setExpanded(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
-    setTimeout(() => { try { gridApiRef.current?.refreshCells({ force: true }); } catch { } }, 0);
-  };
 
-  // Rebuild flattened visible list when rows or expansion changes
+
+  // Use all rows as flat list (no tree structure)
   useEffect(() => {
-    const byId: Record<number, CandidateGroupRow> = Object.fromEntries(rows.map(r => [r.id, r]));
-    const kids: Record<number, CandidateGroupRow[]> = {};
-    rows.forEach(r => { (kids[r.parentId] ||= []).push(r); });
-    const depth = (id: number, guard = 0): number => { const n = byId[id]; if (!n || !n.parentId || !byId[n.parentId] || guard > 50) return 0; return 1 + depth(n.parentId, guard + 1); };
-    const out: CandidateGroupRow[] = [];
-    const walk = (nodes: CandidateGroupRow[]) => {
-      nodes.sort((a, b) => a.name.localeCompare(b.name));
-      for (const n of nodes) {
-        const meta: any = n;
-        meta._depth = depth(n.id);
-        meta._hasChildren = !!kids[n.id]?.length;
-        meta._expanded = expanded.has(n.id);
-        meta._toggle = (id: number) => toggle(id);
-        out.push(n);
-        if (expanded.has(n.id)) walk(kids[n.id] || []);
-      }
-    };
-    walk(kids[0] || []);
-    setFlatVisible(out);
-    setTotal(out.length);
-    const maxPage = Math.max(1, Math.ceil(out.length / pageSize));
+    const sortedRows = [...rows].sort((a, b) => a.name.localeCompare(b.name));
+    setFlatVisible(sortedRows);
+    setTotal(sortedRows.length);
+    const maxPage = Math.max(1, Math.ceil(sortedRows.length / pageSize));
     if (page > maxPage) setPage(1);
-  }, [rows, expanded, page, pageSize]);
+  }, [rows, page, pageSize]);
 
   const pagedRows = useMemo(() => flatVisible.slice((page - 1) * pageSize, (page - 1) * pageSize + pageSize), [flatVisible, page, pageSize]);
 
