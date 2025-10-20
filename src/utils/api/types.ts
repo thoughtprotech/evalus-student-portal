@@ -351,11 +351,12 @@ export interface GetSidebarMenusRequest {
 }
 
 export interface GetSidebarMenusResponse {
-  candidateGroupId: number;
-  candidateGroupName: string;
-  parentId: number;
-  relation: "PARENT" | "SELF";
-  level: 0;
+  testCategoryID: number;
+  testCategoryName: string;
+  testCategoryType: string;
+  parentID: number;
+  level: number;
+  categoryPath: string;
 }
 
 export interface GetSubjectsResponse {
@@ -614,6 +615,11 @@ export interface PublishedDocumentTreeItem {
   documentUrl: string | null; // may be blank or null; build absolute when displaying
   validFrom: string; // ISO
   validTo: string; // ISO
+}
+
+export interface AdminDashboardAnallyticsRequest {
+  startDate: string;
+  endDate: string;
 }
 
 export interface AdminDashboardAnallyticsResponse {

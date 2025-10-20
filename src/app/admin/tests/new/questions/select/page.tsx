@@ -8,7 +8,7 @@ import PaginationControls from "@/components/PaginationControls";
 import { TextOrHtml } from "@/components/TextOrHtml";
 
 type Language = { Language1: string };
-type Subject = { SubjectId: number; SubjectName: string };
+type Subject = { SubjectId?: number; SubjectName?: string; ParentSubjectId?: number; ParentSubjectName?: string };
 type QuestionType = { QuestionTypeId: number; QuestionType1: string };
 type Difficulty = { QuestionDifficultylevelId: number; QuestionDifficultylevel1: string };
 
@@ -20,6 +20,8 @@ type QuestionRow = {
   NegativeMarks?: number;
   GraceMarks?: number;
   Duration?: number;
+  // Include subject for downstream display (prefer parent subject fields if available)
+  Subject?: Subject;
 };
 
 function SelectQuestionsPageInner() {
@@ -287,15 +289,35 @@ function SelectQuestionsPageInner() {
         } as any);
       }
       const data = (res.data ?? { value: [], "@odata.count": 0 }) as { value: any[]; "@odata.count"?: number };
-      const mapped: QuestionRow[] = (data.value ?? []).map((r: any) => ({
-        QuestionId: r.QuestionId,
-        Questionoptions: r.Questionoptions,
-        Questiondifficultylevel: r.Questiondifficultylevel,
-        Marks: r.Marks,
-        NegativeMarks: r.NegativeMarks,
-        GraceMarks: r.GraceMarks,
-        Duration: r.Duration ?? r.TimeDuration ?? r.QuestionDuration ?? r.duration ?? r.QuestionTime ?? 0,
-      }));
+      const mapped: QuestionRow[] = (data.value ?? []).map((r: any) => {
+        // Normalize subject from varied API shapes
+        const subjRaw = r.Subject
+          ?? r.subject
+          ?? r.Question?.Subject
+          ?? r.question?.subject
+          ?? r.QuestionSubject
+          ?? (r.SubjectId || r.SubjectName ? { SubjectId: r.SubjectId, SubjectName: r.SubjectName } : undefined);
+        const Subject: Subject | undefined = subjRaw
+          ? {
+              // Prefer parent subject fields when available
+              ParentSubjectId: subjRaw.ParentSubjectId ?? subjRaw.parentSubjectId ?? undefined,
+              ParentSubjectName: subjRaw.ParentSubjectName ?? subjRaw.parentSubjectName ?? undefined,
+              // Keep original subject fields for fallback compatibility
+              SubjectId: subjRaw.SubjectId ?? subjRaw.subjectId ?? subjRaw.id ?? undefined,
+              SubjectName: subjRaw.SubjectName ?? subjRaw.subjectName ?? subjRaw.name ?? undefined,
+            }
+          : undefined;
+        return {
+          QuestionId: r.QuestionId,
+          Questionoptions: r.Questionoptions,
+          Questiondifficultylevel: r.Questiondifficultylevel,
+          Marks: r.Marks,
+          NegativeMarks: r.NegativeMarks,
+          GraceMarks: r.GraceMarks,
+          Duration: r.Duration ?? r.TimeDuration ?? r.QuestionDuration ?? r.duration ?? r.QuestionTime ?? 0,
+          Subject,
+        } as QuestionRow;
+      });
       setRows(mapped);
       setTotal(Number(data["@odata.count"] ?? mapped.length));
       // cache question text for persistence across pages
@@ -404,6 +426,17 @@ function SelectQuestionsPageInner() {
           Questionoptions: [
             { QuestionText: questionText },
           ],
+          // Carry subject through for Step 3 display (server ignores nested Question on save)
+          Subject: row?.Subject
+            ? {
+                // Prefer parent subject props for display in Step 3
+                ParentSubjectId: row.Subject.ParentSubjectId,
+                ParentSubjectName: row.Subject.ParentSubjectName,
+                // Include base subject fields as optional fallback
+                SubjectId: row.Subject.SubjectId,
+                SubjectName: row.Subject.SubjectName,
+              }
+            : undefined,
         },
       };
     });

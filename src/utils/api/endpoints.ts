@@ -1,4 +1,5 @@
 import {
+  AdminDashboardAnallyticsRequest,
   AdminDashboardAnallyticsResponse,
   AdminDashboardRecentActivitiesResponse,
   AdminDashboardReportDataRequest,
@@ -802,6 +803,24 @@ export const endpoints = {
     type: "OPEN",
   } as Endpoint<{ query?: string }, { "@odata.count"?: number; value: any[] }>,
 
+  // Public OData path (no /api prefix) for Candidate Groups
+  listCandidateGroupsODataOpen: {
+    method: "GET",
+    path: ({ query }) => {
+      let q = query || "";
+      // ensure leading ? when any query is present
+      if (q && !q.startsWith("?")) q = `?${q}`;
+      // add default filter when none provided
+      const hasFilter = /\$filter=/i.test(q);
+      if (!hasFilter) {
+        if (!q) q = "?$filter=ParentId eq 0";
+        else q = `${q}&$filter=ParentId eq 0`;
+      }
+      return `/odata/CandidateGroups${q}`;
+    },
+    type: "OPEN",
+  } as Endpoint<{ query?: string }, { "@odata.count"?: number; value: any[] }>,
+
   // Candidate Groups CRUD
   createCandidateGroup: {
     method: "POST",
@@ -1250,9 +1269,13 @@ export const endpoints = {
 
   getAdminDashboardAnalytics: {
     method: "GET",
-    path: () => `/api/TestAdminDashboard/adminDashboard/analytics`,
+    path: ({ startDate, endDate }) =>
+      `/api/TestAdminDashboard/adminDashboard/analytics?startDate=${startDate}&endDate=${endDate}`,
     type: "CLOSE",
-  } as Endpoint<null, AdminDashboardAnallyticsResponse>,
+  } as Endpoint<
+    AdminDashboardAnallyticsRequest,
+    AdminDashboardAnallyticsResponse
+  >,
 
   getAdminDashboardRecentActivities: {
     method: "GET",

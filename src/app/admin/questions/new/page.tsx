@@ -602,6 +602,15 @@ function NewQuestionPageInner() {
           // If backend returns created entity or ID, capture it for Step 3
           const createdId = (data as any)?.questionId || (data as any)?.QuestionId || (data as any)?.id;
           if (createdId) {
+            // Include subject info so Step 3 can derive ParentSubject via its subjectMap
+            const subjId = Number(questionsMeta.subjectId || 0);
+            const subjName = (() => {
+              try {
+                const list = Array.isArray(subjects) && subjects.length > 0 ? subjects : (Array.isArray(allLanguageSubjects) ? allLanguageSubjects : []);
+                const f = list.find((s) => Number((s as any)?.subjectId ?? (s as any)?.SubjectId) === subjId);
+                return (f as any)?.subjectName ?? (f as any)?.SubjectName ?? undefined;
+              } catch { return undefined; }
+            })();
             const payload = {
               questionIds: [Number(createdId)],
               testQuestions: [
@@ -616,6 +625,8 @@ function NewQuestionPageInner() {
                     Questionoptions: [
                       { QuestionText: (question || "").toString() }
                     ],
+                    // Pass child subject so Step 3 can compute and backfill ParentSubjectName/Id
+                    ...(subjId ? { Subject: { SubjectId: subjId, ...(subjName ? { SubjectName: subjName } : {}) } } : {}),
                   },
                 },
               ],

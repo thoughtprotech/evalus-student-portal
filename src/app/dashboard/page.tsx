@@ -194,7 +194,7 @@ export default function Index() {
             </div>
             <div className="w-full grid grid-cols-1 lg:grid-cols-4 gap-4">
               {paginatedTests.map((test, i) => (
-                <div key={`test-${test.testId}`}>
+                <div key={`test-${test.testId}${i}`}>
                   {test.testCandidateRegistrationStatus === "Completed" ? (
                     <AnalyticCard
                       id={test.testId}
