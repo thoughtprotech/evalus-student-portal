@@ -651,6 +651,14 @@ export const endpoints = {
     type: "CLOSE",
   } as Endpoint<{ id: number }, null>,
 
+  // OData - Category Tree (function import)
+  // Returns hierarchical category data (no params required)
+  getTestCategoryTree: {
+    method: "GET",
+    path: () => `/Odata/TestCategories/GetTestCategoryTree`,
+    type: "OPEN",
+  } as Endpoint<null, any[]>,
+
   getTestInstructions: {
     method: "GET",
     path: () =>

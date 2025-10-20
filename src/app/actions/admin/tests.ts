@@ -48,7 +48,10 @@ interface ODataTestItem {
   TestCode?: string;
   TestQuestions?: ODataTestQuestion[];
   TestDifficultyLevel?: { TestDifficultyLevel1?: string };
-  TestCategory?: { TestCategoryName?: string };
+  // TestCategoryId removed from Test; categories now come via assignment table
+  TestAssignedTestCategories?: Array<{
+    TestCategory?: { TestCategoryName?: string };
+  }>;
   TestTemplate?: { TestTemplateName?: string };
 }
 
@@ -72,9 +75,10 @@ function buildQuery(params: FetchTestsParams): string {
   // - Level/Category/Template names
   const expandParts = [
     "TestQuestions($count=true)",
-    "TestAssignments($count=true)",
+      "TestAssignmentCandidateGroups($count=true)",
     "TestDifficultyLevel($select=TestDifficultyLevel1)",
-    "TestCategory($select=TestCategoryName)",
+    // Categories now via assignment table
+    "TestAssignedTestCategories($expand=TestCategory($select=TestCategoryName))",
     "TestTemplate($select=TestTemplateName)",
   ];
   searchParams.set("$expand", expandParts.join(","));
@@ -92,11 +96,17 @@ function mapToRows(items: ODataTestItem[]): TestRow[] {
     const start = it.TestStartDate || it.CreatedDate || "";
     const end = it.TestEndDate || "";
     const qCount = (it as any)["TestQuestions@odata.count"] as number | undefined;
-    const candCount = (it as any)["TestAssignments@odata.count"] as number | undefined;
+      const candCount = (it as any)["TestAssignmentCandidateGroups@odata.count"] as number | undefined;
     const isActiveRaw = (it as any).IsActive as any;
     const isActiveBool = isActiveRaw === true || isActiveRaw === 1 || isActiveRaw === "1" ? true
       : isActiveRaw === false || isActiveRaw === 0 || isActiveRaw === "0" ? false
       : undefined;
+    // Build a comma-separated category list from assignments
+    const categoryNames = Array.isArray(it.TestAssignedTestCategories)
+      ? it.TestAssignedTestCategories
+          .map((t) => t?.TestCategory?.TestCategoryName)
+          .filter((n): n is string => !!n && n.trim().length > 0)
+      : [];
     return {
       id: it.TestId,
       name: it.TestName,
@@ -108,7 +118,7 @@ function mapToRows(items: ODataTestItem[]): TestRow[] {
       questions: typeof qCount === "number" ? qCount : undefined,
       level: it.TestDifficultyLevel?.TestDifficultyLevel1,
       candidates: typeof candCount === "number" ? candCount : undefined,
-      category: it.TestCategory?.TestCategoryName,
+  category: categoryNames.length ? Array.from(new Set(categoryNames)).join(", ") : undefined,
       template: it.TestTemplate?.TestTemplateName,
       date: start,
     };

@@ -17,6 +17,7 @@ type CandidateGroup = {
 
 export default function Step5Assign({ registerValidator }: Props) {
   const { draft, setDraft } = useTestDraft();
+  // Left dropdown lists Candidate Groups (labelled as Categories in UI)
   const [candidateGroups, setCandidateGroups] = useState<CandidateGroup[]>([]);
   const [selectedGroupIds, setSelectedGroupIds] = useState<number[]>([]);
   const [products, setProducts] = useState<{ ProductId: number; ProductName: string }[]>([]);
@@ -40,35 +41,35 @@ export default function Step5Assign({ registerValidator }: Props) {
     (async () => {
       try {
         const [groupRes, prodRes] = await Promise.all([
+          // Use open OData endpoint with default ParentId filter and sort by name
           apiHandler(endpoints.listCandidateGroupsODataOpen as any, { query: "?$select=CandidateGroupId,CandidateGroupName&$orderby=CandidateGroupName" } as any),
           apiHandler(endpoints.getActiveTestProductsOData, null as any),
         ]);
         if (!mounted) return;
-  // apiHandler wraps responses as { status, error, message, data }; use .data for the OData payload
-  const gdataAny: any = (groupRes as any)?.data ?? (groupRes as any);
-        const raw = Array.isArray(gdataAny?.value)
-          ? (gdataAny.value as any[])
-          : Array.isArray(gdataAny)
-          ? (gdataAny as any[])
-          : [];
-        const gdata: CandidateGroup[] = (raw || [])
-          .map((n) => {
+        // Candidate Groups
+        const gAny: any = (groupRes as any)?.data ?? (groupRes as any);
+        const gRaw: any[] = Array.isArray(gAny?.value) ? gAny.value : Array.isArray(gAny) ? gAny : [];
+        const gList: CandidateGroup[] = gRaw
+          .map((n: any) => {
             const id = Number(n?.CandidateGroupId ?? n?.candidateGroupId ?? n?.Id ?? n?.id);
-            const name = n?.CandidateGroupName ?? n?.candidateGroupName ?? n?.GroupName ?? n?.groupName ?? n?.Name ?? n?.name ?? (Number.isFinite(id) ? `Group ${id}` : "Group");
+            const name = n?.CandidateGroupName ?? n?.candidateGroupName ?? n?.GroupName ?? n?.groupName ?? (Number.isFinite(id) ? `Group ${id}` : "Group");
             if (!Number.isFinite(id)) return null;
             return { CandidateGroupId: id, GroupName: String(name) } as CandidateGroup;
           })
           .filter(Boolean) as CandidateGroup[];
-  const pDataAny: any = (prodRes as any)?.data ?? (prodRes as any);
-  const pdata = ((pDataAny?.value ?? []) as any[]).map((p) => ({ ProductId: p.ProductId, ProductName: p.ProductName }));
-        const clean = Array.isArray(gdata) ? gdata : [];
-        setCandidateGroups(clean);
-        // Prune any selected ids that are no longer valid
+        // Sort client-side by name for stable display
+        gList.sort((a, b) => a.GroupName.localeCompare(b.GroupName));
+        setCandidateGroups(gList);
+        // Prune selected groups that are invalid now
         setSelectedGroupIds((prev) => {
-          const valid = new Set(clean.map((g) => g.CandidateGroupId));
+          const valid = new Set(gList.map((c) => c.CandidateGroupId));
           const next = prev.filter((id) => valid.has(id));
           return next.length === prev.length ? prev : next;
         });
+
+        // Products
+        const pDataAny: any = (prodRes as any)?.data ?? (prodRes as any);
+        const pdata = ((pDataAny?.value ?? []) as any[]).map((p) => ({ ProductId: p.ProductId, ProductName: p.ProductName }));
         setProducts(pdata);
       } catch {
         if (mounted) {
@@ -80,38 +81,42 @@ export default function Step5Assign({ registerValidator }: Props) {
     return () => { mounted = false; };
   }, []);
 
-  // Hydrate UI state from draft.TestAssignments so selections persist when returning to Step 5
+  // Hydrate UI state from draft so selections persist when returning to Step 5
   useEffect(() => {
   if (hydratedRef.current) return; // run hydration only once
     try {
-      const assignments: any[] = Array.isArray((draft as any)?.TestAssignments)
-        ? (draft as any).TestAssignments
+      // Products from array: keep using testAssignedProducts; prefer TestProductId but accept ProductId for compatibility
+      const assignedProductsArr: any[] = Array.isArray((draft as any)?.testAssignedProducts)
+        ? (draft as any).testAssignedProducts
+        : Array.isArray((draft as any)?.TestAssignedProducts)
+        ? (draft as any).TestAssignedProducts
+        : Array.isArray((draft as any)?.testassignedProducts)
+        ? (draft as any).testassignedProducts
         : [];
-      // Derive selected ids from TestAssignments (one- or two-sided)
-      let pids = Array.from(
-        new Set(
-          assignments
-            .map((a: any) => Number(a?.ProductId))
-            .filter((n: any) => Number.isFinite(n))
-        )
-      );
-      let gids = Array.from(
-        new Set(
-          assignments
-            .map((a: any) => Number(a?.CandidateGroupId))
-            .filter((n: any) => Number.isFinite(n))
-        )
-      );
+      let pids = Array.from(new Set(
+        assignedProductsArr
+          .map((a: any) => Number(a?.TestProductId ?? a?.ProductId))
+          .filter((n: any) => Number.isFinite(n))
+      ));
+      // Candidate groups from new TestAssignmentCandidateGroups (shape: { CandidateGroupId })
+      const assignedGroups: any[] = Array.isArray((draft as any)?.TestAssignmentCandidateGroups)
+        ? (draft as any).TestAssignmentCandidateGroups
+        : Array.isArray((draft as any)?.testAssignmentCandidateGroups)
+        ? (draft as any).testAssignmentCandidateGroups
+        : [];
+      let gids = Array.from(new Set(assignedGroups.map((a: any) => Number(a?.CandidateGroupId)).filter((n: any) => Number.isFinite(n))));
 
-      // If no assignments present (or empty arrays), fallback to independent selections persisted in draft
-      if ((assignments?.length ?? 0) === 0) {
+      // Back-compat hydration from old fields if new ones are empty
+      if (pids.length === 0) {
         const selP: any[] = Array.isArray((draft as any)?.SelectedProductIds)
           ? (draft as any).SelectedProductIds
           : [];
+        pids = Array.from(new Set(selP.map((x) => Number(x)).filter((n) => Number.isFinite(n))));
+      }
+      if (gids.length === 0) {
         const selG: any[] = Array.isArray((draft as any)?.SelectedCandidateGroupIds)
           ? (draft as any).SelectedCandidateGroupIds
           : [];
-        pids = Array.from(new Set(selP.map((x) => Number(x)).filter((n) => Number.isFinite(n))));
         gids = Array.from(new Set(selG.map((x) => Number(x)).filter((n) => Number.isFinite(n))));
       }
 
@@ -122,99 +127,33 @@ export default function Step5Assign({ registerValidator }: Props) {
         for (const v of b) if (!sa.has(v)) return false;
         return true;
       };
-      if (!arrEqAsSet(pids, selectedProductIds)) {
-        setSelectedProductIds(pids);
-      }
-      if (!arrEqAsSet(gids, selectedGroupIds)) {
-        setSelectedGroupIds(gids);
-      }
+      if (!arrEqAsSet(pids, selectedProductIds)) setSelectedProductIds(pids);
+      if (!arrEqAsSet(gids, selectedGroupIds)) setSelectedGroupIds(gids);
     } finally {
       hydratedRef.current = true;
     }
   }, [draft]);
 
-
-  // Persist into draft selections and TestAssignments whenever selection changes
+  // Persist into draft selections (new model arrays) whenever selection changes
   useEffect(() => {
     if (!hydratedRef.current) return; // avoid clearing draft before initial hydration
-    const groupIds = selectedGroupIds;
+  const nextAssignedProducts = selectedProductIds.map((id) => ({ TestProductId: id }));
+  const nextAssignedGroups = selectedGroupIds.map((id) => ({ CandidateGroupId: id }));
 
-    // Build a signature so we can avoid unnecessary updates
-    let sig = "NONE";
-    if (groupIds.length > 0 && selectedProductIds.length > 0) {
-      const pairs: string[] = [];
-      for (const pid of selectedProductIds) for (const gid of groupIds) pairs.push(`${pid}:${gid}`);
-      pairs.sort();
-      sig = `GP:${pairs.join(",")}`;
-    } else if (groupIds.length > 0) {
-      const gids = [...groupIds].sort((a, b) => a - b);
-      sig = `G:${gids.join(",")}`;
-    } else if (selectedProductIds.length > 0) {
-      const pids = [...selectedProductIds].sort((a, b) => a - b);
-      sig = `P:${pids.join(",")}`;
-    }
+    // Build a compact signature to avoid unnecessary state writes
+    const sig = `P:[${selectedProductIds.sort((a,b)=>a-b).join(',')}];G:[${selectedGroupIds.sort((a,b)=>a-b).join(',')}]`;
+    if (sig === combosSigRef.current) return;
 
-    // If absolutely nothing changed (same signature and same selected arrays), skip
-    const sameSig = sig === combosSigRef.current;
-
-    const prevSelG: number[] = Array.isArray((draft as any)?.SelectedCandidateGroupIds)
-      ? (draft as any).SelectedCandidateGroupIds
-      : [];
-    const prevSelP: number[] = Array.isArray((draft as any)?.SelectedProductIds)
-      ? (draft as any).SelectedProductIds
-      : [];
-      const eqSet = (a: number[], b: number[]) => {
-        if (a.length !== b.length) return false;
-        const s = new Set(a);
-        for (const v of b) if (!s.has(v)) return false;
-        return true;
-      };
-
-      // Decide new TestAssignments based on signature
-      let nextAssignments: any[] = [];
-      if (sig === "NONE") {
-        nextAssignments = [];
-      } else if (sig.startsWith("GP:")) {
-        const csv = sig.slice(3);
-        nextAssignments = csv.split(",").filter(Boolean).map((p) => {
-          const [pid, gid] = p.split(":");
-          return { ProductId: Number(pid), CandidateGroupId: Number(gid) };
-        });
-      } else if (sig.startsWith("G:")) {
-        const csv = sig.slice(2);
-        nextAssignments = csv.split(",").filter(Boolean).map((g) => ({ CandidateGroupId: Number(g) }));
-      } else if (sig.startsWith("P:")) {
-        const csv = sig.slice(2);
-        nextAssignments = csv.split(",").filter(Boolean).map((p) => ({ ProductId: Number(p) }));
-      }
-
-      const prevAssignments: any[] = Array.isArray((draft as any)?.TestAssignments)
-        ? (draft as any).TestAssignments
-        : [];
-      const assignChanged = (() => {
-        if (prevAssignments.length !== nextAssignments.length) return true;
-        // Shallow compare items by JSON string (small arrays; acceptable)
-        for (let i = 0; i < prevAssignments.length; i++) {
-          if (JSON.stringify(prevAssignments[i]) !== JSON.stringify(nextAssignments[i])) return true;
-        }
-        return false;
-      })();
-
-    const selGChanged = !eqSet(prevSelG, groupIds);
-    const selPChanged = !eqSet(prevSelP, selectedProductIds);
-
-    // If nothing actually changed, sync signature and bail without calling setDraft
-    if (!assignChanged && !selGChanged && !selPChanged) {
-      combosSigRef.current = sig;
-      return;
-    }
-
-    // Update draft with only necessary changes
     setDraft((prev: any) => {
       const next: any = { ...(prev || {}) };
-      if (selGChanged) next.SelectedCandidateGroupIds = groupIds;
-      if (selPChanged) next.SelectedProductIds = selectedProductIds;
-      if (assignChanged) next.TestAssignments = nextAssignments;
+  next.testAssignedProducts = nextAssignedProducts;
+  // Clean legacy PascalCase if present
+  delete next.TestAssignedProducts;
+      next.TestAssignmentCandidateGroups = nextAssignedGroups;
+      // Clean legacy fields to avoid server confusion
+      delete next.SelectedCandidateGroupIds;
+      delete next.SelectedProductIds;
+      delete next.TestAssignments;
       combosSigRef.current = sig;
       return next;
     });
@@ -241,7 +180,7 @@ export default function Step5Assign({ registerValidator }: Props) {
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
       const t = e.target as Node;
-      if (groupsOpen && groupsRef.current && !groupsRef.current.contains(t)) setGroupsOpen(false);
+  if (groupsOpen && groupsRef.current && !groupsRef.current.contains(t)) setGroupsOpen(false);
       if (productsOpen && productsRef.current && !productsRef.current.contains(t)) setProductsOpen(false);
     };
     document.addEventListener("mousedown", onDoc);
@@ -273,7 +212,7 @@ export default function Step5Assign({ registerValidator }: Props) {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Candidate Groups dropdown (flat multi-select via OData) */}
+          {/* Candidate Groups dropdown */}
           <div ref={groupsRef} className="relative">
             <label className="block text-sm font-medium text-gray-800 mb-1">Candidate Groups</label>
             <button
@@ -289,7 +228,7 @@ export default function Step5Assign({ registerValidator }: Props) {
             >
               <span className="truncate">
                 {selectedGroupCount === 0 ? (
-                  <span className="text-gray-500">Select candidate groups</span>
+                  <span className="text-gray-500">Select Candidate Groups</span>
                 ) : (
                   `${selectedGroupCount} selected`
                 )}

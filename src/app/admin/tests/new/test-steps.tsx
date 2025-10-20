@@ -327,11 +327,12 @@ export default function TestSteps({
           const name = (src?.TestName ?? "").toString().trim();
           // Field name alignment with Step1 component
           const typeOk = Number.isFinite(Number(src?.TestTypeId ?? src?.TypeId));
-          const catOk = Number.isFinite(Number(src?.CategoryId ?? src?.TestCategoryId));
+          // TestCategoryId is removed; Step1 will ensure selection via testAssignedTestCategories.
+          const catOk = true;
           const lvlOk = Number.isFinite(Number(src?.DifficultyLevelId ?? src?.TestDifficultyLevelId));
           const priOk = Number.isFinite(Number(src?.PrimaryInstructionId ?? src?.TestPrimaryInstructionId));
           // Duration/marks/totals are computed from Step 3; only require core Step 1 fields here
-          const ok = !!name && typeOk && catOk && lvlOk && priOk;
+          const ok = !!name && typeOk && lvlOk && priOk;
           return ok;
         };
         try {
@@ -545,9 +546,24 @@ export default function TestSteps({
               : "New",
           TestQuestions: testQuestions,
           TestSettings: [settings0],
-          // Persist independent selections from Step 5 so server can accept either-or
-          SelectedCandidateGroupIds: Array.isArray((draft as any)?.SelectedCandidateGroupIds) ? (draft as any).SelectedCandidateGroupIds : [],
-          SelectedProductIds: Array.isArray((draft as any)?.SelectedProductIds) ? (draft as any).SelectedProductIds : [],
+          // Persist independent selections from Step 5 and categories from Step 1
+          // Products: prefer { TestProductId } shape; if consumer added { ProductId }, normalize it here
+          testAssignedProducts: Array.isArray((draft as any)?.testAssignedProducts)
+            ? (draft as any).testAssignedProducts.map((p: any) => ({ TestProductId: Number(p?.TestProductId ?? p?.ProductId) }))
+            : [],
+          // Categories: maintained by Step 1 as [{ TestCategoryId }]. If absent (e.g., component unmounted), fallback to session snapshot
+          testAssignedTestCategories: (() => {
+            const arr = Array.isArray((draft as any)?.testAssignedTestCategories) ? (draft as any).testAssignedTestCategories : [];
+            if (arr.length > 0) return arr;
+            try {
+              const raw = typeof window !== 'undefined' ? sessionStorage.getItem('admin:newTest:selectedCategoryIds') : null;
+              if (!raw) return [] as any[];
+              const ids = JSON.parse(raw);
+              if (!Array.isArray(ids)) return [] as any[];
+              const uniq = Array.from(new Set(ids.map((n: any) => Number(n)).filter((n: any) => Number.isFinite(n))));
+              return uniq.map((id) => ({ TestCategoryId: id }));
+            } catch { return [] as any[]; }
+          })(),
         };
         
         // No sections to log or include
@@ -586,9 +602,13 @@ export default function TestSteps({
           "AllowDuplicateRank",
           "SkipRankForDuplicateTank",
         ];
-        step2Keys.forEach((k) => { if (k in payload) delete (payload as any)[k]; });
+  step2Keys.forEach((k) => { if (k in payload) delete (payload as any)[k]; });
         // Remove client-only fields
-        delete (payload as any).testQuestions;
+  delete (payload as any).testQuestions;
+  // Remove legacy assignment fields
+  delete (payload as any).SelectedCandidateGroupIds;
+  delete (payload as any).SelectedProductIds;
+  delete (payload as any).TestAssignments;
 
   // isEdit/updateId computed earlier
         if (isEdit && !(updateId && updateId > 0)) {
@@ -709,6 +729,27 @@ export default function TestSteps({
       </div>
       <div className="w-[85%] mx-auto px-6 py-8">
   <TestDraftProvider initial={draftInitial ?? {}}>
+        {/** Seed categories into draft from session if missing (works for both new and edit flows) **/}
+        {(() => {
+          function SeedCategoriesHydrator() {
+            const { draft, setDraft } = useTestDraft();
+            useEffect(() => {
+              try {
+                const hasCats = Array.isArray((draft as any)?.testAssignedTestCategories) && (draft as any).testAssignedTestCategories.length > 0;
+                if (hasCats) return;
+                const raw = typeof window !== 'undefined' ? sessionStorage.getItem('admin:newTest:selectedCategoryIds') : null;
+                if (!raw) return;
+                const ids = JSON.parse(raw);
+                if (!Array.isArray(ids) || ids.length === 0) return;
+                const uniq = Array.from(new Set(ids.map((n: any) => Number(n)).filter((n: any) => Number.isFinite(n))));
+                if (uniq.length === 0) return;
+                setDraft((prev: any) => ({ ...(prev || {}), testAssignedTestCategories: uniq.map((id) => ({ TestCategoryId: id })) }));
+              } catch { /* ignore */ }
+            }, [draft, setDraft]);
+            return null;
+          }
+          return <SeedCategoriesHydrator />;
+        })()}
         {/* Client-side hydration fallback for Edit mode in case SSR fetch failed or session was empty */}
         {editMode && testId ? (
           <EditHydrator testId={testId} normalize={normalizeTestToDraft} />

@@ -13,14 +13,46 @@ const TestDraftContext = createContext<Ctx | undefined>(undefined);
 
 export function TestDraftProvider({ children, initial }: { children: React.ReactNode; initial?: TestDraft }) {
   const [draft, setDraft] = useState<TestDraft>(() => {
+    // Decide between session and initial. For Edit mode (initial with a valid TestId), prefer initial
+    // especially if session is empty or refers to a different test.
     if (typeof window !== "undefined") {
       try {
         const raw = sessionStorage.getItem("admin:newTest:model");
-        if (raw) return JSON.parse(raw);
+        const fromSession = raw ? JSON.parse(raw) : null;
+        const initialId = Number((initial as any)?.TestId);
+        const sessionId = Number((fromSession as any)?.TestId);
+        const hasInitialId = Number.isFinite(initialId) && initialId > 0;
+        const hasSession = fromSession && Object.keys(fromSession).length > 0;
+        // If editing a specific test, and session is empty or for a different test, use initial
+        if (hasInitialId && (!hasSession || (Number.isFinite(sessionId) && sessionId !== initialId) || !Number.isFinite(sessionId))) {
+          return initial as TestDraft;
+        }
+        if (hasSession) return fromSession as TestDraft;
       } catch {}
     }
-    return initial ?? {};
+    return (initial as TestDraft) ?? {};
   });
+  // One-time seeding: if categories are missing in the cached draft, seed from session snapshot
+  useEffect(() => {
+    try {
+      const d: any = draft || {};
+      const hasCats = Array.isArray(d.testAssignedTestCategories) && d.testAssignedTestCategories.length > 0;
+      if (!hasCats && typeof window !== 'undefined') {
+        const raw = sessionStorage.getItem('admin:newTest:selectedCategoryIds');
+        if (raw) {
+          const ids = JSON.parse(raw);
+          if (Array.isArray(ids) && ids.length > 0) {
+            const uniq = Array.from(new Set(ids.map((n: any) => Number(n)).filter((n: any) => Number.isFinite(n))));
+            if (uniq.length > 0) {
+              setDraft((prev: any) => ({ ...(prev || {}), testAssignedTestCategories: uniq.map((id) => ({ TestCategoryId: id })) }));
+            }
+          }
+        }
+      }
+    } catch { /* ignore */ }
+    // run once after initial state
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // One-time normalization to ensure Question.Subject has ParentSubjectName/Id for Step 3
   useEffect(() => {
     try {

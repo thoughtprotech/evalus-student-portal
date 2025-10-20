@@ -86,14 +86,42 @@ function normalizeTestToDraft(test: any): any {
   }));
 
   // Assignments mapping (Step 5)
-  const assigns = Array.isArray(src.TestAssignments ?? src.testAssignments)
-    ? (src.TestAssignments ?? src.testAssignments)
+  // New model splits assignments into three arrays
+  // Products
+  const prodArr: any[] = Array.isArray(src.TestAssignedProducts)
+    ? src.TestAssignedProducts
+    : Array.isArray(src.testAssignedProducts)
+    ? src.testAssignedProducts
     : [];
-  d.TestAssignments = assigns.map((a: any) => ({
-    ProductId: a.ProductId ?? a.productId ?? null,
-    CandidateGroupId: a.CandidateGroupId ?? a.candidateGroupId ?? null,
-    CandidateId: a.CandidateId ?? a.candidateId ?? null,
-  }));
+  d.testAssignedProducts = prodArr
+    .map((p: any) => ({
+      TestProductId: Number(p?.TestProductId ?? p?.testProductId ?? p?.ProductId ?? p?.productId),
+    }))
+    .filter((p: any) => Number.isFinite(p.TestProductId));
+
+  // Candidate Groups
+  const grpArr: any[] = Array.isArray(src.TestAssignmentCandidateGroups)
+    ? src.TestAssignmentCandidateGroups
+    : Array.isArray(src.testAssignmentCandidateGroups)
+    ? src.testAssignmentCandidateGroups
+    : [];
+  d.TestAssignmentCandidateGroups = grpArr
+    .map((g: any) => ({
+      CandidateGroupId: Number(g?.CandidateGroupId ?? g?.candidateGroupId),
+    }))
+    .filter((g: any) => Number.isFinite(g.CandidateGroupId));
+
+  // Categories
+  const catArr: any[] = Array.isArray(src.TestAssignedTestCategories)
+    ? src.TestAssignedTestCategories
+    : Array.isArray(src.testAssignedTestCategories)
+    ? src.testAssignedTestCategories
+    : [];
+  d.testAssignedTestCategories = catArr
+    .map((c: any) => ({
+      TestCategoryId: Number(c?.TestCategoryId ?? c?.testCategoryId),
+    }))
+    .filter((c: any) => Number.isFinite(c.TestCategoryId));
 
   // Test Questions -> draft.testQuestions for Step 3
   const tq: any[] = Array.isArray(src.TestQuestions ?? src.testQuestions)

@@ -48,6 +48,9 @@ function NameCellRenderer(props: { value: string; data: TestRow }) {
           sessionStorage.removeItem("admin:newTest:suppressClear");
           sessionStorage.removeItem("admin:newTest:preselectedIds");
           sessionStorage.removeItem("admin:newTest:selectedQuestions");
+          // Also clear any lingering category selection snapshots
+          sessionStorage.removeItem("admin:newTest:selectedCategoryIds");
+          sessionStorage.removeItem("admin:newTest:step1snapshot");
         } catch { }
       }}
       title={props.value}
@@ -224,8 +227,8 @@ function TestsGrid({
       },
       {
         field: "candidates",
-        headerName: "Candidates",
-        headerTooltip: "Assigned Candidates",
+        headerName: "Candidate Groups",
+        headerTooltip: "Assigned Candidate Groups",
         sortable: true,
         filter: "agNumberColumnFilter",
         filterParams: { buttons: ["apply", "reset", "clear"] },
@@ -233,12 +236,11 @@ function TestsGrid({
       },
       {
         field: "category",
-        headerName: "Test Category",
-        headerTooltip: "Category",
-        sortable: true,
-        filter: "agTextColumnFilter",
-        filterParams: { buttons: ["apply", "reset", "clear"] },
-        width: 200,
+        headerName: "Categories",
+        headerTooltip: "Assigned Categories",
+        sortable: false,
+        filter: false,
+        width: 220,
       },
       {
         field: "template",
@@ -284,8 +286,8 @@ function TestsGrid({
       status: "IsActive",
       questions: "TestQuestions@odata.count",
       level: "TestDifficultyLevel/TestDifficultyLevel1",
-      candidates: "TestAssignments@odata.count",
-      category: "TestCategory/TestCategoryName",
+      candidates: "TestAssignmentCandidateGroups@odata.count",
+      // category: intentionally omitted (many-to-many derived string)
       template: "TestTemplate/TestTemplateName",
       code: "TestCode",
       testStatus: "TestStatus",
@@ -455,11 +457,10 @@ function TestsGrid({
       ? textExpr("TestDifficultyLevel/TestDifficultyLevel1", fm.level)
       : null;
     const fmCandidates = fm.candidates
-      ? numberExpr("TestAssignments@odata.count", fm.candidates)
+      ? numberExpr("TestAssignmentCandidateGroups@odata.count", fm.candidates)
       : null;
-    const fmCategory = fm.category
-      ? textExpr("TestCategory/TestCategoryName", fm.category)
-      : null;
+    // Disable category server filter (derived many-to-many string)
+    const fmCategory = null;
     const fmTemplate = fm.template
       ? textExpr("TestTemplate/TestTemplateName", fm.template)
       : null;
@@ -532,6 +533,8 @@ function TestsGrid({
                   sessionStorage.removeItem("admin:newTest:suppressClear");
                   sessionStorage.removeItem("admin:newTest:preselectedIds");
                   sessionStorage.removeItem("admin:newTest:selectedQuestions");
+                  // Ensure previous step1 category selection does not leak into a fresh test
+                  sessionStorage.removeItem("admin:newTest:selectedCategoryIds");
                 } catch { }
               }}
             >
@@ -667,8 +670,8 @@ function TestsGrid({
                 testStatus: "Test Status",
                 questions: "Questions",
                 level: "Level",
-                candidates: "Candidates",
-                category: "Test Category",
+                candidates: "Candidate Groups",
+                category: "Categories",
                 template: "Test Template",
               };
               const labelBase = nameMap[key] || key;

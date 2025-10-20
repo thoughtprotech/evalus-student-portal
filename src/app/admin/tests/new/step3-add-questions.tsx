@@ -294,6 +294,35 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectionFromBank, subjectMap]);
 
+  // Ensure categories are restored into draft if missing when in Step 3
+  useEffect(() => {
+    try {
+      const d: any = draft || {};
+      const hasCats = Array.isArray(d?.testAssignedTestCategories) && d.testAssignedTestCategories.length > 0;
+      if (hasCats) return;
+      const snapRaw = sessionStorage.getItem('admin:newTest:step1snapshot');
+      if (snapRaw) {
+        const snap = JSON.parse(snapRaw);
+        const arr: any[] = Array.isArray(snap?.testAssignedTestCategories) ? snap.testAssignedTestCategories : [];
+        if (arr.length > 0) {
+          setDraft((prev) => ({ ...(prev || {}), testAssignedTestCategories: arr.map((x: any) => ({ TestCategoryId: Number(x?.TestCategoryId) })) }));
+          return;
+        }
+      }
+      const raw = sessionStorage.getItem('admin:newTest:selectedCategoryIds');
+      if (raw) {
+        const ids = JSON.parse(raw);
+        if (Array.isArray(ids) && ids.length > 0) {
+          const uniq = Array.from(new Set(ids.map((n: any) => Number(n)).filter((n: any) => Number.isFinite(n))));
+          if (uniq.length > 0) {
+            setDraft((prev) => ({ ...(prev || {}), testAssignedTestCategories: uniq.map((id) => ({ TestCategoryId: id })) }));
+          }
+        }
+      }
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft]);
+
   // Restore Step1 critical fields if they were lost after returning from editing a question
   useEffect(() => {
     try {
@@ -421,7 +450,8 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
       if (!Number.isFinite(marks) || marks < 0) errs.push("Marks must be a non-negative number");
       if (!Number.isFinite(neg) || neg < 0) errs.push("Negative Marks must be non-negative");
       if (neg > marks) errs.push("Negative Marks cannot exceed Marks");
-      if (!Number.isFinite(dur) || dur < 0) errs.push("Duration must be non-negative");
+      // Enforce: duration must be strictly greater than 0
+      if (!Number.isFinite(dur) || dur <= 0) errs.push("Duration must be greater than 0");
       if (errs.length) next[id] = errs;
     }
     setInvalidMap(next);
@@ -536,6 +566,10 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
       setToast({ message: "Negative Marks should not be greater than Marks.", type: "error" });
       return;
     }
+    if (hasDuration && Number(markDuration) <= 0) {
+      setToast({ message: "Duration must be greater than 0.", type: "error" });
+      return;
+    }
 
     setDraft((d) => {
       const qs = Array.isArray(d.testQuestions) ? d.testQuestions : [];
@@ -566,6 +600,14 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
         ? (draft.testQuestions as any[]).map((q: any) => Number(q.TestQuestionId)).filter(Boolean)
         : [];
       sessionStorage.setItem("admin:newTest:preselectedIds", JSON.stringify(ids));
+      // Also snapshot currently selected categories to ensure persistence on return
+      try {
+        const cats: any[] = Array.isArray((draft as any)?.testAssignedTestCategories) ? (draft as any).testAssignedTestCategories : [];
+        const cids = Array.from(new Set(cats.map((c: any) => Number(c?.TestCategoryId)).filter((n: any) => Number.isFinite(n))));
+        if (cids.length > 0) {
+          sessionStorage.setItem('admin:newTest:selectedCategoryIds', JSON.stringify(cids));
+        }
+      } catch { /* ignore */ }
       // Prevent wizard unmount cleanup while we jump to the selection sub-page
       sessionStorage.setItem("admin:newTest:suppressClear", "1");
     } catch { }
@@ -577,6 +619,14 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
     try {
       // Prevent wizard unmount cleanup while we jump to the question creation page
       sessionStorage.setItem("admin:newTest:suppressClear", "1");
+      // Snapshot categories too
+      try {
+        const cats: any[] = Array.isArray((draft as any)?.testAssignedTestCategories) ? (draft as any).testAssignedTestCategories : [];
+        const cids = Array.from(new Set(cats.map((c: any) => Number(c?.TestCategoryId)).filter((n: any) => Number.isFinite(n))));
+        if (cids.length > 0) {
+          sessionStorage.setItem('admin:newTest:selectedCategoryIds', JSON.stringify(cids));
+        }
+      } catch { /* ignore */ }
     } catch { }
     const returnPath = (editMode && testId)
       ? `/admin/tests/edit/${testId}?step=3`
@@ -797,6 +847,22 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                                         const snap: any = {};
                                         const keys = ["TestName", "TestTypeId", "CategoryId", "DifficultyLevelId", "PrimaryInstructionId", "TestDuration", "TotalQuestions", "TotalMarks"];
                                         for (const k of keys) snap[k] = (draft as any)?.[k];
+                                        // Include categories in the snapshot for robustness
+                                        const cats: any[] = Array.isArray((draft as any)?.testAssignedTestCategories) ? (draft as any).testAssignedTestCategories : [];
+                                        if (cats.length > 0) {
+                                          snap.testAssignedTestCategories = cats.map((c: any) => ({ TestCategoryId: Number(c?.TestCategoryId) })).filter((x: any) => Number.isFinite(x.TestCategoryId));
+                                        } else {
+                                          try {
+                                            const raw = sessionStorage.getItem('admin:newTest:selectedCategoryIds');
+                                            if (raw) {
+                                              const ids = JSON.parse(raw);
+                                              if (Array.isArray(ids)) {
+                                                const uniq = Array.from(new Set(ids.map((n: any) => Number(n)).filter((n: any) => Number.isFinite(n))));
+                                                snap.testAssignedTestCategories = uniq.map((id) => ({ TestCategoryId: id }));
+                                              }
+                                            }
+                                          } catch { /* ignore */ }
+                                        }
                                         sessionStorage.setItem("admin:newTest:step1snapshot", JSON.stringify(snap));
                                       } catch {/* ignore */ }
                                       // Removed: usage check and published confirmation; always navigate to editor
@@ -853,7 +919,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                             <td className="px-4 py-2 border-b">
                               <input
                                 type="number"
-                                min={0}
+                                min={1}
                                 className={`border rounded px-2 py-1 text-sm w-28 ${invalidMap[r?.TestQuestionId]?.some(e => e.toLowerCase().includes('duration')) ? 'border-red-500' : ''}`}
                                 value={(r?.Duration === "" ? "" : (r?.Duration ?? 0)) as any}
                                 onChange={(e) => {
