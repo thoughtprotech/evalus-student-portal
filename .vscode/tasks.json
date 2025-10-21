@@ -17,6 +17,13 @@
 				"$tsc"
 			],
 			"group": "build"
+		},
+		{
+			"label": "typecheck (tsc --noEmit)",
+			"type": "shell",
+			"command": "npx tsc --noEmit",
+			"isBackground": false,
+			"group": "build"
 		}
 	]
 }

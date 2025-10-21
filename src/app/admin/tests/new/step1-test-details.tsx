@@ -93,12 +93,11 @@ export default function Step1CreateTestDetails({
   type CatNode = { id: number; name: string; children?: CatNode[] };
   const [categoryTree, setCategoryTree] = useState<CatNode[] | null>(null);
   const [treeError, setTreeError] = useState<string | null>(null);
+  // Persist expand/collapse across selections
+  const [expandedMap, setExpandedMap] = useState<Record<number, boolean>>({});
 
   // Category Tree component with cascading selection and indeterminate states
-  function CategoryTree({ nodes, selected, onChange }: { nodes: CatNode[]; selected: number[]; onChange: (ids: number[]) => void }) {
-    const [expanded, setExpanded] = useState<Record<number, boolean>>({});
-
-    const toggleExpand = (id: number) => setExpanded((m) => ({ ...m, [id]: !m[id] }));
+  function CategoryTree({ nodes, selected, onChange, expanded, onToggle }: { nodes: CatNode[]; selected: number[]; onChange: (ids: number[]) => void; expanded: Record<number, boolean>; onToggle: (id: number) => void; }) {
 
     const collectIds = (n: CatNode): number[] => {
       const base = [n.id];
@@ -123,18 +122,27 @@ export default function Step1CreateTestDetails({
       const allChecked = selCount === ids.length && ids.length > 0;
       const someChecked = selCount > 0 && selCount < ids.length;
       const hasChildren = Array.isArray(n.children) && n.children.length > 0;
-      const isOpen = !!expanded[n.id];
+  const isOpen = !!expanded[n.id];
 
       return (
         <div key={n.id} className="px-2 py-1">
           <div className="flex items-center gap-2" style={{ paddingLeft: `${level * 12}px` }}>
             {hasChildren && (
-              <button type="button" className="shrink-0 text-gray-600 hover:text-gray-800" onClick={() => toggleExpand(n.id)} aria-label={isOpen ? "Collapse" : "Expand"}>
-                <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <button
+                type="button"
+                className="shrink-0 text-gray-600 hover:text-gray-800"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggle(n.id); }}
+                aria-label={isOpen ? "Collapse" : "Expand"}
+                title={isOpen ? "Collapse" : "Expand"}
+              >
+                {/* Chevron icons: right when collapsed, down when expanded */}
+                <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                   {isOpen ? (
-                    <path fillRule="evenodd" d="M5.23 12.79a.75.75 0 001.06-.02L10 9.06l3.71 3.71a.75.75 0 001.06-1.06l-4.24-4.24a.75.75 0 00-1.06 0L5.21 11.71a.75.75 0 00.02 1.08z" clipRule="evenodd" />
+                    // Down chevron
+                    <path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" />
                   ) : (
-                    <path fillRule="evenodd" d="M7.21 5.23a.75.75 0 01.02 1.06L3.56 10l3.67 3.71a.75.75 0 11-1.08 1.04l-4.24-4.24a.75.75 0 010-1.06l4.24-4.24a.75.75 0 011.06.02z" clipRule="evenodd" />
+                    // Right chevron
+                    <path d="M7.21 5.23a.75.75 0 011.06-.02l4.24 4.24a.75.75 0 010 1.06l-4.24 4.24a.75.75 0 11-1.06-1.06L10.44 10 7.21 6.27a.75.75 0 010-1.04z" />
                   )}
                 </svg>
               </button>
@@ -534,6 +542,8 @@ export default function Step1CreateTestDetails({
                         nodes={categoryTree}
                         selected={selectedCategoryIds}
                         onChange={setSelectedCategoryIds}
+                        expanded={expandedMap}
+                        onToggle={(id) => setExpandedMap((m) => ({ ...m, [id]: !m[id] }))}
                       />
                     </div>
                   ) : categories?.length === 0 ? (
