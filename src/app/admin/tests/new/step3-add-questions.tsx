@@ -45,6 +45,8 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
   const [invalidMap, setInvalidMap] = useState<Record<number, string[]>>({});
   // Computed summary and handicapped duration
   const [handiDuration, setHandiDuration] = useState<number | "">("");
+  // Gate to control when we switch from API-provided totals to computed totals
+  const [lockTotalsFromApi, setLockTotalsFromApi] = useState<boolean>(editMode === true);
   // Subjects map for computing parent subject
   const [subjectMap, setSubjectMap] = useState<Record<number, { name: string; parentId: number }>>({});
 
@@ -473,24 +475,61 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
     return { totalQuestions, totalMarks, totalDuration };
   }, [draft?.testQuestions]);
 
-  // Keep handicapped in sync with normal whenever selected questions change
+  // What to display: initially from API (draft) in edit mode; switch to computed after unlock
+  const displayTotals = useMemo(() => {
+    if (lockTotalsFromApi) {
+      return {
+        totalQuestions: Number.isFinite(Number(draft?.TotalQuestions)) ? Number(draft?.TotalQuestions) : computed.totalQuestions,
+        totalMarks: Number.isFinite(Number(draft?.TotalMarks)) ? Number(draft?.TotalMarks) : computed.totalMarks,
+        totalDuration: Number.isFinite(Number(draft?.TestDurationMinutes)) ? Number(draft?.TestDurationMinutes) : computed.totalDuration,
+      };
+    }
+    return computed;
+  }, [lockTotalsFromApi, draft?.TotalQuestions, draft?.TotalMarks, draft?.TestDurationMinutes, computed]);
+
+  // Keep handicapped in sync with normal whenever selected questions change (only after unlocking)
   useEffect(() => {
-    // Always align handicapped to computed normal duration on question changes
-    setHandiDuration(computed.totalDuration);
-  }, [computed.totalDuration]);
+    if (!lockTotalsFromApi) {
+      setHandiDuration(computed.totalDuration);
+    }
+  }, [computed.totalDuration, lockTotalsFromApi]);
 
   // Persist computed Normal duration and totals to draft for save path
   useEffect(() => {
+    // If locked (edit mode initial), persist whatever is present in draft without overriding using computed values
+    if (lockTotalsFromApi) {
+      setDraft((d: any) => ({
+        ...d,
+        // Ensure handicapped is at least normal if both present from API
+        TestDurationForHandicappedMinutes:
+          d?.TestDurationForHandicappedMinutes != null && d?.TestDurationMinutes != null
+            ? Math.max(Number(d.TestDurationForHandicappedMinutes), Number(d.TestDurationMinutes))
+            : d?.TestDurationForHandicappedMinutes,
+      }));
+      return;
+    }
+    // Otherwise, use computed values
     setDraft((d: any) => ({
       ...d,
       TestDurationMinutes: computed.totalDuration,
       TotalQuestions: computed.totalQuestions,
       TotalMarks: computed.totalMarks,
-      // Enforce handicapped >= normal
       TestDurationForHandicappedMinutes:
         handiDuration === "" ? computed.totalDuration : Math.max(Number(handiDuration), computed.totalDuration),
     }));
-  }, [computed, handiDuration, setDraft]);
+  }, [computed, handiDuration, setDraft, lockTotalsFromApi]);
+
+  // If coming back from Select/Add flow where user changed questions, unlock totals
+  useEffect(() => {
+    try {
+      const k = "admin:newTest:unlockTotalsOnReturn";
+      const v = sessionStorage.getItem(k);
+      if (v === "1") {
+        setLockTotalsFromApi(false);
+        sessionStorage.removeItem(k);
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   // Register validator with parent to block navigating away when invalid
   useEffect(() => {
@@ -585,6 +624,8 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
       });
       return { ...d, testQuestions: updated };
     });
+    // Any explicit bulk update should unlock totals computation
+    if (lockTotalsFromApi) setLockTotalsFromApi(false);
 
     // clear inputs but keep section selection to allow repeated applies if desired
     setMarkMarks("");
@@ -610,6 +651,8 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
       } catch { /* ignore */ }
       // Prevent wizard unmount cleanup while we jump to the selection sub-page
       sessionStorage.setItem("admin:newTest:suppressClear", "1");
+      // Mark that on return we should unlock totals (user is modifying questions)
+      sessionStorage.setItem("admin:newTest:unlockTotalsOnReturn", "1");
     } catch { }
     const base = "/admin/tests/new/questions/select";
     const url = editMode && testId ? `${base}?edit=1&id=${testId}` : base;
@@ -619,6 +662,8 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
     try {
       // Prevent wizard unmount cleanup while we jump to the question creation page
       sessionStorage.setItem("admin:newTest:suppressClear", "1");
+      // Mark that on return we should unlock totals (user is modifying questions)
+      sessionStorage.setItem("admin:newTest:unlockTotalsOnReturn", "1");
       // Snapshot categories too
       try {
         const cats: any[] = Array.isArray((draft as any)?.testAssignedTestCategories) ? (draft as any).testAssignedTestCategories : [];
@@ -666,11 +711,11 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                       <div className="flex flex-wrap items-end gap-4">
                         <div className="flex flex-col min-w-[8rem]">
                           <label className="text-xs text-gray-600">Total Questions</label>
-                          <div className="px-2 py-1 text-sm font-semibold text-gray-900">{computed.totalQuestions}</div>
+                          <div className="px-2 py-1 text-sm font-semibold text-gray-900">{displayTotals.totalQuestions}</div>
                         </div>
                         <div className="flex flex-col min-w-[8rem]">
                           <label className="text-xs text-gray-600">Total Marks</label>
-                          <div className="px-2 py-1 text-sm font-semibold text-gray-900">{computed.totalMarks}</div>
+                          <div className="px-2 py-1 text-sm font-semibold text-gray-900">{displayTotals.totalMarks}</div>
                         </div>
                       </div>
                     </div>
@@ -681,14 +726,14 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                       <div className="flex flex-nowrap items-end gap-4">
                         <div className="flex flex-col min-w-[8rem]">
                           <label className="text-xs text-gray-600">Normal</label>
-                          <div className="px-2 py-1 text-sm font-semibold text-gray-900">{computed.totalDuration}</div>
+                          <div className="px-2 py-1 text-sm font-semibold text-gray-900">{displayTotals.totalDuration}</div>
                         </div>
                         <div className="flex flex-col min-w-[10rem]">
                           <label className="text-xs text-gray-600" htmlFor="handiDuration">Handicapped</label>
                           <input
                             id="handiDuration"
                             type="number"
-                            min={computed.totalDuration}
+                            min={displayTotals.totalDuration}
                             className="border rounded px-2 py-1 text-sm w-24"
                             value={handiDuration as any}
                             onChange={(e) => {
@@ -697,7 +742,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                               const num = Number(v);
                               if (!Number.isFinite(num)) return;
                               // Clamp to normal duration minimum
-                              setHandiDuration(Math.max(num, computed.totalDuration));
+                              setHandiDuration(Math.max(num, displayTotals.totalDuration));
                             }}
                           />
                         </div>

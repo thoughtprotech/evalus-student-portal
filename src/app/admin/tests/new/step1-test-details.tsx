@@ -230,10 +230,22 @@ export default function Step1CreateTestDetails({
         if (list.length) {
           if (draftTemplateId && list.some(t => Number(t.TestTemplateId) === draftTemplateId)) {
             setTemplateKey(String(draftTemplateId));
+            // Ensure draft stays in sync (in case of hydration mismatches)
+            setTimeout(() => {
+              setDraft((d: any) => ({ ...d, TestTemplateId: draftTemplateId }));
+            }, 0);
           } else {
             const def = list.find((t) => t.TestTemplateName?.toLowerCase() === "default");
             const selected = def ?? list[0];
             setTemplateKey(String(selected.TestTemplateId));
+            // Persist default/only template to draft automatically in NEW mode
+            setTimeout(() => {
+              setDraft((d: any) => {
+                // Don't override if template was set meanwhile
+                if (d?.TestTemplateId) return d;
+                return { ...(d || {}), TestTemplateId: Number(selected.TestTemplateId) };
+              });
+            }, 0);
           }
         }
       }
