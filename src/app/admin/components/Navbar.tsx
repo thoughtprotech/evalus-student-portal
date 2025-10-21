@@ -225,9 +225,8 @@ export default function Navbar({ username, userPhoto }: NavbarProps) {
               { label: 'Test Certificates', href: '/admin/tests/certificates', active: pathname.startsWith('/admin/tests/certificates') },
               { label: 'Test Difficulty Levels', href: '/admin/tests/difficulty-levels', active: pathname.startsWith('/admin/tests/difficulty-levels') },
               { label: 'Test Instructions', href: '/admin/test-instructions', active: pathname.startsWith('/admin/test-instructions') },
-              { label: 'Test Sections', href: '/admin/tests/sections', active: pathname.startsWith('/admin/tests/sections') },
               { label: 'Test Types', href: '/admin/tests/types', active: pathname.startsWith('/admin/tests/types') },
-              { label: 'Tests', href: '/admin/tests', active: pathname.startsWith('/admin/tests') && !pathname.startsWith('/admin/test-instructions') && !pathname.startsWith('/admin/tests/sections') && !pathname.startsWith('/admin/tests/difficulty-levels') && !pathname.startsWith('/admin/tests/categories') && !pathname.startsWith('/admin/tests/types') && !pathname.startsWith('/admin/tests/certificates') },
+              { label: 'Tests', href: '/admin/tests', active: pathname.startsWith('/admin/tests') && !pathname.startsWith('/admin/test-instructions') && !pathname.startsWith('/admin/tests/difficulty-levels') && !pathname.startsWith('/admin/tests/categories') && !pathname.startsWith('/admin/tests/types') && !pathname.startsWith('/admin/tests/certificates') },
             ].sort((a, b) => {
               const pa = a.label === 'Tests' ? -1 : 0;
               const pb = b.label === 'Tests' ? -1 : 0;
@@ -355,9 +354,8 @@ function TestsSubmenu({ Icon, isActive, pathname, basePath }: TestsSubmenuProps)
       {open && (
         <div role="menu" aria-label="Tests submenu" className="absolute left-0 top-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 min-w-[210px] z-30 p-1 animate-fade-in">
           {[
-            { label: 'Tests', href: '/admin/tests', active: pathname.startsWith('/admin/tests') && !pathname.startsWith('/admin/test-instructions') && !pathname.startsWith('/admin/tests/sections') && !pathname.startsWith('/admin/tests/difficulty-levels') && !pathname.startsWith('/admin/tests/categories') && !pathname.startsWith('/admin/tests/types') && !pathname.startsWith('/admin/tests/certificates') },
+            { label: 'Tests', href: '/admin/tests', active: pathname.startsWith('/admin/tests') && !pathname.startsWith('/admin/test-instructions') && !pathname.startsWith('/admin/tests/difficulty-levels') && !pathname.startsWith('/admin/tests/categories') && !pathname.startsWith('/admin/tests/types') && !pathname.startsWith('/admin/tests/certificates') },
             { label: 'Test Instructions', href: '/admin/test-instructions', active: pathname.startsWith('/admin/test-instructions') },
-            { label: 'Test Sections', href: '/admin/tests/sections', active: pathname.startsWith('/admin/tests/sections') },
             { label: 'Test Certificates', href: '/admin/tests/certificates', active: pathname.startsWith('/admin/tests/certificates') },
             { label: 'Test Difficulty Levels', href: '/admin/tests/difficulty-levels', active: pathname.startsWith('/admin/tests/difficulty-levels') },
             { label: 'Test Categories', href: '/admin/tests/categories', active: pathname.startsWith('/admin/tests/categories') },

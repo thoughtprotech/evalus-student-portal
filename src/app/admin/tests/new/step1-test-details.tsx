@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useMemo } from "react";
 // Sections removed: no normalizeAssignedSections needed
-import ImportantInstructions from "@/components/ImportantInstructions";
+// Instruction panel hidden on Step 1
 import YesNoToggle from "@/components/ui/YesNoToggle";
 import Modal from "@/components/Modal";
 import type {
@@ -367,7 +367,10 @@ export default function Step1CreateTestDetails({
     const errs: Record<string, string> = {};
   if (!name.trim()) errs.name = "Test Name is required";
   if (!typeId) errs.typeId = "Test Type is required";
-  // Category selection moved to Step 5 (testAssignedTestCategories)
+  // Require at least one category selection in Step 1
+  if (!Array.isArray(selectedCategoryIds) || selectedCategoryIds.length === 0) {
+    errs.categories = "At least one category is required";
+  }
   if (!difficultyLevelId) errs.difficultyLevelId = "Difficulty Level is required";
   if (!primaryInstructionId) errs.primaryInstructionId = "Primary Instruction is required";
   // Duration/Questions/Marks are computed in Step 3; no validation here
@@ -386,7 +389,7 @@ export default function Step1CreateTestDetails({
   // Update the validator ref whenever inputs change
   useEffect(() => {
     validateRef.current = () => validate();
-  }, [name, typeId, categoryId, difficultyLevelId, primaryInstructionId, duration, totalQuestions, totalMarks]);
+  }, [name, typeId, categoryId, selectedCategoryIds, difficultyLevelId, primaryInstructionId, duration, totalQuestions, totalMarks]);
 
   // Register the validator once; it will call the latest validate via ref
   useEffect(() => {
@@ -497,12 +500,12 @@ export default function Step1CreateTestDetails({
             </div>
             <div ref={categoriesRef} className="relative">
               <label className="block text-sm font-medium text-gray-800 mb-1">
-                Categories
+                Categories <span className="text-red-600">*</span>
               </label>
               <button
                 type="button"
                 ref={categoriesBtnRef}
-                className="w-full border border-gray-300 bg-white rounded-lg px-3 py-2.5 text-left text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 flex items-center justify-between"
+                className={`w-full border bg-white rounded-lg px-3 py-2.5 text-left text-sm focus:ring-2 flex items-center justify-between ${errors.categories ? "border-red-400 focus:ring-red-500 focus:border-red-500" : "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"}`}
                 onClick={() => {
                   const rect = categoriesBtnRef.current?.getBoundingClientRect();
                   const spaceBelow = rect ? window.innerHeight - rect.bottom : 0;
@@ -519,6 +522,9 @@ export default function Step1CreateTestDetails({
                 </span>
                 <svg className="w-4 h-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd"/></svg>
               </button>
+              {errors.categories && (
+                <div className="mt-1 text-xs text-red-600 font-bold">{errors.categories}</div>
+              )}
               {categoriesOpen && (
                 <div className={`absolute left-0 right-0 ${categoriesPlaceUp ? "bottom-full mb-1" : "mt-1"} z-40 bg-white border border-gray-200 rounded-md shadow-lg max-h-72 overflow-y-auto`}>
                   <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 bg-gray-50">
@@ -724,11 +730,7 @@ export default function Step1CreateTestDetails({
                 </div>
               </div>
             </div>
-            <div className="flex-1 min-w-0 flex flex-col justify-between h-full">
-              <div className="bg-white shadow-sm p-4 h-full flex flex-col justify-between">
-                <ImportantInstructions />
-              </div>
-            </div>
+            {/* Instruction panel hidden for Step 1 as per requirement */}
           </div>
           <Modal
               title="Template Preview"

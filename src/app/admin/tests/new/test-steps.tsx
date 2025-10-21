@@ -14,7 +14,7 @@ import Step2TestSettings from "./step2-test-settings";
 import Step3AddQuestions from "./step3-add-questions";
 import Step4Publish from "./step4-publish";
 import Step5Assign from "./step5-assign";
-import ImportantInstructions from "@/components/ImportantInstructions";
+// Instruction panels are hidden on all steps except Add Questions
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -776,15 +776,7 @@ export default function TestSteps({
 
         {current === 1 && (
           <StepSection>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="lg:col-span-2">
-                <Step2TestSettings />
-              </div>
-              <ImportantInstructions
-                title="Settings Guide"
-                detail="Configure timing, randomization, and display options for your test. These settings affect the candidate experience."
-              />
-            </div>
+            <Step2TestSettings />
           </StepSection>
         )}
 
@@ -805,14 +797,8 @@ export default function TestSteps({
             {current === 4 ? (
               <Step5Assign registerValidator={(fn) => { step5ValidatorRef.current = fn; }} />
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="lg:col-span-2 p-4 text-sm text-gray-700">
-                  Step {current + 1} content goes here.
-                </div>
-                <ImportantInstructions
-                  title={`Step ${current + 1} Notes`}
-                  detail="Follow the guidance for this step. Provide the required data before moving forward."
-                />
+              <div className="p-4 text-sm text-gray-700">
+                Step {current + 1} content goes here.
               </div>
             )}
           </StepSection>

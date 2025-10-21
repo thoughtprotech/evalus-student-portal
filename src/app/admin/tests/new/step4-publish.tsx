@@ -1,6 +1,6 @@
 "use client";
 
-import ImportantInstructions from "@/components/ImportantInstructions";
+// Instruction panel hidden for Step 4 per requirement
 import { useRouter } from "next/navigation";
 import YesNoToggle from "@/components/ui/YesNoToggle";
 import { useEffect, useState } from "react";
@@ -80,9 +80,9 @@ export default function Step4Publish({ registerValidator }: Props) {
 
   return (
     <div className="w-full">
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        {/* Left: Publish form */}
-        <div className="lg:col-span-3">
+      <div className="grid grid-cols-1 gap-4">
+        {/* Publish form */}
+        <div>
           <section className="border rounded-lg bg-white shadow-sm">
             <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Publish Settings</div>
             <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -206,13 +206,7 @@ export default function Step4Publish({ registerValidator }: Props) {
           </section>
         </div>
 
-        {/* Right: Important Instructions */}
-        <div className="lg:col-span-1">
-          <ImportantInstructions
-            title="Publish Guidance"
-            detail="Set publish flag and schedule. When 'Publish Test' is Yes, status will be saved as 'Published'. You can adjust start/end windows and extra time here."
-          />
-        </div>
+        {/* Instruction panel removed for this step */}
       </div>
     </div>
   );

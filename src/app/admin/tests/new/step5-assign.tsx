@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
 import { useTestDraft } from "@/contexts/TestDraftContext";
-import ImportantInstructions from "@/components/ImportantInstructions";
+// Instruction panel hidden for Step 5 per requirement
 
 type Props = {
   registerValidator?: (fn: () => boolean) => void;
@@ -209,8 +209,8 @@ export default function Step5Assign({ registerValidator }: Props) {
   }, [products]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 space-y-4">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Candidate Groups dropdown */}
           <div ref={groupsRef} className="relative">
@@ -355,13 +355,7 @@ export default function Step5Assign({ registerValidator }: Props) {
 
         {error && <div className="text-sm text-red-600">{error}</div>}
       </div>
-
-      <div>
-        <ImportantInstructions
-          title="Assignment"
-          detail="Pick candidate groups and/or products. If you choose both, we’ll create all combinations. You can also assign only to groups or only to products."
-        />
-      </div>
+      {/* Instruction panel removed for this step */}
     </div>
   );
 }
