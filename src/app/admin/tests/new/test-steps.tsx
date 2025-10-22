@@ -817,7 +817,7 @@ export default function TestSteps({
             )}
           </div>
           <div className="flex items-center gap-4">
-            {current < stepsLength - 1 ? (
+            {current < stepsLength - 1 && (
               <button
                 type="button"
                 className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-blue-600 text-white text-base font-semibold shadow hover:bg-blue-700 transition-colors disabled:opacity-50"
@@ -825,8 +825,11 @@ export default function TestSteps({
               >
                 Next
               </button>
-            ) : (
+            )}
+            {editMode ? (
               <SaveButton />
+            ) : (
+              current === stepsLength - 1 ? <SaveButton /> : null
             )}
           </div>
         </div>
