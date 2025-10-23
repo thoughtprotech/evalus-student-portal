@@ -110,6 +110,11 @@ function createApiClient() {
         if (endpoint.method !== "GET" && !isForm) {
           finalHeaders["Content-Type"] = "application/json";
         }
+        // Strengthen cache bypass for GETs at the HTTP layer
+        if (endpoint.method === "GET") {
+          finalHeaders["Cache-Control"] = "no-cache, no-store, must-revalidate";
+          finalHeaders["Pragma"] = "no-cache";
+        }
 
         const res = await fetch(fullUrl, {
           method: endpoint.method,
@@ -123,6 +128,8 @@ function createApiClient() {
           credentials: endpoint.type === "CLOSE" ? "include" : undefined,
           // Ensure fresh data for GETs (avoid Next.js RSC fetch cache)
           cache: endpoint.method === "GET" ? "no-store" : undefined,
+          // Server-only: hint to Next.js to not revalidate/cache
+          ...(typeof window === 'undefined' ? { next: { revalidate: 0 } as any } : {}),
         });
 
         const elapsed = `${Date.now() - startTime}ms`;
