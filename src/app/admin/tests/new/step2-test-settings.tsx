@@ -17,7 +17,8 @@ export default function Step2TestSettings() {
   const { draft, setDraft } = useTestDraft();
 
   // Grouping & Randomization
-  const [groupBySubjects, setGroupBySubjects] = useState(false);
+  // Default Group by Subjects = true (unless explicitly set in draft)
+  const [groupBySubjects, setGroupBySubjects] = useState(true);
   const [numberBySections, setNumberBySections] = useState(false);
   const [randomizeByTopics, setRandomizeByTopics] = useState(false);
   const [randomizeAnswerOptions, setRandomizeAnswerOptions] = useState(false);
@@ -101,6 +102,15 @@ export default function Step2TestSettings() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft]);
 
+  // Ensure default: if GroupQuestionsBySubjects not present in draft, set to 1 (true)
+  useEffect(() => {
+    if (!draft) return;
+    if (draft.GroupQuestionsBySubjects === undefined || draft.GroupQuestionsBySubjects === null) {
+      setDraft((d: any) => ({ ...(d || {}), GroupQuestionsBySubjects: 1 }));
+      setGroupBySubjects(true);
+    }
+  }, [draft, setDraft]);
+
   // Hydrate from draft
   useEffect(() => {
     if (!draft) return;
@@ -156,168 +166,145 @@ export default function Step2TestSettings() {
 
   return (
     <div className="space-y-4">
-      {/* Grouping & Randomization */}
-      <section className="border rounded-lg bg-white shadow-sm">
-        <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Grouping & Randomization</div>
-        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-gray-800">Group Questions by Subjects</span>
-              <YesNoToggle
-                className="shrink-0"
-                size="sm"
-                segmentWidthClass="w-10 h-5 text-xs"
-                value={groupBySubjects}
-                onChange={(v) => {
-                  setGroupBySubjects(v);
-                  setDraft((d: any) => ({ ...d, GroupQuestionsBySubjects: toUlong(v) }));
-                }}
-              />
+      {/* Row: Grouping & Randomization | Visibility & Locking */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Grouping & Randomization */}
+        <section className="border rounded-lg bg-white shadow-sm">
+          <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Grouping & Randomization</div>
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-gray-800">Group Questions by Subjects</span>
+                <YesNoToggle
+                  className="shrink-0"
+                  size="sm"
+                  segmentWidthClass="w-10 h-5 text-xs"
+                  value={groupBySubjects}
+                  onChange={(v) => {
+                    setGroupBySubjects(v);
+                    setDraft((d: any) => ({ ...d, GroupQuestionsBySubjects: toUlong(v) }));
+                  }}
+                />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-gray-800">Question Numbering by Sections</span>
+                <TogglePair<boolean>
+                  value={numberBySections}
+                  onChange={(v: boolean) => {
+                    setNumberBySections(v);
+                    setDraft((d: any) => ({ ...d, QuestionNumberingBySections: toUlong(v) }));
+                  }}
+                  left={{ label: "By Section", value: true }}
+                  right={{ label: "By Test", value: false }}
+                  size="sm"
+                  equalWidth
+                  segmentWidthClass="w-24"
+                />
+              </div>
+              {/* Randomize Questions by Topics hidden and forced off */}
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-gray-800">Randomize Answer Options by Questions</span>
+                <YesNoToggle
+                  className="shrink-0"
+                  size="sm"
+                  segmentWidthClass="w-10 h-5 text-xs"
+                  value={randomizeAnswerOptions}
+                  onChange={(v) => {
+                    setRandomizeAnswerOptions(v);
+                    setDraft((d: any) => ({ ...d, RandomizeAnswerOptionsByQuestions: toUlong(v) }));
+                  }}
+                />
+              </div>
             </div>
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-gray-800">Question Numbering by Sections</span>
-              <TogglePair<boolean>
-                value={numberBySections}
-                onChange={(v: boolean) => {
-                  setNumberBySections(v);
-                  setDraft((d: any) => ({ ...d, QuestionNumberingBySections: toUlong(v) }));
-                }}
-                left={{ label: "By Section", value: true }}
-                right={{ label: "By Test", value: false }}
-                size="sm"
-                equalWidth
-                segmentWidthClass="w-24"
-              />
-            </div>
-            {/* Randomize Questions by Topics hidden and forced off */}
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-gray-800">Randomize Answer Options by Questions</span>
-              <YesNoToggle
-                className="shrink-0"
-                size="sm"
-                segmentWidthClass="w-10 h-5 text-xs"
-                value={randomizeAnswerOptions}
-                onChange={(v) => {
-                  setRandomizeAnswerOptions(v);
-                  setDraft((d: any) => ({ ...d, RandomizeAnswerOptionsByQuestions: toUlong(v) }));
-                }}
-              />
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-gray-800">Attempt All Questions</span>
+                <YesNoToggle
+                  className="shrink-0"
+                  size="sm"
+                  segmentWidthClass="w-10 h-5 text-xs"
+                  value={attemptAll}
+                  onChange={(v) => {
+                    setAttemptAll(v);
+                    setDraft((d: any) => ({ ...d, AttemptAllQuestions: toUlong(v) }));
+                  }}
+                />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-gray-800">Display Marks During Test</span>
+                <YesNoToggle
+                  className="shrink-0"
+                  size="sm"
+                  segmentWidthClass="w-10 h-5 text-xs"
+                  value={displayMarks}
+                  onChange={(v) => {
+                    setDisplayMarks(v);
+                    setDraft((d: any) => ({ ...d, DisplayMarksDuringTest: toUlong(v) }));
+                  }}
+                />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-gray-800">Allow Multiple Attempts</span>
+                <YesNoToggle
+                  className="shrink-0"
+                  size="sm"
+                  segmentWidthClass="w-10 h-5 text-xs"
+                  value={allowMultipleAttempts}
+                  onChange={(v) => {
+                    setAllowMultipleAttempts(v);
+                    setDraft((d: any) => ({ ...d, AllowMultipleAttempts: toUlong(v) }));
+                  }}
+                />
+              </div>
             </div>
           </div>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-gray-800">Attempt All Questions</span>
-              <YesNoToggle
-                className="shrink-0"
-                size="sm"
-                segmentWidthClass="w-10 h-5 text-xs"
-                value={attemptAll}
-                onChange={(v) => {
-                  setAttemptAll(v);
-                  setDraft((d: any) => ({ ...d, AttemptAllQuestions: toUlong(v) }));
-                }}
-              />
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-gray-800">Display Marks During Test</span>
-              <YesNoToggle
-                className="shrink-0"
-                size="sm"
-                segmentWidthClass="w-10 h-5 text-xs"
-                value={displayMarks}
-                onChange={(v) => {
-                  setDisplayMarks(v);
-                  setDraft((d: any) => ({ ...d, DisplayMarksDuringTest: toUlong(v) }));
-                }}
-              />
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-gray-800">Allow Multiple Attempts</span>
-              <YesNoToggle
-                className="shrink-0"
-                size="sm"
-                segmentWidthClass="w-10 h-5 text-xs"
-                value={allowMultipleAttempts}
-                onChange={(v) => {
-                  setAllowMultipleAttempts(v);
-                  setDraft((d: any) => ({ ...d, AllowMultipleAttempts: toUlong(v) }));
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Time Limits section removed */}
-
-      {/* Visibility & Logging */}
-      <section className="border rounded-lg bg-white shadow-sm">
-        <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Visibility & Locking</div>
-        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="space-y-3">
-            <label className="flex items-center justify-between gap-3">
-              <span className="text-gray-800">Display Test Time</span>
-              <YesNoToggle
-                className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs"
-                value={displayTestTime}
-                onChange={(v) => { setDisplayTestTime(v); setDraft((d: any) => ({ ...d, DisplayTestTime: toUlong(v) })); }}
-              />
-            </label>
-            <label className="flex items-center justify-between gap-3">
-              <span className="text-gray-800">Display Section Time</span>
-              <YesNoToggle
-                className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs"
-                value={displaySectionTime}
-                onChange={(v) => { setDisplaySectionTime(v); setDraft((d: any) => ({ ...d, DisplaySectionTime: toUlong(v) })); }}
-              />
-            </label>
-          </div>
-          <div className="space-y-3">
-            <label className="flex items-center justify-between gap-3">
-              <span className="text-gray-800">Lock Sections on Submission</span>
-              <YesNoToggle
-                className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs"
-                value={lockSectionsOnSubmission}
-                onChange={(v) => { setLockSectionsOnSubmission(v); setDraft((d: any) => ({ ...d, LockSectionsOnSubmission: toUlong(v) })); }}
-              />
-            </label>
-            <label className="flex items-center justify-between gap-3">
-              <span className="text-gray-800">Log Test Activity</span>
-              <YesNoToggle
-                className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs"
-                value={logTestActivity}
-                onChange={(v) => { setLogTestActivity(v); setDraft((d: any) => ({ ...d, LogTestActivity: toUlong(v) })); }}
-              />
-            </label>
-          </div>
-        </div>
-      </section>
-
-      {/* Scoring */}
-      <section className="border rounded-lg bg-white shadow-sm">
-        <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Scoring</div>
-        <div className="p-4 text-sm">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-gray-800 mb-1">Test Minimum Pass Marks</label>
-              <input
-                type="number"
-                min={0}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={testMinimumPassMarks}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setTestMinimumPassMarks(v);
-                  setDraft((d: any) => ({ ...d, TestMinimumPassMarks: v.trim() === "" ? null : Number(v) }));
-                }}
-                placeholder="e.g., 40"
-              />
+        {/* Visibility & Locking */}
+        <section className="border rounded-lg bg-white shadow-sm">
+          <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Visibility & Locking</div>
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div className="space-y-3">
+              <label className="flex items-center justify-between gap-3">
+                <span className="text-gray-800">Display Test Time</span>
+                <YesNoToggle
+                  className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs"
+                  value={displayTestTime}
+                  onChange={(v) => { setDisplayTestTime(v); setDraft((d: any) => ({ ...d, DisplayTestTime: toUlong(v) })); }}
+                />
+              </label>
+              <label className="flex items-center justify-between gap-3">
+                <span className="text-gray-800">Display Section Time</span>
+                <YesNoToggle
+                  className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs"
+                  value={displaySectionTime}
+                  onChange={(v) => { setDisplaySectionTime(v); setDraft((d: any) => ({ ...d, DisplaySectionTime: toUlong(v) })); }}
+                />
+              </label>
+            </div>
+            <div className="space-y-3">
+              <label className="flex items-center justify-between gap-3">
+                <span className="text-gray-800">Lock Sections on Submission</span>
+                <YesNoToggle
+                  className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs"
+                  value={lockSectionsOnSubmission}
+                  onChange={(v) => { setLockSectionsOnSubmission(v); setDraft((d: any) => ({ ...d, LockSectionsOnSubmission: toUlong(v) })); }}
+                />
+              </label>
+              <label className="flex items-center justify-between gap-3">
+                <span className="text-gray-800">Log Test Activity</span>
+                <YesNoToggle
+                  className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs"
+                  value={logTestActivity}
+                  onChange={(v) => { setLogTestActivity(v); setDraft((d: any) => ({ ...d, LogTestActivity: toUlong(v) })); }}
+                />
+              </label>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
-      {/* Feedback Messages */}
+      {/* Feedback Messages (moved above Scoring) */}
       <section className="border rounded-lg bg-white shadow-sm">
         <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Feedback Messages</div>
         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -336,29 +323,55 @@ export default function Step2TestSettings() {
         </div>
       </section>
 
-      {/* Ranking & Results / Resume & Breaks */}
-      <section className="border rounded-lg bg-white shadow-sm">
-        <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Ranking & Results</div>
-        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="space-y-3">
-            <label className="flex items-center justify-between gap-3">
-              <span className="text-gray-800">Automatic Rank Calculation</span>
-              <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={automaticRankCalculation} onChange={(v) => { setAutomaticRankCalculation(v); setDraft((d: any) => ({ ...d, AutomaticRankCalculation: toUlong(v) })); }} />
-            </label>
-            <label className="flex items-center justify-between gap-3">
-              <span className="text-gray-800">Allow Duplicate Rank</span>
-              <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={allowDuplicateRank} onChange={(v) => { setAllowDuplicateRank(v); setDraft((d: any) => ({ ...d, AllowDuplicateRank: toUlong(v) })); }} />
-            </label>
-            <label className="flex items-center justify-between gap-3">
-              <span className="text-gray-800">Skip Rank for Duplicate Rank</span>
-              <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={skipRankForDuplicateTank} onChange={(v) => { setSkipRankForDuplicateTank(v); setDraft((d: any) => ({ ...d, SkipRankForDuplicateTank: toUlong(v) })); }} />
-            </label>
+      {/* Row: Scoring | Ranking & Results */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Scoring */}
+        <section className="border rounded-lg bg-white shadow-sm">
+          <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Scoring</div>
+          <div className="p-4 text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-gray-800 mb-1">Test Minimum Pass Marks</label>
+                <input
+                  type="number"
+                  min={0}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={testMinimumPassMarks}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setTestMinimumPassMarks(v);
+                    setDraft((d: any) => ({ ...d, TestMinimumPassMarks: v.trim() === "" ? null : Number(v) }));
+                  }}
+                  placeholder="e.g., 40"
+                />
+              </div>
+            </div>
           </div>
-          {/* Right column removed per requirements */}
-        </div>
-      </section>
+        </section>
 
-  {/* Schedule moved to Step 4 */}
+        {/* Ranking & Results */}
+        <section className="border rounded-lg bg-white shadow-sm">
+          <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold">Ranking & Results</div>
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div className="space-y-3">
+              <label className="flex items-center justify-between gap-3">
+                <span className="text-gray-800">Automatic Rank Calculation</span>
+                <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={automaticRankCalculation} onChange={(v) => { setAutomaticRankCalculation(v); setDraft((d: any) => ({ ...d, AutomaticRankCalculation: toUlong(v) })); }} />
+              </label>
+              <label className="flex items-center justify-between gap-3">
+                <span className="text-gray-800">Allow Duplicate Rank</span>
+                <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={allowDuplicateRank} onChange={(v) => { setAllowDuplicateRank(v); setDraft((d: any) => ({ ...d, AllowDuplicateRank: toUlong(v) })); }} />
+              </label>
+              <label className="flex items-center justify-between gap-3">
+                <span className="text-gray-800">Skip Rank for Duplicate Rank</span>
+                <YesNoToggle className="shrink-0" size="sm" segmentWidthClass="w-10 h-5 text-xs" value={skipRankForDuplicateTank} onChange={(v) => { setSkipRankForDuplicateTank(v); setDraft((d: any) => ({ ...d, SkipRankForDuplicateTank: toUlong(v) })); }} />
+              </label>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {/* Schedule moved to Step 4 */}
     </div>
   );
 }

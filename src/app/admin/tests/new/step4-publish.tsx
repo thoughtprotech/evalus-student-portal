@@ -16,10 +16,19 @@ function toLocalDateTimeInputValue(iso?: string | null): string {
 }
 
 function toIsoFromLocal(local: string): string | null {
+  // Persist as a local datetime without UTC conversion to avoid timezone shifts.
+  // Input from <input type="datetime-local"> is 'YYYY-MM-DDTHH:mm'.
   if (!local || local.trim() === "") return null;
-  const d = new Date(local);
-  if (isNaN(d.getTime())) return null;
-  return d.toISOString();
+  const [datePart, timePart] = local.split("T");
+  if (!datePart || !timePart) return null;
+  const [yStr, mStr, dStr] = datePart.split("-");
+  const [hStr, minStr] = timePart.split(":");
+  const y = Number(yStr), m = Number(mStr), d = Number(dStr);
+  const hh = Number(hStr), mm = Number(minStr);
+  if ([y, m, d, hh, mm].some((n) => !Number.isFinite(n))) return null;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  // Return ISO-like string without timezone: 'YYYY-MM-DDTHH:mm:00'
+  return `${String(y).padStart(4, "0")}-${pad(m)}-${pad(d)}T${pad(hh)}:${pad(mm)}:00`;
 }
 
 type Props = {
