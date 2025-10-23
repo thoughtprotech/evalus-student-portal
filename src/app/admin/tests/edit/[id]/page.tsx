@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import React from "react";
 import TestSteps from "../../new/test-steps";
 

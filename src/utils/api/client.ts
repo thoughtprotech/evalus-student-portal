@@ -121,6 +121,8 @@ function createApiClient() {
               ? (body as FormData)
               : JSON.stringify(body),
           credentials: endpoint.type === "CLOSE" ? "include" : undefined,
+          // Ensure fresh data for GETs (avoid Next.js RSC fetch cache)
+          cache: endpoint.method === "GET" ? "no-store" : undefined,
         });
 
         const elapsed = `${Date.now() - startTime}ms`;
