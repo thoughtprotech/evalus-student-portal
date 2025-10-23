@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ClipboardList } from "lucide-react";
 import { Filter, XCircle } from "lucide-react";
 import {
@@ -932,7 +932,7 @@ function TestsGrid({
   );
 }
 
-export default function TestsPage() {
+function TestsPageInner() {
   const [query, setQuery] = useState("");
   const searchParams = useSearchParams();
   const nonce = searchParams?.get("ts") ?? null;
@@ -966,5 +966,13 @@ export default function TestsPage() {
         <TestsGrid query={query} nonce={nonce} onClearQuery={() => setQuery("")} />
       </div>
     </div>
+  );
+}
+
+export default function TestsPage() {
+  return (
+    <Suspense fallback={<div className="p-4">Loading tests…</div>}>
+      <TestsPageInner />
+    </Suspense>
   );
 }
