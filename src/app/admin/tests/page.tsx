@@ -487,6 +487,7 @@ function TestsGrid({
       skip: (page - 1) * pageSize,
       orderBy,
       filter,
+      cacheBust: nonce || undefined,
     });
     // Only apply if this is the latest request
     if (reqId === lastReqIdRef.current) {

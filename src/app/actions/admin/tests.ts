@@ -65,6 +65,8 @@ export interface FetchTestsParams {
   skip?: number; // $skip
   orderBy?: string; // $orderby e.g., "CreatedDate desc"
   filter?: string; // $filter e.g., "contains(TestName,'math')"
+  // Optional cache-buster appended as a no-op query param to avoid intermediary caches
+  cacheBust?: string;
 }
 
 function buildQuery(params: FetchTestsParams): string {
@@ -130,7 +132,13 @@ export async function fetchTestsAction(
 ): Promise<ApiResponse<{ rows: TestRow[]; total: number }>> {
   try {
     const query = buildQuery(params);
-    const response = await apiHandler(endpoints.getAdminTests, { query } as any);
+    const bust = params.cacheBust ?? String(Date.now());
+    const queryWithBust = bust
+      ? query
+        ? `${query}&_=${encodeURIComponent(bust)}`
+        : `_=${encodeURIComponent(bust)}`
+      : query;
+    const response = await apiHandler(endpoints.getAdminTests, { query: queryWithBust } as any);
 
     if (response.error || response.status !== 200) {
       return {
