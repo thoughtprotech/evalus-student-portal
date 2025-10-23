@@ -511,10 +511,7 @@ export const endpoints = {
   // Get Test by Id (Edit mode prefill)
   getTestById: {
     method: "GET",
-    path: ({ id }: { id: number | string }) => {
-      const ts = Date.now();
-      return `/api/Tests/${id}?_=${ts}`;
-    },
+    path: ({ id }: { id: number | string }) => `/api/Tests/${id}`,
     type: "CLOSE",
   } as Endpoint<{ id: number | string }, any>,
 

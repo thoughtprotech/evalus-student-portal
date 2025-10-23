@@ -13,6 +13,7 @@ import PageHeader from "@/components/PageHeader";
 import PageUnderConstruction from "@/components/PageUnderConstruction";
 import { TabsContent, TabsList, TabsRoot } from "@/components/Tabs";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
@@ -122,9 +123,11 @@ function LevelCellRenderer(props: { value: string }) {
 
 function TestsGrid({
   query,
+  nonce,
   onClearQuery,
 }: {
   query: string;
+  nonce?: string | null;
   onClearQuery?: () => void;
 }) {
   const gridApiRef = useRef<GridApi | null>(null);
@@ -495,7 +498,7 @@ function TestsGrid({
       }
       setLoading(false);
     }
-  }, [page, pageSize, query]);
+  }, [page, pageSize, query, nonce]);
 
   useEffect(() => {
     fetchPage();
@@ -931,6 +934,8 @@ function TestsGrid({
 
 export default function TestsPage() {
   const [query, setQuery] = useState("");
+  const searchParams = useSearchParams();
+  const nonce = searchParams?.get("ts") ?? null;
 
   // Load persisted search on mount
   useEffect(() => {
@@ -958,7 +963,7 @@ export default function TestsPage() {
       </div>
 
       <div className="bg-white shadow rounded-lg p-2 flex-1 min-h-0 overflow-hidden">
-        <TestsGrid query={query} onClearQuery={() => setQuery("")} />
+        <TestsGrid query={query} nonce={nonce} onClearQuery={() => setQuery("")} />
       </div>
     </div>
   );

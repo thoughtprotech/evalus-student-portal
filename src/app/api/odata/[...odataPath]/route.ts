@@ -23,7 +23,6 @@ export async function GET(
         "Content-Type": "application/json",
       },
       // No CORS issues on server-side fetch
-      cache: "no-store",
     });
 
     const body = await res.text();

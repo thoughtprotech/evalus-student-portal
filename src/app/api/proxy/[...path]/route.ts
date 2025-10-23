@@ -61,7 +61,6 @@ async function handle(req: NextRequest) {
       method,
       headers,
       body,
-      cache: "no-store",
       // Don't send credentials here; cookies were already forwarded in headers when present
     });
 
