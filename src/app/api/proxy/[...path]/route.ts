@@ -72,6 +72,10 @@ async function handle(req: NextRequest) {
         responseHeaders.set(key, value);
       }
     });
+    // For safety, disable caching on proxied responses by default to avoid stale data in admin grids
+    responseHeaders.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+    responseHeaders.set("Pragma", "no-cache");
+    responseHeaders.set("Expires", "0");
 
     // Return raw binary if present to avoid corrupting downloads (e.g., XLSX)
     const arrayBuf = await res.arrayBuffer();

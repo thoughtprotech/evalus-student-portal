@@ -30,6 +30,10 @@ export async function GET(
       status: res.status,
       headers: {
         "Content-Type": res.headers.get("content-type") || "application/json",
+        // Explicitly disable caching of OData responses to prevent stale grid data behind proxies/CDNs
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        Pragma: "no-cache",
+        Expires: "0",
       },
     });
   } catch (e: any) {
