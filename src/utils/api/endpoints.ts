@@ -454,6 +454,7 @@ export const endpoints = {
       return `/Odata/Tests${q}${suffix}`;
     },
     type: "OPEN",
+    disableCache: true,
   } as Endpoint<
     import("./types").GetTestsODataRequest,
     {

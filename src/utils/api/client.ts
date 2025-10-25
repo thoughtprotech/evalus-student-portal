@@ -110,7 +110,11 @@ function createApiClient() {
         if (endpoint.method !== "GET" && !isForm) {
           finalHeaders["Content-Type"] = "application/json";
         }
-        // Only add extra headers when necessary; avoid forcing no-store globally
+        // Add request headers for cache control only when endpoint opts-in
+        if (endpoint.disableCache) {
+          finalHeaders["Cache-Control"] = "no-cache, no-store, must-revalidate";
+          finalHeaders["Pragma"] = "no-cache";
+        }
 
         const res = await fetch(fullUrl, {
           method: endpoint.method,
@@ -122,6 +126,10 @@ function createApiClient() {
               ? (body as FormData)
               : JSON.stringify(body),
           credentials: endpoint.type === "CLOSE" ? "include" : undefined,
+          // Opt-in no-store to defeat intermediaries when requested
+          cache: endpoint.disableCache ? "no-store" : undefined,
+          // Server-only hint to avoid RSC caching when explicitly disabled
+          ...(endpoint.disableCache && typeof window === 'undefined' ? { next: { revalidate: 0 } as any } : {}),
         });
 
         const elapsed = `${Date.now() - startTime}ms`;
