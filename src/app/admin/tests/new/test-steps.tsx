@@ -643,8 +643,13 @@ export default function TestSteps({
         } catch {}
         // Navigate back to grid after a short delay to allow the toast to be seen
   setTimeout(() => {
-    const ts = Date.now();
-    router2.push(`/admin/tests?ts=${ts}`);
+          const ts = Date.now();
+          try {
+            // Force a hard navigation to avoid client-side cache artifacts in hosted envs
+            window.location.assign(`/admin/tests?ts=${ts}`);
+          } catch {
+            router2.push(`/admin/tests?ts=${ts}`);
+          }
   }, 2000);
       } catch (e: any) {
         const msg = e?.message || "Failed to save test.";
@@ -720,6 +725,15 @@ export default function TestSteps({
             <div>
               <Link
                 href="/admin/tests"
+                onClick={(e) => {
+                  e.preventDefault();
+                  const ts = Date.now();
+                  try {
+                    window.location.assign(`/admin/tests?ts=${ts}`);
+                  } catch {
+                    router.push(`/admin/tests?ts=${ts}`);
+                  }
+                }}
                 className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
               >
                 Back to Tests
