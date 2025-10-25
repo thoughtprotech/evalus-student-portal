@@ -937,6 +937,25 @@ function TestsPageInner() {
   const [query, setQuery] = useState("");
   const searchParams = useSearchParams();
   const nonce = searchParams?.get("ts") ?? null;
+  // Bump a local nonce on window focus/visibility so the grid reliably refetches after navigating back
+  const [focusNonce, setFocusNonce] = useState(0);
+
+  useEffect(() => {
+    const onFocus = () => setFocusNonce((n) => n + 1);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") setFocusNonce((n) => n + 1);
+    };
+    if (typeof window !== "undefined") {
+      window.addEventListener("focus", onFocus);
+      document.addEventListener("visibilitychange", onVisibility);
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("focus", onFocus);
+        document.removeEventListener("visibilitychange", onVisibility);
+      }
+    };
+  }, []);
 
   // Load persisted search on mount
   useEffect(() => {
@@ -964,7 +983,7 @@ function TestsPageInner() {
       </div>
 
       <div className="bg-white shadow rounded-lg p-2 flex-1 min-h-0 overflow-hidden">
-        <TestsGrid query={query} nonce={nonce} onClearQuery={() => setQuery("")} />
+        <TestsGrid query={query} nonce={`${nonce ?? ""}|${focusNonce}`} onClearQuery={() => setQuery("")} />
       </div>
     </div>
   );

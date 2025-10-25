@@ -643,7 +643,8 @@ export default function TestSteps({
         } catch {}
         // Navigate back to grid after a short delay to allow the toast to be seen
   setTimeout(() => {
-          router2.push("/admin/tests");
+    const ts = Date.now();
+    router2.push(`/admin/tests?ts=${ts}`);
   }, 2000);
       } catch (e: any) {
         const msg = e?.message || "Failed to save test.";
