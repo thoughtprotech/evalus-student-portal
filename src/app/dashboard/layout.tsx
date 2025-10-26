@@ -26,6 +26,7 @@ import { fetchSideBarMenuAction } from "../actions/dashboard/sideBarMenu";
 import Loader from "@/components/Loader";
 import { SideBarFileTree } from "./components/SideBarFileTree";
 import { useUser } from "@/contexts/UserContext";
+import { getCompanyForUser } from "@/app/actions/dashboard/getCompanyForUser";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -38,6 +39,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [sideBarLoader, setSideBarLoader] = useState<boolean>(false);
 
   const { username, displayName, userPhoto, setUsername, setDisplayName, setUserPhoto, setCurrentGroupId } = useUser();
+  const [company, setCompany] = useState<{ companyName: string; companyLogo?: string } | null>(null);
 
   const getUser = async () => {
     const userData = await getUserDisplayNameAction();
@@ -74,6 +76,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     setIsMounted(true);
     fetchSideBarMenus();
     getUser();
+    (async () => {
+      const companyData = await getCompanyForUser();
+      if (companyData) {
+        setCompany({ companyName: companyData.companyName, companyLogo: companyData.companyLogo });
+      }
+    })();
   }, []);
 
   // Define header metadata mappings for parent routes.
@@ -278,6 +286,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
           <div className="flex items-center space-x-4">
+            {/* Company logo and name */}
+            {company?.companyLogo && (
+              <img
+                src={company.companyLogo}
+                alt={company.companyName || "Company Logo"}
+                className="h-10 w-32 object-contain rounded bg-white mr-3"
+                style={{ maxWidth: 128, maxHeight: 40 }}
+              />
+            )}
+            {company?.companyName && (
+              <span className="font-bold text-indigo-600 text-lg mr-3 px-2 py-1 rounded bg-indigo-50 border border-indigo-200 shadow-sm">{company.companyName}</span>
+            )}
             <DropDown
               face={
                 <div className="flex items-center space-x-2">
