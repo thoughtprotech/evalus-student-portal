@@ -46,9 +46,11 @@ const hasSubMenu = (label: string) => label === 'Questions';
 interface NavbarProps {
   username: string; // This will now receive displayName from the layout
   userPhoto?: string | null;
+  companyName?: string;
+  companyLogo?: string;
 }
 
-export default function Navbar({ username, userPhoto }: NavbarProps) {
+export default function Navbar({ username, userPhoto, companyName, companyLogo }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -115,8 +117,20 @@ export default function Navbar({ username, userPhoto }: NavbarProps) {
         })}
       </nav>
 
-      {/* Mobile Menu Button & User */}
+      {/* Mobile Menu Button, Company Info & User */}
       <div className="flex items-center space-x-4">
+        {/* Company logo and name */}
+        {companyLogo && (
+          <img
+            src={companyLogo}
+            alt={companyName || "Company Logo"}
+            className="h-10 w-32 object-contain rounded bg-white mr-3"
+            style={{ maxWidth: 128, maxHeight: 40 }}
+          />
+        )}
+        {companyName && (
+          <span className="font-bold text-indigo-600 text-lg mr-3 px-2 py-1 rounded bg-indigo-50 border border-indigo-200 shadow-sm">{companyName}</span>
+        )}
         <button
           onClick={toggleMenu}
           className="md:hidden focus:outline-none"
