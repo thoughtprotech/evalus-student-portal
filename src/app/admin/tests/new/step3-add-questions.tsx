@@ -1,13 +1,13 @@
 "use client";
 
-import ImportantInstructions from "@/components/ImportantInstructions";
+// Removed ImportantInstructions per requirement
 import Toast, { type ToastType } from "@/components/Toast";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTestDraft } from "@/contexts/TestDraftContext";
 // Sections are deprecated; no longer importing section normalization
 
-import { MousePointerClick, FilePlus2, MinusCircle, FileInput } from "lucide-react";
+import { MousePointerClick, FilePlus2, MinusCircle } from "lucide-react";
 import PaginationControls from "@/components/PaginationControls";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
@@ -678,10 +678,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
       : "/admin/tests/new?step=3";
     router.push(`/admin/questions/new?returnTo=${encodeURIComponent(returnPath)}`);
   };
-  const handleImportQuestions = () => {
-    // Placeholder – will be linked to import route later
-    setToast({ message: "Import from Word parsing coming soon.", type: "info" });
-  };
+  // Removed import questions handler per requirement
 
   return (
     <div className="w-full pb-32">
@@ -1006,7 +1003,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
         {total === 0 && (
           <>
             <div className="lg:col-span-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
                 <div className="rounded border bg-gray-50 flex flex-col shadow-sm p-1.5">
                   <div className="p-2 text-center flex-1 flex flex-col items-center">
                     <MousePointerClick className="mx-auto mb-1.5 h-6 w-6 text-gray-400" strokeWidth={1.5} />
@@ -1025,25 +1022,9 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                     <button onClick={handleAddQuestions} className="w-full rounded-md bg-green-600 hover:bg-green-700 text-white py-1 text-xs">Add Questions</button>
                   </div>
                 </div>
-                <div className="rounded border bg-gray-50 flex flex-col shadow-sm p-1.5">
-                  <div className="p-2 text-center flex-1 flex flex-col items-center">
-                    <FileInput className="mx-auto mb-1.5 h-6 w-6 text-gray-400" strokeWidth={1.5} />
-                    <p className="text-xs text-gray-600">It is for importing questions from word parsing.</p>
-                  </div>
-                  <div className="px-3 pb-3 mt-auto">
-                    <button onClick={handleImportQuestions} className="w-full rounded-md bg-green-600 hover:bg-green-700 text-white py-1 text-xs">Import Questions</button>
-                  </div>
-                </div>
               </div>
             </div>
-            {total === 0 && (
-              <div className="lg:col-span-1">
-                <ImportantInstructions
-                  title="Important Instructions"
-                  detail="This is to add questions in a created test. You can add questions using two methods: 1) Select predefined questions using the question bank, 2) Create and add new questions as per the requirement."
-                />
-              </div>
-            )}
+            {/* Important instructions panel removed */}
           </>
         )}
         {/* Right panel actions when there are questions */}
@@ -1066,15 +1047,6 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                 </div>
                 <div className="px-3 pb-3 mt-auto">
                   <button onClick={handleAddQuestions} className="w-full rounded-md bg-green-600 hover:bg-green-700 text-white py-1 text-xs">Add Questions</button>
-                </div>
-              </div>
-              <div className="rounded border bg-gray-50 flex flex-col shadow-sm p-1.5">
-                <div className="p-2 text-center flex-1 flex flex-col items-center">
-                  <FileInput className="mx-auto mb-1.5 h-6 w-6 text-gray-400" strokeWidth={1.5} />
-                  <p className="text-xs text-gray-600">It is for importing questions from word parsing.</p>
-                </div>
-                <div className="px-3 pb-3 mt-auto">
-                  <button onClick={handleImportQuestions} className="w-full rounded-md bg-green-600 hover:bg-green-700 text-white py-1 text-xs">Import Questions</button>
                 </div>
               </div>
             </div>
