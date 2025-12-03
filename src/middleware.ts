@@ -6,9 +6,43 @@ interface JwtPayload {
   [key: string]: any;
 }
 
-export function middleware(req: NextRequest) {
+// Read Browser Exam Key from your environment
+const BEK = process.env.SEB_BROWSER_EXAM_KEY || "";
+
+
+// Convert ArrayBuffer → hex string
+const abToHex = (buffer: ArrayBuffer) => {
+  return Array.from(new Uint8Array(buffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+};
+
+// Compute SEB hash using Web Crypto API
+async function computeSEBHash(url: string) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(BEK + url);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  return abToHex(hashBuffer);
+}
+
+export async function middleware(req: NextRequest) {
   const token = req.cookies.get("token")?.value;
   const { pathname } = req.nextUrl;
+
+  // --- SEB PROTECTION -----------------------------------------------------
+  if (pathname.startsWith("/exam")) {
+    const receivedHash = req.headers.get("x-safeexambrowser-requesthash");
+
+    if (!receivedHash) {
+      return NextResponse.redirect(new URL("/use-safe-exam-browser", req.url));
+    }
+
+    const expectedHash = await computeSEBHash(req.nextUrl.toString());
+
+    if (receivedHash.toLowerCase() !== expectedHash.toLowerCase()) {
+      return NextResponse.redirect(new URL("/use-safe-exam-browser", req.url));
+    }
+  }
 
   // Helper function to decode JWT payload (Edge-compatible)
   const decodeJwtPayload = (tok: string): JwtPayload | null => {

@@ -137,60 +137,6 @@ export default function TestCards({
     }
   }
 
-  const openInPopup = (e: React.MouseEvent) => {
-    // Allow all statuses to open system check
-    console.log({ registrationId, status, testId: test.testId });
-    if (status !== "Up Next") return;
-
-    e.preventDefault();
-
-    // Set exam mode to prevent auto-logout
-    setExamMode(true);
-
-    // Always open system check - use registrationId if available, otherwise use 0
-    const regId = registrationId && registrationId > 0 ? registrationId : 0;
-    const systemCheckUrl = `/exam/systemCheck/${test.testId}/${regId}`;
-
-    console.log("🚀 Opening system check URL:", systemCheckUrl);
-
-    // Try popup first, if blocked or fails, use direct navigation
-    try {
-      const width = window.screen.availWidth;
-      const height = window.screen.availHeight;
-
-      const popup = window.open(
-        systemCheckUrl,
-        "_blank",
-        `width=${width},height=${height},top=0,left=0,scrollbars=no,resizable=no,fullscreen=yes`
-      );
-
-      if (!popup || popup.closed || typeof popup.closed === "undefined") {
-        console.warn("Popup blocked - using direct navigation");
-        // Popup blocked, navigate directly in current tab
-        window.location.href = systemCheckUrl;
-        return;
-      }
-
-      // Monitor popup close to clear exam mode
-      const checkClosed = setInterval(() => {
-        try {
-          if (popup.closed) {
-            clearInterval(checkClosed);
-            setExamMode(false);
-          }
-        } catch (error) {
-          // Cross-origin error, popup might be on different domain
-          clearInterval(checkClosed);
-          setExamMode(false);
-        }
-      }, 1000);
-    } catch (error) {
-      console.error("Error opening popup:", error);
-      // Fallback to direct navigation
-      window.location.href = systemCheckUrl;
-    }
-  };
-
   const [showRegisterModal, setShowRegisterModal] = useState(false);
 
   const defaultLocal = () => {
@@ -447,14 +393,13 @@ export default function TestCards({
       {/* Conditional Action Button */}
       <div className="w-full">
         {status === "Up Next" ? (
-          <a
+          <Link
             href={linkHref}
-            onClick={openInPopup}
             className="w-full flex items-center justify-center gap-1 px-4 py-2 font-bold text-white rounded-xl shadow transition-colors bg-blue-600 hover:bg-blue-700"
           >
             {linkText}
             {linkIcon}
-          </a>
+          </Link>
         ) : (
           <Link
             href={linkHref}
