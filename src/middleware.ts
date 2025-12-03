@@ -34,13 +34,13 @@ export async function middleware(req: NextRequest) {
     const receivedHash = req.headers.get("x-safeexambrowser-requesthash");
 
     if (!receivedHash) {
-      return NextResponse.redirect(new URL("/use-safe-exam-browser", req.url));
+      return NextResponse.redirect(new URL("/dashboard/use-safe-exam-browser", req.url));
     }
 
     const expectedHash = await computeSEBHash(req.nextUrl.toString());
 
     if (receivedHash.toLowerCase() !== expectedHash.toLowerCase()) {
-      return NextResponse.redirect(new URL("/use-safe-exam-browser", req.url));
+      return NextResponse.redirect(new URL("/dashboard/use-safe-exam-browser", req.url));
     }
   }
 
