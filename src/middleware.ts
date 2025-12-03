@@ -6,41 +6,23 @@ interface JwtPayload {
   [key: string]: any;
 }
 
-// Read Browser Exam Key from your environment
-const BEK = process.env.SEB_BROWSER_EXAM_KEY || "";
-
-
-// Convert ArrayBuffer → hex string
-const abToHex = (buffer: ArrayBuffer) => {
-  return Array.from(new Uint8Array(buffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-};
-
-// Compute SEB hash using Web Crypto API
-async function computeSEBHash(url: string) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(BEK + url);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  return abToHex(hashBuffer);
-}
-
 export async function middleware(req: NextRequest) {
   const token = req.cookies.get("token")?.value;
   const { pathname } = req.nextUrl;
 
-  // --- SEB PROTECTION -----------------------------------------------------
+  // --- SIMPLE SEB CHECK (No Hash Validation) ----------------------------
   if (pathname.startsWith("/exam")) {
-    const receivedHash = req.headers.get("x-safeexambrowser-requesthash");
+    // SEB always sends at least ONE of these headers
+    const isSEB =
+      req.headers.has("x-safeexambrowser-requesthash") ||
+      req.headers.has("x-safeexambrowser-configkeyhash") ||
+      req.headers.has("x-safeexambrowser-version") ||
+      req.headers.get("user-agent")?.toLowerCase().includes("seb");
 
-    if (!receivedHash) {
-      return NextResponse.redirect(new URL("/dashboard/use-safe-exam-browser", req.url));
-    }
-
-    const expectedHash = await computeSEBHash(req.nextUrl.toString());
-
-    if (receivedHash.toLowerCase() !== expectedHash.toLowerCase()) {
-      return NextResponse.redirect(new URL("/dashboard/use-safe-exam-browser", req.url));
+    if (!isSEB) {
+      return NextResponse.redirect(
+        new URL("/dashboard/use-safe-exam-browser", req.url)
+      );
     }
   }
 
