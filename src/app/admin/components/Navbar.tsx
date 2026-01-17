@@ -119,17 +119,23 @@ export default function Navbar({ username, userPhoto, companyName, companyLogo }
 
       {/* Mobile Menu Button, Company Info & User */}
       <div className="flex items-center space-x-4">
-        {/* Company logo and name */}
-        {companyLogo && (
-          <img
-            src={companyLogo}
-            alt={companyName || "Company Logo"}
-            className="h-10 w-32 object-contain rounded bg-white mr-3"
-            style={{ maxWidth: 128, maxHeight: 40 }}
-          />
-        )}
-        {companyName && (
-          <span className="font-bold text-indigo-600 text-lg mr-3 px-2 py-1 rounded bg-indigo-50 border border-indigo-200 shadow-sm">{companyName}</span>
+        {/* Company logo and name (centered, no border, matches image) */}
+        {(companyLogo || companyName) && (
+          <div className="flex flex-col items-center justify-center mr-6 min-w-[80px]">
+            {companyLogo && (
+              <img
+                src={companyLogo}
+                alt={companyName || "Company Logo"}
+                className="h-10 w-auto object-contain rounded-none bg-transparent shadow-none"
+                style={{ maxWidth: 120, maxHeight: 40 }}
+              />
+            )}
+            {companyName && (
+              <span className="mt-1 font-semibold text-gray-500 text-sm tracking-wide uppercase">
+                {companyName}
+              </span>
+            )}
+          </div>
         )}
         <button
           onClick={toggleMenu}
@@ -145,7 +151,7 @@ export default function Navbar({ username, userPhoto, companyName, companyLogo }
 
         <DropDown
           face={
-            <div className="flex items-center space-x-2 cursor-pointer">
+            <div className="flex items-center space-x-2 cursor-pointer ml-2">
               {typeof userPhoto === 'string' && userPhoto !== '' && userPhoto !== 'null' ? (
                 <img
                   src={userPhoto}
