@@ -43,7 +43,7 @@ export async function middleware(req: NextRequest) {
   // 1. Redirect authenticated users off the public home page based on their role
   if (pathname === "/" && token) {
     const payload = decodeJwtPayload(token);
-    if (payload && payload.role === "ADMIN") {
+    if (payload && payload.role?.toUpperCase() === "ADMIN") {
       return NextResponse.redirect(new URL("/admin", req.url));
     }
     return NextResponse.redirect(new URL("/dashboard", req.url));
@@ -64,7 +64,7 @@ export async function middleware(req: NextRequest) {
     const payload = decodeJwtPayload(token);
     if (payload) {
       // If admin user tries to access dashboard root (not sub-routes), redirect to admin
-      if (payload.role === "ADMIN" && pathname === "/dashboard") {
+      if (payload && payload.role?.toUpperCase() === "ADMIN" && pathname === "/dashboard") {
         return NextResponse.redirect(new URL("/admin", req.url));
       }
 
@@ -72,7 +72,7 @@ export async function middleware(req: NextRequest) {
       // Admins should be able to take exams just like regular users
 
       // If regular user tries to access admin routes, redirect to dashboard
-      if (payload.role !== "ADMIN" && pathname.startsWith("/admin")) {
+      if (payload && payload.role?.toUpperCase() !== "ADMIN" && pathname.startsWith("/admin")) {
         return NextResponse.redirect(new URL("/dashboard", req.url));
       }
     } else {
