@@ -284,8 +284,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 {isMounted && currentPathMeta?.title}
               </h1>
             </div>
-          </div>
-          <div className="flex items-center space-x-4">
+                  </div>
+                  <div className="flex items-center space-x-4" style={{marginRight: 60}}>
             {/* Company logo and name */}
             {(company?.companyLogo || company?.companyName) && (
               <div className="flex flex-col items-center justify-center mr-6 min-w-[80px]">
