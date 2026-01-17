@@ -72,7 +72,7 @@ export default function Navbar({ username, userPhoto, companyName, companyLogo }
   const toggleMenu = () => setMenuOpen((prev) => !prev);
 
   return (
-    <header className="w-full border-b border-gray-300 shadow-md px-6 flex items-center justify-between h-16 relative">
+      <header className="w-full border-b border-gray-300 shadow-md px-6 flex items-center justify-between h-16 relative" style={{ paddingLeft: 18 }}>
       {/* Logo */}
       <div className="flex items-center space-x-1">
         <h1 className="text-2xl sm:text-3xl font-bold text-indigo-700">
@@ -118,7 +118,7 @@ export default function Navbar({ username, userPhoto, companyName, companyLogo }
       </nav>
 
       {/* Mobile Menu Button, Company Info & User */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-4 min-w-0">
         {/* Company logo and name (centered, no border, matches image) */}
         {(companyLogo || companyName) && (
           <div className="flex flex-col items-center justify-center mr-6 min-w-[80px]">
@@ -127,7 +127,7 @@ export default function Navbar({ username, userPhoto, companyName, companyLogo }
                 src={companyLogo}
                 alt={companyName || "Company Logo"}
                 className="h-10 w-auto object-contain rounded-none bg-transparent shadow-none"
-                style={{ maxWidth: 120, maxHeight: 40 }}
+                style={{ maxWidth: 120, maxHeight: 40, paddingTop: 5 }}
               />
             )}
             {companyName && (
@@ -151,20 +151,20 @@ export default function Navbar({ username, userPhoto, companyName, companyLogo }
 
         <DropDown
           face={
-            <div className="flex items-center space-x-2 cursor-pointer ml-2">
+            <div className="flex items-center flex-shrink-0 space-x-2 cursor-pointer ml-2 min-w-0">
               {typeof userPhoto === 'string' && userPhoto !== '' && userPhoto !== 'null' ? (
                 <img
                   src={userPhoto}
                   alt={username}
-                  className="w-8 h-8 rounded-full object-cover border border-gray-300"
+                  className="w-8 h-8 rounded-full object-cover border border-gray-300 flex-shrink-0"
                   onError={e => { e.currentTarget.style.display = 'none'; }}
                 />
               ) : (
-                <div className="w-8 h-8 bg-indigo-200 text-indigo-800 rounded-full flex items-center justify-center font-bold shadow-inner">
-                  {username.charAt(0).toUpperCase()}
+                <div className="w-8 h-8 bg-indigo-200 text-indigo-800 rounded-full flex items-center justify-center font-bold shadow-inner flex-shrink-0 min-w-[2rem] min-h-[2rem]">
+                  <span className="block truncate text-base leading-none">{username.charAt(0).toUpperCase()}</span>
                 </div>
               )}
-              <span className="font-semibold text-gray-700">{username}</span>
+              <span className="font-semibold text-gray-700 truncate max-w-[120px]">{username}</span>
             </div>
           }
         >
