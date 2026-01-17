@@ -287,16 +287,22 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
           <div className="flex items-center space-x-4">
             {/* Company logo and name */}
-            {company?.companyLogo && (
-              <img
-                src={company.companyLogo}
-                alt={company.companyName || "Company Logo"}
-                className="h-10 w-32 object-contain rounded bg-white mr-3"
-                style={{ maxWidth: 128, maxHeight: 40 }}
-              />
-            )}
-            {company?.companyName && (
-              <span className="font-bold text-indigo-600 text-lg mr-3 px-2 py-1 rounded bg-indigo-50 border border-indigo-200 shadow-sm">{company.companyName}</span>
+            {(company?.companyLogo || company?.companyName) && (
+              <div className="flex flex-col items-center justify-center mr-6 min-w-[80px]">
+                {company?.companyLogo && (
+                  <img
+                    src={company.companyLogo}
+                    alt={company.companyName || "Company Logo"}
+                    className="h-10 w-auto object-contain rounded-none bg-transparent shadow-none"
+                    style={{ maxWidth: 120, maxHeight: 40, paddingTop: 5 }}
+                  />
+                )}
+                {company?.companyName && (
+                  <span className="mt-1 font-semibold text-gray-500 text-sm tracking-wide uppercase">
+                    {company.companyName}
+                  </span>
+                )}
+              </div>
             )}
             <DropDown
               face={
