@@ -766,15 +766,15 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                       {/* Subject is derived from the question; no bulk update control */}
                       <div className="flex flex-col">
                         <label className="text-xs text-gray-600">Marks</label>
-                        <input type="number" placeholder="--" value={markMarks as any} onChange={(e) => setMarkMarks(e.target.value === "" ? "" : Number(e.target.value))} className="border rounded px-2 py-1 text-sm w-24" />
+                        <input type="number" min="0" placeholder="--" value={markMarks as any} onChange={(e) => setMarkMarks(e.target.value === "" ? "" : Number(e.target.value))} onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }} className="border rounded px-2 py-1 text-sm w-24" />
                       </div>
                       <div className="flex flex-col">
                         <label className="text-xs text-gray-600">Negative Marks</label>
-                        <input type="number" placeholder="--" value={markNegMarks as any} onChange={(e) => setMarkNegMarks(e.target.value === "" ? "" : Number(e.target.value))} className="border rounded px-2 py-1 text-sm w-28" />
+                        <input type="number" min="0" placeholder="--" value={markNegMarks as any} onChange={(e) => setMarkNegMarks(e.target.value === "" ? "" : Number(e.target.value))} onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }} className="border rounded px-2 py-1 text-sm w-28" />
                       </div>
                       <div className="flex flex-col">
                         <label className="text-xs text-gray-600">Duration</label>
-                        <input type="number" placeholder="--" value={markDuration as any} onChange={(e) => setMarkDuration(e.target.value === "" ? "" : Number(e.target.value))} className="border rounded px-2 py-1 text-sm w-28" />
+                        <input type="number" min="0" placeholder="--" value={markDuration as any} onChange={(e) => setMarkDuration(e.target.value === "" ? "" : Number(e.target.value))} onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }} className="border rounded px-2 py-1 text-sm w-28" />
                       </div>
                       <div className="ml-auto">
                         <button onClick={applyBulkUpdate} className="rounded bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2">Apply</button>
@@ -924,6 +924,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                                 min={0}
                                 className={`border rounded px-2 py-1 text-sm w-24 ${invalidMap[r?.TestQuestionId]?.some(e => e.toLowerCase().includes('non-negative')) ? 'border-red-500' : ''}`}
                                 value={(r?.Marks === "" ? "" : (r?.Marks ?? 0)) as any}
+                                onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }}
                                 onChange={(e) => {
                                   const valStr = e.target.value;
                                   setDraft((d) => {
@@ -944,6 +945,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                                 min={0}
                                 className={`border rounded px-2 py-1 text-sm w-28 ${invalidMap[r?.TestQuestionId]?.some(e => e.toLowerCase().includes('negative marks') || e.toLowerCase().includes('exceed')) ? 'border-red-500' : ''}`}
                                 value={(r?.NegativeMarks === "" ? "" : (r?.NegativeMarks ?? 0)) as any}
+                                onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }}
                                 onChange={(e) => {
                                   const valStr = e.target.value;
                                   setDraft((d) => {
@@ -961,9 +963,10 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                             <td className="px-4 py-2 border-b">
                               <input
                                 type="number"
-                                min={1}
+                                min={0}
                                 className={`border rounded px-2 py-1 text-sm w-28 ${invalidMap[r?.TestQuestionId]?.some(e => e.toLowerCase().includes('duration')) ? 'border-red-500' : ''}`}
                                 value={(r?.Duration === "" ? "" : (r?.Duration ?? 0)) as any}
+                                onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }}
                                 onChange={(e) => {
                                   const valStr = e.target.value;
                                   setDraft((d) => {
