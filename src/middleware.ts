@@ -11,7 +11,7 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // --- SIMPLE SEB CHECK (No Hash Validation) ----------------------------
-  if (process.env.REQUIRE_SEB === "true" || pathname.startsWith("/exam")) {
+  if (process.env.REQUIRE_SEB === "true" && pathname.startsWith("/exam")) {
     // SEB always sends at least ONE of these headers
     const isSEB =
       req.headers.has("x-safeexambrowser-requesthash") ||
