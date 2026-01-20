@@ -90,7 +90,7 @@ export default function ExamPage() {
           question?.answer!,
           status,
           "",
-          userName
+          userName,
         );
 
         if (response.status === 202) {
@@ -130,7 +130,7 @@ export default function ExamPage() {
         question?.answer!,
         question?.status!,
         "",
-        userName
+        userName,
       );
 
       if (response.status === 202) {
@@ -275,7 +275,7 @@ export default function ExamPage() {
         nextAnswerSerialized!,
         QUESTION_STATUS.UNATTEMPTED,
         "",
-        userName
+        userName,
       );
 
       if (response.status === 202) {
@@ -375,7 +375,7 @@ export default function ExamPage() {
         question?.answer!,
         status,
         "",
-        userName
+        userName,
       );
 
       if (response.status === 202) {
@@ -433,7 +433,7 @@ export default function ExamPage() {
     console.log("Submitting test...");
     const response = await endCandidateSessionAction(
       testMetaData.testMeta.testId,
-      username
+      username,
     );
 
     setShowExam(false);
@@ -489,7 +489,7 @@ export default function ExamPage() {
     const res = await fetchTestMetaDataAction(
       Number(id),
       Number(testResponseId),
-      userName
+      userName,
     );
     const { data, status } = res;
     if (status === 200 && data) {
@@ -502,7 +502,7 @@ export default function ExamPage() {
         }
       } else {
         const curSec = data.sections.find(
-          (sec) => sec.sectionId === currentSection.sectionId
+          (sec) => sec.sectionId === currentSection.sectionId,
         );
         setCurrentSection(curSec!);
         setQuestion(curSec?.questions[currentIndex]);
@@ -521,7 +521,7 @@ export default function ExamPage() {
 
   function getCurrentSectionIndex(
     sections: SectionsMetaDataInterface[],
-    current: SectionsMetaDataInterface
+    current: SectionsMetaDataInterface,
   ) {
     return sections.findIndex((s) => s.sectionId === current.sectionId);
   }
@@ -675,7 +675,7 @@ export default function ExamPage() {
 
     // Create updated questions array for current section
     const updatedQuestions = currentSection.questions.map((q) =>
-      q.questionId === question.questionId ? question : q
+      q.questionId === question.questionId ? question : q,
     );
 
     // Update currentSection with new questions array
@@ -701,38 +701,38 @@ export default function ExamPage() {
 
   return (
     <div className="w-full h-full">
-      {testMetaData?.testMeta.testTemplateName === TEST_TEMPLATE_MAPPING.SSC ? (
-        <SSCTemplate
-          cancelSubmit={cancelSubmit}
-          cancelSubmitSectionModalSubmit={cancelSubmitSectionModalSubmit}
-          clearResponse={clearResponse}
-          currentIndex={currentIndex}
-          currentSection={currentSection}
-          goToNextSection={goToNextSection}
-          handleJumpTo={handleJumpTo}
-          handleNextQuestion={handleNextQuestion}
-          handleSectionTimeout={handleSectionTimeout}
-          handleSubmit={handleSubmit}
-          handleTimeout={handleTimeout}
-          loaded={loaded}
-          question={question}
-          setCurrentSection={setCurrentSection}
-          setQuestion={setQuestion}
-          setSidebarOpen={setSidebarOpen}
-          setSubmitSectionModal={setSubmitSectionModal}
-          showModal={showModal}
-          showSubmitSectionModal={showSubmitSectionModal}
-          sidebarOpen={sidebarOpen}
-          submitTest={submitTest}
-          testMetaData={testMetaData}
-          toggleMarkForReview={toggleMarkForReview}
-          errorMessage={errorMessage}
-          handlePreviousQuestion={handlePreviousQuestion}
-          checkIfMinimumTimeReached={checkIfMinimumTimeReached}
-          checkIfMinimumSectionTimeReached={checkIfMinimumSectionTimeReached}
-          sectionMaxTime={0}
-        />
-      ) : (
+      {/* {testMetaData?.testMeta.testTemplateName === TEST_TEMPLATE_MAPPING.SSC ? ( */}
+      <SSCTemplate
+        cancelSubmit={cancelSubmit}
+        cancelSubmitSectionModalSubmit={cancelSubmitSectionModalSubmit}
+        clearResponse={clearResponse}
+        currentIndex={currentIndex}
+        currentSection={currentSection}
+        goToNextSection={goToNextSection}
+        handleJumpTo={handleJumpTo}
+        handleNextQuestion={handleNextQuestion}
+        handleSectionTimeout={handleSectionTimeout}
+        handleSubmit={handleSubmit}
+        handleTimeout={handleTimeout}
+        loaded={loaded}
+        question={question}
+        setCurrentSection={setCurrentSection}
+        setQuestion={setQuestion}
+        setSidebarOpen={setSidebarOpen}
+        setSubmitSectionModal={setSubmitSectionModal}
+        showModal={showModal}
+        showSubmitSectionModal={showSubmitSectionModal}
+        sidebarOpen={sidebarOpen}
+        submitTest={submitTest}
+        testMetaData={testMetaData}
+        toggleMarkForReview={toggleMarkForReview}
+        errorMessage={errorMessage}
+        handlePreviousQuestion={handlePreviousQuestion}
+        checkIfMinimumTimeReached={checkIfMinimumTimeReached}
+        checkIfMinimumSectionTimeReached={checkIfMinimumSectionTimeReached}
+        sectionMaxTime={0}
+      />
+      {/* ) : (
         <DefaultTemplate
           cancelSubmit={cancelSubmit}
           cancelSubmitSectionModalSubmit={cancelSubmitSectionModalSubmit}
@@ -759,7 +759,7 @@ export default function ExamPage() {
           toggleMarkForReview={toggleMarkForReview}
           errorMessage={errorMessage}
         />
-      )}
+      )} */}
     </div>
   );
 }
