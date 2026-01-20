@@ -44,7 +44,7 @@ export const TEST_TEMPLATE_MAPPING = {
   Railways: 5,
   Cat: 6,
   CSIR: 7,
-  SSC: "SSC",
+  SSC: "SSC 2025",
   GATE: 9,
   IIT: 10,
   MBA: 11,

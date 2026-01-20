@@ -90,7 +90,7 @@ export default function AssessmentFooter({
                   "w-full md:w-fit px-6 py-1 font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
                 )}
               >
-                {question.status !== QUESTION_STATUS.TO_REVIEW
+                {question?.status !== QUESTION_STATUS.TO_REVIEW
                   ? "Mark For Review"
                   : "Unmark Review"}
               </button>
