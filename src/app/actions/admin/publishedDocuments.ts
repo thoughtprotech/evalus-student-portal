@@ -13,7 +13,7 @@ export type PublishedDocumentRow = {
     documentType?: string;
     validFrom?: string;
     validTo?: string;
-    candidateRegisteredPublishedDocuments?: { publishedDocumentId: number; candidateGroupId: number }[];
+    candidateRegisteredPublishedDocuments?: { publishedDocumentId: number; candidateGroupId: number; candidateGroupName?: string }[];
 };
 
 export async function fetchPublishedDocumentsODataAction(params: { query?: string } = {}): Promise<ApiResponse<{ rows: PublishedDocumentRow[]; total: number }>> {
@@ -30,6 +30,13 @@ export async function fetchPublishedDocumentsODataAction(params: { query?: strin
             documentUrl: d.DocumentUrl ?? d.documentUrl,
             validFrom: d.ValidFrom ?? d.validFrom,
             validTo: d.ValidTo ?? d.validTo,
+            candidateRegisteredPublishedDocuments: Array.isArray(d.CandidateRegisteredPublishedDocuments || d.candidateRegisteredPublishedDocuments)
+                ? (d.CandidateRegisteredPublishedDocuments || d.candidateRegisteredPublishedDocuments).map((x: any) => ({
+                    publishedDocumentId: x.PublishedDocumentId ?? x.publishedDocumentId,
+                    candidateGroupId: x.CandidateGroupID ?? x.CandidateGroupId ?? x.candidateGroupId,
+                    candidateGroupName: x.CandidateGroupName ?? x.candidateGroupName
+                }))
+                : []
         }));
         return { status: 200, data: { rows, total }, message: `Fetched ${rows.length} documents` };
     }

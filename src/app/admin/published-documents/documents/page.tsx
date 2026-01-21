@@ -27,6 +27,7 @@ type DocumentRow = {
   documentUrl: string;
   validFrom?: string;
   validTo?: string;
+  groups?: { candidateGroupId: number; candidateGroupName?: string }[];
 };
 
 export default function PublishedDocumentsPage() {
@@ -49,6 +50,8 @@ export default function PublishedDocumentsPage() {
   const gridShellRef = useRef<HTMLDivElement | null>(null);
   const [frozenHeight, setFrozenHeight] = useState<number | null>(null);
   const [folderMap, setFolderMap] = useState<Record<number, string>>({});
+  const [groupsPopupOpen, setGroupsPopupOpen] = useState(false);
+  const [groupsPopupData, setGroupsPopupData] = useState<{ candidateGroupId: number; candidateGroupName?: string }[]>([]);
 
   // Format ISO datetime to DD-MM-YYYY only
   const toDateOnly = (iso?: string) => {
@@ -59,6 +62,31 @@ export default function PublishedDocumentsPage() {
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const yyyy = d.getFullYear();
     return `${dd}-${mm}-${yyyy}`;
+  };
+
+  // Groups Cell Renderer
+  const GroupsCellRenderer = (p: { value?: { candidateGroupId: number; candidateGroupName?: string }[] }) => {
+    const groups = p.value || [];
+    if (groups.length === 0) return <span className="text-gray-400 text-xs">No groups</span>;
+    if (groups.length <= 2) {
+      return <span className="text-sm">{groups.map(g => g.candidateGroupName || `Group ${g.candidateGroupId}`).join(', ')}</span>;
+    }
+    const first2 = groups.slice(0, 2);
+    const remaining = groups.length - 2;
+    return (
+      <div className="flex items-center gap-1">
+        <span className="text-sm">{first2.map(g => g.candidateGroupName || `Group ${g.candidateGroupId}`).join(', ')}</span>
+        <button
+          onClick={() => {
+            setGroupsPopupData(groups);
+            setGroupsPopupOpen(true);
+          }}
+          className="text-xs text-blue-600 hover:underline ml-1"
+        >
+          +{remaining} more
+        </button>
+      </div>
+    );
   };
 
   const columnDefs = useMemo<ColDef<DocumentRow>[]>(() => [
@@ -81,6 +109,7 @@ export default function PublishedDocumentsPage() {
         );
       }
     },
+    { field: 'groups', headerName: 'Groups', width: 300, filter: false, sortable: false, cellRenderer: GroupsCellRenderer },
     { field: 'validFrom', headerName: 'Valid From', width: 160, filter: 'agDateColumnFilter', sortable: true, valueFormatter: (p: any) => toDateOnly(p.value) },
     { field: 'validTo', headerName: 'Valid To', width: 160, filter: 'agDateColumnFilter', sortable: true, valueFormatter: (p: any) => toDateOnly(p.value) },
   ], [showFilters]);
@@ -94,13 +123,14 @@ export default function PublishedDocumentsPage() {
     }
     setLoading(true);
     try {
-      // Keep $select limited to fields guaranteed by backend; folder name isn't provided in OData currently
+      // Simplified query without nested $select in $expand to avoid bad request
       const select = "$select=Id,PublishedDocumentFolderId,DocumentName,DocumentUrl,ValidFrom,ValidTo";
-      const filter = query.trim() ? `&$filter=contains(DocumentName,'${encodeURIComponent(query.trim()).replace(/'/g, "''")}')` : "";
+      const expand = "$expand=CandidateRegisteredPublishedDocuments";
+      const filter = query.trim() ? `&$filter=contains(DocumentName,'${query.trim().replace(/'/g, "''")}')` : "";
       const orderBy = "&$orderby=DocumentName asc";
 
       const [docsRes, foldersRes] = await Promise.all([
-        fetchPublishedDocumentsODataAction({ query: `?${select}${filter}&$count=true${orderBy}` }),
+        fetchPublishedDocumentsODataAction({ query: `?${select}&${expand}${filter}&$count=true${orderBy}` }),
         fetchPublishedDocumentFoldersODataAction({ top: 2000, skip: 0, orderBy: 'PublishedDocumentFolderName asc' })
       ]);
 
@@ -119,6 +149,10 @@ export default function PublishedDocumentsPage() {
           documentUrl: r.documentUrl,
           validFrom: r.validFrom,
           validTo: r.validTo,
+          groups: (r.candidateRegisteredPublishedDocuments || []).map(g => ({
+            candidateGroupId: g.candidateGroupId,
+            candidateGroupName: g.candidateGroupName
+          }))
         }));
         setRows(mapped);
         setTotal(docsRes.data.total);
@@ -199,6 +233,34 @@ export default function PublishedDocumentsPage() {
           setDeleting(false); setConfirmOpen(false);
         }
       }} />
+      
+      {/* Groups Popup Modal */}
+      {groupsPopupOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setGroupsPopupOpen(false)}>
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Candidate Groups</h3>
+              <button onClick={() => setGroupsPopupOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="max-h-96 overflow-y-auto">
+              <ul className="space-y-2">
+                {groupsPopupData.map((g, idx) => (
+                  <li key={idx} className="text-sm text-gray-700 py-1 px-2 bg-gray-50 rounded">
+                    {g.candidateGroupName || `Group ${g.candidateGroupId}`}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button onClick={() => setGroupsPopupOpen(false)} className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
