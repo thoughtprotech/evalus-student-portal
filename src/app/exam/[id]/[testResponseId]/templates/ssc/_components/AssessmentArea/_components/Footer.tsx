@@ -24,6 +24,7 @@ export default function AssessmentFooter({
   handleSubmit,
   formattedTimeSection,
   question,
+  handleSubmitSection,
 }: {
   handleNextQuestion: any;
   toggleMarkForReview: any;
@@ -35,12 +36,17 @@ export default function AssessmentFooter({
   handleSubmit: any;
   formattedTimeSection: any;
   question: QuestionsMetaDataInterface;
+  handleSubmitSection: any;
 }) {
   const { testMeta, sections } = data;
   const { instruction } = testMeta;
   const [showInstructions, setShowInstructions] = useState(false);
   const [showQuestions, setShowQuestions] = useState(false);
   const [userName, setUserName] = useState<string>("");
+
+  const lastSectionIndex = data.sections.length - 1;
+  const lastSectionLastQuestionIndex =
+    data.sections[lastSectionIndex].questions.length - 1;
 
   const fetchUserName = async () => {
     const user = await getUserAction();
@@ -78,7 +84,7 @@ export default function AssessmentFooter({
                   onClick={handlePreviousQuestion}
                   // disabled={currentIndex === 0}
                   className={clsx(
-                    "w-full md:w-fit px-6 py-1 font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+                    "w-full md:w-fit px-6 py-1 font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500",
                   )}
                 >
                   Previous
@@ -87,7 +93,7 @@ export default function AssessmentFooter({
               <button
                 onClick={toggleMarkForReview}
                 className={clsx(
-                  "w-full md:w-fit px-6 py-1 font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+                  "w-full md:w-fit px-6 py-1 font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500",
                 )}
               >
                 {question?.status !== QUESTION_STATUS.TO_REVIEW
@@ -109,22 +115,38 @@ export default function AssessmentFooter({
                   //   currentIndex + 1 === currentSection?.questions.length
                   // }
                   className={clsx(
-                    "w-full md:w-fit px-6 py-1 font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+                    "w-full md:w-fit px-6 py-1 font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500",
                   )}
                 >
                   Save & Next
                 </button>
               </div>
-              {/* <div className="w-full md:w-fit">
-              <button
-                onClick={handleSubmit}
-                className={clsx(
-                  "w-full md:w-fit px-6 py-1 rounded-md font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
-                )}
-              >
-                Submit Test
-              </button>
-            </div> */}
+              {/* Render only if not the last question of test */}
+              {data?.sections[lastSectionIndex].questions[
+                lastSectionLastQuestionIndex
+              ].questionId !== question?.questionId ? (
+                <div className="w-full md:w-fit">
+                  <button
+                    onClick={handleSubmitSection}
+                    className={clsx(
+                      "w-full md:w-fit px-6 py-1 font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500",
+                    )}
+                  >
+                    Submit Section
+                  </button>
+                </div>
+              ) : (
+                <div className="w-full md:w-fit">
+                  <button
+                    onClick={handleSubmit}
+                    className={clsx(
+                      "w-full md:w-fit px-6 py-1 font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500",
+                    )}
+                  >
+                    Submit Test
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="w-full md:w-fit flex gap-3">
@@ -151,7 +173,7 @@ export default function AssessmentFooter({
                 <span className="text-red-500 bg-yellow-200 px-2">
                   {
                     currentSectionId.questions.filter(
-                      (q) => q.status === QUESTION_STATUS.ATTEMPTED
+                      (q) => q.status === QUESTION_STATUS.ATTEMPTED,
                     ).length
                   }
                 </span>

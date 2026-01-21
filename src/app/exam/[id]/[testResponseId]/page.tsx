@@ -591,6 +591,8 @@ export default function ExamPage() {
       setSectionStartTime(new Date().toISOString());
       setQuestionStartTime(new Date().toISOString());
     }
+
+    toast.success("Moved to next section");
   };
 
   useEffect(() => {
