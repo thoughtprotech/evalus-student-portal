@@ -4,17 +4,25 @@ import SearchBar from "@/components/SearchBar";
 import { useEffect, useState } from "react";
 import Loader from "@/components/Loader";
 import FileExplorer, { FileNode } from "@/components/FileExplorer";
-import { fetchDocumentsTreeAction } from "@/app/actions/dashboard/documentsTree";
+import { fetchDocumentsTreeByCandidateIdAction } from "@/app/actions/dashboard/documentsTree";
 import { PublishedDocumentTreeItem } from "@/utils/api/types";
 import formatToDDMMYYYY_HHMM from "@/utils/formatIsoTime";
+import { useUser } from "@/contexts/UserContext";
 
 export default function Index() {
   const [loaded, setLoaded] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [referenceList, setReferenceList] = useState<FileNode[]>([]);
+  const { candidateId } = useUser();
 
   const fetchReferencesList = async () => {
-    const { data, status } = await fetchDocumentsTreeAction();
+    if (!candidateId) {
+      console.error("No candidate ID available");
+      setLoaded(true);
+      return;
+    }
+
+    const { data, status } = await fetchDocumentsTreeByCandidateIdAction(candidateId);
     if (status === 200 && Array.isArray(data)) {
       const tree = buildFileTreeFromDocuments(data);
       setReferenceList(tree);
@@ -23,8 +31,10 @@ export default function Index() {
   };
 
   useEffect(() => {
-    fetchReferencesList();
-  }, []);
+    if (candidateId) {
+      fetchReferencesList();
+    }
+  }, [candidateId]);
 
   function buildFileTreeFromDocuments(items: PublishedDocumentTreeItem[]): FileNode[] {
     // Group by folder path first

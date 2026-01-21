@@ -38,7 +38,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   );
   const [sideBarLoader, setSideBarLoader] = useState<boolean>(false);
 
-  const { username, displayName, userPhoto, setUsername, setDisplayName, setUserPhoto, setCurrentGroupId } = useUser();
+  const { username, displayName, userPhoto, candidateId, setUsername, setDisplayName, setUserPhoto, setCandidateId, setCurrentGroupId } = useUser();
   const [company, setCompany] = useState<{ companyName: string; companyLogo?: string } | null>(null);
 
   const getUser = async () => {
@@ -47,6 +47,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       setUsername(userData.username); // Keep username for API calls
       setDisplayName(userData.displayName); // Use displayName for UI
       setUserPhoto(userData.userPhoto || null); // Set user photo
+      setCandidateId(userData.candidateId || null); // Set candidateId
     }
   };
 

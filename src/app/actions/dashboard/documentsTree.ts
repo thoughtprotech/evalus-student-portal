@@ -28,3 +28,28 @@ export async function fetchDocumentsTreeAction(): Promise<ApiResponse<PublishedD
     };
   }
 }
+
+export async function fetchDocumentsTreeByCandidateIdAction(candidateId: number): Promise<ApiResponse<PublishedDocumentTreeItem[]>> {
+  try {
+    const { data, status, error, errorMessage, message } = await apiHandler(endpoints.getPublishedDocumentsTreeByCandidateId, { candidateId });
+
+    if (error) {
+      return { status, error: true, message, errorMessage };
+    }
+
+    return {
+      status: 200,
+      error: false,
+      message: "Documents tree fetched for candidate",
+      data,
+    };
+  } catch (err) {
+    console.error("Error fetching documents tree by candidate ID", err);
+    return {
+      status: 500,
+      error: true,
+      message: "Failed to fetch documents tree",
+      errorMessage: (err as any)?.message,
+    };
+  }
+}

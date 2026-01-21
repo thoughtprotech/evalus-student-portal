@@ -8,6 +8,7 @@ export async function getUserDisplayNameAction(): Promise<{
     username: string;
     displayName: string;
     userPhoto?: string | null;
+    candidateId?: number | null;
 } | null> {
     try {
         const token = (await cookies()).get("token")?.value;
@@ -25,7 +26,7 @@ export async function getUserDisplayNameAction(): Promise<{
 
         console.log("Fetching display name for user:", username);
 
-        // Fetch user data from API to get displayName and userPhoto
+        // Fetch user data from API to get displayName, userPhoto, and candidateId
         try {
             const { API_BASE_URL: baseUrl } = env;
             console.log("API Base URL:", baseUrl);
@@ -63,10 +64,22 @@ export async function getUserDisplayNameAction(): Promise<{
                     data?.candidateRegistration?.IUserPhoto ||
                     null;
 
+                // Try different paths where candidateId might be stored
+                const candidateId =
+                    data?.user?.candidateId ||
+                    data?.candidateRegistration?.candidateId ||
+                    data?.candidateId ||
+                    data?.user?.CandidateID ||
+                    data?.candidateRegistration?.CandidateID ||
+                    data?.user?.CandidateId ||
+                    data?.candidateRegistration?.CandidateId ||
+                    null;
+
                 return {
                     username,
                     displayName,
-                    userPhoto
+                    userPhoto,
+                    candidateId: candidateId ? Number(candidateId) : null
                 };
             }
         } catch (apiError) {
@@ -78,7 +91,8 @@ export async function getUserDisplayNameAction(): Promise<{
         return {
             username,
             displayName: username,
-            userPhoto: null
+            userPhoto: null,
+            candidateId: null
         };
 
     } catch (error) {

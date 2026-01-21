@@ -1179,6 +1179,16 @@ export const endpoints = {
     path: () => `/odata/PublishedDocuments/GetDocumentsTree()`,
     type: "OPEN",
   } as Endpoint<null, import("./types").PublishedDocumentTreeItem[]>,
+  // OData - Published Documents Tree filtered by candidate ID
+  getPublishedDocumentsTreeByCandidateId: {
+    method: "GET",
+    path: ({ candidateId }: { candidateId: number }) =>
+      `/odata/PublishedDocuments/GetDocumentsTree(candidateId=${candidateId})`,
+    type: "OPEN",
+  } as Endpoint<
+    { candidateId: number },
+    import("./types").PublishedDocumentTreeItem[]
+  >,
   // Admin - Published Document Folders (CRUD + OData list)
   listPublishedDocumentFoldersOData: {
     method: "GET",
