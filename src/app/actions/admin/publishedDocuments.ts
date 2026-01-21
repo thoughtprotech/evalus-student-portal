@@ -13,6 +13,7 @@ export type PublishedDocumentRow = {
     documentType?: string;
     validFrom?: string;
     validTo?: string;
+    candidateRegisteredPublishedDocuments?: { publishedDocumentId: number; candidateGroupId: number }[];
 };
 
 export async function fetchPublishedDocumentsODataAction(params: { query?: string } = {}): Promise<ApiResponse<{ rows: PublishedDocumentRow[]; total: number }>> {
@@ -74,7 +75,7 @@ export async function getPublishedDocumentByIdAction(id: number): Promise<ApiRes
     const res = await apiHandler(endpoints.getPublishedDocumentById, { id } as any);
     if (res.status === 200 && res.data) {
         const d: any = res.data;
-        const row: PublishedDocumentRow = {
+        const row: any = {
             id: d.PublishedDocumentId ?? d.Id ?? d.id,
             publishedDocumentFolderId: d.PublishedDocumentFolderId ?? d.publishedDocumentFolderId,
             folderName: d.PublishedDocumentFolderName ?? d.folderName ?? d.FolderName,
@@ -84,6 +85,14 @@ export async function getPublishedDocumentByIdAction(id: number): Promise<ApiRes
             validFrom: d.ValidFrom ?? d.validFrom,
             validTo: d.ValidTo ?? d.validTo,
         };
+        // Include candidateRegisteredPublishedDocuments if present
+        if (Array.isArray(d.CandidateRegisteredPublishedDocuments) || Array.isArray(d.candidateRegisteredPublishedDocuments)) {
+            const docs = d.CandidateRegisteredPublishedDocuments ?? d.candidateRegisteredPublishedDocuments;
+            row.candidateRegisteredPublishedDocuments = docs.map((x: any) => ({
+                publishedDocumentId: x.PublishedDocumentId ?? x.publishedDocumentId,
+                candidateGroupId: x.CandidateGroupID ?? x.CandidateGroupId ?? x.candidateGroupId
+            }));
+        }
         return { status: 200, data: row, message: 'Fetched' } as any;
     }
     return { status: res.status, error: res.error, errorMessage: res.errorMessage, message: res.message } as any;

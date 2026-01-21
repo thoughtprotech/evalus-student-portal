@@ -50,10 +50,9 @@ export default function EditPublishedDocumentPage() {
       return;
     }
     let mounted = true;
-    (async () => {
+    async function fetchAll() {
+      setLoading(true);
       try {
-        setLoading(true);
-        // Fetch folders, groups, and document in parallel
         const [foldersRes, groupRes, docRes] = await Promise.all([
           fetchPublishedDocumentFoldersODataAction({ top: 2000, skip: 0, orderBy: 'PublishedDocumentFolderName asc' }),
           fetchCandidateGroupsODataAction({ top: 100, skip: 0, orderBy: "CandidateGroupName asc" }),
@@ -65,31 +64,29 @@ export default function EditPublishedDocumentPage() {
         let selectedGroupIds: number[] = [];
         if (docRes.status === 200 && docRes.data) {
           const d = docRes.data;
-          if (Array.isArray((d as any).candidateRegisteredPublishedDocuments)) {
-            selectedGroupIds = (d as any).candidateRegisteredPublishedDocuments.map((x: any) => Number(x.candidateGroupId));
+          if (Array.isArray(d.candidateRegisteredPublishedDocuments)) {
+            selectedGroupIds = d.candidateRegisteredPublishedDocuments.map((x: any) => Number(x.candidateGroupId));
           }
           setForm({
             publishedDocumentFolderId: Number(d.publishedDocumentFolderId) || "",
             documentName: d.documentName || "",
             documentUrl: d.documentUrl || "",
-            documentType: (d as any).documentType || (d.documentUrl && /youtube\.com|youtu\.be/i.test(d.documentUrl) ? 'youtube' : (d.documentUrl && d.documentUrl.toLowerCase().endsWith('.mp4') ? 'mp4' : 'document')),
+            documentType: (d.documentType as any) || "document",
             validFrom: d.validFrom || "",
             validTo: d.validTo || "",
             files: [],
             selectedGroupIds,
           });
           setOriginalUrl(d.documentUrl || "");
-        } else {
-          setForm({ publishedDocumentFolderId: "", documentName: "", documentUrl: "", validFrom: "", validTo: "", files: [], selectedGroupIds: [] });
         }
-      } catch (e: any) {
-        setError(e?.message || 'Failed to load');
-      } finally { setLoading(false); }
-    })();
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAll();
     return () => { mounted = false; };
   }, [id, router]);
 
-  // Allow either a file OR a URL, plus required dates
   const canSave = !!(form && form.publishedDocumentFolderId && form.documentName.trim() && (form.files.length > 0 || form.documentUrl.trim()) && form.validFrom && form.validTo);
 
   const [showSuccess, setShowSuccess] = useState(false);
@@ -108,16 +105,13 @@ export default function EditPublishedDocumentPage() {
     setSaving(true);
     try {
       setError("");
-      // If a file is selected, upload and use its URL; otherwise, use the provided URL
       let url = form.documentUrl.trim();
       if (form.files.length > 0) {
         const first = form.files[0];
         const up = await uploadToLocal(first);
         url = up.url;
       }
-      // Enforce absolute URL if user typed a relative path
       try { url = new URL(url, window.location.origin).toString(); } catch { }
-      // Validate required dates and order
       if (!form.validFrom || !form.validTo) { throw new Error('Valid From and Valid To are required'); }
       const vf = new Date(form.validFrom); const vt = new Date(form.validTo);
       if (isNaN(vf.getTime()) || isNaN(vt.getTime())) { throw new Error('Please enter valid date/time values'); }
@@ -137,7 +131,6 @@ export default function EditPublishedDocumentPage() {
       const status = Number((res as any)?.status);
       if (Number.isFinite(status) && status >= 200 && status < 300) {
         setShowSuccess(true);
-        // If we uploaded a new file and the original was a local upload, delete the old file to replace it
         if (form.files.length > 0 && originalUrl && isLocalUploadUrl(originalUrl)) {
           try { await deleteLocalUpload(originalUrl); } catch { }
         }
@@ -173,7 +166,7 @@ export default function EditPublishedDocumentPage() {
           <TreeSelect
             label=""
             items={folders}
-            value={form.publishedDocumentFolderId}
+            value={form?.publishedDocumentFolderId || ""}
             onChange={(val) => setForm(f => f ? { ...f, publishedDocumentFolderId: val } : f)}
             placeholder="Select folder…"
             required
@@ -181,61 +174,53 @@ export default function EditPublishedDocumentPage() {
         </div>
         <div>
           <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Document Name <span className="text-red-500">*</span></label>
-          <input className={inputCls} value={form.documentName} onChange={e => setForm(f => f ? { ...f, documentName: e.target.value } : f)} placeholder="Enter document name" />
+          <input className={inputCls} value={form?.documentName || ""} onChange={e => setForm(f => f ? { ...f, documentName: e.target.value } : f)} placeholder="Enter document name" />
         </div>
         <div>
           <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Document Type <span className="text-red-500">*</span></label>
-          <select className={inputCls} value={form.documentType} onChange={e => setForm(f => f ? { ...f, documentType: e.target.value as any } : f)} aria-label="Select document type" title="Select document type">
+          <select className={inputCls} value={form?.documentType || "document"} onChange={e => setForm(f => f ? { ...f, documentType: e.target.value as any } : f)} aria-label="Select document type" title="Select document type">
             <option value="document">Document URL</option>
             <option value="youtube">YouTube URL</option>
             <option value="mp4">.mp4 Upload</option>
             <option value="file">Upload Document</option>
           </select>
         </div>
-        {form.documentType === 'mp4' && (
+        {form?.documentType === 'mp4' && (
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Upload .mp4 File</label>
             <input type="file" accept=".mp4" onChange={onFileChange} className={inputCls} />
             <p className="mt-1 text-xs text-gray-500">Upload a .mp4 file.</p>
           </div>
         )}
-        {form.documentType === 'file' && (
+        {form?.documentType === 'file' && (
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Upload Document</label>
             <input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" onChange={onFileChange} className={inputCls} />
             <p className="mt-1 text-xs text-gray-500">Upload PDF or Office documents.</p>
           </div>
         )}
-        {(!form.documentType || form.documentType === 'document') && (
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Upload File</label>
-            <input type="file" multiple onChange={onFileChange} className={inputCls} />
-            <p className="mt-1 text-xs text-gray-500">Provide a file or a URL below.</p>
-          </div>
-        )}
-        {(!form.files.length || form.documentType === 'document') && (
+        {(!form?.files.length || form?.documentType === 'document') && (
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Or Document URL</label>
-            <input className={inputCls} value={form.documentUrl} onChange={e => setForm(f => f ? { ...f, documentUrl: e.target.value } : f)} placeholder="https://…" />
+            <input className={inputCls} value={form?.documentUrl || ""} onChange={e => setForm(f => f ? { ...f, documentUrl: e.target.value } : f)} placeholder="https://…" />
           </div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <DateTimePicker
             label="Valid From"
-            value={form.validFrom}
+            value={form?.validFrom || ""}
             onChange={(iso) => setForm(f => f ? { ...f, validFrom: iso } : f)}
             required
-            maxDateTime={form.validTo || undefined}
+            maxDateTime={form?.validTo || undefined}
           />
           <DateTimePicker
             label="Valid To"
-            value={form.validTo}
+            value={form?.validTo || ""}
             onChange={(iso) => setForm(f => f ? { ...f, validTo: iso } : f)}
             required
-            minDateTime={form.validFrom || undefined}
+            minDateTime={form?.validFrom || undefined}
           />
         </div>
-        {/* Candidate Groups Multi-Checkbox */}
         <div>
           <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600 mb-1">
             Select one or more groups to register
@@ -246,7 +231,7 @@ export default function EditPublishedDocumentPage() {
                 <input
                   type="checkbox"
                   className="mr-2"
-                  checked={form.selectedGroupIds.includes(Number(group.id))}
+                  checked={form?.selectedGroupIds.includes(Number(group.id)) || false}
                   onChange={e => {
                     setForm(f => f ? ({
                       ...f,
@@ -260,7 +245,7 @@ export default function EditPublishedDocumentPage() {
                 <label htmlFor={`group_${group.id}`}>{group.name}</label>
               </div>
             ))}
-            <div className="text-xs text-right text-gray-500 mt-1">Selected: {form.selectedGroupIds.length}</div>
+            <div className="text-xs text-right text-gray-500 mt-1">Selected: {form?.selectedGroupIds.length || 0}</div>
           </div>
         </div>
       </div>
