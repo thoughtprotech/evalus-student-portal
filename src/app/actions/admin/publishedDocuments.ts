@@ -35,7 +35,7 @@ export async function fetchPublishedDocumentsODataAction(params: { query?: strin
     return { status: res.status, error: res.error, errorMessage: res.errorMessage, message: res.message } as any;
 }
 
-export async function createPublishedDocumentAction(payload: { id: number; publishedDocumentFolderId: number; documentName: string; documentUrl: string; documentType?: string; validFrom?: string; validTo?: string }): Promise<ApiResponse<null>> {
+export async function createPublishedDocumentAction(payload: { id: number; publishedDocumentFolderId: number; documentName: string; documentUrl: string; documentType?: string; validFrom?: string; validTo?: string; candidateRegisteredPublishedDocuments?: { publishedDocumentId: number; candidateGroupId: number }[] }): Promise<ApiResponse<null>> {
     const body = {
         id: payload.id,
         publishedDocumentFolderId: payload.publishedDocumentFolderId,
@@ -44,12 +44,13 @@ export async function createPublishedDocumentAction(payload: { id: number; publi
         documentType: payload.documentType,
         validFrom: payload.validFrom,
         validTo: payload.validTo,
+        candidateRegisteredPublishedDocuments: payload.candidateRegisteredPublishedDocuments || [],
     };
     const res = await apiHandler(endpoints.createPublishedDocument, body as any);
     return res as any;
 }
 
-export async function updatePublishedDocumentAction(id: number, payload: { publishedDocumentFolderId: number; documentName: string; documentUrl: string; documentType?: string; validFrom?: string; validTo?: string }): Promise<ApiResponse<null>> {
+export async function updatePublishedDocumentAction(id: number, payload: { publishedDocumentFolderId: number; documentName: string; documentUrl: string; documentType?: string; validFrom?: string; validTo?: string; candidateRegisteredPublishedDocuments?: { publishedDocumentId: number; candidateGroupId: number }[] }): Promise<ApiResponse<null>> {
     const body = {
         id,
         publishedDocumentFolderId: payload.publishedDocumentFolderId,
@@ -58,6 +59,7 @@ export async function updatePublishedDocumentAction(id: number, payload: { publi
         documentType: payload.documentType,
         validFrom: payload.validFrom,
         validTo: payload.validTo,
+        candidateRegisteredPublishedDocuments: payload.candidateRegisteredPublishedDocuments || [],
     };
     const res = await apiHandler(endpoints.updatePublishedDocument, { ...body, id } as any);
     return res as any;

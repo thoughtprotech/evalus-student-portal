@@ -11,6 +11,7 @@ import { createPublishedDocumentAction } from "@/app/actions/admin/publishedDocu
 import { uploadToLocal } from "@/utils/uploadToLocal";
 import DateTimePicker from "@/components/form/DateTimePicker";
 import TreeSelect from "@/components/form/TreeSelect";
+import { fetchCandidateGroupsODataAction, CandidateGroupRow } from "@/app/actions/admin/candidateGroups";
 
 type FormState = {
     publishedDocumentFolderId: number | "";
@@ -20,16 +21,18 @@ type FormState = {
     validFrom: string;
     validTo: string;
     files: File[];
+    selectedGroupIds: number[];
 };
 
 export default function NewPublishedDocumentPage() {
     const router = useRouter();
     const [folders, setFolders] = useState<PublishedDocumentFolderRow[]>([]);
+    const [groups, setGroups] = useState<CandidateGroupRow[]>([]);
     const [loadingFolders, setLoadingFolders] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string>("");
     const [showSuccess, setShowSuccess] = useState(false);
-    const [form, setForm] = useState<FormState>({ publishedDocumentFolderId: "", documentName: "", documentUrl: "", documentType: "document", validFrom: "", validTo: "", files: [] });
+    const [form, setForm] = useState<FormState>({ publishedDocumentFolderId: "", documentName: "", documentUrl: "", documentType: "document", validFrom: "", validTo: "", files: [], selectedGroupIds: [] });
 
     useEffect(() => {
         (async () => {
@@ -37,6 +40,9 @@ export default function NewPublishedDocumentPage() {
             try {
                 const res = await fetchPublishedDocumentFoldersODataAction({ top: 2000, skip: 0, orderBy: 'PublishedDocumentFolderName asc' });
                 setFolders(res.data?.rows || []);
+                // Fetch candidate groups
+                const groupRes = await fetchCandidateGroupsODataAction({ top: 100, skip: 0, orderBy: "CandidateGroupName asc" });
+                setGroups(groupRes.data?.rows || []);
             } finally { setLoadingFolders(false); }
         })();
     }, []);
@@ -99,6 +105,7 @@ export default function NewPublishedDocumentPage() {
                 documentType: docType,
                 validFrom: form.validFrom,
                 validTo: form.validTo,
+                candidateRegisteredPublishedDocuments: form.selectedGroupIds.map(id => ({ publishedDocumentId: 0, candidateGroupId: id }))
             };
             const res = await createPublishedDocumentAction(payload as any);
             if (res.status < 200 || res.status >= 300) throw new Error(res.message || 'Create failed');
@@ -217,6 +224,34 @@ export default function NewPublishedDocumentPage() {
                         minDateTime={form.validFrom || undefined}
                     />
                 </div>
+                {/* Candidate Groups Multi-Checkbox */}
+                <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600 mb-1">
+                        Select one or more groups to register
+                    </label>
+                    <div className="border rounded p-2">
+                        {groups.map(group => (
+                            <div key={group.id} className="flex items-center mb-1">
+                                <input
+                                    type="checkbox"
+                                    className="mr-2"
+                                    checked={form.selectedGroupIds.includes(group.id)}
+                                    onChange={e => {
+                                        setForm(f => ({
+                                            ...f,
+                                            selectedGroupIds: e.target.checked
+                                                ? [...f.selectedGroupIds, group.id]
+                                                : f.selectedGroupIds.filter(id => id !== group.id)
+                                        }));
+                                    }}
+                                    id={`group_${group.id}`}
+                                />
+                                <label htmlFor={`group_${group.id}`}>{group.name}</label>
+                            </div>
+                        ))}
+                        <div className="text-xs text-right text-gray-500 mt-1">Selected: {form.selectedGroupIds.length}</div>
+                    </div>
+                </div>
             </div>
 
             {/* No pre-submit confirmation; errors inline and success handled by modal */}
@@ -230,7 +265,6 @@ export default function NewPublishedDocumentPage() {
                 variant="success"
                 className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200"
             />
-        {/* If dropdown-menu is needed elsewhere, ensure it is properly closed and not inside ConfirmationModal */}
-    </div>
+        </div>
     );
 }

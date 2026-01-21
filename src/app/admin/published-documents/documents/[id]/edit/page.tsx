@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import PageHeader from "@/components/PageHeader";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { ArrowLeft, BookOpenText, Save } from "lucide-react";
 import { fetchPublishedDocumentFoldersODataAction, type PublishedDocumentFolderRow } from "@/app/actions/admin/publishedDocumentFolders";
 import { getPublishedDocumentByIdAction, updatePublishedDocumentAction } from "@/app/actions/admin/publishedDocuments";
+import { fetchCandidateGroupsODataAction, CandidateGroupRow } from "@/app/actions/admin/candidateGroups";
+import EditPageLoader from "@/components/EditPageLoader";
 
 import { uploadToLocal } from "@/utils/uploadToLocal";
 import { deleteLocalUpload, isLocalUploadUrl } from "@/utils/deleteLocalUpload";
@@ -22,6 +24,7 @@ type FormState = {
   validFrom: string;
   validTo: string;
   files: File[];
+  selectedGroupIds: number[];
 };
 
 export default function EditPublishedDocumentPage() {
@@ -30,10 +33,11 @@ export default function EditPublishedDocumentPage() {
   const id = parseInt(maskedId, 10);
   const router = useRouter();
   const [folders, setFolders] = useState<PublishedDocumentFolderRow[]>([]);
+  const [groups, setGroups] = useState<CandidateGroupRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>("");
-  const [form, setForm] = useState<FormState>({ publishedDocumentFolderId: "", documentName: "", documentUrl: "", documentType: "document", validFrom: "", validTo: "", files: [] });
+  const [form, setForm] = useState<FormState | null>(null);
   const [originalUrl, setOriginalUrl] = useState<string>("");
 
   const inputCls = "w-full border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md px-3 py-2 text-sm bg-white";
@@ -48,13 +52,22 @@ export default function EditPublishedDocumentPage() {
     let mounted = true;
     (async () => {
       try {
-        const foldersRes = await fetchPublishedDocumentFoldersODataAction({ top: 2000, skip: 0, orderBy: 'PublishedDocumentFolderName asc' });
+        setLoading(true);
+        // Fetch folders, groups, and document in parallel
+        const [foldersRes, groupRes, docRes] = await Promise.all([
+          fetchPublishedDocumentFoldersODataAction({ top: 2000, skip: 0, orderBy: 'PublishedDocumentFolderName asc' }),
+          fetchCandidateGroupsODataAction({ top: 100, skip: 0, orderBy: "CandidateGroupName asc" }),
+          getPublishedDocumentByIdAction(id)
+        ]);
         if (!mounted) return;
         setFolders(foldersRes.data?.rows || []);
-        // fetch document by id and prefill
-        const docRes = await getPublishedDocumentByIdAction(id);
+        setGroups(groupRes.data?.rows || []);
+        let selectedGroupIds: number[] = [];
         if (docRes.status === 200 && docRes.data) {
           const d = docRes.data;
+          if (Array.isArray((d as any).candidateRegisteredPublishedDocuments)) {
+            selectedGroupIds = (d as any).candidateRegisteredPublishedDocuments.map((x: any) => Number(x.candidateGroupId));
+          }
           setForm({
             publishedDocumentFolderId: Number(d.publishedDocumentFolderId) || "",
             documentName: d.documentName || "",
@@ -63,32 +76,31 @@ export default function EditPublishedDocumentPage() {
             validFrom: d.validFrom || "",
             validTo: d.validTo || "",
             files: [],
+            selectedGroupIds,
           });
           setOriginalUrl(d.documentUrl || "");
         } else {
-          setForm({ publishedDocumentFolderId: "", documentName: "", documentUrl: "", validFrom: "", validTo: "", files: [] });
+          setForm({ publishedDocumentFolderId: "", documentName: "", documentUrl: "", validFrom: "", validTo: "", files: [], selectedGroupIds: [] });
         }
       } catch (e: any) {
         setError(e?.message || 'Failed to load');
       } finally { setLoading(false); }
     })();
     return () => { mounted = false; };
-  }, [id]);
-
-  // Build a tree view (flattened with indentation) for folders dropdown
+  }, [id, router]);
 
   // Allow either a file OR a URL, plus required dates
-  const canSave = !!(form.publishedDocumentFolderId && form.documentName.trim() && (form.files.length > 0 || form.documentUrl.trim()) && form.validFrom && form.validTo);
+  const canSave = !!(form && form.publishedDocumentFolderId && form.documentName.trim() && (form.files.length > 0 || form.documentUrl.trim()) && form.validFrom && form.validTo);
 
   const [showSuccess, setShowSuccess] = useState(false);
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    setForm(f => ({ ...f, files: Array.from(e.target.files!) }));
+    if (!e.target.files || !form) return;
+    setForm(f => f ? { ...f, files: Array.from(e.target.files!) } : f);
   };
 
   const save = async () => {
-    if (!id) {
+    if (!id || !form) {
       setError("Invalid document ID");
       return;
     }
@@ -112,12 +124,14 @@ export default function EditPublishedDocumentPage() {
       if (vt < vf) { throw new Error('Valid To must be after Valid From'); }
 
       const payload = {
+        id,
         publishedDocumentFolderId: Number(form.publishedDocumentFolderId),
         documentName: form.documentName.trim(),
         documentUrl: url,
         documentType: form.documentType,
         validFrom: form.validFrom,
         validTo: form.validTo,
+        candidateRegisteredPublishedDocuments: form.selectedGroupIds.map(groupId => ({ publishedDocumentId: id, candidateGroupId: groupId }))
       };
       const res = await updatePublishedDocumentAction(id, payload as any);
       const status = Number((res as any)?.status);
@@ -135,7 +149,7 @@ export default function EditPublishedDocumentPage() {
     } finally { setSaving(false); }
   };
 
-  if (loading) return <div className="p-4 text-sm text-gray-600">Loading…</div>;
+  if (loading || !form) return <EditPageLoader message="Loading document..." />;
 
   return (
     <div className="p-4 h-full flex flex-col">
@@ -160,18 +174,18 @@ export default function EditPublishedDocumentPage() {
             label=""
             items={folders}
             value={form.publishedDocumentFolderId}
-            onChange={(val) => setForm(f => ({ ...f, publishedDocumentFolderId: val }))}
+            onChange={(val) => setForm(f => f ? { ...f, publishedDocumentFolderId: val } : f)}
             placeholder="Select folder…"
             required
           />
         </div>
         <div>
           <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Document Name <span className="text-red-500">*</span></label>
-          <input className={inputCls} value={form.documentName} onChange={e => setForm(f => ({ ...f, documentName: e.target.value }))} placeholder="Enter document name" />
+          <input className={inputCls} value={form.documentName} onChange={e => setForm(f => f ? { ...f, documentName: e.target.value } : f)} placeholder="Enter document name" />
         </div>
         <div>
           <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Document Type <span className="text-red-500">*</span></label>
-          <select className={inputCls} value={form.documentType} onChange={e => setForm(f => ({ ...f, documentType: e.target.value as any }))} aria-label="Select document type" title="Select document type">
+          <select className={inputCls} value={form.documentType} onChange={e => setForm(f => f ? { ...f, documentType: e.target.value as any } : f)} aria-label="Select document type" title="Select document type">
             <option value="document">Document URL</option>
             <option value="youtube">YouTube URL</option>
             <option value="mp4">.mp4 Upload</option>
@@ -192,7 +206,6 @@ export default function EditPublishedDocumentPage() {
             <p className="mt-1 text-xs text-gray-500">Upload PDF or Office documents.</p>
           </div>
         )}
-        {/* If documentType is not set, fall back to existing upload/URL fields */}
         {(!form.documentType || form.documentType === 'document') && (
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Upload File</label>
@@ -203,27 +216,54 @@ export default function EditPublishedDocumentPage() {
         {(!form.files.length || form.documentType === 'document') && (
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600">Or Document URL</label>
-            <input className={inputCls} value={form.documentUrl} onChange={e => setForm(f => ({ ...f, documentUrl: e.target.value }))} placeholder="https://…" />
+            <input className={inputCls} value={form.documentUrl} onChange={e => setForm(f => f ? { ...f, documentUrl: e.target.value } : f)} placeholder="https://…" />
           </div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <DateTimePicker
             label="Valid From"
             value={form.validFrom}
-            onChange={(iso) => setForm(f => ({ ...f, validFrom: iso }))}
+            onChange={(iso) => setForm(f => f ? { ...f, validFrom: iso } : f)}
             required
             maxDateTime={form.validTo || undefined}
           />
           <DateTimePicker
             label="Valid To"
             value={form.validTo}
-            onChange={(iso) => setForm(f => ({ ...f, validTo: iso }))}
+            onChange={(iso) => setForm(f => f ? { ...f, validTo: iso } : f)}
             required
             minDateTime={form.validFrom || undefined}
           />
         </div>
+        {/* Candidate Groups Multi-Checkbox */}
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600 mb-1">
+            Select one or more groups to register
+          </label>
+          <div className="border rounded p-2">
+            {groups.map(group => (
+              <div key={group.id} className="flex items-center mb-1">
+                <input
+                  type="checkbox"
+                  className="mr-2"
+                  checked={form.selectedGroupIds.includes(Number(group.id))}
+                  onChange={e => {
+                    setForm(f => f ? ({
+                      ...f,
+                      selectedGroupIds: e.target.checked
+                        ? [...f.selectedGroupIds, Number(group.id)]
+                        : f.selectedGroupIds.filter(id => id !== Number(group.id))
+                    }) : f);
+                  }}
+                  id={`group_${group.id}`}
+                />
+                <label htmlFor={`group_${group.id}`}>{group.name}</label>
+              </div>
+            ))}
+            <div className="text-xs text-right text-gray-500 mt-1">Selected: {form.selectedGroupIds.length}</div>
+          </div>
+        </div>
       </div>
-      {/* No pre-submit confirmation; success handled by modal; errors inline above form */}
       <ConfirmationModal
         isOpen={showSuccess}
         onConfirm={() => { setShowSuccess(false); router.push('/admin/published-documents/documents'); }}
