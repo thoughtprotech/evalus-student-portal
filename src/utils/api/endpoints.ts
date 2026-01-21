@@ -1224,10 +1224,11 @@ export const endpoints = {
   // Published Documents list (OData) and CRUD
   listPublishedDocumentsOData: {
     method: "GET",
-    // Backend OData: /odata/PublishedDocuments
-      path: ({ query }: { query?: string }) =>
-          `/odata/PublishedDocuments?$expand=candidateRegisteredPublishedDocuments${query ? `&${query.startsWith("?") ? query.slice(1) : query}` : ""
-          }`,
+    // Backend OData: /odata/PublishedDocuments - keep it simple without nested expand
+    path: ({ query }: { query?: string }) =>
+      `/odata/PublishedDocuments${
+        query ? (query.startsWith("?") ? query : `?${query}`) : ""
+      }`,
     type: "OPEN",
   } as Endpoint<{ query?: string }, { "@odata.count"?: number; value: any[] }>,
 

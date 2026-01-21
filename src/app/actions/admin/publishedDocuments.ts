@@ -18,10 +18,28 @@ export type PublishedDocumentRow = {
 
 export async function fetchPublishedDocumentsODataAction(params: { query?: string } = {}): Promise<ApiResponse<{ rows: PublishedDocumentRow[]; total: number }>> {
     const q = params.query || "";
-    const res = await apiHandler(endpoints.listPublishedDocumentsOData, { query: q });
-    if (res.status === 200 && res.data) {
-        const list = (res.data as any).value || [];
-        const total = (res.data as any)["@odata.count"] || list.length;
+    
+    // Fetch both documents and candidate groups in parallel
+    const [docsRes, groupsRes] = await Promise.all([
+        apiHandler(endpoints.listPublishedDocumentsOData, { query: q }),
+        apiHandler(endpoints.listCandidateGroupsOData, { query: "?$select=CandidateGroupId,CandidateGroupName" })
+    ]);
+    
+    if (docsRes.status === 200 && docsRes.data) {
+        const list = (docsRes.data as any).value || [];
+        const total = (docsRes.data as any)["@odata.count"] || list.length;
+        
+        // Build group ID to name map
+        const groupMap: Record<number, string> = {};
+        if (groupsRes.status === 200 && groupsRes.data) {
+            const groups = (groupsRes.data as any).value || [];
+            for (const g of groups) {
+                const id = g.CandidateGroupId ?? g.candidateGroupId;
+                const name = g.CandidateGroupName ?? g.candidateGroupName;
+                if (id && name) groupMap[id] = name;
+            }
+        }
+        
         const rows: PublishedDocumentRow[] = list.map((d: any) => ({
             id: d.PublishedDocumentId ?? d.Id ?? d.id,
             publishedDocumentFolderId: d.PublishedDocumentFolderId ?? d.publishedDocumentFolderId,
@@ -31,16 +49,19 @@ export async function fetchPublishedDocumentsODataAction(params: { query?: strin
             validFrom: d.ValidFrom ?? d.validFrom,
             validTo: d.ValidTo ?? d.validTo,
             candidateRegisteredPublishedDocuments: Array.isArray(d.CandidateRegisteredPublishedDocuments || d.candidateRegisteredPublishedDocuments)
-                ? (d.CandidateRegisteredPublishedDocuments || d.candidateRegisteredPublishedDocuments).map((x: any) => ({
-                    publishedDocumentId: x.PublishedDocumentId ?? x.publishedDocumentId,
-                    candidateGroupId: x.CandidateGroupID ?? x.CandidateGroupId ?? x.candidateGroupId,
-                    candidateGroupName: x.CandidateGroupName ?? x.candidateGroupName
-                }))
+                ? (d.CandidateRegisteredPublishedDocuments || d.candidateRegisteredPublishedDocuments).map((x: any) => {
+                    const groupId = x.CandidateGroupID ?? x.CandidateGroupId ?? x.candidateGroupId;
+                    return {
+                        publishedDocumentId: x.PublishedDocumentId ?? x.publishedDocumentId,
+                        candidateGroupId: groupId,
+                        candidateGroupName: groupMap[groupId] || `Group ${groupId}`
+                    };
+                })
                 : []
         }));
         return { status: 200, data: { rows, total }, message: `Fetched ${rows.length} documents` };
     }
-    return { status: res.status, error: res.error, errorMessage: res.errorMessage, message: res.message } as any;
+    return { status: docsRes.status, error: docsRes.error, errorMessage: docsRes.errorMessage, message: docsRes.message } as any;
 }
 
 export async function createPublishedDocumentAction(payload: { id: number; publishedDocumentFolderId: number; documentName: string; documentUrl: string; documentType?: string; validFrom?: string; validTo?: string; candidateRegisteredPublishedDocuments?: { publishedDocumentId: number; candidateGroupId: number }[] }): Promise<ApiResponse<null>> {
