@@ -10,7 +10,6 @@ import PaginationControls from "@/components/PaginationControls";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { fetchSpotlightsODataAction, deleteSpotlightAction, type SpotlightRow } from "@/app/actions/admin/spotlights";
 
-
 // AG Grid
 import { AgGridReact } from "ag-grid-react";
 import type { ColDef, GridApi } from "ag-grid-community";
@@ -51,16 +50,44 @@ export default function SpotlightsPage() {
     const [deleting, setDeleting] = useState(false);
     const [selectedCount, setSelectedCount] = useState(0);
     const [toast, setToast] = useState<{ message: string; type: any } | null>(null);
+    const [groupsPopupOpen, setGroupsPopupOpen] = useState(false);
+    const [groupsPopupData, setGroupsPopupData] = useState<{ spotlightId: number; candidateGroupId: number; candidateGroupName?: string }[]>([]);
     const gridApiRef = useRef<GridApi | null>(null);
     const filterModelRef = useRef<any>({});
     const sortModelRef = useRef<any[]>([]);
     const filterDebounceRef = useRef<any>(null);
+
+    // Groups Cell Renderer
+    const GroupsCellRenderer = (p: { value?: { spotlightId: number; candidateGroupId: number; candidateGroupName?: string }[] }) => {
+        const groups = p.value || [];
+        if (groups.length === 0) return <span className="text-gray-400 text-xs">No groups</span>;
+        if (groups.length <= 2) {
+            return <span className="text-sm">{groups.map(g => g.candidateGroupName || `Group ${g.candidateGroupId}`).join(', ')}</span>;
+        }
+        const first2 = groups.slice(0, 2);
+        const remaining = groups.length - 2;
+        return (
+            <div className="flex items-center gap-1">
+                <span className="text-sm">{first2.map(g => g.candidateGroupName || `Group ${g.candidateGroupId}`).join(', ')}</span>
+                <button
+                    onClick={() => {
+                        setGroupsPopupData(groups);
+                        setGroupsPopupOpen(true);
+                    }}
+                    className="text-xs text-blue-600 hover:underline ml-1"
+                >
+                    +{remaining} more
+                </button>
+            </div>
+        );
+    };
 
     const defaultColDef = useMemo<ColDef>(() => ({ resizable: true, sortable: true, filter: true, floatingFilter: showFilters, flex: 1, minWidth: 120 }), [showFilters]);
 
     const columnDefs = useMemo<ColDef<SpotlightRow>[]>(() => [
         { headerName: "Name", field: "name", cellRenderer: NameCellRenderer, minWidth: 220 },
         { headerName: "Description", field: "description", minWidth: 260, flex: 2 },
+        { field: 'candidateRegisteredSpotlights', headerName: 'Groups', width: 300, filter: false, sortable: false, cellRenderer: GroupsCellRenderer },
         { headerName: "Created Date", field: "addedDate", valueFormatter: p => formatDate(p.value), width: 160 },
         { headerName: "Valid From", field: "validFrom", valueFormatter: p => formatDate(p.value), width: 160 },
         { headerName: "Valid To", field: "validTo", valueFormatter: p => formatDate(p.value), width: 160 },
@@ -109,7 +136,10 @@ export default function SpotlightsPage() {
         };
         const orderBy = sort ? `${fieldMap[sort.colId] || 'AddedDate'} ${sort.sort}` : 'AddedDate desc';
         const res = await fetchSpotlightsODataAction({ top: pageSize, skip: (page - 1) * pageSize, orderBy, filter });
-        if (res.status === 200 && res.data) { setRows(res.data.rows); setTotal(res.data.total); }
+        if (res.status === 200 && res.data) { 
+            setRows(res.data.rows); 
+            setTotal(res.data.total); 
+        }
         setLoading(false);
     }, [page, pageSize, buildFilter]);
 
@@ -184,6 +214,34 @@ export default function SpotlightsPage() {
                 />
             </div>
             <div className="fixed top-4 right-4 z-50 space-y-2">{toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}</div>
+            
+            {/* Groups Popup Modal */}
+            {groupsPopupOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setGroupsPopupOpen(false)}>
+                    <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900">Candidate Groups</h3>
+                            <button onClick={() => setGroupsPopupOpen(false)} className="text-gray-400 hover:text-gray-600">
+                                <XCircle className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="max-h-96 overflow-y-auto">
+                            <ul className="space-y-2">
+                                {groupsPopupData.map((g, idx) => (
+                                    <li key={idx} className="text-sm text-gray-700 py-1 px-2 bg-gray-50 rounded">
+                                        {g.candidateGroupName || `Group ${g.candidateGroupId}`}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div className="mt-4 flex justify-end">
+                            <button onClick={() => setGroupsPopupOpen(false)} className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

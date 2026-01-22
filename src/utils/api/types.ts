@@ -344,6 +344,8 @@ export interface GetSpotlightResponse {
   // Number of days since the spotlight was added (provided by API payload)
   // Some backends may omit this; in that case UI will fallback to a client-side diff.
   addedDay?: number;
+  // Candidate groups associated with the spotlight
+  candidateRegisteredSpotlights?: { spotlightId: number; candidateGroupId: number; candidateGroupName?: string }[];
 }
 
 export interface GetSidebarMenusRequest {

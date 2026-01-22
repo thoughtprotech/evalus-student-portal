@@ -10,7 +10,7 @@ import EditPageLoader from "@/components/EditPageLoader";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import DateTimePicker from "@/components/form/DateTimePicker";
 import { getSpotlightByIdAction, updateSpotlightAction } from "@/app/actions/admin/spotlights";
-
+import { fetchCandidateGroupsODataAction, CandidateGroupRow } from "@/app/actions/admin/candidateGroups";
 
 export default function EditSpotlightPage() {
     const params = useParams();
@@ -27,6 +27,8 @@ export default function EditSpotlightPage() {
     const [validFrom, setValidFrom] = useState<string>("");
     const [validTo, setValidTo] = useState<string>("");
     const [addedDate, setAddedDate] = useState<string>("");
+    const [selectedGroupIds, setSelectedGroupIds] = useState<number[]>([]);
+    const [groups, setGroups] = useState<CandidateGroupRow[]>([]);
 
     useEffect(() => {
         // Validate masked ID first
@@ -37,16 +39,31 @@ export default function EditSpotlightPage() {
         }
 
         (async () => {
-            const res = await getSpotlightByIdAction(id);
-            if (res.status === 200 && res.data) {
-                setName(res.data.name || "");
-                setDescription(res.data.description || "");
-                setValidFrom(res.data.validFrom || "");
-                setValidTo(res.data.validTo || "");
-                setAddedDate(res.data.addedDate || "");
+            // Fetch both spotlight data and candidate groups
+            const [spotlightRes, groupsRes] = await Promise.all([
+                getSpotlightByIdAction(id),
+                fetchCandidateGroupsODataAction({ top: 100, skip: 0, orderBy: "CandidateGroupName asc" })
+            ]);
+
+            if (spotlightRes.status === 200 && spotlightRes.data) {
+                setName(spotlightRes.data.name || "");
+                setDescription(spotlightRes.data.description || "");
+                setValidFrom(spotlightRes.data.validFrom || "");
+                setValidTo(spotlightRes.data.validTo || "");
+                setAddedDate(spotlightRes.data.addedDate || "");
+                
+                // Set selected group IDs if present
+                if (Array.isArray(spotlightRes.data.candidateRegisteredSpotlights)) {
+                    setSelectedGroupIds(spotlightRes.data.candidateRegisteredSpotlights.map(x => Number(x.candidateGroupId)));
+                }
             } else {
-                setToast({ message: res.message || "Failed to load spotlight", type: "error" });
+                setToast({ message: spotlightRes.message || "Failed to load spotlight", type: "error" });
             }
+
+            if (groupsRes.status === 200 && groupsRes.data) {
+                setGroups(groupsRes.data.rows);
+            }
+
             setLoading(false);
         })();
     }, [id]);
@@ -61,7 +78,7 @@ export default function EditSpotlightPage() {
         if (new Date(validFrom) > new Date(validTo)) { setToast({ message: 'Valid To should be after Valid From', type: 'error' }); return; }
 
         setSaving(true);
-        const res = await updateSpotlightAction(id, { name, description, validFrom, validTo, addedDate: addedDate || undefined });
+        const res = await updateSpotlightAction(id, { name, description, validFrom, validTo, addedDate: addedDate || undefined, selectedGroupIds });
         setSaving(false);
         if (res && res.status >= 200 && res.status < 300) {
             setShowSuccess(true);
@@ -96,6 +113,38 @@ export default function EditSpotlightPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <DateTimePicker label="Valid From" value={validFrom} onChange={setValidFrom} required maxDateTime={validTo || undefined} />
                             <DateTimePicker label="Valid To" value={validTo} onChange={setValidTo} required minDateTime={validFrom || undefined} />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600 mb-1">
+                                Select one or more groups to register
+                            </label>
+                            <div className="border rounded p-2 max-h-60 overflow-y-auto">
+                                {groups.length === 0 ? (
+                                    <p className="text-sm text-gray-500">Loading groups...</p>
+                                ) : (
+                                    <>
+                                        {groups.map(group => (
+                                            <div key={group.id} className="flex items-center mb-1">
+                                                <input
+                                                    type="checkbox"
+                                                    className="mr-2"
+                                                    checked={selectedGroupIds.includes(Number(group.id))}
+                                                    onChange={e => {
+                                                        setSelectedGroupIds(prev =>
+                                                            e.target.checked
+                                                                ? [...prev, Number(group.id)]
+                                                                : prev.filter(id => id !== Number(group.id))
+                                                        );
+                                                    }}
+                                                    id={`group_${group.id}`}
+                                                />
+                                                <label htmlFor={`group_${group.id}`} className="text-sm">{group.name}</label>
+                                            </div>
+                                        ))}
+                                        <div className="text-xs text-right text-gray-500 mt-1">Selected: {selectedGroupIds.length}</div>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}

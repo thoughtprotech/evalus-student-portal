@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import { HelpCircle, ArrowLeft } from "lucide-react";
@@ -9,6 +9,7 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { useRouter } from "next/navigation";
 import DateTimePicker from "@/components/form/DateTimePicker";
 import { createSpotlightAction } from "@/app/actions/admin/spotlights";
+import { fetchCandidateGroupsODataAction, CandidateGroupRow } from "@/app/actions/admin/candidateGroups";
 
 export default function NewSpotlightPage() {
     const router = useRouter();
@@ -16,9 +17,21 @@ export default function NewSpotlightPage() {
     const [description, setDescription] = useState("");
     const [validFrom, setValidFrom] = useState<string>("");
     const [validTo, setValidTo] = useState<string>("");
+    const [selectedGroupIds, setSelectedGroupIds] = useState<number[]>([]);
+    const [groups, setGroups] = useState<CandidateGroupRow[]>([]);
     const [saving, setSaving] = useState(false);
     const [toast, setToast] = useState<{ message: string; type: any } | null>(null);
     const [showSuccess, setShowSuccess] = useState(false);
+
+    useEffect(() => {
+        // Fetch candidate groups on mount
+        (async () => {
+            const res = await fetchCandidateGroupsODataAction({ top: 100, skip: 0, orderBy: "CandidateGroupName asc" });
+            if (res.status === 200 && res.data) {
+                setGroups(res.data.rows);
+            }
+        })();
+    }, []);
 
     const submit = async () => {
         if (!name.trim()) { setToast({ message: 'Name is required', type: 'error' }); return; }
@@ -26,7 +39,7 @@ export default function NewSpotlightPage() {
         if (!validFrom || !validTo) { setToast({ message: 'Valid From and Valid To are required', type: 'error' }); return; }
         if (new Date(validFrom) > new Date(validTo)) { setToast({ message: 'Valid To should be after Valid From', type: 'error' }); return; }
         setSaving(true);
-        const res = await createSpotlightAction({ name, description, validFrom, validTo });
+        const res = await createSpotlightAction({ name, description, validFrom, validTo, selectedGroupIds });
         setSaving(false);
         if (res && res.status >= 200 && res.status < 300) { setToast(null); setShowSuccess(true); }
         else { setToast({ message: res?.message || res?.errorMessage || 'Failed to create', type: 'error' }); }
@@ -57,6 +70,38 @@ export default function NewSpotlightPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <DateTimePicker label="Valid From" value={validFrom} onChange={setValidFrom} required maxDateTime={validTo || undefined} />
                         <DateTimePicker label="Valid To" value={validTo} onChange={setValidTo} required minDateTime={validFrom || undefined} />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600 mb-1">
+                            Select one or more groups to register
+                        </label>
+                        <div className="border rounded p-2 max-h-60 overflow-y-auto">
+                            {groups.length === 0 ? (
+                                <p className="text-sm text-gray-500">Loading groups...</p>
+                            ) : (
+                                <>
+                                    {groups.map(group => (
+                                        <div key={group.id} className="flex items-center mb-1">
+                                            <input
+                                                type="checkbox"
+                                                className="mr-2"
+                                                checked={selectedGroupIds.includes(Number(group.id))}
+                                                onChange={e => {
+                                                    setSelectedGroupIds(prev =>
+                                                        e.target.checked
+                                                            ? [...prev, Number(group.id)]
+                                                            : prev.filter(id => id !== Number(group.id))
+                                                    );
+                                                }}
+                                                id={`group_${group.id}`}
+                                            />
+                                            <label htmlFor={`group_${group.id}`} className="text-sm">{group.name}</label>
+                                        </div>
+                                    ))}
+                                    <div className="text-xs text-right text-gray-500 mt-1">Selected: {selectedGroupIds.length}</div>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

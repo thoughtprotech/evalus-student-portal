@@ -245,6 +245,7 @@ export const endpoints = {
       validFrom: string;
       validTo: string;
       addedDay?: number;
+      candidateRegisteredSpotlights?: { spotlightId: number; candidateGroupId: number }[];
     },
     null
   >,
@@ -260,6 +261,7 @@ export const endpoints = {
       validFrom: string;
       validTo: string;
       addedDay?: number;
+      candidateRegisteredSpotlights?: { spotlightId: number; candidateGroupId: number }[];
     },
     null
   >,
