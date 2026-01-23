@@ -223,6 +223,15 @@ export const endpoints = {
     path: () => `/api/Spotlights`,
     type: "CLOSE",
   } as Endpoint<null, GetSpotlightResponse[]>,
+  
+  // OData - Spotlights filtered by candidate ID (for student dashboard)
+  getSpotlightsByCandidateId: {
+    method: "GET",
+    path: ({ candidateId }: { candidateId: number }) =>
+      `/odata/Spotlights/GetSpotlightsByCandidateId(candidateId=${candidateId})`,
+    type: "OPEN",
+  } as Endpoint<{ candidateId: number }, GetSpotlightResponse[]>,
+  
   // OData Spotlights listing (for grid filtering/sorting/paging)
   getSpotlightsOData: {
     method: "GET",

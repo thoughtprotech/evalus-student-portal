@@ -5,6 +5,7 @@ import Loader from "@/components/Loader";
 import SearchBar from "@/components/SearchBar";
 import { GetSpotlightResponse } from "@/utils/api/types";
 import { useEffect, useState } from "react";
+import { useUser } from "@/contexts/UserContext";
 
 function formatDaysAgo(fromDateStr: string, addedDay?: number): string {
   // Prefer server-provided addedDay (number of days since addedDate) if present
@@ -30,19 +31,28 @@ export default function AnnouncementsPage() {
   const [announcementList, setAnnouncementList] = useState<
     GetSpotlightResponse[]
   >([]);
+  const { candidateId } = useUser();
 
   const fetchSpotlightList = async () => {
-    const res = await fetchSpotlightListAction();
+    if (!candidateId) {
+      console.error("No candidate ID available");
+      setLoaded(true);
+      return;
+    }
+    
+    const res = await fetchSpotlightListAction(candidateId);
     const { data, status } = res;
-    if (status) {
-      setAnnouncementList(data!);
+    if (status === 200 && data) {
+      setAnnouncementList(data);
       setLoaded(true);
     }
   };
 
   useEffect(() => {
-    fetchSpotlightList();
-  }, []);
+    if (candidateId) {
+      fetchSpotlightList();
+    }
+  }, [candidateId]);
 
   const filteredAnnouncements = announcementList.filter((a) =>
     a.spotlightName.toLowerCase().includes(query.toLowerCase())

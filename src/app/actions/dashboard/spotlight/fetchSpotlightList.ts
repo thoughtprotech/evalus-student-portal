@@ -4,15 +4,20 @@ import { apiHandler } from "@/utils/api/client";
 import { ApiResponse, GetSpotlightResponse } from "@/utils/api/types";
 import { endpoints } from "@/utils/api/endpoints";
 
-export async function fetchSpotlightListAction(): Promise<
+export async function fetchSpotlightListAction(candidateId?: number): Promise<
   ApiResponse<GetSpotlightResponse[]>
 > {
-  //   TODO: Add filters
   try {
-    const { status, error, data, errorMessage, message } = await apiHandler(
-      endpoints.getSpotLight,
-      null
-    );
+    let result;
+    
+    // If candidateId is provided, use the filtered endpoint
+    if (candidateId) {
+      result = await apiHandler(endpoints.getSpotlightsByCandidateId, { candidateId });
+    } else {
+      result = await apiHandler(endpoints.getSpotLight, null);
+    }
+    
+    const { status, error, data, errorMessage, message } = result;
 
     console.log({ status, error, data, errorMessage, message });
 
