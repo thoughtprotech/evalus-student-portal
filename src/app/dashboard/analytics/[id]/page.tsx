@@ -102,46 +102,69 @@ export default function TestDetailsPage() {
               </h1>
               <div className="flex flex-wrap items-center gap-3 mt-2">
                 <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
-                  <TypeOutline className="text-indigo-600 w-4 h-4" />
-                  <span className="text-sm text-indigo-700 font-medium">
-                    Type: {testMeta?.testType}
-                  </span>
-                </div>{" "}
-                <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
-                  <Calendar className="text-indigo-600 w-4 h-4" />
-                  <span className="text-sm text-indigo-700 font-medium">
-                    Date: {formatToDDMMYYYY_HHMM(testMeta?.testStartDate!)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
                   <Clock className="text-indigo-600 w-4 h-4" />
                   <span className="text-sm text-indigo-700 font-medium">
                     Test Duration:{" "}
                     {formatMinutesToHourMinute(testMeta?.testDurationMinutes!)}
                   </span>
                 </div>
-                <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
-                  <Award className="text-indigo-600 w-4 h-4" />
+                {/* <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
+                  <TypeOutline className="text-indigo-600 w-4 h-4" />
                   <span className="text-sm text-indigo-700 font-medium">
-                    Rank: {testMeta?.testRank}
+                    Type: {testMeta?.testType}
+                  </span>
+                </div>{" "} */}
+                <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
+                  <Calendar className="text-indigo-600 w-4 h-4" />
+                  <span className="text-sm text-indigo-700 font-medium">
+                    Attempt Date:{" "}
+                    {formatToDDMMYYYY_HHMM(testMeta?.testStartDate!)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
+                  <Clock className="text-indigo-600 w-4 h-4" />
+                  <span className="text-sm text-indigo-700 font-medium">
+                    Attempt Duration:{" "}
+                    {formatMinutesToHourMinute(testMeta?.testDurationMinutes!)}
                   </span>
                 </div>
                 <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
                   <ArrowBigUp className="text-indigo-600 w-4 h-4" />
                   <span className="text-sm text-indigo-700 font-medium">
-                    Test Top Score: {testMeta?.testTopMarks}
+                    Top Attempt Duration: {testMeta?.testDurationMinutes}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
+                  <ArrowBigUp className="text-indigo-600 w-4 h-4" />
+                  <span className="text-sm text-indigo-700 font-medium">
+                    Top Score: {testMeta?.testTopMarks}
                   </span>
                 </div>
               </div>
             </div>
           </div>
-
-          <div className="flex flex-col items-start">
-            <div className="text-6xl font-bold text-gray-800">
-              {testMeta?.myMarks}
-              <span className="text-2xl">/{testMeta?.totalMarks}</span>
+          <div className="flex items-center gap-7">
+            <div>
+              <div className="flex flex-col items-start">
+                <div className="text-6xl font-bold text-gray-800">
+                  {testMeta?.myMarks}
+                  <span className="text-2xl">/{testMeta?.totalMarks}</span>
+                </div>
+                <div className="text-sm font-bold text-gray-500">My Score</div>
+              </div>
             </div>
-            <div className="text-sm font-bold text-gray-500">My Score</div>
+
+            <div className="flex flex-col items-start">
+              <div className="text-6xl font-bold text-gray-800">
+                {testMeta?.testRank.split("/")[0]}
+                <span className="text-2xl">
+                  /{testMeta?.testRank.split("/")[1]}
+                </span>
+              </div>
+              <div className="text-sm font-bold text-gray-500 whitespace-nowrap">
+                My Rank
+              </div>
+            </div>
           </div>
         </div>
 
