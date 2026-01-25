@@ -602,10 +602,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
 
   // Hydrate section durations from draft when loading in edit mode
   useEffect(() => {
-    console.log('[Step 3 Hydration] draft._sectionDurations:', draft?._sectionDurations);
-    console.log('[Step 3 Hydration] SectionBasedTestDuration:', (draft as any)?.SectionBasedTestDuration);
     if (draft?._sectionDurations && Object.keys(draft._sectionDurations).length > 0) {
-      console.log('[Step 3 Hydration] Setting section durations:', draft._sectionDurations);
       setSectionDurations(draft._sectionDurations);
     }
   }, [draft?._sectionDurations]);
