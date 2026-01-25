@@ -49,6 +49,8 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
   const [lockTotalsFromApi, setLockTotalsFromApi] = useState<boolean>(editMode === true);
   // Subjects map for computing parent subject
   const [subjectMap, setSubjectMap] = useState<Record<number, { name: string; parentId: number }>>({});
+  // Section-based duration state (sections = unique parent subjects)
+  const [sectionDurations, setSectionDurations] = useState<Record<string, number>>({});
 
   // Load subjects map once (cache in sessionStorage to avoid repeated loads)
   useEffect(() => {
@@ -225,6 +227,32 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search?.toString()]);
 
+  // Restore section-based settings when returning from question selection/creation
+  useEffect(() => {
+    try {
+      const sectionBasedFlag = sessionStorage.getItem('admin:newTest:sectionBasedDuration');
+      const sectionDurationsRaw = sessionStorage.getItem('admin:newTest:sectionDurations');
+      
+      if (sectionBasedFlag === '1') {
+        // Ensure SectionBasedTestDuration is set in draft
+        setDraft((d: any) => {
+          if ((d as any)?.SectionBasedTestDuration !== 1 && (d as any)?.SectionBasedTestDuration !== '1') {
+            return { ...d, SectionBasedTestDuration: 1 };
+          }
+          return d;
+        });
+        
+        // Restore section durations
+        if (sectionDurationsRaw) {
+          const restored = JSON.parse(sectionDurationsRaw);
+          if (restored && typeof restored === 'object') {
+            setSectionDurations(restored);
+          }
+        }
+      }
+    } catch { /* ignore */ }
+  }, [setDraft]);
+
   // After selecting/adding questions, backfill Subject for any new rows missing it
   useEffect(() => {
     if (!selectionFromBank) return;
@@ -359,6 +387,38 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
   const rows = useMemo(() => (Array.isArray(draft?.testQuestions) ? draft.testQuestions : []), [draft?.testQuestions]);
   const total = rows.length;
   const seqOptions = useMemo(() => Array.from({ length: total }, (_, i) => i + 1), [total]);
+
+  // Check if section-based duration is enabled
+  const isSectionBasedDuration = useMemo(() => {
+    const val = (draft as any)?.SectionBasedTestDuration;
+    return val === 1 || val === "1" || val === true;
+  }, [draft]);
+
+  // Get unique sections (parent subjects) from selected questions
+  // Match backend logic: use SubjectId and traverse to root parent
+  const sections = useMemo(() => {
+    const sectionMap = new Map<string, { name: string; count: number; subjectId: number | null }>();
+    for (const q of rows as any[]) {
+      const subjectId = q?.Question?.Subject?.SubjectId;
+      if (subjectId && Number.isFinite(Number(subjectId))) {
+        // Use computeRootParent to find top-most parent (same logic as backend FindTopParent)
+        const root = computeRootParent(Number(subjectId));
+        if (root.id && root.name) {
+          const existing = sectionMap.get(root.name);
+          if (existing) {
+            existing.count++;
+          } else {
+            sectionMap.set(root.name, {
+              name: root.name,
+              count: 1,
+              subjectId: root.id
+            });
+          }
+        }
+      }
+    }
+    return Array.from(sectionMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [rows, subjectMap]);
   const pageRows = useMemo(() => {
     const start = (page - 1) * pageSize;
     return rows.slice(start, start + pageSize);
@@ -452,12 +512,14 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
       if (!Number.isFinite(marks) || marks < 0) errs.push("Marks must be a non-negative number");
       if (!Number.isFinite(neg) || neg < 0) errs.push("Negative Marks must be non-negative");
       if (neg > marks) errs.push("Negative Marks cannot exceed Marks");
-      // Enforce: duration must be strictly greater than 0
-      if (!Number.isFinite(dur) || dur <= 0) errs.push("Duration must be greater than 0");
+      // Enforce: duration must be strictly greater than 0 ONLY when NOT in section-based mode
+      if (!isSectionBasedDuration) {
+        if (!Number.isFinite(dur) || dur <= 0) errs.push("Duration must be greater than 0");
+      }
       if (errs.length) next[id] = errs;
     }
     setInvalidMap(next);
-  }, [rows]);
+  }, [rows, isSectionBasedDuration]);
 
   // Initialize handicapped duration from draft once
   useEffect(() => {
@@ -471,9 +533,16 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
     const list: any[] = Array.isArray(draft?.testQuestions) ? draft!.testQuestions! : [];
     const totalQuestions = list.length;
     const totalMarks = list.reduce((s, q) => s + (Number(q?.Marks === "" ? 0 : (q?.Marks ?? 0)) || 0), 0);
-    const totalDuration = list.reduce((s, q) => s + (Number(q?.Duration === "" ? 0 : (q?.Duration ?? 0)) || 0), 0);
+    let totalDuration = 0;
+    if (isSectionBasedDuration) {
+      // Sum section durations instead of individual question durations
+      totalDuration = Object.values(sectionDurations).reduce((sum, dur) => sum + (Number(dur) || 0), 0);
+    } else {
+      // Sum individual question durations
+      totalDuration = list.reduce((s, q) => s + (Number(q?.Duration === "" ? 0 : (q?.Duration ?? 0)) || 0), 0);
+    }
     return { totalQuestions, totalMarks, totalDuration };
-  }, [draft?.testQuestions]);
+  }, [draft?.testQuestions, isSectionBasedDuration, sectionDurations]);
 
   // What to display: initially from API (draft) in edit mode; switch to computed after unlock
   const displayTotals = useMemo(() => {
@@ -531,6 +600,72 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
     } catch { /* ignore */ }
   }, []);
 
+  // Hydrate section durations from draft when loading in edit mode
+  useEffect(() => {
+    console.log('[Step 3 Hydration] draft._sectionDurations:', draft?._sectionDurations);
+    console.log('[Step 3 Hydration] SectionBasedTestDuration:', (draft as any)?.SectionBasedTestDuration);
+    if (draft?._sectionDurations && Object.keys(draft._sectionDurations).length > 0) {
+      console.log('[Step 3 Hydration] Setting section durations:', draft._sectionDurations);
+      setSectionDurations(draft._sectionDurations);
+    }
+  }, [draft?._sectionDurations]);
+
+  // When section-based duration is enabled, set all question durations to 0
+  useEffect(() => {
+    if (isSectionBasedDuration) {
+      setDraft((d) => {
+        const qs = Array.isArray(d.testQuestions) ? d.testQuestions : [];
+        const updated = qs.map((q: any) => ({ ...q, Duration: 0 }));
+        return { ...d, testQuestions: updated };
+      });
+    }
+  }, [isSectionBasedDuration, setDraft]);
+
+  // Persist section durations to draft for saving
+  useEffect(() => {
+    if (isSectionBasedDuration) {
+      setDraft((d) => ({ ...d, _sectionDurations: sectionDurations }));
+    }
+  }, [sectionDurations, isSectionBasedDuration, setDraft]);
+
+  // Clean up orphaned section durations when sections are removed
+  useEffect(() => {
+    if (!isSectionBasedDuration) return;
+    
+    const validSectionNames = new Set(sections.map(s => s.name));
+    const currentDurationKeys = Object.keys(sectionDurations);
+    
+    // Check if any duration keys are orphaned (section no longer exists)
+    const orphanedKeys = currentDurationKeys.filter(key => !validSectionNames.has(key));
+    
+    if (orphanedKeys.length > 0) {
+      setSectionDurations(prev => {
+        const cleaned = { ...prev };
+        orphanedKeys.forEach(key => delete cleaned[key]);
+        return cleaned;
+      });
+    }
+  }, [sections, sectionDurations, isSectionBasedDuration]);
+
+  // Unlock totals when user modifies section durations (after initial hydration)
+  const initialSectionDurationsRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!isSectionBasedDuration) return;
+    
+    const currentJson = JSON.stringify(sectionDurations);
+    
+    // Store initial state on first render
+    if (initialSectionDurationsRef.current === null) {
+      initialSectionDurationsRef.current = currentJson;
+      return;
+    }
+    
+    // If section durations changed from initial state, unlock totals to use computed values
+    if (initialSectionDurationsRef.current !== currentJson && lockTotalsFromApi) {
+      setLockTotalsFromApi(false);
+    }
+  }, [sectionDurations, isSectionBasedDuration, lockTotalsFromApi]);
+
   // Register validator with parent to block navigating away when invalid
   useEffect(() => {
     if (!registerValidator) return;
@@ -555,10 +690,25 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
         }
         return false;
       }
+      // Validate section durations when in section-based mode
+      if (isSectionBasedDuration && sections.length > 0) {
+        const missingSections: string[] = [];
+        for (const section of sections) {
+          const dur = sectionDurations[section.name];
+          if (!dur || Number(dur) <= 0) {
+            missingSections.push(section.name);
+          }
+        }
+        if (missingSections.length > 0) {
+          const msg = `Section durations are required and must be greater than 0:\n${missingSections.slice(0, 3).join(", ")}${missingSections.length > 3 ? " ..." : ""}`;
+          setToast({ message: msg, type: "error" });
+          return false;
+        }
+      }
       return true;
     };
     registerValidator(fn);
-  }, [invalidMap, registerValidator]);
+  }, [invalidMap, registerValidator, isSectionBasedDuration, sections, sectionDurations, rows]);
 
   // NOTE: Intentionally NOT auto-updating draft.TotalQuestions / draft.TotalMarks here.
   // Step 1 totals are user-entered business values and must remain stable even if questions are removed/added in Step 3.
@@ -598,9 +748,9 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
     if (!assignFrom || !assignTo) return; // need a valid range
     const start = Math.min(assignFrom as number, assignTo as number);
     const end = Math.max(assignFrom as number, assignTo as number);
-  const hasMarks = markMarks !== "" || markNegMarks !== "";
-    const hasDuration = markDuration !== "";
-  if (!hasMarks && !hasDuration) return; // nothing to update
+    const hasMarks = markMarks !== "" || markNegMarks !== "";
+    const hasDuration = !isSectionBasedDuration && markDuration !== ""; // Skip duration in section-based mode
+    if (!hasMarks && !hasDuration) return; // nothing to update
     if (markMarks !== "" && markNegMarks !== "" && Number(markNegMarks) > Number(markMarks)) {
       setToast({ message: "Negative Marks should not be greater than Marks.", type: "error" });
       return;
@@ -649,6 +799,16 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
           sessionStorage.setItem('admin:newTest:selectedCategoryIds', JSON.stringify(cids));
         }
       } catch { /* ignore */ }
+      // Snapshot section-based settings to ensure they persist on return
+      try {
+        if (isSectionBasedDuration) {
+          sessionStorage.setItem('admin:newTest:sectionBasedDuration', '1');
+          sessionStorage.setItem('admin:newTest:sectionDurations', JSON.stringify(sectionDurations));
+        } else {
+          sessionStorage.removeItem('admin:newTest:sectionBasedDuration');
+          sessionStorage.removeItem('admin:newTest:sectionDurations');
+        }
+      } catch { /* ignore */ }
       // Prevent wizard unmount cleanup while we jump to the selection sub-page
       sessionStorage.setItem("admin:newTest:suppressClear", "1");
       // Mark that on return we should unlock totals (user is modifying questions)
@@ -672,6 +832,16 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
           sessionStorage.setItem('admin:newTest:selectedCategoryIds', JSON.stringify(cids));
         }
       } catch { /* ignore */ }
+      // Snapshot section-based settings to ensure they persist on return
+      try {
+        if (isSectionBasedDuration) {
+          sessionStorage.setItem('admin:newTest:sectionBasedDuration', '1');
+          sessionStorage.setItem('admin:newTest:sectionDurations', JSON.stringify(sectionDurations));
+        } else {
+          sessionStorage.removeItem('admin:newTest:sectionBasedDuration');
+          sessionStorage.removeItem('admin:newTest:sectionDurations');
+        }
+      } catch { /* ignore */ }
     } catch { }
     const returnPath = (editMode && testId)
       ? `/admin/tests/edit/${testId}?step=3`
@@ -685,7 +855,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
       {/* Removed published-edit confirmation modal */}
       {/* Toast positioned top-right */}
       {toast && (
-        <div className="fixed top-4 right-4 z-50">
+        <div className="fixed top-20 right-4 z-[400]">
           <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
         </div>
       )}
@@ -699,88 +869,220 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                   <div className="flex-1"></div>
                 </div>
 
-                {/* Summary section: split into Marks and Duration boxes, fit in one row on large screens */}
+                {/* Summary section: layout changes based on section-based duration mode */}
                 <div className="p-4 border-b">
-                  <div className="flex flex-col lg:flex-row gap-3 mb-3">
-                    {/* Marks box */}
-                    <div className="bg-gray-50 rounded-md p-3 border flex-1 min-w-[280px]">
-                      <div className="text-sm font-semibold mb-2">Test Totals</div>
-                      <div className="flex flex-wrap items-end gap-4">
-                        <div className="flex flex-col min-w-[8rem]">
-                          <label className="text-xs text-gray-600">Total Questions</label>
-                          <div className="px-2 py-1 text-sm font-semibold text-gray-900">{displayTotals.totalQuestions}</div>
+                  {!isSectionBasedDuration ? (
+                    // Original layout when section-based duration is OFF
+                    <>
+                      <div className="flex flex-col lg:flex-row gap-3 mb-3">
+                        {/* Marks box */}
+                        <div className="bg-gray-50 rounded-md p-3 border flex-1 min-w-[280px]">
+                          <div className="text-sm font-semibold mb-2">Test Totals</div>
+                          <div className="flex flex-wrap items-end gap-4">
+                            <div className="flex flex-col min-w-[8rem]">
+                              <label className="text-xs text-gray-600">Total Questions</label>
+                              <div className="px-2 py-1 text-sm font-semibold text-gray-900">{displayTotals.totalQuestions}</div>
+                            </div>
+                            <div className="flex flex-col min-w-[8rem]">
+                              <label className="text-xs text-gray-600">Total Marks</label>
+                              <div className="px-2 py-1 text-sm font-semibold text-gray-900">{displayTotals.totalMarks}</div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex flex-col min-w-[8rem]">
-                          <label className="text-xs text-gray-600">Total Marks</label>
-                          <div className="px-2 py-1 text-sm font-semibold text-gray-900">{displayTotals.totalMarks}</div>
-                        </div>
-                      </div>
-                    </div>
 
-                    {/* Duration box */}
-                    <div className="bg-gray-50 rounded-md p-3 border flex-1 min-w-[300px]">
-                      <div className="text-sm font-semibold mb-2">Duration (minutes)</div>
-                      <div className="flex flex-nowrap items-end gap-4">
-                        <div className="flex flex-col min-w-[8rem]">
-                          <label className="text-xs text-gray-600">Normal</label>
-                          <div className="px-2 py-1 text-sm font-semibold text-gray-900">{displayTotals.totalDuration}</div>
+                        {/* Duration box */}
+                        <div className="bg-gray-50 rounded-md p-3 border flex-1 min-w-[300px]">
+                          <div className="text-sm font-semibold mb-2">Duration (minutes)</div>
+                          <div className="flex flex-nowrap items-end gap-4">
+                            <div className="flex flex-col min-w-[8rem]">
+                              <label className="text-xs text-gray-600">Normal</label>
+                              <div className="px-2 py-1 text-sm font-semibold text-gray-900">{displayTotals.totalDuration}</div>
+                            </div>
+                            <div className="flex flex-col min-w-[10rem]">
+                              <label className="text-xs text-gray-600" htmlFor="handiDuration">Handicapped</label>
+                              <input
+                                id="handiDuration"
+                                type="number"
+                                min={displayTotals.totalDuration}
+                                className="border rounded px-2 py-1 text-sm w-24"
+                                value={handiDuration as any}
+                                onChange={(e) => {
+                                  const v = e.target.value;
+                                  if (v === "") { setHandiDuration(""); return; }
+                                  const num = Number(v);
+                                  if (!Number.isFinite(num)) return;
+                                  setHandiDuration(Math.max(num, displayTotals.totalDuration));
+                                }}
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex flex-col min-w-[10rem]">
-                          <label className="text-xs text-gray-600" htmlFor="handiDuration">Handicapped</label>
-                          <input
-                            id="handiDuration"
-                            type="number"
-                            min={displayTotals.totalDuration}
-                            className="border rounded px-2 py-1 text-sm w-24"
-                            value={handiDuration as any}
-                            onChange={(e) => {
-                              const v = e.target.value;
-                              if (v === "") { setHandiDuration(""); return; }
-                              const num = Number(v);
-                              if (!Number.isFinite(num)) return;
-                              // Clamp to normal duration minimum
-                              setHandiDuration(Math.max(num, displayTotals.totalDuration));
-                            }}
-                          />
+                      </div>
+                      <div className="bg-gray-50 rounded-md p-3 border">
+                        <div className="text-sm font-semibold mb-3">Bulk Update (by S.No range)</div>
+                        <div className="flex flex-wrap items-end gap-3">
+                          <div className="flex flex-col">
+                            <label className="text-xs text-gray-600">From Q#</label>
+                            <select value={assignFrom as any} onChange={(e) => setAssignFrom(e.target.value ? Number(e.target.value) : "")} className="border rounded px-2 py-1 text-sm min-w-20">
+                              <option value="">-</option>
+                              {seqOptions.map(n => <option key={n} value={n}>{n}</option>)}
+                            </select>
+                          </div>
+                          <div className="flex flex-col">
+                            <label className="text-xs text-gray-600">To Q#</label>
+                            <select value={assignTo as any} onChange={(e) => setAssignTo(e.target.value ? Number(e.target.value) : "")} className="border rounded px-2 py-1 text-sm min-w-20">
+                              <option value="">-</option>
+                              {seqOptions.map(n => <option key={n} value={n}>{n}</option>)}
+                            </select>
+                          </div>
+                          <div className="flex flex-col">
+                            <label className="text-xs text-gray-600">Marks</label>
+                            <input type="number" min="0" placeholder="--" value={markMarks as any} onChange={(e) => setMarkMarks(e.target.value === "" ? "" : Number(e.target.value))} onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }} className="border rounded px-2 py-1 text-sm w-24" />
+                          </div>
+                          <div className="flex flex-col">
+                            <label className="text-xs text-gray-600">Negative Marks</label>
+                            <input type="number" min="0" placeholder="--" value={markNegMarks as any} onChange={(e) => setMarkNegMarks(e.target.value === "" ? "" : Number(e.target.value))} onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }} className="border rounded px-2 py-1 text-sm w-28" />
+                          </div>
+                          <div className="flex flex-col">
+                            <label className="text-xs text-gray-600">Duration</label>
+                            <input type="number" min="0" placeholder="--" value={markDuration as any} onChange={(e) => setMarkDuration(e.target.value === "" ? "" : Number(e.target.value))} onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }} className="border rounded px-2 py-1 text-sm w-28" />
+                          </div>
+                          <div className="ml-auto">
+                            <button onClick={applyBulkUpdate} className="rounded bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2">Apply</button>
+                          </div>
                         </div>
+                      </div>
+                    </>
+                  ) : (
+                    // New layout when section-based duration is ON: 50% left (Test Totals + Bulk Update), 50% right (Section Durations)
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                      {/* Left side: Test Totals + Bulk Update */}
+                      <div className="space-y-3">
+                        {/* Combined Test Totals and Duration box */}
+                        <div className="bg-gray-50 rounded-md p-3 border">
+                          <div className="text-sm font-semibold mb-2">Test Totals</div>
+                          <div className="grid grid-cols-2 gap-4 mb-3">
+                            <div className="flex flex-col">
+                              <label className="text-xs text-gray-600">Total Questions</label>
+                              <div className="px-2 py-1 text-sm font-semibold text-gray-900">{displayTotals.totalQuestions}</div>
+                            </div>
+                            <div className="flex flex-col">
+                              <label className="text-xs text-gray-600">Total Marks</label>
+                              <div className="px-2 py-1 text-sm font-semibold text-gray-900">{displayTotals.totalMarks}</div>
+                            </div>
+                          </div>
+                          <div className="text-sm font-semibold mb-2">Duration (minutes)</div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="flex flex-col">
+                              <label className="text-xs text-gray-600">Normal</label>
+                              <div className="px-2 py-1 text-sm font-semibold text-gray-900">{displayTotals.totalDuration}</div>
+                            </div>
+                            <div className="flex flex-col">
+                              <label className="text-xs text-gray-600" htmlFor="handiDuration">Handicapped</label>
+                              <input
+                                id="handiDuration"
+                                type="number"
+                                min={displayTotals.totalDuration}
+                                className="border rounded px-2 py-1 text-sm w-full"
+                                value={handiDuration as any}
+                                onChange={(e) => {
+                                  const v = e.target.value;
+                                  if (v === "") { setHandiDuration(""); return; }
+                                  const num = Number(v);
+                                  if (!Number.isFinite(num)) return;
+                                  setHandiDuration(Math.max(num, displayTotals.totalDuration));
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Bulk Update box - Duration field disabled */}
+                        <div className="bg-gray-50 rounded-md p-3 border">
+                          <div className="text-sm font-semibold mb-3">Bulk Update (by S.No range)</div>
+                          <div className="grid grid-cols-2 gap-3 mb-3">
+                            <div className="flex flex-col">
+                              <label className="text-xs text-gray-600">From Q#</label>
+                              <select value={assignFrom as any} onChange={(e) => setAssignFrom(e.target.value ? Number(e.target.value) : "")} className="border rounded px-2 py-1 text-sm w-full">
+                                <option value="">-</option>
+                                {seqOptions.map(n => <option key={n} value={n}>{n}</option>)}
+                              </select>
+                            </div>
+                            <div className="flex flex-col">
+                              <label className="text-xs text-gray-600">To Q#</label>
+                              <select value={assignTo as any} onChange={(e) => setAssignTo(e.target.value ? Number(e.target.value) : "")} className="border rounded px-2 py-1 text-sm w-full">
+                                <option value="">-</option>
+                                {seqOptions.map(n => <option key={n} value={n}>{n}</option>)}
+                              </select>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3 mb-3">
+                            <div className="flex flex-col">
+                              <label className="text-xs text-gray-600">Marks</label>
+                              <input type="number" min="0" placeholder="--" value={markMarks as any} onChange={(e) => setMarkMarks(e.target.value === "" ? "" : Number(e.target.value))} onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }} className="border rounded px-2 py-1 text-sm w-full" />
+                            </div>
+                            <div className="flex flex-col">
+                              <label className="text-xs text-gray-600">Negative Marks</label>
+                              <input type="number" min="0" placeholder="--" value={markNegMarks as any} onChange={(e) => setMarkNegMarks(e.target.value === "" ? "" : Number(e.target.value))} onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }} className="border rounded px-2 py-1 text-sm w-full" />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="flex flex-col">
+                              <label className="text-xs text-gray-600">Duration</label>
+                              <input 
+                                type="number" 
+                                disabled 
+                                className="border rounded px-2 py-1 text-sm w-full bg-gray-200 cursor-not-allowed" 
+                                value="N/A" 
+                                readOnly 
+                                title="Duration field is disabled because Section-Based Test Duration is enabled in Test Settings"
+                              />
+                            </div>
+                            <div className="flex items-end">
+                              <button onClick={applyBulkUpdate} className="rounded bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 w-full">Apply</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right side: Section Durations */}
+                      <div className="bg-gray-50 rounded-md p-3 border flex flex-col" style={{ minHeight: '400px', maxHeight: '500px' }}>
+                        <div className="text-sm font-semibold mb-3">Section Durations (by Subject)</div>
+                        {sections.length === 0 ? (
+                          <div className="text-sm text-gray-500 py-4 text-center">No sections available. Add questions with subjects to define sections.</div>
+                        ) : (
+                          <div className="space-y-2 flex-1 overflow-y-auto">
+                            {sections.map((section, idx) => (
+                              <div key={idx} className="grid grid-cols-[1fr_120px] gap-3 items-center pb-2">
+                                <div className="flex flex-col">
+                                  <label className="text-xs text-gray-600 truncate" title={section.name}>{section.name}</label>
+                                  <div className="text-xs text-gray-500">({section.count} {section.count === 1 ? 'question' : 'questions'})</div>
+                                </div>
+                                <div className="flex flex-col">
+                                  <label className="text-xs text-gray-600">Duration (min) <span className="text-red-500">*</span></label>
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    placeholder="0"
+                                    value={sectionDurations[section.name] ?? ""}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setSectionDurations(prev => ({
+                                        ...prev,
+                                        [section.name]: val === "" ? 0 : Math.max(1, Number(val))
+                                      }));
+                                    }}
+                                    onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }}
+                                    className="border rounded px-2 py-1 text-sm w-full"
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-                  <div className="bg-gray-50 rounded-md p-3 border">
-                    <div className="text-sm font-semibold mb-3">Bulk Update (by S.No range)</div>
-                    <div className="flex flex-wrap items-end gap-3">
-                      <div className="flex flex-col">
-                        <label className="text-xs text-gray-600">From Q#</label>
-                        <select value={assignFrom as any} onChange={(e) => setAssignFrom(e.target.value ? Number(e.target.value) : "")} className="border rounded px-2 py-1 text-sm min-w-20">
-                          <option value="">-</option>
-                          {seqOptions.map(n => <option key={n} value={n}>{n}</option>)}
-                        </select>
-                      </div>
-                      <div className="flex flex-col">
-                        <label className="text-xs text-gray-600">To Q#</label>
-                        <select value={assignTo as any} onChange={(e) => setAssignTo(e.target.value ? Number(e.target.value) : "")} className="border rounded px-2 py-1 text-sm min-w-20">
-                          <option value="">-</option>
-                          {seqOptions.map(n => <option key={n} value={n}>{n}</option>)}
-                        </select>
-                      </div>
-                      {/* Subject is derived from the question; no bulk update control */}
-                      <div className="flex flex-col">
-                        <label className="text-xs text-gray-600">Marks</label>
-                        <input type="number" min="0" placeholder="--" value={markMarks as any} onChange={(e) => setMarkMarks(e.target.value === "" ? "" : Number(e.target.value))} onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }} className="border rounded px-2 py-1 text-sm w-24" />
-                      </div>
-                      <div className="flex flex-col">
-                        <label className="text-xs text-gray-600">Negative Marks</label>
-                        <input type="number" min="0" placeholder="--" value={markNegMarks as any} onChange={(e) => setMarkNegMarks(e.target.value === "" ? "" : Number(e.target.value))} onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }} className="border rounded px-2 py-1 text-sm w-28" />
-                      </div>
-                      <div className="flex flex-col">
-                        <label className="text-xs text-gray-600">Duration</label>
-                        <input type="number" min="0" placeholder="--" value={markDuration as any} onChange={(e) => setMarkDuration(e.target.value === "" ? "" : Number(e.target.value))} onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }} className="border rounded px-2 py-1 text-sm w-28" />
-                      </div>
-                      <div className="ml-auto">
-                        <button onClick={applyBulkUpdate} className="rounded bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2">Apply</button>
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Toolbar below Bulk Update: Delete (left) + centered Pagination (match Select grid style) */}
@@ -791,11 +1093,36 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                         onClick={() => {
                           const ids = Object.keys(delSelected).filter(k => delSelected[Number(k)]).map(Number);
                           if (ids.length === 0) return;
-                          setDraft((d) => {
-                            const qs = Array.isArray(d.testQuestions) ? d.testQuestions : [];
-                            const updated = qs.filter((q: any) => !ids.includes(Number(q.TestQuestionId)));
-                            return { ...d, testQuestions: updated };
+                          
+                          // Calculate new values before setState to avoid closure issues
+                          const currentDraft = draft;
+                          const qs = Array.isArray(currentDraft?.testQuestions) ? currentDraft.testQuestions : [];
+                          const updated = qs.filter((q: any) => !ids.includes(Number(q.TestQuestionId)));
+                          const newTotalQuestions = updated.length;
+                          const newTotalMarks = updated.reduce((s: number, q: any) => s + (Number(q?.Marks === "" ? 0 : (q?.Marks ?? 0)) || 0), 0);
+                          
+                          // Calculate duration based on mode
+                          let newTotalDuration = 0;
+                          if (isSectionBasedDuration) {
+                            // Use section durations sum
+                            newTotalDuration = Object.values(sectionDurations).reduce((sum, dur) => sum + (Number(dur) || 0), 0);
+                          } else {
+                            // Use individual question durations sum
+                            newTotalDuration = updated.reduce((s: number, q: any) => s + (Number(q?.Duration === "" ? 0 : (q?.Duration ?? 0)) || 0), 0);
+                          }
+                          
+                          setDraft({
+                            ...currentDraft,
+                            testQuestions: updated,
+                            TotalQuestions: newTotalQuestions,
+                            TotalMarks: newTotalMarks,
+                            TestDurationMinutes: newTotalDuration,
+                            TestDurationForHandicappedMinutes: Math.max(
+                              handiDuration === "" ? newTotalDuration : Number(handiDuration), 
+                              newTotalDuration
+                            ),
                           });
+                          
                           setDelSelected({});
                           // adjust pagination if needed
                           const newTotal = total - ids.length;
@@ -964,10 +1291,13 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                               <input
                                 type="number"
                                 min={0}
-                                className={`border rounded px-2 py-1 text-sm w-28 ${invalidMap[r?.TestQuestionId]?.some(e => e.toLowerCase().includes('duration')) ? 'border-red-500' : ''}`}
-                                value={(r?.Duration === "" ? "" : (r?.Duration ?? 0)) as any}
+                                disabled={isSectionBasedDuration}
+                                className={`border rounded px-2 py-1 text-sm w-28 ${isSectionBasedDuration ? 'bg-gray-200 cursor-not-allowed' : ''} ${invalidMap[r?.TestQuestionId]?.some(e => e.toLowerCase().includes('duration')) ? 'border-red-500' : ''}`}
+                                value={isSectionBasedDuration ? 0 : (r?.Duration === "" ? "" : (r?.Duration ?? 0)) as any}
+                                title={isSectionBasedDuration ? "Duration field is disabled because Section-Based Test Duration is enabled in Test Settings" : ""}
                                 onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }}
                                 onChange={(e) => {
+                                  if (isSectionBasedDuration) return;
                                   const valStr = e.target.value;
                                   setDraft((d) => {
                                     const qs = Array.isArray(d.testQuestions) ? d.testQuestions : [];

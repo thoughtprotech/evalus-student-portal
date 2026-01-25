@@ -509,6 +509,7 @@ export default function TestSteps({
           RandomizeAnswerOptionsByQuestions: toUlong(d2.RandomizeAnswerOptionsByQuestions),
           AttemptAllQuestions: toUlong(d2.AttemptAllQuestions),
           DisplayMarksDuringTest: toUlong(d2.DisplayMarksDuringTest),
+          SectionBasedTestDuration: toUlong(d2.SectionBasedTestDuration),
 
           MinimumTestTime: d2.MinimumTestTime ?? null,
           MaximumTestTimePer: d2.MaximumTestTimePer ?? null,
@@ -564,6 +565,82 @@ export default function TestSteps({
               return uniq.map((id) => ({ TestCategoryId: id }));
             } catch { return [] as any[]; }
           })(),
+          // TestAssignedSubjects: When section-based duration is enabled, map section durations to subjects
+          // Match backend logic: use SubjectId from questions and traverse to root parent
+          TestAssignedSubjects: (() => {
+            const isSectionBased = toUlong((draft as any)?.SectionBasedTestDuration);
+            if (!isSectionBased) return [];
+            
+            const sectionDurations = (draft as any)?._sectionDurations || {};
+            const questions = Array.isArray((draft as any)?.testQuestions) ? (draft as any).testQuestions : [];
+            
+            // Debug logging
+            if (process.env.NODE_ENV !== 'production') {
+              console.log('[TestAssignedSubjects] Section-based duration enabled:', isSectionBased);
+              console.log('[TestAssignedSubjects] Section durations from draft:', sectionDurations);
+              console.log('[TestAssignedSubjects] Questions count:', questions.length);
+            }
+            
+            // Load subject hierarchy map from session (matches Step 3 logic)
+            let subjMap: Record<number, { name: string; parentId: number }> = {};
+            try {
+              const cached = typeof window !== 'undefined' ? sessionStorage.getItem('admin:newTest:subjectMap') : null;
+              if (cached) subjMap = JSON.parse(cached);
+            } catch { /* ignore */ }
+            
+            // Helper to find root parent (same as computeRootParent in Step 3)
+            const findRoot = (subjectId: number): { id: number | null; name: string | null } => {
+              if (!subjectId || !Number.isFinite(subjectId)) return { id: null, name: null };
+              let curr = Number(subjectId);
+              const guard = 1000;
+              let steps = 0;
+              while (steps < guard) {
+                const node = subjMap[curr];
+                if (!node) break;
+                if (!node.parentId || node.parentId === 0) return { id: curr, name: node.name ?? null };
+                curr = node.parentId;
+                steps++;
+              }
+              const n = subjMap[Number(subjectId)];
+              return n ? { id: Number(subjectId), name: n.name ?? null } : { id: null, name: null };
+            };
+            
+            // Build subject map from questions using SubjectId and root parent traversal
+            const subjectMap = new Map<number, { name: string; duration: number }>();
+            for (const q of questions) {
+              const subjectId = q?.Question?.Subject?.SubjectId;
+              if (subjectId && Number.isFinite(Number(subjectId))) {
+                const root = findRoot(Number(subjectId));
+                if (root.id && root.name) {
+                  const duration = sectionDurations[root.name];
+                  if (duration && Number(duration) > 0) {
+                    if (!subjectMap.has(root.id)) {
+                      subjectMap.set(root.id, {
+                        name: root.name,
+                        duration: Number(duration)
+                      });
+                    }
+                  }
+                }
+              }
+            }
+            
+            // Convert to array format
+            const assignedSubjects: any[] = [];
+            for (const [subjectId, data] of subjectMap.entries()) {
+              assignedSubjects.push({
+                TestAssignedSubjectId: subjectId,
+                SubjectMaxTimeDuration: data.duration
+              });
+            }
+            
+            // Debug logging
+            if (process.env.NODE_ENV !== 'production') {
+              console.log('[TestAssignedSubjects] Final array:', assignedSubjects);
+            }
+            
+            return assignedSubjects;
+          })(),
         };
         
         // No sections to log or include
@@ -587,6 +664,7 @@ export default function TestSteps({
           "RandomizeAnswerOptionsByQuestions",
           "AttemptAllQuestions",
           "DisplayMarksDuringTest",
+          "SectionBasedTestDuration",
           "MinimumTestTime",
           "MaximumTestTimePer",
           "LockSectionsOnSubmission",
@@ -851,7 +929,7 @@ export default function TestSteps({
         </StepWizard>
         {/* Toast outlet */}
         {toast && (
-          <div className="fixed top-4 right-4 z-[100]">
+          <div className="fixed top-20 right-4 z-[500]">
             <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
           </div>
         )}

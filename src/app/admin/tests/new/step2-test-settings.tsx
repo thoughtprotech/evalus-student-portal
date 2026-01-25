@@ -44,6 +44,7 @@ export default function Step2TestSettings() {
   const [allowMultipleAttempts, setAllowMultipleAttempts] = useState(initialAllowMultipleAttempts);
   const [attemptAll, setAttemptAll] = useState(false);
   const [displayMarks, setDisplayMarks] = useState(false);
+  const [durationBasedOnSection, setDurationBasedOnSection] = useState(false);
 
   // Time configuration removed per requirement (UI no longer exposes these settings)
 
@@ -133,6 +134,7 @@ export default function Step2TestSettings() {
   setAllowMultipleAttempts(firstDefined === undefined ? true : coerceBool(firstDefined));
     setAttemptAll(fromUlong(draft.AttemptAllQuestions));
     setDisplayMarks(fromUlong(draft.DisplayMarksDuringTest));
+    setDurationBasedOnSection(fromUlong(draft.SectionBasedTestDuration));
 
   // Removed: Time limits hydration (Minimum/Maximum test/section/question times)
 
@@ -212,6 +214,19 @@ export default function Step2TestSettings() {
                   onChange={(v) => {
                     setRandomizeAnswerOptions(v);
                     setDraft((d: any) => ({ ...d, RandomizeAnswerOptionsByQuestions: toUlong(v) }));
+                  }}
+                />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-gray-800">Section-Based Test Duration</span>
+                <YesNoToggle
+                  className="shrink-0"
+                  size="sm"
+                  segmentWidthClass="w-10 h-5 text-xs"
+                  value={durationBasedOnSection}
+                  onChange={(v) => {
+                    setDurationBasedOnSection(v);
+                    setDraft((d: any) => ({ ...d, SectionBasedTestDuration: toUlong(v) }));
                   }}
                 />
               </div>

@@ -44,15 +44,18 @@ export default function Toast({ message, type = "info", onClose, durationMs = 40
 
   return (
     <div
-      className={`pointer-events-auto ${s.bg} ${s.text} shadow-2xl rounded-md border border-gray-200/60 ${s.border} border-l-4 px-4 py-3 flex items-start gap-3 min-w-[320px] max-w-[520px] transition-all duration-200 ease-out transform ` +
+      className={`pointer-events-auto ${s.bg} ${s.text} shadow-2xl rounded-lg border-2 ${s.border} px-4 py-3 flex items-start gap-3 min-w-[320px] max-w-[520px] transition-all duration-200 ease-out transform backdrop-blur-sm ` +
         (mounted ? "opacity-100 translate-x-0" : "opacity-0 translate-x-2")}
       role="status"
       aria-live="polite"
+      style={{ 
+        boxShadow: '0 10px 40px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.1)'
+      }}
     >
       <div className="mt-0.5 shrink-0">{s.icon}</div>
-      <div className="text-sm leading-5 flex-1 font-medium">{message}</div>
+      <div className="text-sm leading-5 flex-1 font-medium whitespace-pre-line">{message}</div>
       {onClose && (
-        <button onClick={handleClose} className="text-gray-500 hover:text-gray-700">
+        <button onClick={handleClose} className="text-gray-500 hover:text-gray-700 shrink-0">
           <X className="w-4 h-4" />
         </button>
       )}

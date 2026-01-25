@@ -52,6 +52,7 @@ function normalizeTestToDraft(test: any): any {
     d.RandomizeAnswerOptionsByQuestions = pick(s0.RandomizeAnswerOptionsByQuestions, s0.randomizeAnswerOptionsByQuestions);
     d.AttemptAllQuestions = pick(s0.AttemptAllQuestions, s0.attemptAllQuestions);
     d.DisplayMarksDuringTest = pick(s0.DisplayMarksDuringTest, s0.displayMarksDuringTest);
+    d.SectionBasedTestDuration = pick(s0.SectionBasedTestDuration, s0.sectionBasedTestDuration);
 
     d.MinimumTestTime = pick(s0.MinimumTestTime, s0.minimumTestTime);
     d.MaximumTestTimePer = pick(s0.MaximumTestTimePer, s0.maximumTestTimePer);
@@ -173,6 +174,33 @@ function normalizeTestToDraft(test: any): any {
     d.TotalMarks = Array.isArray(d.testQuestions)
       ? d.testQuestions.reduce((sum: number, q: any) => sum + (Number(q?.Marks ?? 0) || 0), 0)
       : 0;
+  }
+
+  // Load TestAssignedSubjects and convert to _sectionDurations for section-based duration feature
+  // API returns camelCase with embedded subject object containing subjectName
+  const assignedSubjects: any[] = Array.isArray(src.testAssignedSubjects)
+    ? src.testAssignedSubjects
+    : Array.isArray(src.TestAssignedSubjects)
+    ? src.TestAssignedSubjects
+    : [];
+  
+  if (assignedSubjects.length > 0) {
+    const sectionDurations: Record<string, number> = {};
+    
+    // Map TestAssignedSubjects to section durations by subject name
+    // Each item has: { subject: { subjectName: "..." }, subjectMaxTimeDuration: X }
+    for (const subj of assignedSubjects) {
+      const subjectName = subj?.subject?.subjectName ?? subj?.Subject?.SubjectName;
+      const duration = Number(subj?.subjectMaxTimeDuration ?? subj?.SubjectMaxTimeDuration);
+      
+      if (subjectName && Number.isFinite(duration) && duration > 0) {
+        sectionDurations[subjectName] = duration;
+      }
+    }
+    
+    if (Object.keys(sectionDurations).length > 0) {
+      d._sectionDurations = sectionDurations;
+    }
   }
 
   // Normalize status text
