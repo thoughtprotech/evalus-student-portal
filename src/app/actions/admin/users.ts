@@ -236,10 +236,22 @@ export async function fetchUsersAction(
                 ?? (item as any).Id
                 ?? 0;
 
+            // Resolve userName robustly (support different casing/locations)
+            const resolvedUserName =
+                userLoginData?.userName || userLoginData?.UserName ||
+                (item as any).userName || (item as any).UserName ||
+                (item as any).userLogin?.[0]?.userName || (item as any).userLogin?.[0]?.UserName || "";
+
+            // Resolve displayName similarly
+            const resolvedDisplayName =
+                userLoginData?.displayName || userLoginData?.DisplayName ||
+                (item as any).displayName || (item as any).DisplayName ||
+                `${item.firstName} ${item.lastName}`.trim() || "";
+
             return {
                 candidateId: Number(resolvedId) || 0,
-                userName: userLoginData?.userName || item.userName || "",
-                displayName: userLoginData?.displayName || `${item.firstName} ${item.lastName}`.trim() || "",
+                userName: String(resolvedUserName || ""),
+                displayName: String(resolvedDisplayName || ""),
                 firstName: item.firstName || "",
                 lastName: item.lastName || "",
                 email: userLoginData?.email || item.email || "",

@@ -22,13 +22,17 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 function NameCellRenderer(props: { value: string; data: UserRow }) {
+    const label = (props.value && String(props.value).trim().length > 0)
+        ? props.value
+        : (props.data?.displayName || props.data?.userName || "");
+
     return (
         <Link
             className="text-blue-600 hover:underline"
             href={`/admin/users/${props.data.candidateId}/edit`}
-            title={`Edit ${props.value}`}
+            title={`Edit ${label}`}
         >
-            {props.value}
+            {label}
         </Link>
     );
 }
