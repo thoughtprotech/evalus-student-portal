@@ -47,6 +47,10 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
   const [handiDuration, setHandiDuration] = useState<number | "">("");
   // Gate to control when we switch from API-provided totals to computed totals
   const [lockTotalsFromApi, setLockTotalsFromApi] = useState<boolean>(editMode === true);
+  // Guard to prevent reentrant updates
+  const isUpdatingRef = useRef(false);
+  // Track if initial hydration from draft._sectionDurations is complete
+  const hasHydratedRef = useRef(false);
   // Subjects map for computing parent subject
   const [subjectMap, setSubjectMap] = useState<Record<number, { name: string; parentId: number }>>({});
   // Section-based duration state (sections = unique parent subjects)
@@ -565,28 +569,55 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
 
   // Persist computed Normal duration and totals to draft for save path
   useEffect(() => {
+    if (isUpdatingRef.current) return;
+    
+    // Don't run until hydration is complete to avoid overwriting loaded data
+    if (!hasHydratedRef.current) return;
+    
     // If locked (edit mode initial), persist whatever is present in draft without overriding using computed values
     if (lockTotalsFromApi) {
-      setDraft((d: any) => ({
-        ...d,
-        // Ensure handicapped is at least normal if both present from API
-        TestDurationForHandicappedMinutes:
-          d?.TestDurationForHandicappedMinutes != null && d?.TestDurationMinutes != null
-            ? Math.max(Number(d.TestDurationForHandicappedMinutes), Number(d.TestDurationMinutes))
-            : d?.TestDurationForHandicappedMinutes,
-      }));
+      isUpdatingRef.current = true;
+      setDraft((d: any) => {
+        const newHandiDuration = d?.TestDurationForHandicappedMinutes != null && d?.TestDurationMinutes != null
+          ? Math.max(Number(d.TestDurationForHandicappedMinutes), Number(d.TestDurationMinutes))
+          : d?.TestDurationForHandicappedMinutes;
+        // Only update if value actually changed
+        if (d?.TestDurationForHandicappedMinutes === newHandiDuration) {
+          isUpdatingRef.current = false;
+          return d;
+        }
+        isUpdatingRef.current = false;
+        return {
+          ...d,
+          TestDurationForHandicappedMinutes: newHandiDuration,
+        };
+      });
       return;
     }
     // Otherwise, use computed values
-    setDraft((d: any) => ({
-      ...d,
-      TestDurationMinutes: computed.totalDuration,
-      TotalQuestions: computed.totalQuestions,
-      TotalMarks: computed.totalMarks,
-      TestDurationForHandicappedMinutes:
-        handiDuration === "" ? computed.totalDuration : Math.max(Number(handiDuration), computed.totalDuration),
-    }));
-  }, [computed, handiDuration, setDraft, lockTotalsFromApi]);
+    isUpdatingRef.current = true;
+    setDraft((d: any) => {
+      const newHandiDuration = handiDuration === "" ? computed.totalDuration : Math.max(Number(handiDuration), computed.totalDuration);
+      // Only update if any value actually changed
+      if (
+        d?.TestDurationMinutes === computed.totalDuration &&
+        d?.TotalQuestions === computed.totalQuestions &&
+        d?.TotalMarks === computed.totalMarks &&
+        d?.TestDurationForHandicappedMinutes === newHandiDuration
+      ) {
+        isUpdatingRef.current = false;
+        return d;
+      }
+      isUpdatingRef.current = false;
+      return {
+        ...d,
+        TestDurationMinutes: computed.totalDuration,
+        TotalQuestions: computed.totalQuestions,
+        TotalMarks: computed.totalMarks,
+        TestDurationForHandicappedMinutes: newHandiDuration,
+      };
+    });
+  }, [computed.totalDuration, computed.totalQuestions, computed.totalMarks, handiDuration, setDraft, lockTotalsFromApi]);
 
   // If coming back from Select/Add flow where user changed questions, unlock totals
   useEffect(() => {
@@ -601,11 +632,19 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
   }, []);
 
   // Hydrate section durations from draft when loading in edit mode
+  // Run on mount and when draft._sectionDurations changes
   useEffect(() => {
+    // Only hydrate if we have data to load
     if (draft?._sectionDurations && Object.keys(draft._sectionDurations).length > 0) {
       setSectionDurations(draft._sectionDurations);
     }
-  }, [draft?._sectionDurations]);
+    // Mark as hydrated after checking (even if no data to prevent overwrite)
+    // Small delay to ensure this runs after draft is fully initialized
+    const timer = setTimeout(() => {
+      hasHydratedRef.current = true;
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [draft?._sectionDurations, editMode]);
 
   // When section-based duration is enabled, set all question durations to 0
   useEffect(() => {
@@ -620,14 +659,31 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
 
   // Persist section durations to draft for saving
   useEffect(() => {
-    if (isSectionBasedDuration) {
-      setDraft((d) => ({ ...d, _sectionDurations: sectionDurations }));
+    // Skip if we haven't hydrated yet (prevents overwriting loaded data with initial empty state)
+    if (!hasHydratedRef.current && Object.keys(sectionDurations).length === 0) {
+      return;
+    }
+    
+    if (isSectionBasedDuration && !isUpdatingRef.current) {
+      isUpdatingRef.current = true;
+      setDraft((d) => {
+        // Only update if value actually changed
+        if (JSON.stringify(d._sectionDurations) === JSON.stringify(sectionDurations)) {
+          isUpdatingRef.current = false;
+          return d;
+        }
+        isUpdatingRef.current = false;
+        return { ...d, _sectionDurations: sectionDurations };
+      });
     }
   }, [sectionDurations, isSectionBasedDuration, setDraft]);
 
   // Clean up orphaned section durations when sections are removed
   useEffect(() => {
     if (!isSectionBasedDuration) return;
+    
+    // Don't clean up until we've hydrated and have sections loaded
+    if (!hasHydratedRef.current || sections.length === 0) return;
     
     const validSectionNames = new Set(sections.map(s => s.name));
     const currentDurationKeys = Object.keys(sectionDurations);
@@ -639,7 +695,8 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
       setSectionDurations(prev => {
         const cleaned = { ...prev };
         orphanedKeys.forEach(key => delete cleaned[key]);
-        return cleaned;
+        // Only return new object if something actually changed
+        return JSON.stringify(cleaned) === JSON.stringify(prev) ? prev : cleaned;
       });
     }
   }, [sections, sectionDurations, isSectionBasedDuration]);
@@ -1027,7 +1084,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                             <div className="flex flex-col">
                               <label className="text-xs text-gray-600">Duration</label>
                               <input 
-                                type="number" 
+                                type="text" 
                                 disabled 
                                 className="border rounded px-2 py-1 text-sm w-full bg-gray-200 cursor-not-allowed" 
                                 value="N/A" 
@@ -1043,7 +1100,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                       </div>
 
                       {/* Right side: Section Durations */}
-                      <div className="bg-gray-50 rounded-md p-3 border flex flex-col" style={{ minHeight: '400px', maxHeight: '500px' }}>
+                      <div className="bg-gray-50 rounded-md p-3 border flex flex-col" style={{ maxHeight: '385px' }}>
                         <div className="text-sm font-semibold mb-3">Section Durations (by Subject)</div>
                         {sections.length === 0 ? (
                           <div className="text-sm text-gray-500 py-4 text-center">No sections available. Add questions with subjects to define sections.</div>

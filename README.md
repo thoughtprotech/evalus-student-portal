@@ -2,6 +2,38 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### Environment Setup
+
+1. Copy the example environment file:
+```bash
+cp .env.example .env.local
+```
+
+2. Update `.env.local` with your configuration values
+
+### API Logging Configuration
+
+Control console logging for API requests/responses using environment variables:
+
+- **`NEXT_PUBLIC_ENABLE_API_LOGGING`**: Enable/disable all API logging
+- **`NEXT_PUBLIC_ENABLE_REQUEST_LOGGING`**: Enable/disable request-specific logging
+
+**For Development (with logs):**
+```env
+NEXT_PUBLIC_ENABLE_API_LOGGING=true
+NEXT_PUBLIC_ENABLE_REQUEST_LOGGING=true
+```
+
+**For Production (no logs):**
+```env
+NEXT_PUBLIC_ENABLE_API_LOGGING=false
+NEXT_PUBLIC_ENABLE_REQUEST_LOGGING=false
+```
+
+**Note:** Keeping logging disabled in production improves performance and reduces console noise.
+
+### Running the Development Server
+
 First, run the development server:
 
 ```bash

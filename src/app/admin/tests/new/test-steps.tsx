@@ -454,11 +454,6 @@ export default function TestSteps({
       try {
         setSaving(true);
         
-        // Debug: Log the entire draft at the start of save
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('[Save] Complete draft at save start:', JSON.stringify(draft, null, 2));
-        }
-        
         // Compute edit state early
         const isEdit = (!!editMode && !!testId) || !!(draft as any)?.TestId;
         const updateId: number | undefined = (testId as number | undefined) ?? ((draft as any)?.TestId as number | undefined);
@@ -574,19 +569,24 @@ export default function TestSteps({
             const sectionDurations = (draft as any)?._sectionDurations || {};
             const questions = Array.isArray((draft as any)?.testQuestions) ? (draft as any).testQuestions : [];
             
-            // Debug logging
-            if (process.env.NODE_ENV !== 'production') {
-              console.log('[TestAssignedSubjects] Section-based duration enabled:', isSectionBased);
-              console.log('[TestAssignedSubjects] Section durations from draft:', sectionDurations);
-              console.log('[TestAssignedSubjects] Questions count:', questions.length);
+            // Check if we have any section durations to process
+            if (Object.keys(sectionDurations).length === 0) {
+              return [];
             }
             
             // Load subject hierarchy map from session (matches Step 3 logic)
             let subjMap: Record<number, { name: string; parentId: number }> = {};
             try {
               const cached = typeof window !== 'undefined' ? sessionStorage.getItem('admin:newTest:subjectMap') : null;
-              if (cached) subjMap = JSON.parse(cached);
+              if (cached) {
+                subjMap = JSON.parse(cached);
+              }
             } catch { /* ignore */ }
+            
+            // Check if we have the subject map
+            if (Object.keys(subjMap).length === 0) {
+              return [];
+            }
             
             // Helper to find root parent (same as computeRootParent in Step 3)
             const findRoot = (subjectId: number): { id: number | null; name: string | null } => {
@@ -632,11 +632,6 @@ export default function TestSteps({
                 TestAssignedSubjectId: subjectId,
                 SubjectMaxTimeDuration: data.duration
               });
-            }
-            
-            // Debug logging
-            if (process.env.NODE_ENV !== 'production') {
-              console.log('[TestAssignedSubjects] Final array:', assignedSubjects);
             }
             
             return assignedSubjects;
@@ -687,6 +682,8 @@ export default function TestSteps({
   delete (payload as any).SelectedCandidateGroupIds;
   delete (payload as any).SelectedProductIds;
   delete (payload as any).TestAssignments;
+  // Remove client-only _sectionDurations field
+  delete (payload as any)._sectionDurations;
 
   // isEdit/updateId computed earlier
         if (isEdit && !(updateId && updateId > 0)) {

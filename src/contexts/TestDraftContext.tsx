@@ -104,24 +104,8 @@ export function TestDraftProvider({ children, initial }: { children: React.React
       sessionStorage.setItem("admin:newTest:model", JSON.stringify(draft));
     } catch {}
   }, [draft]);
-  // Always defer draft updates to the next microtask to avoid setState during another component's render
-  const setDraftDeferred: React.Dispatch<React.SetStateAction<TestDraft>> = useMemo(() => {
-    return ((action: React.SetStateAction<TestDraft>) => {
-      const run = () => {
-        if (typeof action === "function") {
-          setDraft((prev) => (action as (prev: TestDraft) => TestDraft)(prev));
-        } else {
-          setDraft(action);
-        }
-      };
-      if (typeof queueMicrotask === "function") {
-        queueMicrotask(run);
-      } else {
-        setTimeout(run, 0);
-      }
-    }) as React.Dispatch<React.SetStateAction<TestDraft>>;
-  }, []);
-  const value = useMemo(() => ({ draft, setDraft: setDraftDeferred }), [draft, setDraftDeferred]);
+  
+  const value = useMemo(() => ({ draft, setDraft }), [draft]);
   return <TestDraftContext.Provider value={value}>{children}</TestDraftContext.Provider>;
 }
 
@@ -130,3 +114,4 @@ export function useTestDraft() {
   if (!ctx) throw new Error("useTestDraft must be used within TestDraftProvider");
   return ctx;
 }
+

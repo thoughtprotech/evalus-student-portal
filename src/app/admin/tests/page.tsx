@@ -37,22 +37,32 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 // AG Grid v31+ uses modules; register all community modules
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-function NameCellRenderer(props: { value: string; data: TestRow }) {
+function NameCellRenderer(props: { value: string; data: TestRow; onNavigating?: () => void }) {
   return (
     <Link
       className="text-blue-600 hover:underline"
       href={`/admin/tests/edit/${props.data.id}`}
-      onClick={() => {
-        try {
-          sessionStorage.removeItem("admin:newTest:model");
-          sessionStorage.removeItem("admin:newTest:inWizard");
-          sessionStorage.removeItem("admin:newTest:suppressClear");
-          sessionStorage.removeItem("admin:newTest:preselectedIds");
-          sessionStorage.removeItem("admin:newTest:selectedQuestions");
-          // Also clear any lingering category selection snapshots
-          sessionStorage.removeItem("admin:newTest:selectedCategoryIds");
-          sessionStorage.removeItem("admin:newTest:step1snapshot");
-        } catch { }
+      onClick={(e) => {
+        // Show loading indicator
+        if (props.onNavigating) {
+          props.onNavigating();
+        }
+        // Clear sessionStorage asynchronously to avoid blocking navigation
+        setTimeout(() => {
+          try {
+            sessionStorage.removeItem("admin:newTest:model");
+            sessionStorage.removeItem("admin:newTest:inWizard");
+            sessionStorage.removeItem("admin:newTest:suppressClear");
+            sessionStorage.removeItem("admin:newTest:preselectedIds");
+            sessionStorage.removeItem("admin:newTest:selectedQuestions");
+            sessionStorage.removeItem("admin:newTest:selectedCategoryIds");
+            sessionStorage.removeItem("admin:newTest:step1snapshot");
+            sessionStorage.removeItem("admin:newTest:sectionBasedDuration");
+            sessionStorage.removeItem("admin:newTest:sectionDurations");
+            sessionStorage.removeItem("admin:newTest:unlockTotalsOnReturn");
+            sessionStorage.removeItem("admin:newTest:subjectMap");
+          } catch { }
+        }, 0);
       }}
       title={props.value}
     >
@@ -143,6 +153,7 @@ function TestsGrid({
   const [publishConfirmOpen, setPublishConfirmOpen] = useState(false);
   const [pendingPublish, setPendingPublish] = useState<TestRow | null>(null);
   const [publishing, setPublishing] = useState(false);
+  const [navigating, setNavigating] = useState(false);
   // Track current selection so toolbar buttons can enable/disable reactively
   const [selectedRow, setSelectedRow] = useState<TestRow | null>(null);
   const [toast, setToast] = useState<{
@@ -168,6 +179,9 @@ function TestsGrid({
         filterParams: { buttons: ["apply", "reset", "clear"] },
         width: 300,
         cellRenderer: NameCellRenderer,
+        cellRendererParams: {
+          onNavigating: () => setNavigating(true),
+        },
         tooltipField: "name",
         cellClass: "no-left-border",
         headerClass: "no-left-border",
@@ -528,21 +542,31 @@ function TestsGrid({
           {/* Actions: New, Publish and Delete */}
           <Link href="/admin/tests/new">
             <button
-              className="inline-flex items-center justify-center gap-2 w-32 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 w-32 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm shadow hover:bg-indigo-700 cursor-pointer disabled:opacity-50"
               title="Create new test"
+              disabled={navigating}
               onClick={() => {
-                try {
-                  sessionStorage.removeItem("admin:newTest:model");
-                  sessionStorage.removeItem("admin:newTest:inWizard");
-                  sessionStorage.removeItem("admin:newTest:suppressClear");
-                  sessionStorage.removeItem("admin:newTest:preselectedIds");
-                  sessionStorage.removeItem("admin:newTest:selectedQuestions");
-                  // Ensure previous step1 category selection does not leak into a fresh test
-                  sessionStorage.removeItem("admin:newTest:selectedCategoryIds");
-                } catch { }
+                // Show loading indicator
+                setNavigating(true);
+                // Clear sessionStorage asynchronously to avoid blocking navigation
+                setTimeout(() => {
+                  try {
+                    sessionStorage.removeItem("admin:newTest:model");
+                    sessionStorage.removeItem("admin:newTest:inWizard");
+                    sessionStorage.removeItem("admin:newTest:suppressClear");
+                    sessionStorage.removeItem("admin:newTest:preselectedIds");
+                    sessionStorage.removeItem("admin:newTest:selectedQuestions");
+                    sessionStorage.removeItem("admin:newTest:selectedCategoryIds");
+                    sessionStorage.removeItem("admin:newTest:step1snapshot");
+                    sessionStorage.removeItem("admin:newTest:sectionBasedDuration");
+                    sessionStorage.removeItem("admin:newTest:sectionDurations");
+                    sessionStorage.removeItem("admin:newTest:unlockTotalsOnReturn");
+                    sessionStorage.removeItem("admin:newTest:subjectMap");
+                  } catch { }
+                }, 0);
               }}
             >
-              <PlusCircle className="w-4 h-4" /> New
+              <PlusCircle className="w-4 h-4" /> {navigating ? "Loading..." : "New"}
             </button>
           </Link>
           <button
@@ -760,7 +784,15 @@ function TestsGrid({
         {loading ? (
           <Loader />
         ) : (
-          <div className="h-full min-h-0">
+          <div className="h-full min-h-0 relative">
+            {navigating && (
+              <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50">
+                <div className="flex flex-col items-center gap-3">
+                  <Loader />
+                  <span className="text-sm text-gray-600">Loading test...</span>
+                </div>
+              </div>
+            )}
             <AgGridReact<TestRow>
               columnDefs={columnDefs}
               defaultColDef={defaultColDef}
