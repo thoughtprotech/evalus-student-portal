@@ -3,6 +3,7 @@
 import { ApiResponse } from "@/utils/api/types";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
+import { deleteCandidateAction } from "./candidates";
 
 // Row model consumed by the grid UI
 export interface UserRow {
@@ -274,9 +275,8 @@ export async function deleteUserAction(
     candidateId: number
 ): Promise<ApiResponse<null>> {
     try {
-        // Use the same deletion logic as candidates - via apiHandler
-        const res = await apiHandler(endpoints.deleteCandidate, { candidateId });
-        
+        // Reuse the candidate deletion logic which performs photo cleanup and API delete
+        const res = await deleteCandidateAction(candidateId);
         if (res.error || (res.status && res.status >= 400)) {
             return {
                 status: res.status || 400,
@@ -285,7 +285,7 @@ export async function deleteUserAction(
                 errorMessage: res.errorMessage,
             };
         }
-        
+
         return { 
             status: 200, 
             error: false,
