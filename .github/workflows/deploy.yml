@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -18,11 +22,11 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ghcr.io/${{ github.repository }}/evalus-student-portal:latest .
+          docker build -t ghcr.io/${{ github.repository }}:latest .
 
       - name: Push Docker image
         run: |
-          docker push ghcr.io/${{ github.repository }}/evalus-student-portal:latest
+          docker push ghcr.io/${{ github.repository }}:latest
 
       - name: Deploy on VPS
         uses: appleboy/ssh-action@v1
