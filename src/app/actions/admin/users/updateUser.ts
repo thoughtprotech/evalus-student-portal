@@ -188,28 +188,14 @@ export async function updateUserAction(payload: {
       apiPayload.userLogin[0].password = payload.password;
     }
 
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/CandidateRegistration/${payload.candidateId}/both`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(apiPayload),
-      }
-    );
+    // Use apiHandler to call the candidate API endpoint (same as candidate update)
+    const res = await apiHandler(endpoints.updateCandidate, apiPayload as any);
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.message || `HTTP ${response.status}: Failed to update user`);
+    if (!res.error) {
+      return { status: res.status, message: res.message || "User updated", error: false, data: null };
     }
 
-    return {
-      status: 200,
-      error: false,
-      data: null,
-      message: "User updated successfully",
-    };
+    return { status: res.status || 500, error: true, errorMessage: res.errorMessage || res.message };
   } catch (error: any) {
     console.error("Error updating user:", error);
     return {

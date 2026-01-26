@@ -3,15 +3,19 @@
 import { ApiResponse } from "@/utils/api/types";
 import { apiHandler } from "@/utils/api/client";
 import { endpoints } from "@/utils/api/endpoints";
+import { deleteCandidateAction } from "./candidates";
 
 // Row model consumed by the grid UI
 export interface UserRow {
     candidateId: number;
     userName: string;
     displayName: string;
+    firstName: string;
+    lastName: string;
     email: string;
     role: string;
     phoneNumber?: string;
+    address?: string;
     userPhoto?: string | null;
     isActive: number | boolean;
     createdBy: string;
@@ -41,6 +45,7 @@ interface ApiUserItem {
         createdDate?: string;
     }>;
     phoneNumber?: string;
+    address?: string;
     userPhoto?: string | null;
     isActive: number;
     createdDate: string;
@@ -102,6 +107,8 @@ export async function fetchUsersAction(
                 candidateId: 'candidateRegistrationId',
                 userName: 'userName',
                 displayName: 'displayName',
+                firstName: 'firstName',
+                lastName: 'lastName',
                 email: 'email',
                 role: 'role',
                 phoneNumber: 'phoneNumber',
@@ -219,13 +226,38 @@ export async function fetchUsersAction(
         // Map to UserRow
         const rows: UserRow[] = pageSlice.map((item) => {
             const userLoginData = item.userLogin && item.userLogin[0];
+
+            // Resolve candidate id robustly to handle API variations
+            const resolvedId = (item as any).candidateRegistrationId
+                ?? (item as any).CandidateRegistrationId
+                ?? (item as any).candidateId
+                ?? (item as any).CandidateId
+                ?? (item as any).id
+                ?? (item as any).Id
+                ?? 0;
+
+            // Resolve userName robustly (support different casing/locations)
+            const resolvedUserName =
+                userLoginData?.userName || userLoginData?.UserName ||
+                (item as any).userName || (item as any).UserName ||
+                (item as any).userLogin?.[0]?.userName || (item as any).userLogin?.[0]?.UserName || "";
+
+            // Resolve displayName similarly
+            const resolvedDisplayName =
+                userLoginData?.displayName || userLoginData?.DisplayName ||
+                (item as any).displayName || (item as any).DisplayName ||
+                `${item.firstName} ${item.lastName}`.trim() || "";
+
             return {
-                candidateId: item.candidateRegistrationId,
-                userName: userLoginData?.userName || item.userName || "",
-                displayName: userLoginData?.displayName || `${item.firstName} ${item.lastName}`.trim() || "",
+                candidateId: Number(resolvedId) || 0,
+                userName: String(resolvedUserName || ""),
+                displayName: String(resolvedDisplayName || ""),
+                firstName: item.firstName || "",
+                lastName: item.lastName || "",
                 email: userLoginData?.email || item.email || "",
                 role: userLoginData?.role || "",
                 phoneNumber: item.phoneNumber || "",
+                address: item.address || "",
                 userPhoto: userLoginData?.userPhoto || item.userPhoto || null,
                 isActive: item.isActive ?? 1,
                 createdBy: item.createdBy || "",
@@ -255,9 +287,8 @@ export async function deleteUserAction(
     candidateId: number
 ): Promise<ApiResponse<null>> {
     try {
-        // Use the same deletion logic as candidates - via apiHandler
-        const res = await apiHandler(endpoints.deleteCandidate, { candidateId });
-        
+        // Reuse the candidate deletion logic which performs photo cleanup and API delete
+        const res = await deleteCandidateAction(candidateId);
         if (res.error || (res.status && res.status >= 400)) {
             return {
                 status: res.status || 400,
@@ -266,7 +297,7 @@ export async function deleteUserAction(
                 errorMessage: res.errorMessage,
             };
         }
-        
+
         return { 
             status: 200, 
             error: false,

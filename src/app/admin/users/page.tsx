@@ -22,13 +22,17 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 function NameCellRenderer(props: { value: string; data: UserRow }) {
+    const label = (props.value && String(props.value).trim().length > 0)
+        ? props.value
+        : (props.data?.displayName || props.data?.userName || "");
+
     return (
         <Link
             className="text-blue-600 hover:underline"
             href={`/admin/users/${props.data.candidateId}/edit`}
-            title={`Edit ${props.value}`}
+            title={`Edit ${label}`}
         >
-            {props.value}
+            {label}
         </Link>
     );
 }
@@ -74,6 +78,10 @@ function UsersGrid({ query, onClearQuery }: { query: string; onClearQuery?: () =
     const [filtersVersion, setFiltersVersion] = useState(0);
     const lastReqIdRef = useRef(0);
     const skipNextFilterFetchRef = useRef(false);
+    const [resultOpen, setResultOpen] = useState(false);
+    const [resultTitle, setResultTitle] = useState("");
+    const [resultMessage, setResultMessage] = useState("");
+    const [resultVariant, setResultVariant] = useState<"success" | "danger" | "info">("success");
 
     const columnDefs = useMemo<ColDef<UserRow>[]>(
         () => [
@@ -99,6 +107,24 @@ function UsersGrid({ query, onClearQuery }: { query: string; onClearQuery?: () =
                 filter: 'agTextColumnFilter',
                 filterParams: { buttons: ['apply', 'reset', 'clear'] },
                 width: 180
+            },
+            {
+                field: "firstName",
+                headerName: "First Name",
+                headerTooltip: "First Name",
+                sortable: true,
+                filter: 'agTextColumnFilter',
+                filterParams: { buttons: ['apply', 'reset', 'clear'] },
+                width: 140
+            },
+            {
+                field: "lastName",
+                headerName: "Last Name",
+                headerTooltip: "Last Name",
+                sortable: true,
+                filter: 'agTextColumnFilter',
+                filterParams: { buttons: ['apply', 'reset', 'clear'] },
+                width: 140
             },
             {
                 field: "email",
@@ -127,6 +153,16 @@ function UsersGrid({ query, onClearQuery }: { query: string; onClearQuery?: () =
                 filter: 'agTextColumnFilter',
                 filterParams: { buttons: ['apply', 'reset', 'clear'] },
                 width: 140
+            },
+            {
+                field: "address",
+                headerName: "Address",
+                headerTooltip: "Address",
+                sortable: true,
+                filter: 'agTextColumnFilter',
+                filterParams: { buttons: ['apply', 'reset', 'clear'] },
+                minWidth: 200,
+                flex: 1
             },
             {
                 field: "isActive",
@@ -166,9 +202,12 @@ function UsersGrid({ query, onClearQuery }: { query: string; onClearQuery?: () =
             userId: 'userId',
             userName: 'userName',
             displayName: 'displayName',
+            firstName: 'firstName',
+            lastName: 'lastName',
             email: 'email',
             role: 'role',
             phoneNumber: 'phoneNumber',
+            address: 'address',
             isActive: 'isActive',
             modifiedDate: 'modifiedDate',
             createdDate: 'createdDate'
@@ -497,17 +536,26 @@ function UsersGrid({ query, onClearQuery }: { query: string; onClearQuery?: () =
                         const failedDeletes = results.filter(res => res.status !== 200);
 
                         if (failedDeletes.length === 0) {
-                            setToast({
-                                message: pendingDelete.length === 1
-                                    ? "User deleted successfully."
-                                    : `${pendingDelete.length} users deleted successfully.`,
-                                type: "success"
-                            });
+                            // show success popup
+                            setResultTitle("User deleted");
+                            setResultMessage(pendingDelete.length === 1
+                                ? "User deleted successfully."
+                                : `${pendingDelete.length} users deleted successfully.`);
+                            setResultVariant("success");
+                            setResultOpen(true);
                         } else {
-                            setToast({
-                                message: `${failedDeletes.length} users failed to delete.`,
-                                type: "error"
-                            });
+                            // Determine a user friendly message (handle FK constraint hints)
+                            const firstErr = failedDeletes[0];
+                            const rawMsg = (firstErr && (firstErr.errorMessage || firstErr.message)) || `${failedDeletes.length} users failed to delete.`;
+                            const fkPattern = /foreign|constraint|referential|in use|cannot delete/i;
+                            const userMsg = fkPattern.test(rawMsg)
+                                ? "User is being used in many tables so couldn't delete."
+                                : rawMsg;
+
+                            setResultTitle("Delete failed");
+                            setResultMessage(userMsg);
+                            setResultVariant("danger");
+                            setResultOpen(true);
                         }
 
                         const api = gridApiRef.current;
@@ -517,13 +565,27 @@ function UsersGrid({ query, onClearQuery }: { query: string; onClearQuery?: () =
                         }
                         fetchPage();
                     } catch (error) {
-                        setToast({ message: "Delete operation failed", type: "error" });
+                        setResultTitle("Delete failed");
+                        setResultMessage("Delete operation failed");
+                        setResultVariant("danger");
+                        setResultOpen(true);
                     }
 
                     setDeleting(false);
                     setConfirmOpen(false);
                     setPendingDelete([]);
                 }}
+            />
+
+            <ConfirmationModal
+                title={resultTitle}
+                message={resultMessage}
+                isOpen={resultOpen}
+                variant={resultVariant === 'success' ? 'success' : 'danger'}
+                confirmText="OK"
+                cancelText={undefined}
+                onCancel={() => { setResultOpen(false); }}
+                onConfirm={() => { setResultOpen(false); }}
             />
 
             <div className="fixed top-4 right-4 z-50 space-y-2">
