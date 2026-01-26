@@ -9,9 +9,12 @@ export interface UserRow {
     candidateId: number;
     userName: string;
     displayName: string;
+    firstName: string;
+    lastName: string;
     email: string;
     role: string;
     phoneNumber?: string;
+    address?: string;
     userPhoto?: string | null;
     isActive: number | boolean;
     createdBy: string;
@@ -41,6 +44,7 @@ interface ApiUserItem {
         createdDate?: string;
     }>;
     phoneNumber?: string;
+    address?: string;
     userPhoto?: string | null;
     isActive: number;
     createdDate: string;
@@ -102,6 +106,8 @@ export async function fetchUsersAction(
                 candidateId: 'candidateRegistrationId',
                 userName: 'userName',
                 displayName: 'displayName',
+                firstName: 'firstName',
+                lastName: 'lastName',
                 email: 'email',
                 role: 'role',
                 phoneNumber: 'phoneNumber',
@@ -233,9 +239,12 @@ export async function fetchUsersAction(
                 candidateId: Number(resolvedId) || 0,
                 userName: userLoginData?.userName || item.userName || "",
                 displayName: userLoginData?.displayName || `${item.firstName} ${item.lastName}`.trim() || "",
+                firstName: item.firstName || "",
+                lastName: item.lastName || "",
                 email: userLoginData?.email || item.email || "",
                 role: userLoginData?.role || "",
                 phoneNumber: item.phoneNumber || "",
+                address: item.address || "",
                 userPhoto: userLoginData?.userPhoto || item.userPhoto || null,
                 isActive: item.isActive ?? 1,
                 createdBy: item.createdBy || "",

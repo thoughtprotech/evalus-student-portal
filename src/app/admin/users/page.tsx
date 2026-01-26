@@ -101,6 +101,24 @@ function UsersGrid({ query, onClearQuery }: { query: string; onClearQuery?: () =
                 width: 180
             },
             {
+                field: "firstName",
+                headerName: "First Name",
+                headerTooltip: "First Name",
+                sortable: true,
+                filter: 'agTextColumnFilter',
+                filterParams: { buttons: ['apply', 'reset', 'clear'] },
+                width: 140
+            },
+            {
+                field: "lastName",
+                headerName: "Last Name",
+                headerTooltip: "Last Name",
+                sortable: true,
+                filter: 'agTextColumnFilter',
+                filterParams: { buttons: ['apply', 'reset', 'clear'] },
+                width: 140
+            },
+            {
                 field: "email",
                 headerName: "Email",
                 headerTooltip: "Email Address",
@@ -127,6 +145,16 @@ function UsersGrid({ query, onClearQuery }: { query: string; onClearQuery?: () =
                 filter: 'agTextColumnFilter',
                 filterParams: { buttons: ['apply', 'reset', 'clear'] },
                 width: 140
+            },
+            {
+                field: "address",
+                headerName: "Address",
+                headerTooltip: "Address",
+                sortable: true,
+                filter: 'agTextColumnFilter',
+                filterParams: { buttons: ['apply', 'reset', 'clear'] },
+                minWidth: 200,
+                flex: 1
             },
             {
                 field: "isActive",
@@ -166,9 +194,12 @@ function UsersGrid({ query, onClearQuery }: { query: string; onClearQuery?: () =
             userId: 'userId',
             userName: 'userName',
             displayName: 'displayName',
+            firstName: 'firstName',
+            lastName: 'lastName',
             email: 'email',
             role: 'role',
             phoneNumber: 'phoneNumber',
+            address: 'address',
             isActive: 'isActive',
             modifiedDate: 'modifiedDate',
             createdDate: 'createdDate'
