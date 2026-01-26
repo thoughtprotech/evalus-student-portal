@@ -1009,7 +1009,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                     </>
                   ) : (
                     // New layout when section-based duration is ON: 50% left (Test Totals + Bulk Update), 50% right (Section Durations)
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
                       {/* Left side: Test Totals + Bulk Update */}
                       <div className="space-y-3">
                         {/* Combined Test Totals and Duration box */}
@@ -1100,7 +1100,7 @@ export default function Step3AddQuestions({ editMode, testId, registerValidator 
                       </div>
 
                       {/* Right side: Section Durations */}
-                      <div className="bg-gray-50 rounded-md p-3 border flex flex-col" style={{ maxHeight: '385px' }}>
+                      <div className="bg-gray-50 rounded-md p-3 border flex flex-col" style={{ height: 'calc(99.5%)' }}>
                         <div className="text-sm font-semibold mb-3">Section Durations (by Subject)</div>
                         {sections.length === 0 ? (
                           <div className="text-sm text-gray-500 py-4 text-center">No sections available. Add questions with subjects to define sections.</div>

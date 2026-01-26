@@ -41,6 +41,7 @@ function SelectQuestionsPageInner() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [tagsOpen, setTagsOpen] = useState(false);
   const tagsRef = useRef<HTMLDivElement | null>(null);
+  const [excludeUsedQuestions, setExcludeUsedQuestions] = useState<boolean>(false);
 
   // Lists
   const [languages, setLanguages] = useState<Language[]>([]);
@@ -268,6 +269,7 @@ function SelectQuestionsPageInner() {
           batchNumber,
           top: effectiveSize,
           skip,
+          excludeUsed: excludeUsedQuestions,
         } as any);
       } else {
         let ids: number[] = [];
@@ -286,6 +288,7 @@ function SelectQuestionsPageInner() {
           tags: selectedTags,
           top: effectiveSize,
           skip,
+          excludeUsed: excludeUsedQuestions,
         } as any);
       }
       const data = (res.data ?? { value: [], "@odata.count": 0 }) as { value: any[]; "@odata.count"?: number };
@@ -579,6 +582,19 @@ function SelectQuestionsPageInner() {
                   <option value="">Select difficulty</option>
                   {difficulties.map((d) => <option key={d.QuestionDifficultylevelId} value={d.QuestionDifficultylevelId}>{d.QuestionDifficultylevel1}</option>)}
                 </select>
+              </div>
+
+              <div>
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={excludeUsedQuestions}
+                    onChange={(e) => setExcludeUsedQuestions(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <span>Exclude Used Questions</span>
+                </label>
+                <p className="mt-1 text-xs text-gray-500">Filter out questions already used in other tests</p>
               </div>
 
               <div>
