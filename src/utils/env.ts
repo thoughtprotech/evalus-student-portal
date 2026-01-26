@@ -14,6 +14,8 @@ export const env = {
   
   // Debug Configuration
   DEBUG_MODE: process.env.DEBUG_MODE === 'true',
+  ENABLE_API_LOGGING: process.env.NEXT_PUBLIC_ENABLE_API_LOGGING === 'true',
+  ENABLE_REQUEST_LOGGING: process.env.NEXT_PUBLIC_ENABLE_REQUEST_LOGGING === 'true',
   
   // SSL Configuration
   SSL_ENABLED: process.env.SSL_ENABLED === 'true' || true,
