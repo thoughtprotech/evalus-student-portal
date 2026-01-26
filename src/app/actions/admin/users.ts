@@ -219,8 +219,18 @@ export async function fetchUsersAction(
         // Map to UserRow
         const rows: UserRow[] = pageSlice.map((item) => {
             const userLoginData = item.userLogin && item.userLogin[0];
+
+            // Resolve candidate id robustly to handle API variations
+            const resolvedId = (item as any).candidateRegistrationId
+                ?? (item as any).CandidateRegistrationId
+                ?? (item as any).candidateId
+                ?? (item as any).CandidateId
+                ?? (item as any).id
+                ?? (item as any).Id
+                ?? 0;
+
             return {
-                candidateId: item.candidateRegistrationId,
+                candidateId: Number(resolvedId) || 0,
                 userName: userLoginData?.userName || item.userName || "",
                 displayName: userLoginData?.displayName || `${item.firstName} ${item.lastName}`.trim() || "",
                 email: userLoginData?.email || item.email || "",
