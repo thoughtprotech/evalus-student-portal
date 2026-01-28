@@ -36,4 +36,3 @@ jobs:
             cd /opt/docker-deployments/thoughtpro-tech/production/evalusui
             docker compose pull
             docker compose up -d
-            docker image prune -f
