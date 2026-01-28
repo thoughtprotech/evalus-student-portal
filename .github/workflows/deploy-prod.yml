@@ -33,7 +33,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /opt/evalus/evalusui
+            cd /opt/docker-deployments/thoughtpro-tech/production/evalusui
             docker compose pull
             docker compose up -d
             docker image prune -f
