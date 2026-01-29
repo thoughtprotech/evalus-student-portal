@@ -875,6 +875,7 @@ export const endpoints = {
       tags,
       top = 15,
       skip = 0,
+      excludeUsed = false,
     }) => {
       const lang = (language ?? "").replace(/'/g, "''");
       const parts: string[] = ["IsActive eq 1", `Language eq '${lang}'`];
@@ -894,9 +895,13 @@ export const endpoints = {
         const tagConds = tags
           .filter((t) => typeof t === "string" && t.trim().length > 0)
           .map(
-            (t) => `contains(QuestionTags,'${String(t).replace(/'/g, "''")}')`
+            (t) => `contains(QuestionTags,'${String(t).replace(/'/g, "''")}')` 
           );
         if (tagConds.length > 0) parts.push(`(${tagConds.join(" or ")})`);
+      }
+      // Exclude used questions filter
+      if (excludeUsed) {
+        parts.push("not TestQuestions/any()");
       }
       const filter = encodeURIComponent(parts.join(" and "));
       // Encode $expand value so inner $select is represented as %24select (matches working browser URL)
@@ -918,14 +923,13 @@ export const endpoints = {
       tags?: string[];
       top?: number;
       skip?: number;
+      excludeUsed?: boolean;
     },
     {
       "@odata.count"?: number;
       value: any[];
     }
-  >,
-
-  // OData - Distinct Batch Numbers for filter
+  >,  // OData - Distinct Batch Numbers for filter
   getDistinctBatchNumbersOData: {
     method: "GET",
     path: () => `/api/odata/Questions/GetDistinctBatchNumbers`,
@@ -946,15 +950,19 @@ export const endpoints = {
       batchNumber,
       top = 15,
       skip = 0,
+      excludeUsed = false,
     }: {
       batchNumber: string;
       top?: number;
       skip?: number;
+      excludeUsed?: boolean;
     }) => {
       const bn = (batchNumber ?? "").replace(/'/g, "''");
-      const filter = encodeURIComponent(
-        `IsActive eq 1 and BatchNumber eq '${bn}'`
-      );
+      const parts: string[] = ["IsActive eq 1", `BatchNumber eq '${bn}'`];
+      if (excludeUsed) {
+        parts.push("not TestQuestions/any()");
+      }
+      const filter = encodeURIComponent(parts.join(" and "));
       const expand = encodeURIComponent(
         "Questionoptions($select=QuestionText),Questiondifficultylevel($select=QuestionDifficultylevel1)"
       );
@@ -965,7 +973,7 @@ export const endpoints = {
     },
     type: "OPEN",
   } as Endpoint<
-    { batchNumber: string; top?: number; skip?: number },
+    { batchNumber: string; top?: number; skip?: number; excludeUsed?: boolean },
     { "@odata.count"?: number; value: any[] }
   >,
 

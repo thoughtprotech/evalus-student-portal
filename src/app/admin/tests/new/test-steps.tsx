@@ -23,6 +23,7 @@ import {
   FilePlus2,
   Rocket,
   Users,
+  ArrowLeft,
 } from "lucide-react";
 import { TestDraftProvider } from "@/contexts/TestDraftContext";
 import { useTestDraft } from "@/contexts/TestDraftContext";
@@ -793,26 +794,25 @@ export default function TestSteps({
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="w-[85%] mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link
+              href="/admin/tests"
+              onClick={(e) => {
+                e.preventDefault();
+                const ts = Date.now();
+                try {
+                  window.location.assign(`/admin/tests?ts=${ts}`);
+                } catch {
+                  router.push(`/admin/tests?ts=${ts}`);
+                }
+              }}
+              className="inline-flex items-center text-sm text-indigo-600 hover:underline"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" /> Back
+            </Link>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-semibold text-gray-900">{editMode ? "Edit Test" : "Create Test"}</h1>
-            </div>
-            <div>
-              <Link
-                href="/admin/tests"
-                onClick={(e) => {
-                  e.preventDefault();
-                  const ts = Date.now();
-                  try {
-                    window.location.assign(`/admin/tests?ts=${ts}`);
-                  } catch {
-                    router.push(`/admin/tests?ts=${ts}`);
-                  }
-                }}
-                className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                Back to Tests
-              </Link>
+              <ClipboardList className="w-6 h-6 text-indigo-600" />
+              <h1 className="text-2xl font-semibold text-gray-900">{editMode ? "Edit Test" : "New Test"}</h1>
             </div>
           </div>
         </div>
