@@ -227,7 +227,7 @@ export default function NewPublishedDocumentPage() {
                 {/* Candidate Groups Multi-Checkbox */}
                 <div>
                     <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600 mb-1">
-                        Select one or more groups to register
+                        Candidate Groups
                     </label>
                     <div className="border rounded p-2">
                         {groups.map(group => (

@@ -785,7 +785,7 @@ export default function EditCandidatePage() {
               <h2 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Candidate Groups</h2>
               <div className="border border-gray-200 rounded-lg bg-white">
                 <div className="flex items-center justify-between px-3 py-2 border-b bg-gray-50 rounded-t-lg">
-                  <div className="text-sm text-gray-700">Select one or more groups to register</div>
+                  <div className="text-sm text-gray-700">Select one or more groups</div>
                   <div className="text-xs text-gray-500">Selected: {selectedGroupIds.length}</div>
                 </div>
                 <div ref={treeScrollRef} onScroll={onTreeScroll} className="max-h-72 overflow-auto py-2">
