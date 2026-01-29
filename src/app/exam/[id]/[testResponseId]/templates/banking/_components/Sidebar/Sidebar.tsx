@@ -7,6 +7,7 @@ import {
   SectionsMetaDataInterface,
 } from "@/utils/api/types";
 import { Dispatch, SetStateAction } from "react";
+import WelcomeChip from "../Header/_components/WelcomeChip";
 
 export default function Sidebar({
   sidebarOpen,
@@ -16,6 +17,7 @@ export default function Sidebar({
   handleJumpTo,
   currentIndex,
   currentSection,
+  userName
 }: {
   sidebarOpen: boolean;
   setSidebarOpen: Dispatch<SetStateAction<boolean>>;
@@ -24,18 +26,19 @@ export default function Sidebar({
   handleJumpTo: (index: number, questionId: number) => void;
   currentIndex: number;
   currentSection: SectionsMetaDataInterface;
+  userName: string;
 }) {
   return (
     <aside
       className={clsx(
         // common styles
-        "bg-white border-l border-l-black flex flex-col gap-2 p-4 relative",
+        "bg-white border-l border-l-black flex flex-col gap-2 relative",
         // positioning
         "absolute lg:static w-full h-full transform transition-transform duration-300 z-50",
         // mobile open/closed
         sidebarOpen
           ? "translate-x-0 md:w-80 transition-all"
-          : "translate-x-full md:w-0 transition-all"
+          : "translate-x-full md:w-0 transition-all",
       )}
     >
       {/* Toggle Button */}
@@ -53,7 +56,7 @@ export default function Sidebar({
       </div>
       {sidebarOpen && (
         <div className="w-full h-full flex flex-col justify-between">
-          <div className="flex flex-col gap-4 pl-2">
+          <div className="flex flex-col gap-4 h-full">
             {/* <div className="flex items-center space-x-4">
               <div className="md:hidden">
                 <div onClick={() => setSidebarOpen(!sidebarOpen)}>
@@ -61,24 +64,14 @@ export default function Sidebar({
                 </div>
               </div>
             </div> */}
-            {/* Question Index */}
-            <div className="w-full flex justify-center">
-              <h1 className="text-lg font-bold">
-                {currentSection.sectionName}
-              </h1>
-            </div>
+            <WelcomeChip userName={userName} />
+            {/* Legend */}
+            <Legend questionsMeta={questionsMeta} />
             <QuestionIndex
               questionsMeta={questionsMeta}
               handleJumpTo={handleJumpTo}
               currentIndex={currentIndex}
             />
-            {/* Legend */}
-            <div className="w-full flex justify-center bg-gray-300">
-              <h1 className="font-bold">
-                {currentSection.sectionName} Section Analysis
-              </h1>
-            </div>
-            <Legend questionsMeta={questionsMeta} />
           </div>
           {/* {sidebarOpen && (
             <div className="w-full flex justify-center">

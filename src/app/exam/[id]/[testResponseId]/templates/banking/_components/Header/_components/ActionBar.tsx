@@ -14,22 +14,20 @@ export default function ActionsBar({
   userName: string;
 }) {
   return (
-    <div className="flex flex-col items-start justify-between gap-2">
-      <div className="flex flex-col items-end gap-3">
-        <div className="flex items-center">
-          <ActionButton
-            label="Show Questions"
-            title="Show questions"
-            icon={<ListChecks className="w-4 h-4" aria-hidden />}
-            onClick={onOpenQuestions}
-          />
-          <ActionButton
-            label="Instructions"
-            title={instructionsTitle}
-            icon={<Info className="w-4 h-4" aria-hidden />}
-            onClick={onOpenInstructions}
-          />
-        </div>
+    <div className="flex items-start justify-end bg-black w-full gap-2">
+      <div className="flex items-center">
+        <ActionButton
+          label="Show Questions"
+          title="Show questions"
+          icon={<ListChecks className="w-4 h-4 text-green-500" aria-hidden />}
+          onClick={onOpenQuestions}
+        />
+        <ActionButton
+          label="Instructions"
+          title={instructionsTitle}
+          icon={<Info className="w-4 h-4 text-blue-500" aria-hidden />}
+          onClick={onOpenInstructions}
+        />
       </div>
     </div>
   );

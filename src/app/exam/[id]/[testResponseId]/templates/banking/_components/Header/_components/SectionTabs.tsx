@@ -22,7 +22,7 @@ export default function SectionTabs({
 
   return (
     <div>
-      <div className="flex items-center gap-2 relative">
+      <div className="flex items-center relative w-full">
         {sections.map((s, i) => {
           const isActive = s.sectionId === activeSectionId;
           return (
@@ -35,8 +35,8 @@ export default function SectionTabs({
                 }
               }}
               className={[
-                "px-4 py-1 text-xs font-bold whitespace-nowrap` flex items-center gap-2 transition-colors text-white",
-                "bg-sky-600 rounded-md py-2 px-6",
+                "px-4 py-1 text-xs font-bold whitespace-nowrap flex items-center gap-2 transition-colors",
+                `${isActive ? "bg-sky-600 text-white" : "bg-gray-200 text-gray-800"} py-2 px-6`,
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
               ].join(" ")}
               aria-current={isActive ? "page" : undefined}
@@ -44,7 +44,9 @@ export default function SectionTabs({
               {s?.sectionName}
               <OnHover
                 trigger={
-                  <Info className="w-4 h-4 text-gray-100 hover:text-gray-600 transition-colors" />
+                  <Info
+                    className={`w-4 h-4 ${isActive ? "text-white" : "text-blue-500"} transition-colors`}
+                  />
                 }
                 dropdownClassName="w-96"
               >

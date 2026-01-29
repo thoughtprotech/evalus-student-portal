@@ -12,7 +12,7 @@ export default function ActionButton({
   return (
     <button
       type="button"
-      className="inline-flex items-center gap-1 text-gray-600 hover:text-indigo-700 active:text-indigo-800 transition-colors cursor-pointer px-2 py-1 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-white whitespace-nowrap"
+      className="inline-flex items-center gap-1 text-white hover:text-indigo-700 active:text-indigo-800 transition-colors cursor-pointer px-2 py-1 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-white whitespace-nowrap"
       aria-label={label}
       title={title}
       onClick={onClick}

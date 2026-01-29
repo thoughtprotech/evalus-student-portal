@@ -23,6 +23,9 @@ import ActionsBar from "./_components/Header/_components/ActionBar";
 import { getUserAction } from "@/app/actions/getUser";
 import InstructionsModal from "./_components/Header/_components/InstructionsModal";
 import QuestionsPreviewModal from "./_components/Header/_components/QuestionPreviewModal";
+import OnHover from "@/components/OnHover";
+import { Info } from "lucide-react";
+import QuestionCountPreview from "./_components/QuestionCountPreview";
 
 // Complete ExamPage props interface
 interface ExamPageProps {
@@ -122,6 +125,10 @@ export default function BankingTemplate({
     fetchUserName();
   }, []);
 
+  useEffect(() => {
+    console.log({ userName });
+  }, [userName]);
+
   if (!loaded) {
     return <Loader />;
   }
@@ -138,8 +145,34 @@ export default function BankingTemplate({
         onOpenQuestions={() => setShowQuestions(true)}
         userName={userName}
       />
+
       <div className="w-full h-full flex">
         <div className="w-full flex flex-col">
+          <div className="w-full bg-white px-4 py-2">
+            <div
+              className={[
+                "px-4 py-1 text-xs font-bold whitespace-nowrap` flex items-center gap-2 transition-colors text-white w-fit",
+                "bg-sky-600 rounded-md py-2 px-6",
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
+              ].join(" ")}
+            >
+              <h1>{testMetaData?.testMeta.testName}</h1>
+              <OnHover
+                trigger={
+                  <Info className="w-4 h-4 text-gray-100 hover:text-gray-600 transition-colors" />
+                }
+                dropdownClassName="w-96"
+              >
+                <QuestionCountPreview
+                  answeredCount={0}
+                  unansweredCount={0}
+                  notVisitedCount={12}
+                  reviewCount={0}
+                  ansToReviewCount={0}
+                />
+              </OnHover>
+            </div>
+          </div>
           {testMetaData && (
             <Header
               data={testMetaData!}
@@ -160,40 +193,43 @@ export default function BankingTemplate({
             {/* Test Area */}
             <div className="w-full h-full overflow-auto flex flex-row-reverse pb-9">
               {/* Main */}
-              <main className="w-full flex-1 flex flex-col gap-2 relative pl-4 overflow-y-auto">
+              <main className="w-full flex-1 flex flex-col gap-2 relative overflow-y-auto">
                 <div className="w-full h-full">
                   {question && (
                     <div className="w-full h-full bg-white rounded-md flex flex-col justify-between flex-1">
-                      <div className="w-full h-full overflow-hidden px-4 py-2">
+                      <div className="w-full h-full overflow-hidden">
+                        <div className="w-full flex px-4 py-2">
+                          <div>
+                            <h1 className="text-red-500 text-sm whitespace-nowrap">
+                              Question Type: {question.questionType}
+                            </h1>
+                          </div>
+                          <div className="w-full flex gap-2 justify-end">
+                            <div className="border-r border-r-gray-200 px-2">
+                              <h1 className="font-medium text-xs">
+                                Marks For Correct Answer:{" "}
+                                <span className="text-green-500">
+                                  {question.marks}
+                                </span>
+                              </h1>
+                            </div>
+                            <div>
+                              <h1 className="font-medium text-xs">
+                                Negative Mark:{" "}
+                                <span className="text-green-500">
+                                  {question.negativeMarks}
+                                </span>
+                              </h1>
+                            </div>
+                          </div>
+                        </div>
                         <AssessmentAreaHeader
                           question={question}
                           currentIndex={currentIndex}
                           settings={testMetaData?.testSettings!}
                         />
-                        <div className="w-full pt-2 flex justify-end">
-                          <div className="flex items-center gap-3">
-                            <div>
-                              <h1>Select Language: </h1>
-                            </div>
-                            <select
-                              title="s"
-                              className="border border-gray-300 px-4 py-1 rounded-md shadow-md cursor-pointer text-sm md:text:base"
-                              onChange={(e) => {
-                                handleLanguageChange(e.target.value);
-                              }}
-                            >
-                              {language?.map((lan) => {
-                                return (
-                                  <option value={lan.value} key={lan.value}>
-                                    {lan.label}
-                                  </option>
-                                );
-                              })}
-                            </select>
-                          </div>
-                        </div>
 
-                        <div className="w-full h-fit border border-gray-300 overflow-y-auto flex flex-col mt-4">
+                        <div className="w-full h-fit overflow-y-auto flex flex-col">
                           <div className="relative w-full h-fit p-2">
                             <QuestionArea question={question} />
                           </div>
@@ -242,6 +278,7 @@ export default function BankingTemplate({
           handleJumpTo={handleJumpTo}
           currentIndex={currentIndex}
           currentSection={currentSection!}
+          userName={userName}
         />
       </div>
 

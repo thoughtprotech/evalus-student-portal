@@ -68,47 +68,24 @@ HeaderProps) {
 
   return (
     <HeaderContainer>
-      <div className="w-full flex justify-between items-center relative">
+      <div className="w-full flex flex-col justify-between relative">
+        <div className="w-full flex justify-between">
+          <div>
+            <h1 className="text-sm font-medium">Section</h1>
+          </div>
+          <div>
+            <TimerChip
+              title="Time Left:"
+              durationMs={currentSectionId?.sectionMaxTimeDuration! * 60 * 1000}
+              onComplete={onSectionTimeUp}
+            />
+          </div>
+        </div>
         <SectionTabs
           sections={sections}
           activeSectionId={currentSectionId?.sectionId!}
           onSelectSection={onSelectSection}
         />
-        {/* <div className="flex items-center gap-20">
-          <div>
-            <h1 className="text-sm">SSC MOCK TEST</h1>
-          </div>
-          <ZoomControls />
-        </div> */}
-        {/* <div className="flex flex-col items-center gap-2">
-          <h1 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800">
-            {testName}
-          </h1>
-          <h1 className="text-indigo-700">{userName}</h1>
-        </div> */}
-        {/* <div className="flex items-center gap-2">
-          <div className="flex items-center gap-4">
-            <TimerChip
-              title="Time Left"
-              durationMs={Math.max(
-                0,
-                Number(data.testMeta.testDuration) * 60_000
-              )}
-              onComplete={onTestTimeUp}
-            />
-            {Number.isFinite(currentSection.sectionMaxTimeDuration) && currentSection.sectionMaxTimeDuration !== 0 && (
-              <TimerChip
-                title="Section Time Left"
-                durationMs={Math.max(
-                  0,
-                  currentSection.sectionMaxTimeDuration * 60_000
-                )}
-                onComplete={onSectionTimeUp}
-              />
-            )}
-          </div>
-          <WelcomeChip userName={userName} />
-        </div> */}
       </div>
     </HeaderContainer>
   );

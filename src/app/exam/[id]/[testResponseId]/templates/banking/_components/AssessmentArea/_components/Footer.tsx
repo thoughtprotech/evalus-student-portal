@@ -59,7 +59,7 @@ export default function AssessmentFooter({
   }, []);
 
   return (
-    <div className="w-full flex flex-col bg-white border-b border-b-gray-300">
+    <div className="w-full flex flex-col border-b border-b-gray-300 bg-gray-200">
       {/* <div>
         <ActionsBar
           instructionsTitle={instruction?.primaryInstruction || "Instructions"}
@@ -90,11 +90,11 @@ export default function AssessmentFooter({
                   Previous
                 </button>
               </div> */}
-              <div>
+              <div className="flex items-center gap-3">
                 <button
                   onClick={toggleMarkForReview}
                   className={clsx(
-                    "w-full md:w-fit px-6 py-1 font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500",
+                    "w-full md:w-fit px-6 py-1 font-medium text-black transition cursor-pointer bg-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500",
                   )}
                 >
                   {question?.status !== QUESTION_STATUS.TO_REVIEW
@@ -104,7 +104,7 @@ export default function AssessmentFooter({
                 <button
                   onClick={clearResponse}
                   className={clsx(
-                    "w-full md:w-fit px-6 py-1 font-medium text-white transition cursor-pointer bg-[#4570CB] hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500",
+                    "w-full md:w-fit px-6 py-1 font-medium text-black transition cursor-pointer bg-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500",
                   )}
                 >
                   Clear Response

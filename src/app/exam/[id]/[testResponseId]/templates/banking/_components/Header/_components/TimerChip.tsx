@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Timer } from "lucide-react";
 
 type TimerChipProps = {
-  title: string;
+  title?: string;
   durationMs: number;         // e.g., 10 * 60_000 for 10 minutes
   className?: string;         // optional container class override
   onComplete?: () => void;    // optional callback when the timer reaches 0
@@ -65,14 +65,14 @@ export default function TimerChip({
 
   return (
     <div
-      className={`h-fit flex flex-col items-center px-2 text-sm text-gray-800 ${className}`}
+      className={`h-fit flex items-center gap-1 px-2 text-sm text-gray-800 ${className}`}
       aria-live="polite"
       aria-label={`${title}: ${formatted}`}
       role="timer"
     >
       {/* <Timer className="w-4 h-4 text-gray-600" aria-hidden /> */}
-      <span className="font-medium text-gray-700 text-xs">{title}</span>
-      <time className="tabular-nums font-bold text-red-500 bg-yellow-200 w-full text-center text-lg" dateTime={toISODuration(formatted)}>
+      <span className="font-bold text-gray-700 whitespace-nowrap">{title}</span>
+      <time className="font-bold w-full text-center text-green-500" dateTime={toISODuration(formatted)}>
         {formatted}
       </time>
     </div>

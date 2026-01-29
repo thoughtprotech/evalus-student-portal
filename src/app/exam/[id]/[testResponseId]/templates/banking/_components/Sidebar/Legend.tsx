@@ -8,37 +8,32 @@ export default function Legend({
   questionsMeta: QuestionsMetaDataInterface[];
 }) {
   return (
-    <div className="flex flex-col gap-2 pb-4">
+    <div className="flex flex-col gap-2 px-2">
       <div className="space-y-2 text-sm">
-        <div className="w-full flex flex-col gap-1">
+        <div className="w-full grid grid-cols-2 gap-2">
           <div className="flex items-center gap-2">
-            <div className="w-full flex justify-between items-center h-6 p-2">
-              <span>Answered</span>
-              <span className="bg-yellow-200 text-red-500 px-1">
-                {
-                  questionsMeta?.filter(
-                    (question) => question.status === QUESTION_STATUS.ATTEMPTED
-                  ).length
-                }
-              </span>
+            <div className="w-8 h-8 p-2 flex items-center justify-center bg-green-500 rounded-md font-bold text-white">
+              {
+                questionsMeta?.filter(
+                  (question) => question.status === QUESTION_STATUS.ATTEMPTED
+                ).length
+              }
             </div>
+            <span>Answered</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-full flex justify-between items-center h-6 p-2">
-              <span>Not Answered</span>
-              <span className="bg-yellow-200 text-red-500 px-1">
-                {
-                  questionsMeta?.filter(
-                    (question) =>
-                      question.status === QUESTION_STATUS.NOT_VISITED
-                  ).length
-                }
-              </span>
+            <div className="w-8 h-8 p-2 flex items-center justify-center bg-red-500 rounded-md font-bold text-white">
+              {
+                questionsMeta?.filter(
+                  (question) => question.status === QUESTION_STATUS.UNATTEMPTED
+                ).length
+              }
             </div>
+            <span>Not Answered</span>
           </div>
 
-          {/* <div className="flex items-center gap-2">
-            <div className="w-8 h-8 p-2 flex items-center justify-center bg-[#0001f0] text-white rounded-md font-bold">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 p-2 flex items-center justify-center bg-gray-300 rounded-md font-bold">
               {
                 questionsMeta?.filter(
                   (question) => question.status === QUESTION_STATUS.NOT_VISITED
@@ -75,7 +70,7 @@ export default function Legend({
             <span className="w-full">
               Answered And Marked For Review (Will Be Considered For Evaluation)
             </span>
-          </div> */}
+          </div>
         </div>
       </div>
     </div>

@@ -10,12 +10,12 @@ export default function QuestionArea({
   question: QuestionsMetaDataInterface;
 }) {
   return (
-    <div className="w-full flex flex-col gap-4 h-fit relative">
+    <div className="w-full flex flex-col gap-4 h-fit relative px-4">
       <div
         className="w-full flex flex-col gap-1 h-fit overflow-x-scroll"
         id="questionBox"
       >
-        <div className="w-[1200px] h-fit relative flex flex-col gap-4">
+        <div className="w-300 h-fit relative flex flex-col gap-4">
           <DirectionsArea question={question} />
           {/* <div>
             <h1 className="font-bold text-2xl">Question</h1>

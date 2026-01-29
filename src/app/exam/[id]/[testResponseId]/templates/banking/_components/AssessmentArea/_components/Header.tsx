@@ -44,8 +44,8 @@ export default function AssessmentAreaHeader({
   // }, []);
 
   return (
-    <div className="w-full flex flex-col gap-2 md:flex md:flex-row items-center justify-between font-semibold border-b border-b-gray-300 pb-2">
-      <div className="flex gap-3 items-center">
+    <div className="w-full flex flex-col gap-2 md:flex md:flex-row items-center justify-between font-semibold border-t border-t-gray-300 border-b border-b-gray-300">
+      <div className="flex gap-3 items-center w-full bg-gray-200 px-4">
         <div>
           <h1 className="text-sm text-black">
             Question <span className="text-lg">{currentIndex + 1}</span>
