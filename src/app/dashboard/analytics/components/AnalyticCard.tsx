@@ -70,28 +70,29 @@ export default function AnalyticCard({
         </div>
       </div>
       {/* Spacer */}
-      <div className="flex-grow" />
-      <div className="mt-4">
-        <Link href={`/dashboard/analytics/${testResponseId}`}>
-          <button
-            className="w-full py-2 rounded-md bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2 cursor-pointer"
-            type="button"
-          >
-            <ArrowRight className="w-5 h-5" />
-            View Report
-          </button>
-        </Link>
-      </div>
-      <div className="mt-4">
-        <Link href={`/dashboard/analytics/answer-key/${testResponseId}`}>
-          <button
-            className="w-full py-2 rounded-md bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2 cursor-pointer"
-            type="button"
-          >
-            <ArrowRight className="w-5 h-5" />
-            View Answer Key
-          </button>
-        </Link>
+      <div className="w-full flex items-center gap-3">
+        <div className="mt-4 w-full">
+          <Link href={`/dashboard/analytics/${testResponseId}`}>
+            <button
+              className="w-full p-2 rounded-md whitespace-nowrap bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2 cursor-pointer"
+              type="button"
+            >
+              <ArrowRight className="w-5 h-5" />
+              Report
+            </button>
+          </Link>
+        </div>
+        <div className="mt-4 w-full">
+          <Link href={`/dashboard/analytics/answer-key/${testResponseId}`}>
+            <button
+              className="w-full p-2 rounded-md whitespace-nowrap bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2 cursor-pointer"
+              type="button"
+            >
+              <ArrowRight className="w-5 h-5" />
+              Answer Key
+            </button>
+          </Link>
+        </div>
       </div>
     </div>
   );
