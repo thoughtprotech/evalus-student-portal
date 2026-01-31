@@ -82,6 +82,17 @@ export default function AnalyticCard({
           </button>
         </Link>
       </div>
+      <div className="mt-4">
+        <Link href={`/dashboard/analytics/answer-key/${testResponseId}`}>
+          <button
+            className="w-full py-2 rounded-md bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2 cursor-pointer"
+            type="button"
+          >
+            <ArrowRight className="w-5 h-5" />
+            View Answer Key
+          </button>
+        </Link>
+      </div>
     </div>
   );
 }

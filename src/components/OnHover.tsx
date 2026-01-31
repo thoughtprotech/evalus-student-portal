@@ -15,7 +15,7 @@ export default function OnHover({
   dropdownClassName = "",
 }: OnHoverProps) {
   return (
-    <div className="group inline-block">
+    <div className="group inline-block z-[9999]">
       {/* trigger */}
       <div className="cursor-pointer flex">{trigger}</div>
 

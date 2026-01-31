@@ -40,7 +40,7 @@ export const QUESTION_STATUS: {
 
 export const TEST_TEMPLATE_MAPPING = {
   Default: "Default",
-  Banking: 4,
+  BANKING: "Banking",
   Railways: 5,
   Cat: 6,
   CSIR: 7,

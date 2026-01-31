@@ -26,6 +26,7 @@ import { sendHeartbeatAck } from "@/utils/signalR/calls/heartbeat";
 import DefaultTemplate from "./templates/default/page";
 import SSCTemplate from "./templates/ssc/page";
 import ExamCompletionMessage from "./_components/ExamCompletionMessage";
+import BankingTemplate from "./templates/banking/page";
 
 export default function ExamPage() {
   const { id, testResponseId } = useParams();
@@ -703,8 +704,7 @@ export default function ExamPage() {
 
   return (
     <div className="w-full h-full">
-      {/* {testMetaData?.testMeta.testTemplateName === TEST_TEMPLATE_MAPPING.SSC ? ( */}
-      <SSCTemplate
+      <BankingTemplate
         cancelSubmit={cancelSubmit}
         cancelSubmitSectionModalSubmit={cancelSubmitSectionModalSubmit}
         clearResponse={clearResponse}
@@ -734,7 +734,70 @@ export default function ExamPage() {
         checkIfMinimumSectionTimeReached={checkIfMinimumSectionTimeReached}
         sectionMaxTime={0}
       />
-      {/* ) : (
+      {/* {testMetaData?.testMeta.testTemplateName === TEST_TEMPLATE_MAPPING.SSC ? (
+        <SSCTemplate
+          cancelSubmit={cancelSubmit}
+          cancelSubmitSectionModalSubmit={cancelSubmitSectionModalSubmit}
+          clearResponse={clearResponse}
+          currentIndex={currentIndex}
+          currentSection={currentSection}
+          goToNextSection={goToNextSection}
+          handleJumpTo={handleJumpTo}
+          handleNextQuestion={handleNextQuestion}
+          handleSectionTimeout={handleSectionTimeout}
+          handleSubmit={handleSubmit}
+          handleTimeout={handleTimeout}
+          loaded={loaded}
+          question={question}
+          setCurrentSection={setCurrentSection}
+          setQuestion={setQuestion}
+          setSidebarOpen={setSidebarOpen}
+          setSubmitSectionModal={setSubmitSectionModal}
+          showModal={showModal}
+          showSubmitSectionModal={showSubmitSectionModal}
+          sidebarOpen={sidebarOpen}
+          submitTest={submitTest}
+          testMetaData={testMetaData}
+          toggleMarkForReview={toggleMarkForReview}
+          errorMessage={errorMessage}
+          handlePreviousQuestion={handlePreviousQuestion}
+          checkIfMinimumTimeReached={checkIfMinimumTimeReached}
+          checkIfMinimumSectionTimeReached={checkIfMinimumSectionTimeReached}
+          sectionMaxTime={0}
+        />
+      ) : testMetaData?.testMeta.testTemplateName ===
+        TEST_TEMPLATE_MAPPING.BANKING ? (
+        <BankingTemplate
+          cancelSubmit={cancelSubmit}
+          cancelSubmitSectionModalSubmit={cancelSubmitSectionModalSubmit}
+          clearResponse={clearResponse}
+          currentIndex={currentIndex}
+          currentSection={currentSection}
+          goToNextSection={goToNextSection}
+          handleJumpTo={handleJumpTo}
+          handleNextQuestion={handleNextQuestion}
+          handleSectionTimeout={handleSectionTimeout}
+          handleSubmit={handleSubmit}
+          handleTimeout={handleTimeout}
+          loaded={loaded}
+          question={question}
+          setCurrentSection={setCurrentSection}
+          setQuestion={setQuestion}
+          setSidebarOpen={setSidebarOpen}
+          setSubmitSectionModal={setSubmitSectionModal}
+          showModal={showModal}
+          showSubmitSectionModal={showSubmitSectionModal}
+          sidebarOpen={sidebarOpen}
+          submitTest={submitTest}
+          testMetaData={testMetaData}
+          toggleMarkForReview={toggleMarkForReview}
+          errorMessage={errorMessage}
+          handlePreviousQuestion={handlePreviousQuestion}
+          checkIfMinimumTimeReached={checkIfMinimumTimeReached}
+          checkIfMinimumSectionTimeReached={checkIfMinimumSectionTimeReached}
+          sectionMaxTime={0}
+        />
+      ) : (
         <DefaultTemplate
           cancelSubmit={cancelSubmit}
           cancelSubmitSectionModalSubmit={cancelSubmitSectionModalSubmit}
