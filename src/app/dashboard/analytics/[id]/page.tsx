@@ -131,7 +131,8 @@ export default function TestDetailsPage() {
                 <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
                   <ArrowBigUp className="text-indigo-600 w-4 h-4" />
                   <span className="text-sm text-indigo-700 font-medium">
-                    Top Attempt Duration: {testMeta?.testDurationMinutes}
+                    Top Attempt Duration:{" "}
+                    {formatMinutesToHourMinute(testMeta?.testDurationMinutes!)}
                   </span>
                 </div>
                 <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
